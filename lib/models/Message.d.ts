@@ -9,7 +9,7 @@ export declare class Message implements MessageInterface {
     selected?: string;
     mention?: Message;
     fromMe?: boolean;
-    isOld?: boolean;
+    isNew?: boolean;
     member?: string;
     text: string;
     id?: string;
@@ -33,10 +33,10 @@ export declare class Message implements MessageInterface {
      */
     setMention(mention: any): void;
     /**
-     * * Define se a mensagem é antiga
-     * @param isOld
+     * * Define se a mensagem é nova
+     * @param isNew
      */
-    setIsOld(isOld: boolean): void;
+    setIsNew(isNew: boolean): void;
     /**
      * * Define o ID da mensagem
      * @param id
@@ -83,10 +83,10 @@ export declare class Message implements MessageInterface {
      */
     getMention(): Message | undefined;
     /**
-     * * retorna se a mensagem é antiga
+     * * Retorna se a mensagem é nova
      * @returns
      */
-    getIsOld(): boolean | undefined;
+    getIsNew(): boolean | undefined;
     /**
      * * Retorna o ID da mensagem
      * @returns
@@ -98,10 +98,20 @@ export declare class Message implements MessageInterface {
      */
     getUser(): User;
     /**
-     * * retorna se
+     * * retorna se foi enviada pelo próprioI bot
      * @returns
      */
     getFromMe(): boolean;
+    /**
+     * * Define uma mensagem não refactorada
+     * @param originalMessage
+     */
+    setOriginalMessage(originalMessage: any): void;
+    /**
+     * * Retorna a mensagem não refatorada
+     * @returns
+     */
+    getOriginalMessage(): any;
     /**
      * * Define uma menção não refactorada
      * @param originalMention

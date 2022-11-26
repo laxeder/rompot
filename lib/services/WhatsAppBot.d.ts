@@ -12,7 +12,7 @@ export declare class WhatsAppBot extends BaseBot {
     statusOpts: any;
     constructor(config?: any);
     /**
-     * * Conectando ao servidor do WhatsApp
+     * * Conecta ao servidor do WhatsApp
      * @param auth
      * @param config
      * @returns

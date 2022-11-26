@@ -1,6 +1,6 @@
 import { MessageInterface } from "../types/Message";
-import {Chat} from "@models/Chat";
-import {User} from "@models/User";
+import { Chat } from "@models/Chat";
+import { User } from "@models/User";
 
 export class Message implements MessageInterface {
   private _originalMention: any;
@@ -11,7 +11,7 @@ export class Message implements MessageInterface {
   public selected?: string;
   public mention?: Message;
   public fromMe?: boolean;
-  public isOld?: boolean;
+  public isNew?: boolean;
   public member?: string;
   public text: string;
   public id?: string;
@@ -52,11 +52,11 @@ export class Message implements MessageInterface {
   }
 
   /**
-   * * Define se a mensagem é antiga
-   * @param isOld
+   * * Define se a mensagem é nova
+   * @param isNew
    */
-  public setIsOld(isOld: boolean) {
-    this.isOld = isOld;
+  public setIsNew(isNew: boolean) {
+    this.isNew = isNew;
   }
 
   /**
@@ -132,11 +132,11 @@ export class Message implements MessageInterface {
   }
 
   /**
-   * * retorna se a mensagem é antiga
+   * * Retorna se a mensagem é nova
    * @returns
    */
-  public getIsOld(): boolean | undefined {
-    return this.isOld;
+  public getIsNew(): boolean | undefined {
+    return this.isNew;
   }
 
   /**
@@ -156,11 +156,27 @@ export class Message implements MessageInterface {
   }
 
   /**
-   * * retorna se
+   * * retorna se foi enviada pelo próprioI bot
    * @returns
    */
   public getFromMe(): boolean {
     return this.fromMe || false;
+  }
+
+  /**
+   * * Define uma mensagem não refactorada
+   * @param originalMessage
+   */
+  public setOriginalMessage(originalMessage: any): void {
+    this._originalMessage = originalMessage;
+  }
+
+  /**
+   * * Retorna a mensagem não refatorada
+   * @returns
+   */
+  public getOriginalMessage(): any {
+    return this._originalMessage;
   }
 
   //? O Baileys (WhatsApp) precisa da menção original para mencionar uma mensagem

@@ -25,6 +25,6 @@ bot.addEvent("messages", async (message) => {
   await bot.send(new Status("reading", message.chat, message.id));
 
   if (message.text == "Hello") {
-    bot.send(new Message(message.chat, "Hello world!"));
+    bot.send(message);
   }
 });
