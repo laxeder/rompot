@@ -13,16 +13,20 @@ Um chatbot multi-plataforma em TypeScript.
 
 ### 🔧 Instalação
 
-Clonando repositório:
+Instalando pacote
 
 ```sh
-git clone https://github.com/laxeder/rompot.git
+npm i rompot
 ```
 
-Instalando dependencias:
+Importando API
 
-```sh
-npm run build
+```ts
+// TypeScript
+import Bot, { WhatsAppBot } from "rompot";
+
+// Javascript
+const { Bot, WhatsAppBot } = require("rompot");
 ```
 
 ## ⚙️ Exemplo
@@ -33,11 +37,9 @@ npm run example
 
 ## WhatsApp
 
-Após iniciar o bot um QR Code será emprimido no terminal, escane-o com seu WhatsApp para gerar uma nova conexão entre seu número e o Bot. Essa conexão será guardada em `./auth_info_baileys`, para gerar uma nova delete-o ou se conecte com um novo caminho de sessão.
+Após iniciar o bot um QR Code será emprimido no terminal, escane-o com seu WhatsApp para gerar uma nova conexão entre seu número e o Bot. Essa conexão será guardada em `./path-to-auth`, para gerar uma nova delete-o ou se conecte com um novo caminho de sessão.
 
 ```ts
-import Bot, { WhatsAppBot } from "rompot";
-
 const bot = new Bot(new WhatsAppBot());
 bot.build("./path-to-auth");
 ```
