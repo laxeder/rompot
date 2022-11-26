@@ -36,9 +36,10 @@ npm run example
 Após iniciar o bot um QR Code será emprimido no terminal, escane-o com seu WhatsApp para gerar uma nova conexão entre seu número e o Bot. Essa conexão será guardada em `./auth_info_baileys`, para gerar uma nova delete-o ou se conecte com um novo caminho de sessão.
 
 ```ts
-// src/application/v1/routes/build.ts
+import Bot, { WhatsAppBot } from "rompot";
 
-await Bot.build("./path-to-session");
+const bot = new Bot(new WhatsAppBot());
+bot.build("./path-to-auth");
 ```
 
 ## 🛠️ Construído com
