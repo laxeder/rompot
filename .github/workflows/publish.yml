@@ -2,7 +2,8 @@ name: Workflow - Push em NPM
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - "package.json"
 
