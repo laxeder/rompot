@@ -1,10 +1,6 @@
 {
   "name": "rompot",
-<<<<<<< HEAD
-  "version": "0.3.0",
-=======
   "version": "0.4.0",
->>>>>>> stage
   "description": "Chatbot API em TypeScript",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
