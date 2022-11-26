@@ -4,7 +4,7 @@ import { User } from "@models/User";
 
 export class Message implements MessageInterface {
   private _originalMention: any;
-  public _originalMessage: any;
+  private _originalMessage: any;
 
   public user: User = new User("");
   public mentions: string[] = [];

@@ -69,7 +69,7 @@ export class WhatsAppMessage {
 
     if (typeof imageUrl == "string") {
       imageUrl = await downloadMediaMessage(
-        message._originalMessage,
+        message.getOriginalMessage(),
         "buffer",
         {},
         {
