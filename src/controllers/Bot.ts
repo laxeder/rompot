@@ -3,6 +3,7 @@ import { uuid } from "uuidv4";
 
 import { DataBase } from "@controllers/DataBase";
 import { Commands } from "@models/Commands";
+import { BaseDB } from "@services/BaseDB";
 import { Message } from "@models/Message";
 import { BaseBot } from "@utils/BaseBot";
 import { Status } from "@models/Status";
@@ -13,13 +14,14 @@ export class Bot {
   private _awaitSendMessagesObservers: any[] = [];
   private _autoMessages: any = {};
   private _plataform: BaseBot;
-  private _db?: DataBase;
+  private _db: DataBase;
 
   public commands: Commands;
 
-  constructor(plataform: BaseBot, commands: Commands = new Commands()) {
+  constructor(plataform: BaseBot, commands: Commands = new Commands(), db: DataBase = new DataBase(new BaseDB())) {
     this._plataform = plataform;
     this.commands = commands;
+    this._db = db;
   }
 
   /**
@@ -52,7 +54,7 @@ export class Bot {
    * * Obter DataBase
    * @returns
    */
-  public getDB(): DataBase | undefined {
+  public getDB(): DataBase {
     return this._db;
   }
 
