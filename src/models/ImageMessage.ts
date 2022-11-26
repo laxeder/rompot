@@ -10,10 +10,18 @@ export class ImageMessage extends Message {
     this.image = image;
   }
 
+  /**
+   * * Define a imagem da mensagem
+   * @param image
+   */
   public setImage(image: Buffer | string) {
     this.image = image;
   }
 
+  /**
+   * * Obtem a imagem da mensagem
+   * @returns
+   */
   public getImage() {
     return this.image;
   }
