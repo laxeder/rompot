@@ -7,7 +7,6 @@ import { ImageMessage } from "@models/ImageMessage";
 import { ListMessage } from "@models/ListMessage";
 import { List, ListItem } from "../types/List";
 import { Message } from "@models/Message";
-import { logger } from "../config/logger";
 
 export class WhatsAppMessage {
   private _message: Message;
@@ -36,10 +35,12 @@ export class WhatsAppMessage {
       if (original) this.context.quoted = original;
       else this.context.quoted = this._wa.store.messages[message.mention.chat.id]?.get(message.mention.id);
     }
+
+    if (message instanceof ImageMessage) await this.refactoryImageMessage(message, wa);
     if (message instanceof ButtonMessage) this.refactoryButtonMessage(message);
     if (message instanceof ListMessage) this.refactoryListMessage(message);
-    if (message instanceof ImageMessage) await this.refactoryImageMessage(message, wa);
   }
+
   public async refactoryMessage(message: Message) {
     const msg: any = {};
 
@@ -53,11 +54,18 @@ export class WhatsAppMessage {
     return msg;
   }
 
+  /**
+   * * Refatora uma mensagem com imagem
+   * @param message 
+   * @param wa 
+   */
   public async refactoryImageMessage(message: ImageMessage, wa: WhatsAppBot) {
     this.message.caption = this.message.text;
     delete this.message.text;
 
     let imageUrl: Buffer | string | Transform = message.getImage();
+
+    const log: any = wa.config?.logger;
 
     if (typeof imageUrl == "string") {
       imageUrl = await downloadMediaMessage(
@@ -65,7 +73,7 @@ export class WhatsAppMessage {
         "buffer",
         {},
         {
-          logger,
+          logger: log,
           reuploadRequest: wa.updateMediaMessage,
         }
       );

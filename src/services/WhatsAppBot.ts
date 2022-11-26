@@ -14,11 +14,11 @@ import makeWASocket, {
   makeInMemoryStore,
 } from "@adiwajshing/baileys";
 
-import { convertMessage } from "@controllers/WAConvertMessage";
+import { WhatsAppConvertMessage } from "@controllers/WAConvertMessage";
 import { WhatsAppMessage } from "@controllers/WAMessage";
-import { loggerConfig } from "@config/logger";
 import { Message } from "@models/Message";
 import { BaseBot } from "@utils/BaseBot";
+import { loggerConfig } from "@config/logger";
 import { Status } from "@models/Status";
 
 export class WhatsAppBot extends BaseBot {
@@ -48,7 +48,7 @@ export class WhatsAppBot extends BaseBot {
   }
 
   /**
-   * * Conectando ao servidor do WhatsApp
+   * * Conecta ao servidor do WhatsApp
    * @param auth
    * @param config
    * @returns
@@ -76,9 +76,9 @@ export class WhatsAppBot extends BaseBot {
           if (m.messages.length <= 0) return;
 
           const message: WAMessage = m.messages[m.messages.length - 1];
-          const msg = convertMessage(message, m.type);
+          const msg = new WhatsAppConvertMessage(message, m.type);
 
-          this.events.messages.next(msg);
+          this.events.messages.next(msg.get());
         });
 
         // Verificando se bot conectou
@@ -151,7 +151,7 @@ export class WhatsAppBot extends BaseBot {
       return this._bot?.sendMessage(chat, message, context);
     }
 
-    //!TODO corrigir status de leitura
+    //!TODO corrigir status de leitura em grupos
     if (content instanceof Status) {
       if (content.status === "reading") {
         return this._bot?.readMessages([{ remoteJid: content.chat?.id, id: content.id }]);
