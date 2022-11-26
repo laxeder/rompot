@@ -46,6 +46,10 @@ export class ListMessage extends Message {
     return this.list[index].items.push({ title, description, id });
   }
 
+  /**
+   * * Gera um novo ID
+   * @returns 
+   */
   public generateID(): string {
     return uuid();
   }

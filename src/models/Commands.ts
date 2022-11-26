@@ -25,34 +25,64 @@ export class Command {
     this.setCategory(category || []);
   }
 
+  /**
+   * * Executa o comando
+   */
   public execute(...args: any): any {
     return this._executeCallback(...args);
   }
 
+  /**
+   * * Executa a resposta do comando
+   */
   public reply(...args: any): any {
     return this._replyCallback(...args);
   }
 
+  /**
+   * * Define a função do comando
+   * @param executeCallback
+   */
   public setExecute(executeCallback: Function) {
     this._executeCallback = executeCallback;
   }
 
+  /**
+   * * Define uma resposta ao comando
+   * @param replyCallback
+   */
   public setReply(replyCallback: Function) {
     this._replyCallback = replyCallback;
   }
 
+  /**
+   * * Define o nome do comando
+   * @param name
+   */
   public setName(name: string) {
     this.name = name;
   }
 
+  /**
+   * * Define a descrição do comando
+   * @param description
+   */
   public setDescription(description: string) {
     this.description = description;
   }
 
+  /**
+   * * Define se está permitido
+   * @param allowed
+   */
   public setAllowed(allowed: boolean) {
     this.allowed = allowed;
   }
 
+  /**
+   * * Define a permissão do comando
+   * @param permissions
+   */
   public setPermission(permissions: Array<string> | string) {
     if (typeof permissions === "string") {
       this.permissions = [permissions];
@@ -63,6 +93,10 @@ export class Command {
     }
   }
 
+  /**
+   * * Define a categoria do comando
+   * @param category
+   */
   public setCategory(category: Array<string> | string) {
     if (typeof category === "string") {
       this.category = [category];
@@ -73,6 +107,10 @@ export class Command {
     }
   }
 
+  /**
+   * * Adiciona  uma permissão ao comando
+   * @param permissions
+   */
   public addPermission(permissions: Array<string> | string) {
     if (typeof permissions === "string") {
       this.permissions.push(permissions);
@@ -83,6 +121,10 @@ export class Command {
     }
   }
 
+  /**
+   * * Adiciona uma categoria ao comando
+   * @param category
+   */
   public addCategory(category: Array<string> | string) {
     if (typeof category === "string") {
       this.category.push(category);
@@ -93,22 +135,42 @@ export class Command {
     }
   }
 
+  /**
+   * * Retorna o nome do comando
+   * @returns
+   */
   public getName(): string {
     return this.name;
   }
 
+  /**
+   * * Retorna a descricão do comando
+   * @returns
+   */
   public getDescription(): string {
     return this.description;
   }
 
+  /**
+   * * Retorna a permissão do comando
+   * @returns
+   */
   public getPermission(): Array<string> {
     return this.permissions;
   }
 
+  /**
+   * * Retorna a categoria do comando
+   * @returns
+   */
   public getCategory(): Array<string> {
     return this.category;
   }
 
+  /**
+   * * Retorna se está permetido
+   * @returns
+   */
   public getAllowed(): boolean {
     return this.allowed;
   }
@@ -143,6 +205,7 @@ export class Commands {
   /**
    * * Retorna um comando
    * @param name
+   * @param lower
    * @returns
    */
   public get(name: string, lower: boolean = true): Command | undefined {
