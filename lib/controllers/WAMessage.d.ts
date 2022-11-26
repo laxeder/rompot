@@ -17,6 +17,11 @@ export declare class WhatsAppMessage {
      */
     refactory(message: Message | undefined, wa: WhatsAppBot): Promise<void>;
     refactoryMessage(message: Message): Promise<any>;
+    /**
+     * * Refatora uma mensagem com imagem
+     * @param message
+     * @param wa
+     */
     refactoryImageMessage(message: ImageMessage, wa: WhatsAppBot): Promise<void>;
     /**
      * * Refatora uma mensagem de botão

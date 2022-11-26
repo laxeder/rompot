@@ -24,5 +24,9 @@ export declare class ListMessage extends Message {
      * @returns
      */
     addItem(index: number, title: string, description?: string, id?: string): number;
+    /**
+     * * Gera um novo ID
+     * @returns
+     */
     generateID(): string;
 }

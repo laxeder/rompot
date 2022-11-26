@@ -9,9 +9,9 @@ export declare class Bot {
     private _awaitSendMessagesObservers;
     private _autoMessages;
     private _plataform;
-    private _db?;
+    private _db;
     commands: Commands;
-    constructor(plataform: BaseBot, commands?: Commands);
+    constructor(plataform: BaseBot, commands?: Commands, db?: DataBase);
     /**
      * * Construir bot
      * @param auth
@@ -33,7 +33,7 @@ export declare class Bot {
      * * Obter DataBase
      * @returns
      */
-    getDB(): DataBase | undefined;
+    getDB(): DataBase;
     /**
      * * Definir DataBase
      */
