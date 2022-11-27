@@ -1,7 +1,8 @@
-import { Subject } from "rxjs";
+import { Subject, map } from "rxjs";
 import { uuid } from "uuidv4";
 
 import { DataBase } from "@controllers/DataBase";
+import { EventsName } from "../types/Events";
 import { Commands } from "@models/Commands";
 import { BaseDB } from "@services/BaseDB";
 import { Message } from "@models/Message";
@@ -22,6 +23,13 @@ export class Bot {
     this._plataform = plataform;
     this.commands = commands;
     this._db = db;
+    
+    this.setCommands(commands);
+  }
+
+  public setCommands(commands: Commands) {
+    commands.setBot(this);
+    this.commands = commands;
   }
 
   /**
@@ -95,8 +103,22 @@ export class Bot {
    * @param eventName
    * @param event
    */
-  public addEvent(eventName: "chats" | "messages" | "connection", event: any) {
-    this._plataform.addEvent(eventName, event);
+  public on(name: keyof EventsName, event: Function) {
+    if (name == "message") {
+      return this._plataform.on(
+        name,
+        event,
+        map((message: any) => {
+          if (message instanceof Message) {
+            message.setBot(this);
+          }
+
+          return message;
+        })
+      );
+    }
+
+    return this._plataform.on(name, event);
   }
 
   /**
