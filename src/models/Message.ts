@@ -1,21 +1,24 @@
 import { MessageInterface } from "../types/Message";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
+import { Bot } from "@controllers/Bot";
+import { Status } from "./Status";
 
 export class Message implements MessageInterface {
   private _originalMention: any;
-  public _originalMessage: any;
+  private _originalMessage: any;
+  private bot?: Bot;
 
   public user: User = new User("");
   public mentions: string[] = [];
+  public chat: Chat;
+
   public selected?: string;
   public mention?: Message;
   public fromMe?: boolean;
-  public isNew?: boolean;
-  public member?: string;
+  public isOld?: boolean;
   public text: string;
   public id?: string;
-  public chat: Chat;
 
   constructor(chat: Chat, text: string, mention?: Message, id?: string) {
     this.text = text;
@@ -24,6 +27,52 @@ export class Message implements MessageInterface {
     if (mention) this.mention = mention;
     if (id) this.id = id;
   }
+
+  //! ***** Bot Functions *****
+
+  /**
+   * * Define o bot que executa essa mensagem
+   * @param bot
+   */
+  public setBot(bot: Bot) {
+    this.bot = bot;
+  }
+
+  /**
+   * * Retorna o bot que executa essa mensagem
+   * @returns
+   */
+  public getBot(): Bot | undefined {
+    return this.bot;
+  }
+
+  /**
+   * * Responde uma mensagem
+   * @param message
+   * @param mention
+   */
+  public reply(message: Message | string, mention: boolean = true) {
+    if (this.bot) {
+      if (typeof message == "string") message = new Message(this.chat, message);
+      if (mention) message.setMention(this);
+
+      message.setChat(this.chat);
+
+      this.bot.send(message);
+    }
+  }
+
+  /**
+   * * Marca como visualizada a mensagem
+   * @returns
+   */
+  public read() {
+    if (this.bot) {
+      return this.bot.send(new Status("reading", this.chat));
+    }
+  }
+
+  //! ***************************
 
   /**
    * * Define a sala de bate-papo
@@ -53,10 +102,10 @@ export class Message implements MessageInterface {
 
   /**
    * * Define se a mensagem é nova
-   * @param isNew
+   * @param isOld
    */
-  public setIsNew(isNew: boolean) {
-    this.isNew = isNew;
+  public setIsOld(isOld: boolean) {
+    this.isOld = isOld;
   }
 
   /**
@@ -79,16 +128,8 @@ export class Message implements MessageInterface {
    * * Define se a mensagem foi enviada pelo bot
    * @param fromMe
    */
-  public setfromMe(fromMe: boolean) {
+  public setFromMe(fromMe: boolean) {
     this.fromMe = fromMe;
-  }
-
-  /**
-   * * Define um membro da mensagem
-   * @param member
-   */
-  public setMember(member: string) {
-    this.member = member;
   }
 
   /**
@@ -101,10 +142,15 @@ export class Message implements MessageInterface {
 
   /**
    * * Adiciona um numero a lista de mencionados
-   * @param mentionedId
+   * @param id
    */
-  public addMentioned(mentionedId: string) {
-    this.mentions.push(mentionedId);
+  public addMentions(id: string[] | string) {
+    if (typeof id == "string") {
+      this.mentions.push(id);
+      return;
+    }
+
+    this.mentions.push(...id);
   }
 
   /**
@@ -135,8 +181,8 @@ export class Message implements MessageInterface {
    * * Retorna se a mensagem é nova
    * @returns
    */
-  public getIsNew(): boolean | undefined {
-    return this.isNew;
+  public getIsOld(): boolean | undefined {
+    return this.isOld;
   }
 
   /**

@@ -1,18 +1,35 @@
+import { Bot } from "../controllers/Bot";
+import { Message } from "./Message";
 export declare class Command {
     private _executeCallback;
     private _replyCallback;
+    private _send?;
+    private _bot?;
     permissions: Array<string>;
     category: Array<string>;
-    allowed: boolean;
     description: string;
-    name: string;
-    constructor(name: string, description?: string, permissions?: Array<string> | string, category?: Array<string> | string, executeCallback?: Function, replyCallback?: Function);
+    allowed: boolean;
+    names: string[];
+    constructor(name: string | string[], description?: string, permissions?: Array<string> | string, category?: Array<string> | string, executeCallback?: Function, replyCallback?: Function);
+    /**
+     * * Define o bot que executa o comando
+     * @param bot
+     */
+    setBot(bot: Bot): void;
+    /**
+     * * Retorna o bot que executa o comando
+     * @returns
+     */
+    getBot(): Bot | undefined;
     /**
      * * Executa o comando
+     * @param message
+     * @param args
      */
-    execute(...args: any): any;
+    execute(message: Message, ...args: any): any;
     /**
      * * Executa a resposta do comando
+     * @param args
      */
     reply(...args: any): any;
     /**
@@ -25,11 +42,12 @@ export declare class Command {
      * @param replyCallback
      */
     setReply(replyCallback: Function): void;
+    setSend(message: string | Message): Message | undefined;
     /**
      * * Define o nome do comando
      * @param name
      */
-    setName(name: string): void;
+    setName(name: string[] | string): number | undefined;
     /**
      * * Define a descrição do comando
      * @param description
@@ -50,6 +68,7 @@ export declare class Command {
      * @param category
      */
     setCategory(category: Array<string> | string): void;
+    addName(name: string | string[]): number | undefined;
     /**
      * * Adiciona  uma permissão ao comando
      * @param permissions
@@ -61,7 +80,12 @@ export declare class Command {
      */
     addCategory(category: Array<string> | string): void;
     /**
-     * * Retorna o nome do comando
+     * * Retorna os nomes do comando
+     * @returns
+     */
+    getNames(): string[];
+    /**
+     * * Retorna os nome do comando
      * @returns
      */
     getName(): string;
@@ -87,18 +111,28 @@ export declare class Command {
     getAllowed(): boolean;
 }
 export declare class Commands {
+    private _bot?;
     commands: {
         [key: string]: Command;
     };
     constructor(commands?: {
         [key: string]: Command;
-    });
+    }, bot?: Bot);
     /**
-     * * Define um comando
-     * @param name
+     * * Define o bot que executa os comandos
+     * @param bot
+     */
+    setBot(bot: Bot): void;
+    /**
+     * * Retorna o bot que executa os comandos
+     * @returns
+     */
+    getBot(): Bot | undefined;
+    /**
+     * * Adiciona um comando
      * @param command
      */
-    setCommand(name: string, command: Command): void;
+    addCommand(command: Command): void;
     /**
      * * Define os comandos
      * @param commands

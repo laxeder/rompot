@@ -45,19 +45,19 @@ export class WhatsAppMessage {
     const msg: any = {};
 
     msg.text = message.text;
+    msg.participant = message.user.id;
 
-    if (message.member) msg.participant = message.member;
+    if (message.mentions) msg.mentions = message.mentions;
     if (message.fromMe) msg.fromMe = message.fromMe;
     if (message.id) msg.id = message.id;
-    if (message.mentions) msg.mentions = message.mentions;
 
     return msg;
   }
 
   /**
    * * Refatora uma mensagem com imagem
-   * @param message 
-   * @param wa 
+   * @param message
+   * @param wa
    */
   public async refactoryImageMessage(message: ImageMessage, wa: WhatsAppBot) {
     this.message.caption = this.message.text;
@@ -69,7 +69,7 @@ export class WhatsAppMessage {
 
     if (typeof imageUrl == "string") {
       imageUrl = await downloadMediaMessage(
-        message._originalMessage,
+        message.getOriginalMessage(),
         "buffer",
         {},
         {

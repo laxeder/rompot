@@ -1,8 +1,8 @@
 export declare class Chat {
     id: string;
     name?: string;
-    isNew?: boolean;
-    constructor(id: string, name?: string, isNew?: boolean);
+    isOld?: boolean;
+    constructor(id: string, name?: string, isOld?: boolean);
     /**
      * * Define o ID da sala de bate-papo
      * @param id
@@ -15,9 +15,9 @@ export declare class Chat {
     setName(name: string): void;
     /**
      * * Define se é uma nova sala de bate-papo
-     * @param isNew
+     * @param isOld
      */
-    setIsNew(isNew: boolean): void;
+    setIsOld(isOld: boolean): void;
     /**
      * * Retorna o ID da sala de bate-papo
      * @returns
@@ -32,5 +32,5 @@ export declare class Chat {
      * * Retorna se é uma nova sala de bate-papo
      * @returns
      */
-    getIsNew(): boolean;
+    getIsOld(): boolean;
 }
