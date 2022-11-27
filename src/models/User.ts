@@ -1,11 +1,13 @@
 export class User {
-  public id: string;
+  public id: string = "";
   public name?: string;
+  public phone?: string;
 
-  constructor(id: string, name?: string) {
-    this.id = id;
-
+  constructor(id: string, name?: string, phone?: string) {
+    if (phone) this.phone = phone;
     if (name) this.name = name;
+
+    this.setId(id);
   }
 
   /**
@@ -13,6 +15,7 @@ export class User {
    * @param id
    */
   public setId(id: string) {
+    if (id.includes("@")) this.setPhone(id.split("@")[0]);
     this.id = id;
   }
 
@@ -25,11 +28,19 @@ export class User {
   }
 
   /**
+   * * Definir número do usuário
+   * @param phone
+   */
+  public setPhone(phone: string) {
+    this.phone = phone;
+  }
+
+  /**
    * * Retorna o ID do usuário
    * @returns
    */
   public getId(): string {
-    return this.id;
+    return this.id || "";
   }
 
   /**
@@ -41,7 +52,15 @@ export class User {
   }
 
   /**
-   * * verifica se o usuário tem permissão
+   * * Definir número do usuário
+   * @returns
+   */
+  public getPhone(): string {
+    return this.phone || "";
+  }
+
+  /**
+   * * Verifica se o usuário tem permissão
    * @param userPermissions
    * @param commandPermissions
    * @param ignore
