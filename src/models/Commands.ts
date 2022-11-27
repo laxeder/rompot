@@ -1,23 +1,29 @@
+import { Bot } from "@controllers/Bot";
+import { Chat } from "./Chat";
+import { Message } from "./Message";
+
 export class Command {
   private _executeCallback: Function = () => {};
   private _replyCallback: Function = () => {};
+  private _send?: Message;
+  private _bot?: Bot;
 
   public permissions: Array<string> = [];
   public category: Array<string> = [];
+  public description: string = "";
   public allowed: boolean = true;
-  public description: string;
-  public name: string;
+  public names: string[] = [];
 
   constructor(
-    name: string,
+    name: string | string[],
     description?: string,
     permissions?: Array<string> | string,
     category?: Array<string> | string,
     executeCallback?: Function,
     replyCallback?: Function
   ) {
-    this.description = description || "";
-    this.name = name;
+    this.setName(name);
+    this.setDescription(description || "");
 
     this.setExecute(executeCallback || function () {});
     this.setReply(replyCallback || function () {});
@@ -26,14 +32,38 @@ export class Command {
   }
 
   /**
-   * * Executa o comando
+   * * Define o bot que executa o comando
+   * @param bot
    */
-  public execute(...args: any): any {
-    return this._executeCallback(...args);
+  public setBot(bot: Bot) {
+    this._bot = bot;
+  }
+
+  /**
+   * * Retorna o bot que executa o comando
+   * @returns
+   */
+  public getBot(): Bot | undefined {
+    return this._bot;
+  }
+
+  /**
+   * * Executa o comando
+   * @param message
+   * @param args
+   */
+  public execute(message: Message, ...args: any): any {
+    if (!this._send || !this._bot) {
+      return this._executeCallback(message, ...args);
+    }
+
+    this._send.chat = message.chat;
+    this._bot.send(this._send);
   }
 
   /**
    * * Executa a resposta do comando
+   * @param args
    */
   public reply(...args: any): any {
     return this._replyCallback(...args);
@@ -55,12 +85,18 @@ export class Command {
     this._replyCallback = replyCallback;
   }
 
+  public setSend(message: string | Message) {
+    if (typeof message == "string") return (this._send = new Message(new Chat(""), message));
+    this._send = message;
+  }
+
   /**
    * * Define o nome do comando
    * @param name
    */
-  public setName(name: string) {
-    this.name = name;
+  public setName(name: string[] | string) {
+    if (typeof name == "string") return this.names.push(name);
+    this.names = name;
   }
 
   /**
@@ -107,6 +143,11 @@ export class Command {
     }
   }
 
+  public addName(name: string | string[]) {
+    if (typeof name === "string") return this.names.push(name);
+    this.names.push(...name);
+  }
+
   /**
    * * Adiciona  uma permissão ao comando
    * @param permissions
@@ -136,11 +177,19 @@ export class Command {
   }
 
   /**
-   * * Retorna o nome do comando
+   * * Retorna os nomes do comando
+   * @returns
+   */
+  public getNames(): string[] {
+    return this.names;
+  }
+
+  /**
+   * * Retorna os nome do comando
    * @returns
    */
   public getName(): string {
-    return this.name;
+    return this.names[0];
   }
 
   /**
@@ -177,21 +226,44 @@ export class Command {
 }
 
 export class Commands {
+  private _bot?: Bot;
+
   public commands: { [key: string]: Command } = {};
 
-  constructor(commands?: { [key: string]: Command }) {
+  constructor(commands?: { [key: string]: Command }, bot?: Bot) {
+    if (bot) this.setBot(bot);
+
     if (commands) {
-      this.commands = commands;
+      this.setCommands(commands);
     }
   }
 
   /**
-   * * Define um comando
-   * @param name
+   * * Define o bot que executa os comandos
+   * @param bot
+   */
+  public setBot(bot: Bot) {
+    this._bot = bot;
+  }
+
+  /**
+   * * Retorna o bot que executa os comandos
+   * @returns
+   */
+  public getBot(): Bot | undefined {
+    return this._bot;
+  }
+
+  /**
+   * * Adiciona um comando
    * @param command
    */
-  public setCommand(name: string, command: Command) {
-    this.commands[name] = command;
+  public addCommand(command: Command) {
+    if (this._bot) command.setBot(this._bot);
+
+    command.getNames().forEach((name) => {
+      this.commands[name] = command;
+    });
   }
 
   /**
@@ -199,7 +271,9 @@ export class Commands {
    * @param commands
    */
   public setCommands(commands: { [key: string]: Command }) {
-    this.commands = commands;
+    Object.keys(commands).forEach((key) => {
+      this.addCommand(commands[key]);
+    });
   }
 
   /**
