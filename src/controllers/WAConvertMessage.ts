@@ -62,9 +62,9 @@ export class WhatsAppConvertMessage {
 
     if (message.key.fromMe) this._convertedMessage.fromMe = message.key.fromMe;
     if (message.key.id) this._convertedMessage.id = message.key.id;
-    if (type) this._convertedMessage.isNew = type !== "notify";
+    if (type) this._convertedMessage.isOld = type !== "notify";
 
-    this._convertedMessage._originalMessage = message;
+    this._convertedMessage.setOriginalMessage(message);
   }
 
   /**
@@ -76,7 +76,7 @@ export class WhatsAppConvertMessage {
     if (!!!messageContent) return;
 
     if (Object.keys(messageContent).includes("senderKeyDistributionMessage")) {
-      this._chat.setIsNew(true);
+      this._chat.setIsOld(true);
     }
 
     const contentType = getContentType(messageContent);

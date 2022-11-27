@@ -1,13 +1,13 @@
 export class Chat {
   public id: string;
   public name?: string;
-  public isNew?: boolean;
+  public isOld?: boolean;
 
-  constructor(id: string, name?: string, isNew?: boolean) {
+  constructor(id: string, name?: string, isOld?: boolean) {
     this.id = id;
 
     if (name) this.name = name;
-    if (isNew) this.isNew = isNew;
+    if (isOld) this.isOld = isOld;
   }
 
   /**
@@ -28,10 +28,10 @@ export class Chat {
 
   /**
    * * Define se é uma nova sala de bate-papo
-   * @param isNew
+   * @param isOld
    */
-  public setIsNew(isNew: boolean) {
-    this.isNew = isNew;
+  public setIsOld(isOld: boolean) {
+    this.isOld = isOld;
   }
 
   /**
@@ -54,7 +54,7 @@ export class Chat {
    * * Retorna se é uma nova sala de bate-papo
    * @returns
    */
-  public getIsNew(): boolean {
-    return this.isNew || false;
+  public getIsOld(): boolean {
+    return this.isOld || false;
   }
 }
