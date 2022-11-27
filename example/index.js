@@ -1,9 +1,11 @@
-const { Bot, WhatsAppBot, logger, Message, Status } = require("rompot");
+const { Bot, WhatsAppBot, logger, Message, Commands } = require("rompot");
+const commands = require("./commands");
 
 const bot = new Bot(new WhatsAppBot());
+bot.setCommands(new Commands(commands, bot));
 bot.build("./example/auth");
 
-bot.addEvent("connection", (update) => {
+bot.on("connection", (update) => {
   if (update.action == "open") {
     logger.info("Bot conectado!");
   }
@@ -17,14 +19,39 @@ bot.addEvent("connection", (update) => {
   }
 });
 
-bot.addEvent("messages", async (message) => {
+bot.on("message", async (message) => {
   // Não responder mensagem enviada pelo Bot
   if (message.fromMe) return;
 
   // Marcar mensagem como visualizada
-  await bot.send(new Status("reading", message.chat, message.id));
+  await message.read();
 
-  if (message.text == "Hello") {
-    bot.send(message);
+  // Obtem o comando digitado na mensagem e o executa
+  const command = bot.commands.get(message.text);
+
+  if (command) {
+    command.execute(message);
   }
+});
+
+bot.on("member", (member) => {
+  // Novo membro de um grupo
+  if (member.action == "add") {
+    const msg = new Message(member.chat, `Bem vindo ao grupo @${member.user.phone}`);
+
+    // Menciona uma pessoa na mensagem
+    msg.addMentions(member.user.id);
+
+    // Envia a mensagem criada
+    bot.send(msg);
+  }
+
+  // Member saiu de um grupo
+  if (member.action == "remove") {
+    //...
+  }
+});
+
+bot.on("error", (err) => {
+  logger.error(`Um erro ocorreu: ${err}`);
 });
