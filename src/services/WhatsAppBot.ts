@@ -12,6 +12,7 @@ import makeWASocket, {
   WASocket,
   WAPresence,
   makeInMemoryStore,
+  ParticipantAction,
 } from "@adiwajshing/baileys";
 
 import { WhatsAppConvertMessage } from "@controllers/WAConvertMessage";
@@ -20,6 +21,8 @@ import { Message } from "@models/Message";
 import { BaseBot } from "@utils/BaseBot";
 import { loggerConfig } from "@config/logger";
 import { Status } from "@models/Status";
+import { Chat } from "@models/Chat";
+import { User } from "@models/User";
 
 export class WhatsAppBot extends BaseBot {
   private _auth: string = "";
@@ -78,7 +81,13 @@ export class WhatsAppBot extends BaseBot {
           const message: WAMessage = m.messages[m.messages.length - 1];
           const msg = new WhatsAppConvertMessage(message, m.type);
 
-          this.events.messages.next(msg.get());
+          this.events.message.next(msg.get());
+        });
+
+        this._bot.ev.on("group-participants.update", (group) => {
+          group.participants.forEach((user) => {
+            this.events.member.next({ action: group.action, chat: new Chat(group.id), user: new User(user) });
+          });
         });
 
         // Verificando se bot conectou
