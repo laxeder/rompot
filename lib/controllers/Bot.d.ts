@@ -1,4 +1,5 @@
 import { DataBase } from "./DataBase";
+import { EventsName } from "../types/Events";
 import { Commands } from "../models/Commands";
 import { Message } from "../models/Message";
 import { BaseBot } from "../utils/BaseBot";
@@ -12,6 +13,7 @@ export declare class Bot {
     private _db;
     commands: Commands;
     constructor(plataform: BaseBot, commands?: Commands, db?: DataBase);
+    setCommands(commands: Commands): void;
     /**
      * * Construir bot
      * @param auth
@@ -61,7 +63,7 @@ export declare class Bot {
      * @param eventName
      * @param event
      */
-    addEvent(eventName: "chats" | "messages" | "connection", event: any): void;
+    on(name: keyof EventsName, event: Function): import("rxjs").Subscription;
     /**
      * * Envia um conteúdo
      * @param content

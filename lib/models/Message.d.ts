@@ -1,20 +1,42 @@
 import { MessageInterface } from "../types/Message";
 import { Chat } from "./Chat";
 import { User } from "./User";
+import { Bot } from "../controllers/Bot";
 export declare class Message implements MessageInterface {
     private _originalMention;
-    _originalMessage: any;
+    private _originalMessage;
+    private bot?;
     user: User;
     mentions: string[];
+    chat: Chat;
     selected?: string;
     mention?: Message;
     fromMe?: boolean;
-    isNew?: boolean;
-    member?: string;
+    isOld?: boolean;
     text: string;
     id?: string;
-    chat: Chat;
     constructor(chat: Chat, text: string, mention?: Message, id?: string);
+    /**
+     * * Define o bot que executa essa mensagem
+     * @param bot
+     */
+    setBot(bot: Bot): void;
+    /**
+     * * Retorna o bot que executa essa mensagem
+     * @returns
+     */
+    getBot(): Bot | undefined;
+    /**
+     * * Responde uma mensagem
+     * @param message
+     * @param mention
+     */
+    reply(message: Message | string, mention?: boolean): void;
+    /**
+     * * Marca como visualizada a mensagem
+     * @returns
+     */
+    read(): Promise<any> | undefined;
     /**
      * * Define a sala de bate-papo
      * @param chat
@@ -34,9 +56,9 @@ export declare class Message implements MessageInterface {
     setMention(mention: any): void;
     /**
      * * Define se a mensagem é nova
-     * @param isNew
+     * @param isOld
      */
-    setIsNew(isNew: boolean): void;
+    setIsOld(isOld: boolean): void;
     /**
      * * Define o ID da mensagem
      * @param id
@@ -51,12 +73,7 @@ export declare class Message implements MessageInterface {
      * * Define se a mensagem foi enviada pelo bot
      * @param fromMe
      */
-    setfromMe(fromMe: boolean): void;
-    /**
-     * * Define um membro da mensagem
-     * @param member
-     */
-    setMember(member: string): void;
+    setFromMe(fromMe: boolean): void;
     /**
      * * Define as menções feitas nas mensagens
      * @param mentions
@@ -64,9 +81,9 @@ export declare class Message implements MessageInterface {
     setMentions(mentions: string[]): void;
     /**
      * * Adiciona um numero a lista de mencionados
-     * @param mentionedId
+     * @param id
      */
-    addMentioned(mentionedId: string): void;
+    addMentions(id: string[] | string): void;
     /**
      * * Obter a sala de bate-papo da mensagem
      * @returns
@@ -86,7 +103,7 @@ export declare class Message implements MessageInterface {
      * * Retorna se a mensagem é nova
      * @returns
      */
-    getIsNew(): boolean | undefined;
+    getIsOld(): boolean | undefined;
     /**
      * * Retorna o ID da mensagem
      * @returns

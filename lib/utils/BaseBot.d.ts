@@ -1,3 +1,4 @@
+import { OperatorFunction } from "rxjs";
 import { Events, BotInterface, EventsName } from "../types/index";
 import { Message } from "../models/Message";
 import { Status } from "../models/Status";
@@ -18,6 +19,7 @@ export declare class BaseBot implements BotInterface {
      * * Adiciona um evento
      * @param eventName
      * @param event
+     * @returns
      */
-    addEvent(eventName: keyof EventsName, event: any): void;
+    on(eventName: keyof EventsName, event: any, pipe?: OperatorFunction<any, unknown>): import("rxjs").Subscription;
 }

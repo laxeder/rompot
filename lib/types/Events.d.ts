@@ -1,11 +1,15 @@
 import { Subject } from "rxjs";
 export interface EventsName {
     connection: string;
-    messages: string;
+    message: string;
     chats: string;
+    error: string;
+    member: string;
 }
 export interface Events {
-    messages: Subject<any>;
     connection: Subject<any>;
+    message: Subject<any>;
+    member: Subject<any>;
     chats: Subject<any>;
+    error: Subject<any>;
 }
