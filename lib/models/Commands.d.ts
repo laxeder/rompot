@@ -1,5 +1,5 @@
+import { Message } from "../buttons/Message";
 import { Bot } from "../controllers/Bot";
-import { Message } from "./Message";
 export declare class Command {
     private _executeCallback;
     private _replyCallback;
@@ -115,9 +115,20 @@ export declare class Commands {
     commands: {
         [key: string]: Command;
     };
+    prefix?: string;
     constructor(commands?: {
         [key: string]: Command;
     }, bot?: Bot);
+    /**
+     * * Define um prefixo geral
+     * @param prefix
+     */
+    setPrefix(prefix: string): void;
+    /**
+     * * Obter prefixo geral
+     * @returns
+     */
+    getPrefix(): string | undefined;
     /**
      * * Define o bot que executa os comandos
      * @param bot
@@ -142,9 +153,8 @@ export declare class Commands {
     }): void;
     /**
      * * Retorna um comando
-     * @param name
-     * @param lower
+     * @param names
      * @returns
      */
-    get(name: string, lower?: boolean): Command | undefined;
+    get(names: string | string[]): Command | undefined;
 }

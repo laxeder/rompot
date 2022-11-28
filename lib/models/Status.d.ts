@@ -1,10 +1,11 @@
 import { StatusOptions } from "../types/Status";
+import { Message } from "../buttons/Message";
 import { Chat } from "./Chat";
 export declare class Status {
     status: keyof StatusOptions;
     chat?: Chat;
-    id?: string;
-    constructor(status: keyof StatusOptions, chat?: Chat, id?: string);
+    message?: Message;
+    constructor(status: keyof StatusOptions, chat?: Chat, message?: Message);
     /**
      * * Define o status
      * @param status
@@ -16,10 +17,10 @@ export declare class Status {
      */
     setChat(chat: Chat): void;
     /**
-     * * Define o ID da mensagem que está com esse status
-     * @param id
+     * * Define a mensagem que está com esse status
+     * @param message
      */
-    setId(id: string): void;
+    setMessage(message: Message): void;
     /**
      * * Retorna o status
      * @returns
@@ -31,8 +32,8 @@ export declare class Status {
      */
     getChat(): Chat | undefined;
     /**
-     * *  Retorna o ID da mensagem que está com esse status
+     * *  Retorna a mensagem que está com esse status
      * @returns
      */
-    getId(): string | undefined;
+    getMessage(): Message | undefined;
 }

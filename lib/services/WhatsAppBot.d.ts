@@ -1,5 +1,5 @@
 import { DisconnectReason, proto, MediaDownloadOptions, UserFacingSocketConfig } from "@adiwajshing/baileys";
-import { Message } from "../models/Message";
+import { Message } from "../buttons/Message";
 import { BaseBot } from "../utils/BaseBot";
 import { Status } from "../models/Status";
 export declare class WhatsAppBot extends BaseBot {

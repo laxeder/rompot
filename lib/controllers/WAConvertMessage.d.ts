@@ -1,5 +1,5 @@
 import { MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
-import { Message } from "../models/Message";
+import { Message } from "../buttons/Message";
 export declare class WhatsAppConvertMessage {
     private _type?;
     private _message;
@@ -36,6 +36,22 @@ export declare class WhatsAppConvertMessage {
      * @returns
      */
     convertContextMessage(context: proto.ContextInfo): void;
+    /**
+     * * Converte mensagem de localização
+     * @param content
+     */
+    convertLocationMessage(content: any): void;
+    /**
+     * * Converte mensagem com contatos
+     * @param content
+     */
+    convertContactMessage(content: any): void;
+    /**
+     * * Converte mensagem de midia
+     * @param content
+     * @param contentType
+     */
+    convertMediaMessage(content: any, contentType: keyof proto.IMessage): void;
     /**
      * * Converte uma mensagem de botão
      * @param content

@@ -1,7 +1,7 @@
 import { DataBase } from "./DataBase";
 import { EventsName } from "../types/Events";
 import { Commands } from "../models/Commands";
-import { Message } from "../models/Message";
+import { Message } from "../buttons/Message";
 import { BaseBot } from "../utils/BaseBot";
 import { Status } from "../models/Status";
 import { Chat } from "../models/Chat";
@@ -60,7 +60,7 @@ export declare class Bot {
     };
     /**
      * * Adiciona um evento
-     * @param eventName
+     * @param name
      * @param event
      */
     on(name: keyof EventsName, event: Function): import("rxjs").Subscription;
