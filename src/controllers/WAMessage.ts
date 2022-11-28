@@ -1,9 +1,9 @@
 import { ButtonMessage } from "@models/ButtonMessage";
 import { WhatsAppBot } from "@services/WhatsAppBot";
-import { ImageMessage } from "@models/ImageMessage";
 import { ListMessage } from "@models/ListMessage";
 import { List, ListItem } from "../types/List";
 import { Message } from "@models/Message";
+import { MediaMessage } from "@models/MediaMessage";
 
 export class WhatsAppMessage {
   private _message: Message;
@@ -13,9 +13,9 @@ export class WhatsAppMessage {
   public message: any = {};
   public context: any = {};
 
-  constructor(wa: WhatsAppBot, message: Message | ButtonMessage) {
-    this._wa = wa;
+  constructor(wa: WhatsAppBot, message: Message) {
     this._message = message;
+    this._wa = wa;
   }
 
   /**
@@ -32,7 +32,7 @@ export class WhatsAppMessage {
       else this.context.quoted = this._wa.store.messages[message.mention.chat.id]?.get(message.mention.id);
     }
 
-    if (message instanceof ImageMessage) await this.refactoryImageMessage(message);
+    if (message instanceof MediaMessage) await this.refactoryMediaMessage(message);
     if (message instanceof ButtonMessage) await this.refactoryButtonMessage(message);
     if (message instanceof ListMessage) this.refactoryListMessage(message);
   }
@@ -56,14 +56,32 @@ export class WhatsAppMessage {
   }
 
   /**
-   * * Refatora uma mensagem com imagem
+   * * Refatora uma mensagem de midia
    * @param message
    */
-  public async refactoryImageMessage(message: ImageMessage) {
+  public async refactoryMediaMessage(message: MediaMessage) {
     this.message.caption = this.message.text;
     delete this.message.text;
 
-    this.message.image = await message.getImage();
+    const image = await message.getImage();
+    if (image) {
+      this.message.image = image;
+    }
+
+    const video = await message.getVideo();
+    if (video) {
+      this.message.video = video;
+    }
+
+    const audio = await message.getAudio();
+    if (audio) {
+      this.message.audio = audio;
+      this.message.mimetype = "audio/mp4";
+    }
+
+    if (message.isGIF) {
+      this.message.gifPlayback = true;
+    }
   }
 
   /**
@@ -71,13 +89,9 @@ export class WhatsAppMessage {
    * @param message
    */
   public async refactoryButtonMessage(message: ButtonMessage) {
-    this.message.templateButtons = message.buttons;
     this.message.footer = message.footer;
+    this.message.templateButtons = [];
     this.message.text = message.text;
-
-    const image = await message.getImage();
-
-    if (image) this.message.image = { url: image };
 
     message.buttons.forEach((button) => {
       const btn: any = {};
@@ -85,7 +99,7 @@ export class WhatsAppMessage {
 
       if (button.reply) btn.quickReplyButton = { displayText: button.reply.text, id: button.reply.id };
       if (button.call) btn.callButton = { displayText: button.call.text, phoneNumber: button.call.phone };
-      if (button.url) btn.urlButton = { displayText: button.url.text, phoneNumber: button.url.url };
+      if (button.url) btn.urlButton = { displayText: button.url.text, url: button.url.url };
 
       this.message.templateButtons.push(btn);
     });

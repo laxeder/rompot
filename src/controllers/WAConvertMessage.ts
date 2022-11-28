@@ -15,6 +15,8 @@ import { loggerConfig } from "@config/logger";
 import { Message } from "@models/Message";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
+import { VideoMessage } from "@models/VideoMessage";
+import { AudioMessage } from "@models/AudioMessage";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
@@ -101,7 +103,7 @@ export class WhatsAppConvertMessage {
     }
 
     if (contentType == "imageMessage" || contentType == "videoMessage" || contentType == "audioMessage") {
-      this.convertMediaMessage(messageContent, contentType);
+      this.convertMediaMessage(content, contentType);
     }
 
     if (contentType === "buttonsMessage" || contentType === "templateMessage") {
@@ -172,7 +174,19 @@ export class WhatsAppConvertMessage {
       this._convertedMessage = new ImageMessage(this._chat, this._convertedMessage.text, content.url);
     }
 
-    const log: any = loggerConfig({ level: "silent" });
+    if (contentType == "videoMessage") {
+      this._convertedMessage = new VideoMessage(this._chat, this._convertedMessage.text, content.url);
+    }
+
+    if (contentType == "audioMessage") {
+      this._convertedMessage = new AudioMessage(this._chat, this._convertedMessage.text, content.url);
+    }
+
+    if (content.gifPlayback && this._convertedMessage instanceof MediaMessage) {
+      this._convertedMessage.setIsGIF(true);
+    }
+
+    const logger: any = loggerConfig({ level: "silent" });
 
     if (this._convertedMessage instanceof MediaMessage) {
       const download = () =>
@@ -181,16 +195,13 @@ export class WhatsAppConvertMessage {
           "buffer",
           {},
           {
-            logger: log,
+            logger,
             reuploadRequest: (msg: proto.IWebMessageInfo) => new Promise((resolve) => resolve(msg)),
           }
         );
 
       this._convertedMessage.setSream(download);
     }
-
-    //TODO: ler outras media message
-    // if (contentType == "videoMessage" || contentType == "audioMessage")
   }
 
   /**
