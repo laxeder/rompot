@@ -1,35 +1,17 @@
-import { MediaMessage } from "./MediaMessage";
+import { Message } from "@models/Message";
 import { Button } from "../types/Button";
 import { Chat } from "@models/Chat";
 
-export class ButtonMessage extends MediaMessage {
-  private _image?: any;
-
+export class ButtonMessage extends Message {
   public buttons: Array<Button> = [];
   public footer: string;
   public type: number;
 
-  constructor(chat: Chat, text: string, footer: string = "", type: number = 1) {
+  constructor(chat: Chat, text: string, footer: string = "", type: number = 4) {
     super(chat, text);
 
     this.footer = footer;
     this.type = type;
-  }
-
-  /**
-   * * Define a imagem da mensagem
-   * @param image
-   */
-  public setImage(image: any) {
-    this._image = image;
-  }
-
-  /**
-   * * Obtem a imagem da mensagem
-   * @returns
-   */
-  public async getImage() {
-    return await this.getStream(this._image);
   }
 
   /**
@@ -63,7 +45,7 @@ export class ButtonMessage extends MediaMessage {
   /**
    * * Adiciona um botão com um telefone
    * @param text
-   * @param call
+   * @param phone
    * @param index
    * @returns
    */
