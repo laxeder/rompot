@@ -12,7 +12,7 @@ import makeWASocket, {
   WASocket,
   WAPresence,
   makeInMemoryStore,
-  ParticipantAction,
+  generateWAMessage,
 } from "@adiwajshing/baileys";
 
 import { WhatsAppConvertMessage } from "@controllers/WAConvertMessage";
@@ -79,7 +79,15 @@ export class WhatsAppBot extends BaseBot {
           if (m.messages.length <= 0) return;
 
           const message: WAMessage = m.messages[m.messages.length - 1];
+
+          if (message.key.remoteJid == "status@broadcast") return;
+
           const msg = new WhatsAppConvertMessage(message, m.type);
+
+          if (message.key.fromMe) {
+            this.events["bot-message"].next(msg.get());
+            return;
+          }
 
           this.events.message.next(msg.get());
         });
@@ -155,13 +163,26 @@ export class WhatsAppBot extends BaseBot {
 
       const { chat, message, context } = waMSG;
 
+      if (message.hasOwnProperty("templateButtons")) {
+        const fullMsg = await generateWAMessage(chat, message, {
+          userJid: this._bot?.user?.id,
+          logger: this.config.logger,
+          ...context,
+        });
+
+        fullMsg.message = { viewOnceMessage: { message: fullMsg.message } };
+
+        return this._bot?.relayMessage(chat, fullMsg.message!, { messageId: fullMsg.key.id! });
+      }
+
       return this._bot?.sendMessage(chat, message, context);
     }
 
-    //!TODO corrigir status de leitura em grupos
     if (content instanceof Status) {
       if (content.status === "reading") {
-        return this._bot?.readMessages([{ remoteJid: content.chat?.id, id: content.id }]);
+        return this._bot?.readMessages([
+          { remoteJid: content.chat?.id, id: content.message?.id, participant: content.message?.user.id },
+        ]);
       }
 
       const status: WAPresence = this.statusOpts[content.status];
