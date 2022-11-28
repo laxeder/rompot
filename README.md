@@ -52,8 +52,7 @@ hello.setSend("Hello There!");
 // Executa uma função quando chamado
 const date = new Command(["date", "dt", "data"]);
 date.setExecute((message: Message) => {
-  const bot = message.getBot();
-  bot.send(new Message(message.chat, `Data: ${new Date()}`));
+  message.reply(`Data: ${new Date()}`);
 });
 
 // Listando comandos
@@ -86,7 +85,7 @@ bot.on("connection", (update: { action: string; status?: number; login?: any }) 
 
 ```ts
 bot.on("message", async (message: Message) => {
-  if (message.text = "Oi") {
+  if (message.text == "Oi") {
     message.reply("Olá);
   }
 });
