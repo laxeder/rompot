@@ -68,7 +68,7 @@ export class Message implements MessageInterface {
    */
   public read() {
     if (this.bot) {
-      return this.bot.send(new Status("reading", this.chat));
+      return this.bot.send(new Status("reading", this.chat, this));
     }
   }
 

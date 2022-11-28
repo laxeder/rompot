@@ -1,15 +1,16 @@
 import { StatusOptions } from "../types/Status";
 import { Chat } from "@models/Chat";
+import { Message } from "@models/Message";
 
 export class Status {
   public status: keyof StatusOptions;
   public chat?: Chat;
-  public id?: string;
+  public message?: Message;
 
-  constructor(status: keyof StatusOptions, chat?: Chat, id?: string) {
+  constructor(status: keyof StatusOptions, chat?: Chat, message?: Message) {
+    this.message = message;
     this.status = status;
     this.chat = chat;
-    this.id = id;
   }
 
   /**
@@ -29,11 +30,11 @@ export class Status {
   }
 
   /**
-   * * Define o ID da mensagem que está com esse status
-   * @param id
+   * * Define a mensagem que está com esse status
+   * @param message
    */
-  public setId(id: string) {
-    this.id = id;
+  public setMessage(message: Message) {
+    this.message = message;
   }
 
   /**
@@ -53,10 +54,10 @@ export class Status {
   }
 
   /**
-   * *  Retorna o ID da mensagem que está com esse status
+   * *  Retorna a mensagem que está com esse status
    * @returns
    */
-  public getId(): string | undefined {
-    return this.id;
+  public getMessage(): Message | undefined {
+    return this.message;
   }
 }
