@@ -1,8 +1,17 @@
-import { getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
+import {
+  downloadMediaMessage,
+  getContentType,
+  MessageUpsertType,
+  proto,
+  WAMessage,
+  WAMessageContent,
+} from "@adiwajshing/baileys";
 
 import { ButtonMessage } from "@models/ButtonMessage";
 import { ImageMessage } from "@models/ImageMessage";
+import { MediaMessage } from "@models/MediaMessage";
 import { ListMessage } from "@models/ListMessage";
+import { loggerConfig } from "@config/logger";
 import { Message } from "@models/Message";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
@@ -91,8 +100,8 @@ export class WhatsAppConvertMessage {
       return;
     }
 
-    if (contentType == "imageMessage") {
-      this._convertedMessage = new ImageMessage(this._chat, this._convertedMessage.text, content.url);
+    if (contentType == "imageMessage" || contentType == "videoMessage" || contentType == "audioMessage") {
+      this.convertMediaMessage(messageContent, contentType);
     }
 
     if (contentType === "buttonsMessage" || contentType === "templateMessage") {
@@ -148,9 +157,40 @@ export class WhatsAppConvertMessage {
       const wa = new WhatsAppConvertMessage(message);
 
       this._mention = wa.get();
-      
+
       this._convertedMessage.setOriginalMention(message);
     }
+  }
+
+  /**
+   * * Converte mensagem de midia
+   * @param content
+   * @param contentType
+   */
+  public convertMediaMessage(content: any, contentType: keyof proto.IMessage) {
+    if (contentType == "imageMessage") {
+      this._convertedMessage = new ImageMessage(this._chat, this._convertedMessage.text, content.url);
+    }
+
+    const log: any = loggerConfig({ level: "silent" });
+
+    if (this._convertedMessage instanceof MediaMessage) {
+      const download = () =>
+        downloadMediaMessage(
+          this._message,
+          "buffer",
+          {},
+          {
+            logger: log,
+            reuploadRequest: (msg: proto.IWebMessageInfo) => new Promise((resolve) => resolve(msg)),
+          }
+        );
+
+      this._convertedMessage.setSream(download);
+    }
+
+    //TODO: ler outras media message
+    // if (contentType == "videoMessage" || contentType == "audioMessage")
   }
 
   /**

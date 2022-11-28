@@ -151,7 +151,7 @@ export class WhatsAppBot extends BaseBot {
   public async send(content: Message | Status): Promise<any> {
     if (content instanceof Message) {
       const waMSG = new WhatsAppMessage(this, content);
-      await waMSG.refactory(content, this);
+      await waMSG.refactory(content);
 
       const { chat, message, context, relay } = waMSG;
 
