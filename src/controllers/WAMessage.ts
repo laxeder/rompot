@@ -1,6 +1,3 @@
-import { downloadMediaMessage } from "@adiwajshing/baileys";
-import { Transform } from "stream";
-
 import { ButtonMessage } from "@models/ButtonMessage";
 import { WhatsAppBot } from "@services/WhatsAppBot";
 import { ImageMessage } from "@models/ImageMessage";
@@ -15,7 +12,6 @@ export class WhatsAppMessage {
   public chat: string = "";
   public message: any = {};
   public context: any = {};
-  public relay: boolean = false;
 
   constructor(wa: WhatsAppBot, message: Message | ButtonMessage) {
     this._wa = wa;
@@ -37,7 +33,7 @@ export class WhatsAppMessage {
     }
 
     if (message instanceof ImageMessage) await this.refactoryImageMessage(message);
-    if (message instanceof ButtonMessage) this.refactoryButtonMessage(message);
+    if (message instanceof ButtonMessage) await this.refactoryButtonMessage(message);
     if (message instanceof ListMessage) this.refactoryListMessage(message);
   }
 

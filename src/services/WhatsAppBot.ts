@@ -153,9 +153,7 @@ export class WhatsAppBot extends BaseBot {
       const waMSG = new WhatsAppMessage(this, content);
       await waMSG.refactory(content);
 
-      const { chat, message, context, relay } = waMSG;
-
-      if (relay == true) return this._bot?.relayMessage(chat, message, {});
+      const { chat, message, context } = waMSG;
 
       return this._bot?.sendMessage(chat, message, context);
     }
