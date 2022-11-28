@@ -4,8 +4,8 @@ import { uuid } from "uuidv4";
 import { DataBase } from "@controllers/DataBase";
 import { EventsName } from "../types/Events";
 import { Commands } from "@models/Commands";
+import { Message } from "@buttons/Message";
 import { BaseDB } from "@services/BaseDB";
-import { Message } from "@models/Message";
 import { BaseBot } from "@utils/BaseBot";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
@@ -23,7 +23,7 @@ export class Bot {
     this._plataform = plataform;
     this.commands = commands;
     this._db = db;
-    
+
     this.setCommands(commands);
   }
 
@@ -38,6 +38,15 @@ export class Bot {
    * @param config
    */
   public build(auth: string, config?: any): Promise<any> {
+    this.on("message", (message: Message) => {
+      const text = message.text.split(/\s+/i)[0];
+      const lowText = text.toLowerCase().trim();
+
+      const command = this.commands.get([message.text, text, lowText]);
+
+      if (command) command.execute(message);
+    });
+
     return this._plataform.connect(auth, config);
   }
 
@@ -100,7 +109,7 @@ export class Bot {
 
   /**
    * * Adiciona um evento
-   * @param eventName
+   * @param name
    * @param event
    */
   public on(name: keyof EventsName, event: Function) {
@@ -111,6 +120,7 @@ export class Bot {
         map((message: any) => {
           if (message instanceof Message) {
             message.setBot(this);
+            message.read();
           }
 
           return message;

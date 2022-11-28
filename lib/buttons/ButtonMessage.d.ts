@@ -1,6 +1,6 @@
 import { Message } from "./Message";
 import { Button } from "../types/Button";
-import { Chat } from "./Chat";
+import { Chat } from "../models/Chat";
 export declare class ButtonMessage extends Message {
     buttons: Array<Button>;
     footer: string;
@@ -27,7 +27,7 @@ export declare class ButtonMessage extends Message {
     /**
      * * Adiciona um botão com um telefone
      * @param text
-     * @param call
+     * @param phone
      * @param index
      * @returns
      */

@@ -1,4 +1,4 @@
-import { Message } from "@models/Message";
+import { Message } from "@buttons/Message";
 import { Button } from "../types/Button";
 import { Chat } from "@models/Chat";
 
@@ -7,7 +7,7 @@ export class ButtonMessage extends Message {
   public footer: string;
   public type: number;
 
-  constructor(chat: Chat, text: string, footer: string = "", type: number = 1) {
+  constructor(chat: Chat, text: string, footer: string = "", type: number = 4) {
     super(chat, text);
 
     this.footer = footer;
@@ -45,7 +45,7 @@ export class ButtonMessage extends Message {
   /**
    * * Adiciona um botão com um telefone
    * @param text
-   * @param call
+   * @param phone
    * @param index
    * @returns
    */

@@ -1,6 +1,6 @@
 import { List, ListItem } from "../types/List";
 import { Message } from "./Message";
-import { Chat } from "./Chat";
+import { Chat } from "../models/Chat";
 export declare class ListMessage extends Message {
     list: Array<List>;
     buttonText: string;

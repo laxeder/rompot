@@ -1,6 +1,6 @@
 import { OperatorFunction } from "rxjs";
 import { Events, BotInterface, EventsName } from "../types/index";
-import { Message } from "../models/Message";
+import { Message } from "../buttons/Message";
 import { Status } from "../models/Status";
 import { Chat } from "../models/Chat";
 export declare class BaseBot implements BotInterface {

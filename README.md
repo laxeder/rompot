@@ -56,18 +56,10 @@ date.setExecute((message: Message) => {
   bot.send(new Message(message.chat, `Data: ${new Date()}`));
 });
 
-// Listando comandos e o adicionando ao bot
+// Listando comandos
 const commands = new Commands({ hello, date }, bot);
+commands.setPrefix("/");
 bot.setCommands(commands);
-
-bot.on("message", async (message: Message) => {
-  // Obtem o comando digitado e o executa
-  const command = bot.commands.get(message.text);
-
-  if (command) {
-    command.execute(message);
-  }
-});
 ```
 
 ## Eventos
@@ -94,11 +86,13 @@ bot.on("connection", (update: { action: string; status?: number; login?: any }) 
 
 ```ts
 bot.on("message", async (message: Message) => {
-  // Não responder mensagem enviada pelo Bot
-  if (message.fromMe) return;
+  if (message.text = "Oi") {
+    message.reply("Olá);
+  }
+});
 
-  // Marcar mensagem como visualizada
-  await message.read();
+bot.on("bot-message", async (message: Message) => {
+  console.log(`Mensagem enviada para ${message.chat.id}`);
 });
 ```
 
@@ -131,7 +125,7 @@ bot.on("error", (err: any) => {
 ## Mensagem
 
 ```ts
-import { Message, ImageMessage, ButtonMessage, ListMessage } from "rompot";
+import { Message, ImageMessage, VideoMessage, AudioMessage, ContactMessage, ButtonMessage, ListMessage } from "rompot";
 
 // Chat
 const chat = new Chat("id12345");
@@ -156,11 +150,25 @@ msg.reply(message);
 // Criar mensagem com imagem
 const imageMessage = new ImageMessage(chat, "texto", new Buffer());
 
-// Criando botões (o WhatsApp está com problemas nos botões)
+// Criar mensagem com video
+const videoMessagew = new VideoMessage(chat, "texto", new Buffer());
+
+// Criar mensagem de audio
+const audioMessage = new AudioMessage(chat, "texto", new Buffer());
+
+// Criar mensagem de localiação
+// Latitude, Longitude
+const imageMessage = new LocationMessage(chat, 24.121231, 55.1121221);
+
+// Criar mensagem com contatos
+// import { User } from "rompot"
+const contactMessage = new ContactMessage(chat, "nome", new User("userID | phone", "nome", "5599123464"));
+
+// Criando botões
 const btnMessage = new ButtonMessage(chat, "texto", "rodapé");
 btn.addCall("Call", "1234567890");
 btn.addUrl("Link", "https://example.com");
-btn.addReply("Texto", "id-123");
+btn.addReply("Texto", "button-id-123");
 
 // Criar lista
 const listMessage = new ListMessage(chat, "titulo", "texto", "rodapé", "botão");
@@ -174,9 +182,16 @@ listMessage.addItem(index2, "Abc 1");
 listMessage.addItem(index2, "Abc 2");
 
 // Lendo resposta para botões e listas
+const cmd = new Command("cmd-button");
+cmd.setReply((message: Message) => {
+  message.reply("Botão clicado");
+});
+
+bot.commands.setCommand(cmd);
+
 bot.on("message", async (message: Message) => {
-  if (message.selected == "id-123") {
-    bot.commands.get("command-buttton")?.reply(message);
+  if (message.selected == "button-id-123") {
+    bot.commands.get("cmd-button")?.reply(message);
   }
 });
 ```

@@ -1,7 +1,7 @@
 import { MessageInterface } from "../types/Message";
-import { Chat } from "./Chat";
-import { User } from "./User";
 import { Bot } from "../controllers/Bot";
+import { Chat } from "../models/Chat";
+import { User } from "../models/User";
 export declare class Message implements MessageInterface {
     private _originalMention;
     private _originalMessage;

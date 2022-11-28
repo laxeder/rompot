@@ -1,11 +1,23 @@
-import Bot, { WhatsAppBot, logger, Message, User, Chat, Commands } from "rompot";
-import * as commands from "./commands";
+import { Bot, WhatsAppBot, Message, logger, Commands, Command, User, Chat } from "rompot";
+
+const hello = new Command("hello", "Manda um simples Hello");
+hello.setSend("Hello There!");
+
+const date = new Command(["date", "dt", "data"]);
+date.setExecute((message: Message) => {
+  const bot = message.getBot();
+  bot?.send(new Message(message.chat, `Data: ${new Date()}`));
+});
 
 const bot = new Bot(new WhatsAppBot());
-bot.setCommands(new Commands(commands));
+
+const commands = new Commands({ hello, date }, bot);
+commands.setPrefix("/");
+
+bot.setCommands(commands);
 bot.build("./example/auth");
 
-bot.on("connection", (update: { action: string; status?: number; login?: any }) => {
+bot.on("connection", (update: { action: string; status: string }) => {
   if (update.action == "open") {
     logger.info("Bot conectado!");
   }
@@ -20,38 +32,23 @@ bot.on("connection", (update: { action: string; status?: number; login?: any }) 
 });
 
 bot.on("message", async (message: Message) => {
-  // Não responder mensagem enviada pelo Bot
-  if (message.fromMe) return;
-
-  // Marcar mensagem como visualizada
-  await message.read();
-
-  // Obtem o comando digitado na mensagem e o executa
-  const command = bot.commands.get(message.text);
-
-  if (command) {
-    command.execute(message);
-  }
+  console.log(`New message in ${message.chat.id}`);
 });
 
-bot.on("member", (member: { action: "add" | "remove"; user: User; chat: Chat }) => {
-  // Novo membro de um grupo
+bot.on("bot-message", (message: Message) => {
+  console.log(`Send message to ${message.user.phone}`);
+});
+
+bot.on("member", (member: { action: string; user: User; chat: Chat }) => {
   if (member.action == "add") {
-    const msg = new Message(member.chat, `Bem vindo ao grupo @${member.user.phone}`);
-
-    // Menciona uma pessoa na mensagem
-    msg.addMentions(member.user.id);
-
-    // Envia a mensagem criada
-    bot.send(msg);
+    console.log(`Number ${member.user.phone} joined group ${member.chat.id}`);
   }
 
-  // Member saiu de um grupo
   if (member.action == "remove") {
-    //...
+    console.log(`Member group ${member.chat.id} left`);
   }
 });
 
-bot.on("error", (err: any) => {
-  logger.error(`Um erro ocorreu: ${err}`);
+bot.on("error", (err) => {
+  console.log("Um erro ocorreu:", err);
 });

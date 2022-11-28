@@ -1,12 +1,11 @@
-import { downloadMediaMessage } from "@adiwajshing/baileys";
-import { Transform } from "stream";
-
-import { ButtonMessage } from "@models/ButtonMessage";
+import { LocationMessage } from "@buttons/LocationMessage";
+import { ContactMessage } from "@buttons/ContactMessage";
+import { ButtonMessage } from "@buttons/ButtonMessage";
+import { MediaMessage } from "@buttons/MediaMessage";
 import { WhatsAppBot } from "@services/WhatsAppBot";
-import { ImageMessage } from "@models/ImageMessage";
-import { ListMessage } from "@models/ListMessage";
+import { ListMessage } from "@buttons/ListMessage";
 import { List, ListItem } from "../types/List";
-import { Message } from "@models/Message";
+import { Message } from "@buttons/Message";
 
 export class WhatsAppMessage {
   private _message: Message;
@@ -15,18 +14,17 @@ export class WhatsAppMessage {
   public chat: string = "";
   public message: any = {};
   public context: any = {};
-  public relay: boolean = false;
 
-  constructor(wa: WhatsAppBot, message: Message | ButtonMessage) {
-    this._wa = wa;
+  constructor(wa: WhatsAppBot, message: Message) {
     this._message = message;
+    this._wa = wa;
   }
 
   /**
    * * Refatora a mensagem
    * @param message
    */
-  public async refactory(message = this._message, wa: WhatsAppBot) {
+  public async refactory(message = this._message) {
     this.chat = message.chat.id;
     this.message = await this.refactoryMessage(message);
 
@@ -36,11 +34,18 @@ export class WhatsAppMessage {
       else this.context.quoted = this._wa.store.messages[message.mention.chat.id]?.get(message.mention.id);
     }
 
-    if (message instanceof ImageMessage) await this.refactoryImageMessage(message, wa);
-    if (message instanceof ButtonMessage) this.refactoryButtonMessage(message);
+    if (message instanceof ButtonMessage) await this.refactoryButtonMessage(message);
+    if (message instanceof MediaMessage) await this.refactoryMediaMessage(message);
+    if (message instanceof LocationMessage) this.refactoryLocationMessage(message);
+    if (message instanceof ContactMessage) this.refactoryContactMessage(message);
     if (message instanceof ListMessage) this.refactoryListMessage(message);
   }
 
+  /**
+   * * Refatora outras informações da mensagem
+   * @param message
+   * @returns
+   */
   public async refactoryMessage(message: Message) {
     const msg: any = {};
 
@@ -55,68 +60,88 @@ export class WhatsAppMessage {
   }
 
   /**
-   * * Refatora uma mensagem com imagem
+   * * Refatora uma mensagem de midia
    * @param message
-   * @param wa
    */
-  public async refactoryImageMessage(message: ImageMessage, wa: WhatsAppBot) {
+  public async refactoryMediaMessage(message: MediaMessage) {
     this.message.caption = this.message.text;
     delete this.message.text;
 
-    let imageUrl: Buffer | string | Transform = message.getImage();
-
-    const log: any = wa.config?.logger;
-
-    if (typeof imageUrl == "string") {
-      imageUrl = await downloadMediaMessage(
-        message.getOriginalMessage(),
-        "buffer",
-        {},
-        {
-          logger: log,
-          reuploadRequest: wa.updateMediaMessage,
-        }
-      );
+    const image = await message.getImage();
+    if (image) {
+      this.message.image = image;
     }
 
-    this.message.image = imageUrl;
+    const video = await message.getVideo();
+    if (video) {
+      this.message.video = video;
+    }
+
+    const audio = await message.getAudio();
+    if (audio) {
+      this.message.audio = audio;
+      this.message.mimetype = "audio/mp4";
+    }
+
+    if (message.isGIF) {
+      this.message.gifPlayback = true;
+    }
+  }
+
+  public refactoryLocationMessage(message: LocationMessage) {
+    this.message.location = { degreesLatitude: message.getLatitude(), degreesLongitude: message.getLongitude() };
+
+    delete this.message.text;
+  }
+
+  public refactoryContactMessage(message: ContactMessage) {
+    this.message.contacts = {
+      displayName: message.text,
+      contacts: [],
+    };
+
+    message.contacts.forEach((user) => {
+      const vcard =
+        "BEGIN:VCARD\n" +
+        "VERSION:3.0\n" +
+        `FN:${user.name || ""}\n` +
+        // "ORG:${user.description};\n" +
+        `TEL;type=CELL;type=VOICE;waid=${user.id.split("@")[0]}: ${user.phone}\n` +
+        "END:VCARD";
+
+      if (message.contacts.length < 2) {
+        this.message.contacts.contacts.push({ vcard });
+        return;
+      }
+
+      this.message.contacts.contacts.push({
+        displayName: user.name,
+        vcard,
+      });
+    });
+
+    delete this.message.text;
   }
 
   /**
    * * Refatora uma mensagem de botão
    * @param message
    */
-  public refactoryButtonMessage(message: ButtonMessage) {
-    this.relay = true;
+  public async refactoryButtonMessage(message: ButtonMessage) {
+    this.message.footer = message.footer;
+    this.message.templateButtons = [];
+    this.message.text = message.text;
 
-    const hydratedTemplate: any = {
-      hydratedContentText: message.text,
-      hydratedFooterText: message.footer,
-      hydratedButtons: [],
-    };
-
-    message.buttons.map((button) => {
+    message.buttons.forEach((button) => {
       const btn: any = {};
       btn.index = button.index;
 
       if (button.reply) btn.quickReplyButton = { displayText: button.reply.text, id: button.reply.id };
       if (button.call) btn.callButton = { displayText: button.call.text, phoneNumber: button.call.phone };
-      if (button.url) btn.urlButton = { displayText: button.url.text, phoneNumber: button.url.url };
+      if (button.url) btn.urlButton = { displayText: button.url.text, url: button.url.url };
 
-      hydratedTemplate.hydratedButtons.push(btn);
+      this.message.templateButtons.push(btn);
     });
-
-    //? A API do WhatsApp está com problemas na mensagem de template
-    //! TODO: Arrumar sistema de mensagem template
-    this.message = {
-      viewOnceMessage: {
-        message: {
-          templateMessage: {
-            hydratedTemplate,
-          },
-        },
-      },
-    };
   }
 
   /**
