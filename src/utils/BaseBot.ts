@@ -8,18 +8,16 @@ import { Chat } from "@models/Chat";
 export class BaseBot implements BotInterface {
   public events: Events = {
     connection: new BehaviorSubject({}),
+    "bot-message": new Subject(),
     message: new Subject(),
+    member: new Subject(),
     chats: new Subject(),
     error: new Subject(),
-    member: new Subject(),
   };
 
   public status: Status = new Status("offline");
   public chats: { [key: string]: Chat } = {};
   public user: any = {};
-
-  //!TODO: Implimentar usuários
-  // public users: Users = {};
 
   constructor() {
     this.events.chats.subscribe((chat: Chat) => (this.chats[chat.id] = chat));
