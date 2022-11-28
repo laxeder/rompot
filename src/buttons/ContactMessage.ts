@@ -5,8 +5,12 @@ import { User } from "@models/User";
 export class ContactMessage extends Message {
   public contacts: User[] = [];
 
-  constructor(chat: Chat, text: string, user: User | User[], mention?: Message, id?: string) {
+  constructor(chat: Chat, text: string, contacts: User | User[], mention?: Message, id?: string) {
     super(chat, text, mention, id);
+
+    if (contacts instanceof User) {
+      this.contacts = [contacts];
+    } else this.contacts = contacts;
   }
 
   /**
