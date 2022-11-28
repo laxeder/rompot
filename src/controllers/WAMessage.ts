@@ -74,16 +74,16 @@ export class WhatsAppMessage {
    * * Refatora uma mensagem de botão
    * @param message
    */
-  public refactoryButtonMessage(message: ButtonMessage) {
-    this.relay = true;
+  public async refactoryButtonMessage(message: ButtonMessage) {
+    this.message.templateButtons = message.buttons;
+    this.message.footer = message.footer;
+    this.message.text = message.text;
 
-    const hydratedTemplate: any = {
-      hydratedContentText: message.text,
-      hydratedFooterText: message.footer,
-      hydratedButtons: [],
-    };
+    const image = await message.getImage();
 
-    message.buttons.map((button) => {
+    if (image) this.message.image = { url: image };
+
+    message.buttons.forEach((button) => {
       const btn: any = {};
       btn.index = button.index;
 
@@ -91,20 +91,8 @@ export class WhatsAppMessage {
       if (button.call) btn.callButton = { displayText: button.call.text, phoneNumber: button.call.phone };
       if (button.url) btn.urlButton = { displayText: button.url.text, phoneNumber: button.url.url };
 
-      hydratedTemplate.hydratedButtons.push(btn);
+      this.message.templateButtons.push(btn);
     });
-
-    //? A API do WhatsApp está com problemas na mensagem de template
-    //! TODO: Arrumar sistema de mensagem template
-    this.message = {
-      viewOnceMessage: {
-        message: {
-          templateMessage: {
-            hydratedTemplate,
-          },
-        },
-      },
-    };
   }
 
   /**
