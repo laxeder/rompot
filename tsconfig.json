@@ -13,6 +13,7 @@
     "paths": {
       "@controllers/*": ["./src/controllers/*"],
       "@services/*": ["./src/services/*"],
+      "@buttons/*": ["./src/buttons/*"],
       "@models/*": ["./src/models/*"],
       "@config/*": ["./src/config/*"],
       "@utils/*": ["./src/utils/*"],
