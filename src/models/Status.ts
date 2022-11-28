@@ -1,6 +1,6 @@
 import { StatusOptions } from "../types/Status";
+import { Message } from "@buttons/Message";
 import { Chat } from "@models/Chat";
-import { Message } from "@models/Message";
 
 export class Status {
   public status: keyof StatusOptions;

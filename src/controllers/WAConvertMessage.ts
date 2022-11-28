@@ -7,16 +7,16 @@ import {
   WAMessageContent,
 } from "@adiwajshing/baileys";
 
-import { ButtonMessage } from "@models/ButtonMessage";
-import { ImageMessage } from "@models/ImageMessage";
-import { MediaMessage } from "@models/MediaMessage";
-import { ListMessage } from "@models/ListMessage";
+import { ButtonMessage } from "@buttons/ButtonMessage";
+import { ImageMessage } from "@buttons/ImageMessage";
+import { MediaMessage } from "@buttons/MediaMessage";
+import { VideoMessage } from "@buttons/VideoMessage";
+import { AudioMessage } from "@buttons/AudioMessage";
+import { ListMessage } from "@buttons/ListMessage";
 import { loggerConfig } from "@config/logger";
-import { Message } from "@models/Message";
+import { Message } from "@buttons/Message";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
-import { VideoMessage } from "@models/VideoMessage";
-import { AudioMessage } from "@models/AudioMessage";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;

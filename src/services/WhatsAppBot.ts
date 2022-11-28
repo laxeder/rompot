@@ -17,9 +17,9 @@ import makeWASocket, {
 
 import { WhatsAppConvertMessage } from "@controllers/WAConvertMessage";
 import { WhatsAppMessage } from "@controllers/WAMessage";
-import { Message } from "@models/Message";
-import { BaseBot } from "@utils/BaseBot";
 import { loggerConfig } from "@config/logger";
+import { Message } from "@buttons/Message";
+import { BaseBot } from "@utils/BaseBot";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";

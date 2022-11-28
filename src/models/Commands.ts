@@ -1,6 +1,6 @@
+import { Message } from "@buttons/Message";
 import { Bot } from "@controllers/Bot";
 import { Chat } from "./Chat";
-import { Message } from "./Message";
 
 export class Command {
   private _executeCallback: Function = () => {};

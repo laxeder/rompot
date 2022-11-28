@@ -1,7 +1,7 @@
 import { BehaviorSubject, catchError, of, OperatorFunction, Subject } from "rxjs";
 
 import { Events, BotInterface, EventsName } from "../types/index";
-import { Message } from "@models/Message";
+import { Message } from "@buttons/Message";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
 

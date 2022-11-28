@@ -1,9 +1,9 @@
-import { ButtonMessage } from "@models/ButtonMessage";
+import { ButtonMessage } from "@buttons/ButtonMessage";
+import { MediaMessage } from "@buttons/MediaMessage";
 import { WhatsAppBot } from "@services/WhatsAppBot";
-import { ListMessage } from "@models/ListMessage";
+import { ListMessage } from "@buttons/ListMessage";
 import { List, ListItem } from "../types/List";
-import { Message } from "@models/Message";
-import { MediaMessage } from "@models/MediaMessage";
+import { Message } from "@buttons/Message";
 
 export class WhatsAppMessage {
   private _message: Message;
