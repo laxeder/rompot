@@ -229,6 +229,7 @@ export class Commands {
   private _bot?: Bot;
 
   public commands: { [key: string]: Command } = {};
+  public prefix?: string;
 
   constructor(commands?: { [key: string]: Command }, bot?: Bot) {
     if (bot) this.setBot(bot);
@@ -236,6 +237,22 @@ export class Commands {
     if (commands) {
       this.setCommands(commands);
     }
+  }
+
+  /**
+   * * Define um prefixo geral
+   * @param prefix
+   */
+  public setPrefix(prefix: string) {
+    this.prefix = prefix;
+  }
+
+  /**
+   * * Obter prefixo geral
+   * @returns
+   */
+  public getPrefix(): string | undefined {
+    return this.prefix;
   }
 
   /**
@@ -278,14 +295,24 @@ export class Commands {
 
   /**
    * * Retorna um comando
-   * @param name
-   * @param lower
+   * @param names
    * @returns
    */
-  public get(name: string, lower: boolean = true): Command | undefined {
-    const nm = lower ? name.toLowerCase() : name;
+  public get(names: string | string[]): Command | undefined {
+    if (typeof names != "string") {
+      names = names.filter((v) => {
+        if (!!this.prefix) {
+          if (!v.startsWith(this.prefix)) return;
+          v = v.replace(this.prefix || "", "");
+        }
 
-    const cmd = this.commands[nm.trim()];
+        return this.commands[v?.trim()];
+      });
+    } else names = [names];
+
+    const name: string = names[0] || "";
+
+    const cmd = this.commands[name.replace(this.prefix || "", "").trim()];
 
     return cmd;
   }
