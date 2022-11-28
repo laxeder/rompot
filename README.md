@@ -86,7 +86,7 @@ bot.on("connection", (update: { action: string; status?: number; login?: any }) 
 
 ```ts
 bot.on("message", async (message: Message) => {
-  if (message.text = "Oi") {
+  if (message.text == "Oi") {
     message.reply("Olá);
   }
 });
