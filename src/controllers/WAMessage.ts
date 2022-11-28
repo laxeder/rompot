@@ -1,3 +1,5 @@
+import { LocationMessage } from "@buttons/LocationMessage";
+import { ContactMessage } from "@buttons/ContactMessage";
 import { ButtonMessage } from "@buttons/ButtonMessage";
 import { MediaMessage } from "@buttons/MediaMessage";
 import { WhatsAppBot } from "@services/WhatsAppBot";
@@ -32,8 +34,10 @@ export class WhatsAppMessage {
       else this.context.quoted = this._wa.store.messages[message.mention.chat.id]?.get(message.mention.id);
     }
 
-    if (message instanceof MediaMessage) await this.refactoryMediaMessage(message);
     if (message instanceof ButtonMessage) await this.refactoryButtonMessage(message);
+    if (message instanceof MediaMessage) await this.refactoryMediaMessage(message);
+    if (message instanceof LocationMessage) this.refactoryLocationMessage(message);
+    if (message instanceof ContactMessage) this.refactoryContactMessage(message);
     if (message instanceof ListMessage) this.refactoryListMessage(message);
   }
 
@@ -82,6 +86,41 @@ export class WhatsAppMessage {
     if (message.isGIF) {
       this.message.gifPlayback = true;
     }
+  }
+
+  public refactoryLocationMessage(message: LocationMessage) {
+    this.message.location = { degreesLatitude: message.getLatitude(), degreesLongitude: message.getLongitude() };
+
+    delete this.message.text;
+  }
+
+  public refactoryContactMessage(message: ContactMessage) {
+    this.message.contacts = {
+      displayName: message.text,
+      contacts: [],
+    };
+
+    message.contacts.forEach((user) => {
+      const vcard =
+        "BEGIN:VCARD\n" +
+        "VERSION:3.0\n" +
+        `FN:${user.name || ""}\n` +
+        // "ORG:${user.description};\n" +
+        `TEL;type=CELL;type=VOICE;waid=${user.id.split("@")[0]}: ${user.phone}\n` +
+        "END:VCARD";
+
+      if (message.contacts.length < 2) {
+        this.message.contacts.contacts.push({ vcard });
+        return;
+      }
+
+      this.message.contacts.contacts.push({
+        displayName: user.name,
+        vcard,
+      });
+    });
+
+    delete this.message.text;
   }
 
   /**
