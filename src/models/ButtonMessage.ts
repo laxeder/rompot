@@ -1,8 +1,10 @@
-import { Message } from "@models/Message";
+import { MediaMessage } from "./MediaMessage";
 import { Button } from "../types/Button";
 import { Chat } from "@models/Chat";
 
-export class ButtonMessage extends Message {
+export class ButtonMessage extends MediaMessage {
+  private _image?: any;
+
   public buttons: Array<Button> = [];
   public footer: string;
   public type: number;
@@ -12,6 +14,22 @@ export class ButtonMessage extends Message {
 
     this.footer = footer;
     this.type = type;
+  }
+
+  /**
+   * * Define a imagem da mensagem
+   * @param image
+   */
+  public setImage(image: any) {
+    this._image = image;
+  }
+
+  /**
+   * * Obtem a imagem da mensagem
+   * @returns
+   */
+  public async getImage() {
+    return await this.getStream(this._image);
   }
 
   /**
