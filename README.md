@@ -52,8 +52,7 @@ hello.setSend("Hello There!");
 // Executa uma função quando chamado
 const date = new Command(["date", "dt", "data"]);
 date.setExecute((message: Message) => {
-  const bot = message.getBot();
-  bot.send(new Message(message.chat, `Data: ${new Date()}`));
+  message.reply(`Data: ${new Date()}`);
 });
 
 // Listando comandos
