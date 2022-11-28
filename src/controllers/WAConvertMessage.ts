@@ -17,6 +17,8 @@ import { loggerConfig } from "@config/logger";
 import { Message } from "@buttons/Message";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
+import { LocationMessage } from "@buttons/LocationMessage";
+import { ContactMessage } from "@buttons/ContactMessage";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
@@ -114,6 +116,14 @@ export class WhatsAppConvertMessage {
       this.convertListMessage(messageContent);
     }
 
+    if (contentType === "locationMessage") {
+      this.convertLocationMessage(content);
+    }
+
+    if (contentType === "contactMessage" || contentType == "contactsArrayMessage") {
+      this.convertContactMessage(content);
+    }
+
     if (!!!this._convertedMessage.text) {
       this._convertedMessage.setText(
         content.text ||
@@ -121,6 +131,7 @@ export class WhatsAppConvertMessage {
           content.buttonText ||
           content.contentText ||
           content.hydratedTemplate?.hydratedContentText ||
+          content.displayName ||
           ""
       );
     }
@@ -161,6 +172,54 @@ export class WhatsAppConvertMessage {
       this._mention = wa.get();
 
       this._convertedMessage.setOriginalMention(message);
+    }
+  }
+
+  /**
+   * * Converte mensagem de localização
+   * @param content
+   */
+  public convertLocationMessage(content: any) {
+    this._convertedMessage = new LocationMessage(this._chat, content.degreesLatitude, content.degreesLongitude);
+  }
+
+  /**
+   * * Converte mensagem com contatos
+   * @param content
+   */
+  public convertContactMessage(content: any) {
+    this._convertedMessage = new ContactMessage(this._chat, content.displayName, []);
+
+    const getContact = (vcard: string | any): User => {
+      const user = new User("");
+
+      if (typeof vcard == "object") {
+        vcard = vcard.vcard;
+      }
+
+      const name = vcard.slice(vcard.indexOf("FN:"));
+      user.setName(name.slice(3, name.indexOf("\n")));
+
+      const id = vcard.slice(vcard.indexOf("waid=") + 5);
+      user.setId(id.slice(0, id.indexOf(":")) + "@s.whatsapp.net");
+
+      return user;
+    };
+
+    const contacts: User[] = [];
+
+    if (content.contacts) {
+      content.contacts.forEach((vcard: string) => {
+        contacts.push(getContact(vcard));
+      });
+    }
+
+    if (content.vcard) {
+      contacts.push(getContact(content.vcard));
+    }
+
+    if (this._convertedMessage instanceof ContactMessage) {
+      this._convertedMessage.contacts = contacts;
     }
   }
 

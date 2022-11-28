@@ -1,3 +1,5 @@
+export * from "@buttons/LocationMessage";
+export * from "@buttons/ContactMessage";
 export * from "@buttons/ButtonMessage";
 export * from "@buttons/ImageMessage";
 export * from "@buttons/MediaMessage";
