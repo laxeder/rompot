@@ -1,9 +1,8 @@
 import { Status } from "@models/Status";
-import { Chat } from "@models/Chat";
-
 export interface BotInterface {
-  chats: { [key: string]: Chat };
   reconnect: Function;
+  getChat: Function;
+  getChats: Function;
   connect: Function;
   status: Status;
   stop: Function;

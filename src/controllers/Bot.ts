@@ -1,10 +1,10 @@
-import { Subject, map } from "rxjs";
+import { Subject, map, tap } from "rxjs";
 import { uuid } from "uuidv4";
 
 import { DataBase } from "@controllers/DataBase";
 import { EventsName } from "../types/Events";
 import { Commands } from "@models/Commands";
-import { Message } from "@buttons/Message";
+import { Message } from "@messages/Message";
 import { BaseDB } from "@services/BaseDB";
 import { BaseBot } from "@utils/BaseBot";
 import { Status } from "@models/Status";
@@ -95,16 +95,16 @@ export class Bot {
    * @param id
    * @returns
    */
-  public getChat(id: string): Chat | undefined {
-    return this._plataform.chats[id];
+  public getChat(id: string) {
+    return this._plataform.getChat(id);
   }
 
   /**
    * * Retorna todas as salas de bate-papo
    * @returns
    */
-  public getChats(): { [key: string]: Chat } {
-    return this._plataform.chats;
+  public getChats() {
+    return this._plataform.getChats();
   }
 
   /**
@@ -113,22 +113,20 @@ export class Bot {
    * @param event
    */
   public on(name: keyof EventsName, event: Function) {
-    if (name == "message") {
-      return this._plataform.on(
-        name,
-        event,
-        map((message: any) => {
-          if (message instanceof Message) {
-            message.setBot(this);
-            message.read();
-          }
+    return this._plataform.on(
+      name,
+      event,
+      map((v: any) => {
+        if (v instanceof Message) {
+          v.setBot(this);
+          v.read();
+        }
 
-          return message;
-        })
-      );
-    }
+        console.log(v)
 
-    return this._plataform.on(name, event);
+        return v;
+      })
+    );
   }
 
   /**
