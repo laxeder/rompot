@@ -19,6 +19,7 @@ import { loggerConfig } from "@config/logger";
 import { Message } from "@messages/Message";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
+import { WhatsAppBot } from "./WhatsAppBot";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
@@ -28,8 +29,10 @@ export class WhatsAppConvertMessage {
   private _user: User = new User("");
   private _chat: Chat = new Chat("");
   private _mention?: Message;
+  private _wa: WhatsAppBot;
 
-  constructor(message: WAMessage, type?: MessageUpsertType) {
+  constructor(wa: WhatsAppBot, message: WAMessage, type?: MessageUpsertType) {
+    this._wa = wa;
     this.set(message, type);
   }
 
@@ -46,8 +49,8 @@ export class WhatsAppConvertMessage {
   /**
    * * Retorna a mensagem convertida
    */
-  public get() {
-    this.convertMessage(this._message, this._type);
+  public async get() {
+    await this.convertMessage(this._message, this._type);
 
     if (this._mention) this._convertedMessage.setMention(this._mention);
 
@@ -62,16 +65,25 @@ export class WhatsAppConvertMessage {
    * @param message
    * @param type
    */
-  public convertMessage(message: WAMessage, type?: MessageUpsertType) {
-    if (message.key.remoteJid) this._chat.setId(message.key.remoteJid);
+  public async convertMessage(message: WAMessage, type?: MessageUpsertType) {
+    const chat = await this._wa.getChat(message.key.remoteJid || "");
+
+    if (message.key.remoteJid) {
+      if (chat) this._chat = chat;
+
+      this._chat.setId(message.key.remoteJid);
+    }
+
+    if (chat?.id.includes("@g")) this._chat.setType("group");
+    if (chat?.id.includes("@s")) this._chat.setType("pv");
+    
     if (message.pushName) this._chat.name = message.pushName;
 
-    this._user = new User(
-      message.key.participant || message.participant || message.key.remoteJid || "",
-      message.pushName as string
-    );
+    const userID = message.key.participant || message.participant || message.key.remoteJid || "";
+    this._user = chat?.members[userID] || new User(userID);
+    this._user.setName(message.pushName as string);
 
-    this.convertContentMessage(message.message);
+    await this.convertContentMessage(message.message);
 
     if (message.key.fromMe) this._convertedMessage.fromMe = message.key.fromMe;
     if (message.key.id) this._convertedMessage.id = message.key.id;
@@ -85,7 +97,7 @@ export class WhatsAppConvertMessage {
    * @param messageContent
    * @returns
    */
-  public convertContentMessage(messageContent: WAMessageContent | undefined | null) {
+  public async convertContentMessage(messageContent: WAMessageContent | undefined | null) {
     if (!!!messageContent) return;
 
     if (Object.keys(messageContent).includes("senderKeyDistributionMessage")) {
@@ -100,7 +112,7 @@ export class WhatsAppConvertMessage {
       contentType === "conversation" ? { text: messageContent[contentType] } : messageContent[contentType];
 
     if (content.message) {
-      this.convertContentMessage(content.message);
+      await this.convertContentMessage(content.message);
       return;
     }
 
@@ -137,7 +149,7 @@ export class WhatsAppConvertMessage {
     }
 
     if (content.contextInfo) {
-      this.convertContextMessage(content.contextInfo);
+      await this.convertContextMessage(content.contextInfo);
     }
 
     if (content.singleSelectReply?.selectedRowId) {
@@ -154,7 +166,7 @@ export class WhatsAppConvertMessage {
    * @param context
    * @returns
    */
-  public convertContextMessage(context: proto.ContextInfo) {
+  public async convertContextMessage(context: proto.ContextInfo) {
     if (context.mentionedJid) this._convertedMessage.setMentions(context.mentionedJid);
 
     if (context.quotedMessage) {
@@ -167,9 +179,9 @@ export class WhatsAppConvertMessage {
         message: context.quotedMessage,
       };
 
-      const wa = new WhatsAppConvertMessage(message);
+      const wa = new WhatsAppConvertMessage(this._wa, message);
 
-      this._mention = wa.get();
+      this._mention = await wa.get();
 
       this._convertedMessage.setOriginalMention(message);
     }

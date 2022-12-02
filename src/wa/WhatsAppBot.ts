@@ -22,6 +22,7 @@ import { BaseBot } from "@utils/BaseBot";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
+import { BuildConfig } from "@config/BuildConfig";
 
 export class WhatsAppBot extends BaseBot {
   private _auth: string = "";
@@ -29,8 +30,7 @@ export class WhatsAppBot extends BaseBot {
 
   public DisconnectReason = DisconnectReason;
   public chats: { [key: string]: Chat } = {};
-  public config: UserFacingSocketConfig;
-  public bot: any = {};
+  public config: any;
 
   public statusOpts: any = {
     typing: "composing",
@@ -40,12 +40,13 @@ export class WhatsAppBot extends BaseBot {
     offline: "unavailable",
   };
 
-  constructor(config?: any) {
+  constructor(config: BuildConfig = {}) {
     super();
 
-    this.config = config || {
+    this.config = {
       printQRInTerminal: true,
       logger: loggerConfig({ level: "silent" }),
+      ...config,
     };
   }
 
@@ -55,43 +56,32 @@ export class WhatsAppBot extends BaseBot {
    * @param config
    * @returns
    */
-  public async connect(auth: string, config?: UserFacingSocketConfig): Promise<any> {
+  public async connect(auth: string, config: BuildConfig = {}): Promise<any> {
     return await new Promise(async (resolve, reject) => {
       try {
-        if (!config) {
-          config = this.config;
-        }
-
         this._auth = auth;
-        this.config = config || this.config;
+        this.config = { ...this.config, ...config };
 
         const { state, saveCreds } = await useMultiFileAuthState(this._auth);
 
         this._bot = makeWASocket({ ...this.config, auth: state });
         this._bot.ev.on("creds.update", saveCreds);
 
-        //! A mensagem não é recebida depois de se reconectar
-        this._bot.ev.on("messages.upsert", (m: { messages: WAMessage[]; type: MessageUpsertType }) => {
+        this._bot.ev.on("messages.upsert", async (m: { messages: WAMessage[]; type: MessageUpsertType }) => {
           if (m.messages.length <= 0) return;
 
           const message: WAMessage = m.messages[m.messages.length - 1];
 
           if (message.key.remoteJid == "status@broadcast") return;
 
-          const msg = new WhatsAppConvertMessage(message, m.type);
+          const msg = new WhatsAppConvertMessage(this, message, m.type);
 
           if (message.key.fromMe) {
-            this.events["bot-message"].next(msg.get());
+            this.events["bot-message"].next(await msg.get());
             return;
           }
 
-          this.events.message.next(msg.get());
-        });
-
-        this._bot.ev.on("group-participants.update", (group) => {
-          group.participants.forEach((user) => {
-            this.events.member.next({ action: group.action, chat: new Chat(group.id), user: new User(user) });
-          });
+          this.events.message.next(await msg.get());
         });
 
         // Verificando se bot conectou
@@ -100,8 +90,8 @@ export class WhatsAppBot extends BaseBot {
             this.status.setStatus("online");
 
             // Removendo caracteres do ID do bot
-            this.bot.user = { ...this._bot?.user };
-            this.bot.user.id = this.bot.user.id?.replace(/:(.*)@/, "@") || "";
+            this.user = { ...this._bot?.user };
+            this.user.id = this.user.id?.replace(/:(.*)@/, "@") || "";
 
             this.events.connection.next({ action: update.connection, status: this.status, login: update?.qr });
 
@@ -142,13 +132,23 @@ export class WhatsAppBot extends BaseBot {
         });
 
         this._bot.ev.on("group-participants.update", async ({ id, participants, action }) => {
-          if (!this.chats[id]) this.chatUpsert({ id });
+          if (!this.chats[id]) await this.chatUpsert({ id });
 
-          for (const user of participants) {
-            const member = new User(user);
+          for (const u of participants) {
+            const member = new User(u);
 
-            if (action == "add") this.chats[id].addMember(member, false);
-            if (action == "remove") this.chats[id].removeMember(member, false);
+            if (action == "add") await this.chats[id].addMember(member, false);
+            if (action == "promote") this.chats[id].members[u].setAdmin(true);
+            if (action == "demote") {
+              this.chats[id].members[u].setAdmin(false);
+              this.chats[id].members[u].setLeader(false);
+            }
+
+            const user = this.chats[id].getMember(member);
+
+            if (action == "remove") await this.chats[id].removeMember(member, false);
+
+            this.events.member.next({ action, chat: this.chats[id], user });
           }
         });
       } catch (err: any) {
@@ -197,8 +197,8 @@ export class WhatsAppBot extends BaseBot {
         for (const user of chat.participants) {
           const u = new User(user.id);
 
-          u.setAdmin(!!user.admin || user.isAdmin || user.isSuperAdmin);
-          u.setLeader(user.isSuperAdmin);
+          u.setAdmin(!!user.admin || user.isAdmin || user.isSuperAdmin || false);
+          u.setLeader(user.isSuperAdmin || false);
 
           newChat.addMember(u, false);
         }
@@ -217,12 +217,12 @@ export class WhatsAppBot extends BaseBot {
     if (!this.chats[id]) {
       if (id.includes("@s")) {
         const [user] = (await this._bot?.onWhatsApp(id)) || [];
-        if (user && user.exists) this.chatUpsert(new Chat(user.jid));
+        if (user && user.exists) await this.chatUpsert(new Chat(user.jid));
       }
 
       if (id.includes("@g")) {
         const metadata = await this._bot?.groupMetadata(id);
-        if (metadata) this.chatUpsert(new Chat(metadata.id, metadata.subject));
+        if (metadata) await this.chatUpsert(new Chat(metadata.id, metadata.subject));
       }
     }
 
@@ -243,6 +243,8 @@ export class WhatsAppBot extends BaseBot {
    */
   public async setChat(chat: Chat) {
     if (chat.id == "status@broadcast" || this.chats[chat.id]) return;
+    if (chat.id.includes("@g")) chat.setType("group");
+    if (chat.id.includes("@s")) chat.setType("pv");
 
     this.chats[chat.id] = chat;
     this.events.chat.next(chat);
@@ -272,7 +274,7 @@ export class WhatsAppBot extends BaseBot {
   public async addMember(chat: Chat, user: User) {
     if (!chat.id.includes("@g.us")) return;
 
-    const bot = (await this.getChat(chat.id))?.getMember(new User(this.bot?.user?.id || ""));
+    const bot = (await this.getChat(chat.id))?.getMember(new User(this.user?.id || ""));
 
     if (!bot || !bot.getAdmin()) return;
 
@@ -287,7 +289,7 @@ export class WhatsAppBot extends BaseBot {
   public async removeMember(chat: Chat, user: User) {
     if (!chat.id.includes("@g.us")) return;
 
-    const bot = (await this.getChat(chat.id))?.getMember(new User(this.bot?.user?.id || ""));
+    const bot = (await this.getChat(chat.id))?.getMember(new User(this.user?.id || ""));
 
     if (!bot || !bot.getAdmin()) return;
 
