@@ -1,6 +1,7 @@
-import { Subject, map, tap } from "rxjs";
+import { Subject, map } from "rxjs";
 import { uuid } from "uuidv4";
 
+import { BuildConfig } from "@config/BuildConfig";
 import { DataBase } from "@controllers/DataBase";
 import { EventsName } from "../types/Events";
 import { Commands } from "@models/Commands";
@@ -18,6 +19,7 @@ export class Bot {
   private _plataform: BaseBot;
   private _db: DataBase;
 
+  public config: BuildConfig = {};
   public commands: Commands;
 
   constructor(plataform: BaseBot, commands: Commands = new Commands(), db: DataBase = new DataBase(new BaseDB())) {
@@ -38,12 +40,13 @@ export class Bot {
    * @param auth
    * @param config
    */
-  public build(auth: string, config?: any): Promise<any> {
-    this.on("message", (message: Message) => {
-      const text = message.text.split(/\s+/i)[0];
-      const lowText = text.toLowerCase().trim();
+  public build(auth: string, config: BuildConfig = {}): Promise<any> {
+    this.config = config;
 
-      const command = this.commands.get([message.text, text, lowText]);
+    this.on("message", (message: Message) => {
+      if (this.config.disableAutoCommand) return;
+
+      const command = this.getCMD(message.text);
 
       if (command) command.execute(message);
     });
@@ -56,7 +59,8 @@ export class Bot {
    * @param config
    * @returns
    */
-  public rebuild(config?: any): Promise<any> {
+  public rebuild(config: BuildConfig = {}): Promise<any> {
+    this.config = config;
     return this._plataform.reconnect(config);
   }
 
@@ -64,8 +68,21 @@ export class Bot {
    * * Obter Bot
    * @returns
    */
-  public get(): BaseBot {
+  public getBot(): BaseBot {
     return this._plataform;
+  }
+
+  /**
+   * * Retorna um comando
+   * @param cmd
+   * @param commands
+   * @returns
+   */
+  public getCMD(cmd: string, commands: Commands = this.commands) {
+    const text = cmd.split(/\s+/i)[0];
+    const lowText = text.toLowerCase().trim();
+
+    return commands.get([cmd, text, lowText]);
   }
 
   /**
@@ -163,7 +180,8 @@ export class Bot {
         if (v instanceof Message) {
           v.setBot(this);
           v.chat.setBot(this);
-          v.read();
+          
+          if (!this.config.disableAutoRead) v.read();
         }
 
         if (v instanceof Chat) {
