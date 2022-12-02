@@ -97,11 +97,6 @@ export class WhatsAppBot extends BaseBot {
 
         // Verificando se bot conectou
         this._bot.ev.on("connection.update", async (update: Partial<ConnectionState>) => {
-          const status =
-            (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
-
-          this.events.connection.next({ action: update.connection, status, login: update?.qr });
-
           if (update.connection == "open") {
             this.status.setStatus("online");
 
@@ -123,6 +118,8 @@ export class WhatsAppBot extends BaseBot {
               }
             }
 
+            this.events.connection.next({ action: update.connection, status: this.status, login: update?.qr });
+
             resolve(true);
           }
 
@@ -130,6 +127,9 @@ export class WhatsAppBot extends BaseBot {
             this.status.setStatus("offline");
 
             // Bot desligado
+            const status =
+              (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
+
             if (status === DisconnectReason.loggedOut) return;
 
             resolve(await this.reconnect(this.config));
