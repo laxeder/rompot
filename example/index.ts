@@ -33,10 +33,17 @@ bot.on("connection", (update: { action: string; status: string }) => {
 
 bot.on("message", async (message: Message) => {
   console.log(`New message in ${message.chat.id}`);
+
+  console.log(await bot.getChats());
+  console.log(await bot.getChat(message.chat.id));
 });
 
 bot.on("bot-message", (message: Message) => {
   console.log(`Send message to ${message.user.phone}`);
+});
+
+bot.on("chat", (chat: Chat) => {
+  console.log(`New chat: ${chat.id}`);
 });
 
 bot.on("member", (member: { action: string; user: User; chat: Chat }) => {

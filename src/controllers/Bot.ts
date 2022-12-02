@@ -122,7 +122,9 @@ export class Bot {
           v.read();
         }
 
-        console.log(v)
+        if (v instanceof Chat) {
+          // TODO: implementar bot
+        }
 
         return v;
       })
