@@ -1,12 +1,23 @@
 import { Bot } from "@controllers/Bot";
 import { User } from "@models/User";
 
+export interface ChatTypes {
+  community: string;
+  chanel: string;
+  group: string;
+  chat: string;
+  pv: string;
+}
+
 export class Chat {
   private _bot?: Bot;
+
+  public members: { [key: string]: User } = {};
+  public type: keyof ChatTypes = "pv";
+
   public id: string;
   public name?: string;
   public isOld?: boolean;
-  public members: { [key: string]: User } = {};
 
   constructor(id: string, name?: string, isOld?: boolean) {
     this.id = id;
@@ -132,14 +143,18 @@ export class Chat {
   }
 
   /**
-   * * Retorna a sala de bate-papo
-   * @returns
+   * * Definir tipo da sala de bate-papo
+   * @param type
    */
-  public get() {
-    return {
-      id: this.id,
-      name: this.name,
-      members: this.members,
-    };
+  public setType(type: keyof ChatTypes) {
+    this.type = type;
+  }
+
+  /**
+   * * Retorna o tipo da sala de bate-papo
+   * @returns 
+   */
+  public getType(): keyof ChatTypes {
+    return this.type;
   }
 }
