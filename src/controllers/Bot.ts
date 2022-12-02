@@ -9,6 +9,7 @@ import { BaseDB } from "@services/BaseDB";
 import { BaseBot } from "@utils/BaseBot";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
+import { User } from "@models/User";
 
 export class Bot {
   private _awaitSendMessages: Subject<any> = new Subject();
@@ -132,6 +133,24 @@ export class Bot {
   }
 
   /**
+   * * Adiciona um usuário a uma sala de bate-papo
+   * @param chat
+   * @param user
+   */
+  public async addMember(chat: Chat, user: User) {
+    await this._plataform.addMember(chat, user);
+  }
+
+  /**
+   * * Remove um usuário da sala de bate-papo
+   * @param chat
+   * @param user
+   */
+  public async removeMember(chat: Chat, user: User) {
+    await this._plataform.removeMember(chat, user);
+  }
+
+  /**
    * * Adiciona um evento
    * @param name
    * @param event
@@ -143,11 +162,12 @@ export class Bot {
       map((v: any) => {
         if (v instanceof Message) {
           v.setBot(this);
+          v.chat.setBot(this);
           v.read();
         }
 
         if (v instanceof Chat) {
-          // TODO: implementar bot
+          v.setBot(this);
         }
 
         return v;

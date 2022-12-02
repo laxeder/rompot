@@ -2,6 +2,8 @@ export class User {
   public id: string = "";
   public name?: string;
   public phone?: string;
+  public isAdmin?: boolean;
+  public isOwner?: boolean;
 
   constructor(id: string, name?: string, phone?: string) {
     if (phone) this.phone = phone;
@@ -57,6 +59,38 @@ export class User {
    */
   public getPhone(): string {
     return this.phone || "";
+  }
+
+  /**
+   * * Define se o usuáio é admin da sala de bate-papo
+   * @param admin
+   */
+  public setAdmin(admin: boolean) {
+    this.isAdmin = admin;
+  }
+
+  /**
+   * * Retorna se o usuário é admin da sala de bate-papo
+   * @returns
+   */
+  public getAdmin(): boolean {
+    return this.isAdmin || false;
+  }
+
+  /**
+   * * Define se o usuáio é dono da sala de bate-papo
+   * @param owner
+   */
+  public setLeader(owner: boolean) {
+    this.isOwner = owner;
+  }
+
+  /**
+   * * Retorna se o usuário é dono da sala de bate-papo
+   * @returns
+   */
+  public getLeader(): boolean {
+    return this.isOwner || false;
   }
 
   /**

@@ -4,6 +4,7 @@ import { Events, BotInterface, EventsName } from "../types/index";
 import { Message } from "@messages/Message";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
+import { User } from "@models/User";
 
 export class BaseBot implements BotInterface {
   public events: Events = {
@@ -32,6 +33,8 @@ export class BaseBot implements BotInterface {
   public async setChats(chat: { [key: string]: Chat }) {}
 
   public async removeChat(id: Chat | string) {}
+  public async addMember(chat: Chat, user: User) {}
+  public async removeMember(chat: Chat, user: User) {}
 
   /**
    * * Adiciona um evento

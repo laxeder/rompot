@@ -13,7 +13,6 @@ import makeWASocket, {
   WAPresence,
   generateWAMessage,
 } from "@adiwajshing/baileys";
-import { existsSync, readFileSync, writeFileSync } from "fs";
 
 import { WhatsAppConvertMessage } from "@wa/WAConvertMessage";
 import { WhatsAppMessage } from "@wa/WAMessage";
@@ -104,20 +103,6 @@ export class WhatsAppBot extends BaseBot {
             this.bot.user = { ...this._bot?.user };
             this.bot.user.id = this.bot.user.id?.replace(/:(.*)@/, "@") || "";
 
-            // Restaurando salas de bate-papo
-            if (existsSync(`${this._auth}/chats.json`)) {
-              const readedChats: any = JSON.parse(readFileSync(`${this._auth}/chats.json`, "utf-8") || "{}") || {};
-
-              const chats = Object.keys(readedChats);
-
-              for (const chatId of chats) {
-                const readedChat = readedChats[chatId];
-                const chat = new Chat(readedChat.id, readedChat.name);
-
-                this.chats[chatId] = chat;
-              }
-            }
-
             this.events.connection.next({ action: update.connection, status: this.status, login: update?.qr });
 
             resolve(true);
@@ -136,27 +121,35 @@ export class WhatsAppBot extends BaseBot {
           }
         });
 
-        const chatUpsert = (chat: any) => {
-          if (chat.id || chat.newJId) {
-            const newChat = new Chat(chat.id || chat.newJid, chat.name || chat.verifiedName);
-            this.setChat(newChat);
-          }
-        };
-
         this._bot.ev.on("contacts.update", (updates) => {
-          for (const update of updates) chatUpsert(update);
+          for (const update of updates) this.chatUpsert(update);
         });
 
         this._bot.ev.on("chats.upsert", (newChats) => {
-          for (const chat of newChats) chatUpsert(chat);
+          for (const chat of newChats) this.chatUpsert(chat);
         });
 
         this._bot.ev.on("chats.update", (updates) => {
-          for (const update of updates) chatUpsert(update);
+          for (const update of updates) if (update.id?.includes("@g")) this.chatUpsert(update);
         });
 
         this._bot.ev.on("chats.delete", (deletions) => {
           for (const id of deletions) this.removeChat(id);
+        });
+
+        this._bot.ev.on("groups.update", (updates) => {
+          for (const update of updates) this.chatUpsert(update);
+        });
+
+        this._bot.ev.on("group-participants.update", async ({ id, participants, action }) => {
+          if (!this.chats[id]) this.chatUpsert({ id });
+
+          for (const user of participants) {
+            const member = new User(user);
+
+            if (action == "add") this.chats[id].addMember(member, false);
+            if (action == "remove") this.chats[id].removeMember(member, false);
+          }
         });
       } catch (err: any) {
         reject(err?.stack || err);
@@ -185,8 +178,34 @@ export class WhatsAppBot extends BaseBot {
     });
   }
 
-  public saveChats() {
-    writeFileSync(`${this._auth}/chats.json`, JSON.stringify(this.chats));
+  /**
+   * * Lê o chat e seta ele
+   * @param chat
+   */
+  private async chatUpsert(chat: any) {
+    if (chat.id || chat.newJId) {
+      const newChat = new Chat(chat.id || chat.newJid, chat.name || chat.verifiedName || chat.notify || chat.subject);
+
+      if (newChat.id.includes("@g")) {
+        if (!chat.participants) {
+          const metadata = await this._bot?.groupMetadata(newChat.id);
+
+          chat.participants = metadata?.participants || [];
+          newChat.name = metadata?.subject;
+        }
+
+        for (const user of chat.participants) {
+          const u = new User(user.id);
+
+          u.setAdmin(!!user.admin || user.isAdmin || user.isSuperAdmin);
+          u.setLeader(user.isSuperAdmin);
+
+          newChat.addMember(u, false);
+        }
+      }
+
+      this.setChat(newChat);
+    }
   }
 
   /**
@@ -195,6 +214,18 @@ export class WhatsAppBot extends BaseBot {
    * @returns
    */
   public async getChat(id: string): Promise<Chat | null> {
+    if (!this.chats[id]) {
+      if (id.includes("@s")) {
+        const [user] = (await this._bot?.onWhatsApp(id)) || [];
+        if (user && user.exists) this.chatUpsert(new Chat(user.jid));
+      }
+
+      if (id.includes("@g")) {
+        const metadata = await this._bot?.groupMetadata(id);
+        if (metadata) this.chatUpsert(new Chat(metadata.id, metadata.subject));
+      }
+    }
+
     return this.chats[id];
   }
 
@@ -211,12 +242,10 @@ export class WhatsAppBot extends BaseBot {
    * @param chat
    */
   public async setChat(chat: Chat) {
-    if (chat.id == "status@broadcast") return;
+    if (chat.id == "status@broadcast" || this.chats[chat.id]) return;
 
     this.chats[chat.id] = chat;
     this.events.chat.next(chat);
-
-    this.saveChats();
   }
 
   /**
@@ -225,7 +254,6 @@ export class WhatsAppBot extends BaseBot {
    */
   public async setChats(chats: { [key: string]: Chat }) {
     this.chats = chats;
-    this.saveChats();
   }
 
   /**
@@ -234,7 +262,36 @@ export class WhatsAppBot extends BaseBot {
    */
   public async removeChat(id: Chat | string) {
     delete this.chats[typeof id == "string" ? id : id.id];
-    this.saveChats();
+  }
+
+  /**
+   * * Adiciona um usuário a uma sala de bate-papo
+   * @param chat
+   * @param user
+   */
+  public async addMember(chat: Chat, user: User) {
+    if (!chat.id.includes("@g.us")) return;
+
+    const bot = (await this.getChat(chat.id))?.getMember(new User(this.bot?.user?.id || ""));
+
+    if (!bot || !bot.getAdmin()) return;
+
+    await this._bot?.groupParticipantsUpdate(chat.id, [user.id], "add");
+  }
+
+  /**
+   * * Remove um usuário da sala de bate-papo
+   * @param chat
+   * @param user
+   */
+  public async removeMember(chat: Chat, user: User) {
+    if (!chat.id.includes("@g.us")) return;
+
+    const bot = (await this.getChat(chat.id))?.getMember(new User(this.bot?.user?.id || ""));
+
+    if (!bot || !bot.getAdmin()) return;
+
+    await this._bot?.groupParticipantsUpdate(chat.id, [user.id], "remove");
   }
 
   /**
