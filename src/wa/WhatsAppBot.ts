@@ -13,7 +13,7 @@ import makeWASocket, {
   WAPresence,
   generateWAMessage,
 } from "@adiwajshing/baileys";
-import { writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 
 import { WhatsAppConvertMessage } from "@wa/WAConvertMessage";
 import { WhatsAppMessage } from "@wa/WAMessage";
@@ -23,16 +23,15 @@ import { BaseBot } from "@utils/BaseBot";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
-import WASave from "./WASave";
 
 export class WhatsAppBot extends BaseBot {
   private _auth: string = "";
   private _bot?: WASocket;
 
   public DisconnectReason = DisconnectReason;
+  public chats: { [key: string]: Chat } = {};
   public config: UserFacingSocketConfig;
   public bot: any = {};
-  public store?: any;
 
   public statusOpts: any = {
     typing: "composing",
@@ -72,25 +71,11 @@ export class WhatsAppBot extends BaseBot {
         this._bot = makeWASocket({ ...this.config, auth: state });
         this._bot.ev.on("creds.update", saveCreds);
 
-        this.store = WASave({});
-        this.store.bind(this._bot.ev);
-
-        setInterval(() => {
-          const store = this.store.toJSON();
-          store.messages = {};
-
-          writeFileSync(`${auth}/store.json`, JSON.stringify(store));
-        }, 10_000);
-
         //! A mensagem não é recebida depois de se reconectar
         this._bot.ev.on("messages.upsert", (m: { messages: WAMessage[]; type: MessageUpsertType }) => {
-          console.log(m)
-          
           if (m.messages.length <= 0) return;
 
-          
           const message: WAMessage = m.messages[m.messages.length - 1];
-          console.log(message)
 
           if (message.key.remoteJid == "status@broadcast") return;
 
@@ -100,7 +85,6 @@ export class WhatsAppBot extends BaseBot {
             this.events["bot-message"].next(msg.get());
             return;
           }
-
 
           this.events.message.next(msg.get());
         });
@@ -125,6 +109,20 @@ export class WhatsAppBot extends BaseBot {
             this.bot.user = { ...this._bot?.user };
             this.bot.user.id = this.bot.user.id?.replace(/:(.*)@/, "@") || "";
 
+            // Restaurando salas de bate-papo
+            if (existsSync(`${this._auth}/chats.json`)) {
+              const readedChats: any = JSON.parse(readFileSync(`${this._auth}/chats.json`, "utf-8") || "{}") || {};
+
+              const chats = Object.keys(readedChats);
+
+              for (const chatId of chats) {
+                const readedChat = readedChats[chatId];
+                const chat = new Chat(readedChat.id, readedChat.name);
+
+                this.chats[chatId] = chat;
+              }
+            }
+
             resolve(true);
           }
 
@@ -136,6 +134,29 @@ export class WhatsAppBot extends BaseBot {
 
             resolve(await this.reconnect(this.config));
           }
+        });
+
+        const chatUpsert = (chat: any) => {
+          if (chat.id || chat.newJId) {
+            const newChat = new Chat(chat.id || chat.newJid, chat.name || chat.verifiedName);
+            this.setChat(newChat);
+          }
+        };
+
+        this._bot.ev.on("contacts.update", (updates) => {
+          for (const update of updates) chatUpsert(update);
+        });
+
+        this._bot.ev.on("chats.upsert", (newChats) => {
+          for (const chat of newChats) chatUpsert(chat);
+        });
+
+        this._bot.ev.on("chats.update", (updates) => {
+          for (const update of updates) chatUpsert(update);
+        });
+
+        this._bot.ev.on("chats.delete", (deletions) => {
+          for (const id of deletions) this.removeChat(id);
         });
       } catch (err: any) {
         reject(err?.stack || err);
@@ -164,29 +185,56 @@ export class WhatsAppBot extends BaseBot {
     });
   }
 
+  public saveChats() {
+    writeFileSync(`${this._auth}/chats.json`, JSON.stringify(this.chats));
+  }
+
   /**
    * * Obter uma sala de bate-papo
-   * @param id 
-   * @returns 
+   * @param id
+   * @returns
    */
   public async getChat(id: string): Promise<Chat | null> {
-    const c = this.store.chats[id];
-
-    if (!c) return null;
-
-    const chat = new Chat(c.id, c.name);
-
-    console.log("chat:", c);
-
-    return chat;
+    return this.chats[id];
   }
 
   /**
    * * Obter todas as salas de bate-papo
-   * @returns 
+   * @returns
    */
-  public async getChats(): Promise<any> {
-    return this.store.chats;
+  public async getChats(): Promise<{ [key: string]: Chat }> {
+    return this.chats;
+  }
+
+  /**
+   * * Define uma sala de bate-papo
+   * @param chat
+   */
+  public async setChat(chat: Chat) {
+    if (chat.id == "status@broadcast") return;
+
+    this.chats[chat.id] = chat;
+    this.events.chat.next(chat);
+
+    this.saveChats();
+  }
+
+  /**
+   * * Define as salas de bate-papo
+   * @param chats
+   */
+  public async setChats(chats: { [key: string]: Chat }) {
+    this.chats = chats;
+    this.saveChats();
+  }
+
+  /**
+   * * Remove uma sala de bate-papo
+   * @param id
+   */
+  public async removeChat(id: Chat | string) {
+    delete this.chats[typeof id == "string" ? id : id.id];
+    this.saveChats();
   }
 
   /**

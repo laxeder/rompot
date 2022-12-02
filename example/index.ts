@@ -33,9 +33,6 @@ bot.on("connection", (update: { action: string; status: string }) => {
 
 bot.on("message", async (message: Message) => {
   console.log(`New message in ${message.chat.id}`);
-
-  console.log(await bot.getChats());
-  console.log(await bot.getChat(message.chat.id));
 });
 
 bot.on("bot-message", (message: Message) => {

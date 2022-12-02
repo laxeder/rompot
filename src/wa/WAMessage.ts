@@ -31,7 +31,6 @@ export class WhatsAppMessage {
     if (message.mention) {
       const original = message.getOriginalMention();
       if (original) this.context.quoted = original;
-      else this.context.quoted = this._wa.store.messages[message.mention.chat.id]?.get(message.mention.id);
     }
 
     if (message instanceof ButtonMessage) await this.refactoryButtonMessage(message);

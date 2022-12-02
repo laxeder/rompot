@@ -11,7 +11,7 @@ export class BaseBot implements BotInterface {
     "bot-message": new Subject(),
     message: new Subject(),
     member: new Subject(),
-    chats: new Subject(),
+    chat: new Subject(),
     error: new Subject(),
   };
 
@@ -24,8 +24,14 @@ export class BaseBot implements BotInterface {
   public async connect(auth: any, config?: any): Promise<any> {}
   public async reconnect(config?: any): Promise<any> {}
   public async stop(reason?: any): Promise<any> {}
+
   public async getChat(id: string): Promise<any> {}
+  public async setChat(chat: Chat) {}
+
   public async getChats(): Promise<any> {}
+  public async setChats(chat: { [key: string]: Chat }) {}
+
+  public async removeChat(id: Chat | string) {}
 
   /**
    * * Adiciona um evento

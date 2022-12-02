@@ -108,6 +108,30 @@ export class Bot {
   }
 
   /**
+   * * Define uma sala de bate-papo
+   * @param chat
+   */
+  public async setChat(chat: Chat) {
+    await this._plataform.setChat(chat);
+  }
+
+  /**
+   * * Define as salas de bate-papo
+   * @param chats
+   */
+  public async setChats(chats: { [key: string]: Chat }) {
+    await this._plataform.setChats(chats);
+  }
+
+  /**
+   * * Remove uma sala de bate-papo
+   * @param id
+   */
+  public async removeChat(id: Chat | string) {
+    await this._plataform.removeChat(id);
+  }
+
+  /**
    * * Adiciona um evento
    * @param name
    * @param event
