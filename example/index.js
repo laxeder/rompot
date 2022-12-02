@@ -29,6 +29,10 @@ bot.on("connection", (update) => {
   if (update.action == "reconnecting") {
     logger.warn("Reconectando...");
   }
+
+  if (update.login) {
+    logger.info("New session");
+  }
 });
 
 bot.on("message", async (message) => {
@@ -37,6 +41,10 @@ bot.on("message", async (message) => {
 
 bot.on("bot-message", (message) => {
   console.log(`Send message to ${message.user.phone}`);
+});
+
+bot.on("chat", (chat) => {
+  console.log(`New chat: ${chat.id}`);
 });
 
 bot.on("member", (member) => {
@@ -49,6 +57,6 @@ bot.on("member", (member) => {
   }
 });
 
-bot.on("error", (err: any) => {
+bot.on("error", (err) => {
   console.log("Um erro ocorreu:", err);
 });

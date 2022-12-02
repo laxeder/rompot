@@ -17,7 +17,7 @@ commands.setPrefix("/");
 bot.setCommands(commands);
 bot.build("./example/auth");
 
-bot.on("connection", (update: { action: string; status: string }) => {
+bot.on("connection", (update: { action: string; status: string; login?: string }) => {
   if (update.action == "open") {
     logger.info("Bot conectado!");
   }
@@ -28,6 +28,10 @@ bot.on("connection", (update: { action: string; status: string }) => {
 
   if (update.action == "reconnecting") {
     logger.warn("Reconectando...");
+  }
+
+  if (update.login) {
+    logger.info("New session");
   }
 });
 
