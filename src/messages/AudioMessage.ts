@@ -1,5 +1,5 @@
-import { MediaMessage } from "@buttons/MediaMessage";
-import { Message } from "@buttons/Message";
+import { MediaMessage } from "@messages/MediaMessage";
+import { Message } from "@messages/Message";
 import { Chat } from "@models/Chat";
 
 export class AudioMessage extends MediaMessage {

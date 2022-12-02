@@ -1,11 +1,11 @@
-import { LocationMessage } from "@buttons/LocationMessage";
-import { ContactMessage } from "@buttons/ContactMessage";
-import { ButtonMessage } from "@buttons/ButtonMessage";
-import { MediaMessage } from "@buttons/MediaMessage";
-import { WhatsAppBot } from "@services/WhatsAppBot";
-import { ListMessage } from "@buttons/ListMessage";
+import { LocationMessage } from "@messages/LocationMessage";
+import { ContactMessage } from "@messages/ContactMessage";
+import { ButtonMessage } from "@messages/ButtonMessage";
+import { MediaMessage } from "@messages/MediaMessage";
+import { ListMessage } from "@messages/ListMessage";
 import { List, ListItem } from "../types/List";
-import { Message } from "@buttons/Message";
+import { WhatsAppBot } from "@wa/WhatsAppBot";
+import { Message } from "@messages/Message";
 
 export class WhatsAppMessage {
   private _message: Message;

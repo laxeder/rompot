@@ -1,7 +1,7 @@
 import { uuid } from "uuidv4";
 
 import { List, ListItem } from "../types/List";
-import { Message } from "@buttons/Message";
+import { Message } from "@messages/Message";
 import { Chat } from "@models/Chat";
 
 export class ListMessage extends Message {

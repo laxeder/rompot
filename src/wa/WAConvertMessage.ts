@@ -7,18 +7,18 @@ import {
   WAMessageContent,
 } from "@adiwajshing/baileys";
 
-import { ButtonMessage } from "@buttons/ButtonMessage";
-import { ImageMessage } from "@buttons/ImageMessage";
-import { MediaMessage } from "@buttons/MediaMessage";
-import { VideoMessage } from "@buttons/VideoMessage";
-import { AudioMessage } from "@buttons/AudioMessage";
-import { ListMessage } from "@buttons/ListMessage";
+import { LocationMessage } from "@messages/LocationMessage";
+import { ContactMessage } from "@messages/ContactMessage";
+import { ButtonMessage } from "@messages/ButtonMessage";
+import { ImageMessage } from "@messages/ImageMessage";
+import { MediaMessage } from "@messages/MediaMessage";
+import { VideoMessage } from "@messages/VideoMessage";
+import { AudioMessage } from "@messages/AudioMessage";
+import { ListMessage } from "@messages/ListMessage";
 import { loggerConfig } from "@config/logger";
-import { Message } from "@buttons/Message";
+import { Message } from "@messages/Message";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
-import { LocationMessage } from "@buttons/LocationMessage";
-import { ContactMessage } from "@buttons/ContactMessage";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;

@@ -11,18 +11,19 @@ import makeWASocket, {
   MessageUpsertType,
   WASocket,
   WAPresence,
-  makeInMemoryStore,
   generateWAMessage,
 } from "@adiwajshing/baileys";
+import { writeFileSync } from "fs";
 
-import { WhatsAppConvertMessage } from "@controllers/WAConvertMessage";
-import { WhatsAppMessage } from "@controllers/WAMessage";
+import { WhatsAppConvertMessage } from "@wa/WAConvertMessage";
+import { WhatsAppMessage } from "@wa/WAMessage";
 import { loggerConfig } from "@config/logger";
-import { Message } from "@buttons/Message";
+import { Message } from "@messages/Message";
 import { BaseBot } from "@utils/BaseBot";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
+import WASave from "./WASave";
 
 export class WhatsAppBot extends BaseBot {
   private _auth: string = "";
@@ -71,14 +72,25 @@ export class WhatsAppBot extends BaseBot {
         this._bot = makeWASocket({ ...this.config, auth: state });
         this._bot.ev.on("creds.update", saveCreds);
 
-        this.store = makeInMemoryStore({});
+        this.store = WASave({});
         this.store.bind(this._bot.ev);
+
+        setInterval(() => {
+          const store = this.store.toJSON();
+          store.messages = {};
+
+          writeFileSync(`${auth}/store.json`, JSON.stringify(store));
+        }, 10_000);
 
         //! A mensagem não é recebida depois de se reconectar
         this._bot.ev.on("messages.upsert", (m: { messages: WAMessage[]; type: MessageUpsertType }) => {
+          console.log(m)
+          
           if (m.messages.length <= 0) return;
 
+          
           const message: WAMessage = m.messages[m.messages.length - 1];
+          console.log(message)
 
           if (message.key.remoteJid == "status@broadcast") return;
 
@@ -88,6 +100,7 @@ export class WhatsAppBot extends BaseBot {
             this.events["bot-message"].next(msg.get());
             return;
           }
+
 
           this.events.message.next(msg.get());
         });
@@ -149,6 +162,31 @@ export class WhatsAppBot extends BaseBot {
     return new Promise(() => {
       this._bot?.end(reason);
     });
+  }
+
+  /**
+   * * Obter uma sala de bate-papo
+   * @param id 
+   * @returns 
+   */
+  public async getChat(id: string): Promise<Chat | null> {
+    const c = this.store.chats[id];
+
+    if (!c) return null;
+
+    const chat = new Chat(c.id, c.name);
+
+    console.log("chat:", c);
+
+    return chat;
+  }
+
+  /**
+   * * Obter todas as salas de bate-papo
+   * @returns 
+   */
+  public async getChats(): Promise<any> {
+    return this.store.chats;
   }
 
   /**

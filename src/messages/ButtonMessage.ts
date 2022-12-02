@@ -1,4 +1,4 @@
-import { Message } from "@buttons/Message";
+import { Message } from "@messages/Message";
 import { Button } from "../types/Button";
 import { Chat } from "@models/Chat";
 

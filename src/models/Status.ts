@@ -1,5 +1,5 @@
 import { StatusOptions } from "../types/Status";
-import { Message } from "@buttons/Message";
+import { Message } from "@messages/Message";
 import { Chat } from "@models/Chat";
 
 export class Status {

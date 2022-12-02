@@ -1,4 +1,4 @@
-import { Message } from "@buttons/Message";
+import { Message } from "@messages/Message";
 import { Chat } from "@models/Chat";
 
 export class MediaMessage extends Message {
