@@ -49,6 +49,6 @@ bot.on("member", (member) => {
   }
 });
 
-bot.on("error", (err) => {
+bot.on("error", (err: any) => {
   console.log("Um erro ocorreu:", err);
 });

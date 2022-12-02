@@ -1,4 +1,4 @@
-import { Bot, WhatsAppBot, Message, logger, Commands, Command, User, Chat } from "rompot";
+import { Bot, WhatsAppBot, Message, logger, Commands, Command, User, Chat } from "../src/index";
 
 const hello = new Command("hello", "Manda um simples Hello");
 hello.setSend("Hello There!");
@@ -49,6 +49,6 @@ bot.on("member", (member: { action: string; user: User; chat: Chat }) => {
   }
 });
 
-bot.on("error", (err) => {
+bot.on("error", (err: any) => {
   console.log("Um erro ocorreu:", err);
 });
