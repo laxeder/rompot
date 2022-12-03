@@ -1,14 +1,16 @@
 import { Subject, map } from "rxjs";
 import { uuid } from "uuidv4";
 
+import { BuildConfig } from "@config/BuildConfig";
 import { DataBase } from "@controllers/DataBase";
 import { EventsName } from "../types/Events";
 import { Commands } from "@models/Commands";
-import { Message } from "@buttons/Message";
+import { Message } from "@messages/Message";
 import { BaseDB } from "@services/BaseDB";
 import { BaseBot } from "@utils/BaseBot";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
+import { User } from "@models/User";
 
 export class Bot {
   private _awaitSendMessages: Subject<any> = new Subject();
@@ -17,6 +19,7 @@ export class Bot {
   private _plataform: BaseBot;
   private _db: DataBase;
 
+  public config: BuildConfig = {};
   public commands: Commands;
 
   constructor(plataform: BaseBot, commands: Commands = new Commands(), db: DataBase = new DataBase(new BaseDB())) {
@@ -37,12 +40,13 @@ export class Bot {
    * @param auth
    * @param config
    */
-  public build(auth: string, config?: any): Promise<any> {
-    this.on("message", (message: Message) => {
-      const text = message.text.split(/\s+/i)[0];
-      const lowText = text.toLowerCase().trim();
+  public build(auth: string, config: BuildConfig = {}): Promise<any> {
+    this.config = config;
 
-      const command = this.commands.get([message.text, text, lowText]);
+    this.on("message", (message: Message) => {
+      if (this.config.disableAutoCommand) return;
+
+      const command = this.getCMD(message.text);
 
       if (command) command.execute(message);
     });
@@ -55,7 +59,8 @@ export class Bot {
    * @param config
    * @returns
    */
-  public rebuild(config?: any): Promise<any> {
+  public rebuild(config: BuildConfig = {}): Promise<any> {
+    this.config = config;
     return this._plataform.reconnect(config);
   }
 
@@ -63,8 +68,21 @@ export class Bot {
    * * Obter Bot
    * @returns
    */
-  public get(): BaseBot {
+  public getBot(): BaseBot {
     return this._plataform;
+  }
+
+  /**
+   * * Retorna um comando
+   * @param cmd
+   * @param commands
+   * @returns
+   */
+  public getCMD(cmd: string, commands: Commands = this.commands) {
+    const text = cmd.split(/\s+/i)[0];
+    const lowText = text.toLowerCase().trim();
+
+    return commands.get([cmd, text, lowText]);
   }
 
   /**
@@ -95,16 +113,58 @@ export class Bot {
    * @param id
    * @returns
    */
-  public getChat(id: string): Chat | undefined {
-    return this._plataform.chats[id];
+  public getChat(id: string) {
+    return this._plataform.getChat(id);
   }
 
   /**
    * * Retorna todas as salas de bate-papo
    * @returns
    */
-  public getChats(): { [key: string]: Chat } {
-    return this._plataform.chats;
+  public getChats() {
+    return this._plataform.getChats();
+  }
+
+  /**
+   * * Define uma sala de bate-papo
+   * @param chat
+   */
+  public async setChat(chat: Chat) {
+    await this._plataform.setChat(chat);
+  }
+
+  /**
+   * * Define as salas de bate-papo
+   * @param chats
+   */
+  public async setChats(chats: { [key: string]: Chat }) {
+    await this._plataform.setChats(chats);
+  }
+
+  /**
+   * * Remove uma sala de bate-papo
+   * @param id
+   */
+  public async removeChat(id: Chat | string) {
+    await this._plataform.removeChat(id);
+  }
+
+  /**
+   * * Adiciona um usuário a uma sala de bate-papo
+   * @param chat
+   * @param user
+   */
+  public async addMember(chat: Chat, user: User) {
+    await this._plataform.addMember(chat, user);
+  }
+
+  /**
+   * * Remove um usuário da sala de bate-papo
+   * @param chat
+   * @param user
+   */
+  public async removeMember(chat: Chat, user: User) {
+    await this._plataform.removeMember(chat, user);
   }
 
   /**
@@ -113,22 +173,24 @@ export class Bot {
    * @param event
    */
   public on(name: keyof EventsName, event: Function) {
-    if (name == "message") {
-      return this._plataform.on(
-        name,
-        event,
-        map((message: any) => {
-          if (message instanceof Message) {
-            message.setBot(this);
-            message.read();
-          }
+    return this._plataform.on(
+      name,
+      event,
+      map((v: any) => {
+        if (v instanceof Message) {
+          v.setBot(this);
+          v.chat.setBot(this);
+          
+          if (!this.config.disableAutoRead) v.read();
+        }
 
-          return message;
-        })
-      );
-    }
+        if (v instanceof Chat) {
+          v.setBot(this);
+        }
 
-    return this._plataform.on(name, event);
+        return v;
+      })
+    );
   }
 
   /**

@@ -1,16 +1,19 @@
+import { BuildConfig } from "../config/BuildConfig";
 import { DataBase } from "./DataBase";
 import { EventsName } from "../types/Events";
 import { Commands } from "../models/Commands";
-import { Message } from "../buttons/Message";
+import { Message } from "../messages/Message";
 import { BaseBot } from "../utils/BaseBot";
 import { Status } from "../models/Status";
 import { Chat } from "../models/Chat";
+import { User } from "../models/User";
 export declare class Bot {
     private _awaitSendMessages;
     private _awaitSendMessagesObservers;
     private _autoMessages;
     private _plataform;
     private _db;
+    config: BuildConfig;
     commands: Commands;
     constructor(plataform: BaseBot, commands?: Commands, db?: DataBase);
     setCommands(commands: Commands): void;
@@ -19,18 +22,25 @@ export declare class Bot {
      * @param auth
      * @param config
      */
-    build(auth: string, config?: any): Promise<any>;
+    build(auth: string, config?: BuildConfig): Promise<any>;
     /**
      * * Reconstruir o bot
      * @param config
      * @returns
      */
-    rebuild(config?: any): Promise<any>;
+    rebuild(config?: BuildConfig): Promise<any>;
     /**
      * * Obter Bot
      * @returns
      */
-    get(): BaseBot;
+    getBot(): BaseBot;
+    /**
+     * * Retorna um comando
+     * @param cmd
+     * @param commands
+     * @returns
+     */
+    getCMD(cmd: string, commands?: Commands): import("../models/Commands").Command | undefined;
     /**
      * * Obter DataBase
      * @returns
@@ -50,14 +60,41 @@ export declare class Bot {
      * @param id
      * @returns
      */
-    getChat(id: string): Chat | undefined;
+    getChat(id: string): Promise<any>;
     /**
      * * Retorna todas as salas de bate-papo
      * @returns
      */
-    getChats(): {
+    getChats(): Promise<any>;
+    /**
+     * * Define uma sala de bate-papo
+     * @param chat
+     */
+    setChat(chat: Chat): Promise<void>;
+    /**
+     * * Define as salas de bate-papo
+     * @param chats
+     */
+    setChats(chats: {
         [key: string]: Chat;
-    };
+    }): Promise<void>;
+    /**
+     * * Remove uma sala de bate-papo
+     * @param id
+     */
+    removeChat(id: Chat | string): Promise<void>;
+    /**
+     * * Adiciona um usuário a uma sala de bate-papo
+     * @param chat
+     * @param user
+     */
+    addMember(chat: Chat, user: User): Promise<void>;
+    /**
+     * * Remove um usuário da sala de bate-papo
+     * @param chat
+     * @param user
+     */
+    removeMember(chat: Chat, user: User): Promise<void>;
     /**
      * * Adiciona um evento
      * @param name

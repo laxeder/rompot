@@ -1,9 +1,10 @@
 import { BehaviorSubject, catchError, of, OperatorFunction, Subject } from "rxjs";
 
 import { Events, BotInterface, EventsName } from "../types/index";
-import { Message } from "@buttons/Message";
+import { Message } from "@messages/Message";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
+import { User } from "@models/User";
 
 export class BaseBot implements BotInterface {
   public events: Events = {
@@ -11,22 +12,29 @@ export class BaseBot implements BotInterface {
     "bot-message": new Subject(),
     message: new Subject(),
     member: new Subject(),
-    chats: new Subject(),
+    chat: new Subject(),
     error: new Subject(),
   };
 
   public status: Status = new Status("offline");
-  public chats: { [key: string]: Chat } = {};
   public user: any = {};
 
-  constructor() {
-    this.events.chats.subscribe((chat: Chat) => (this.chats[chat.id] = chat));
-  }
+  constructor() {}
 
   public async send(message: Message | Status): Promise<any> {}
   public async connect(auth: any, config?: any): Promise<any> {}
   public async reconnect(config?: any): Promise<any> {}
   public async stop(reason?: any): Promise<any> {}
+
+  public async getChat(id: string): Promise<any> {}
+  public async setChat(chat: Chat) {}
+
+  public async getChats(): Promise<any> {}
+  public async setChats(chat: { [key: string]: Chat }) {}
+
+  public async removeChat(id: Chat | string) {}
+  public async addMember(chat: Chat, user: User) {}
+  public async removeMember(chat: Chat, user: User) {}
 
   /**
    * * Adiciona um evento

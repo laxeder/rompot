@@ -1,5 +1,5 @@
 import { StatusOptions } from "../types/Status";
-import { Message } from "../buttons/Message";
+import { Message } from "../messages/Message";
 import { Chat } from "./Chat";
 export declare class Status {
     status: keyof StatusOptions;

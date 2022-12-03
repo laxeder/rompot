@@ -1,4 +1,4 @@
-import { Message } from "@buttons/Message";
+import { Message } from "@messages/Message";
 import { Bot } from "@controllers/Bot";
 import { Chat } from "./Chat";
 

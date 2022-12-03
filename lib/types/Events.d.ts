@@ -4,7 +4,7 @@ export interface EventsName {
     connection: string;
     message: string;
     member: string;
-    chats: string;
+    chat: string;
     error: string;
 }
 export interface Events {
@@ -12,6 +12,6 @@ export interface Events {
     connection: Subject<any>;
     message: Subject<any>;
     member: Subject<any>;
-    chats: Subject<any>;
+    chat: Subject<any>;
     error: Subject<any>;
 }

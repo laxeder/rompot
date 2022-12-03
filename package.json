@@ -1,11 +1,12 @@
 {
   "name": "rompot",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Chatbot API em TypeScript",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "example": "node example/index.js",
+    "dev": "ts-node-dev -r tsconfig-paths/register example/index.ts",
     "build": "npm run clean && npm ci && tsc && tsc-alias",
     "clean": "rimraf lib"
   },
@@ -15,7 +16,7 @@
   },
   "keywords": [],
   "author": "Laxeder",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/Laxeder/rompot/issues"
   },

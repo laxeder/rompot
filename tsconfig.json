@@ -13,11 +13,12 @@
     "paths": {
       "@controllers/*": ["./src/controllers/*"],
       "@services/*": ["./src/services/*"],
-      "@buttons/*": ["./src/buttons/*"],
+      "@messages/*": ["./src/messages/*"],
       "@models/*": ["./src/models/*"],
       "@config/*": ["./src/config/*"],
       "@utils/*": ["./src/utils/*"],
-      "@types/*": ["./src/types/*"]
+      "@types/*": ["./src/types/*"],
+      "@wa/*": ["./src/wa/*"]
     }
   },
   "include": ["src"]

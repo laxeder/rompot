@@ -2,6 +2,8 @@ export declare class User {
     id: string;
     name?: string;
     phone?: string;
+    isAdmin?: boolean;
+    isOwner?: boolean;
     constructor(id: string, name?: string, phone?: string);
     /**
      * * Define o ID do usuário
@@ -33,6 +35,26 @@ export declare class User {
      * @returns
      */
     getPhone(): string;
+    /**
+     * * Define se o usuáio é admin da sala de bate-papo
+     * @param admin
+     */
+    setAdmin(admin: boolean): void;
+    /**
+     * * Retorna se o usuário é admin da sala de bate-papo
+     * @returns
+     */
+    getAdmin(): boolean;
+    /**
+     * * Define se o usuáio é dono da sala de bate-papo
+     * @param owner
+     */
+    setLeader(owner: boolean): void;
+    /**
+     * * Retorna se o usuário é dono da sala de bate-papo
+     * @returns
+     */
+    getLeader(): boolean;
     /**
      * * Verifica se o usuário tem permissão
      * @param userPermissions
