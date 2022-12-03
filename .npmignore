@@ -2,4 +2,4 @@ src
 auth
 example
 node_modules
-utils
+auto-merge.sh
