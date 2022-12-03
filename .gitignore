@@ -11,7 +11,7 @@ auth
 example/auth
 
 # Utils
-utils
+auto-merge.sh
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
