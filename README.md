@@ -5,9 +5,9 @@ Um chatbot multi-plataforma em TypeScript.
 ## 🛠 Recursos
 
 - Multi plataformas
-- - WhatsApp
-- - Telegram (Em breve)
-- - Discord (Em breve)
+  - WhatsApp
+  - Telegram (Em breve)
+  - Discord (Em breve)
 - Automatização de mensagem
 - Criação de comandos
 
@@ -80,7 +80,7 @@ bot.on("connection", (update: { action: string; status?: number; login?: any }) 
   }
 
   if (update.login) {
-    console.log(`Novo login: ${update.login});
+    console.log(`Novo login: ${update.login}`);
   }
 });
 ```
