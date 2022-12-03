@@ -68,15 +68,19 @@ bot.setCommands(commands);
 ```ts
 bot.on("connection", (update: { action: string; status?: number; login?: any }) => {
   if (update.action == "open") {
-    logger.info("Bot conectado!");
+    console.log("Bot conectado!");
   }
 
   if (update.action == "close") {
-    logger.error(`Bot desligado! Status: ${update.status}`);
+    console.log(`Bot desligado! Status: ${update.status}`);
   }
 
   if (update.action == "reconnecting") {
-    logger.warn("Reconectando...");
+    console.log("Reconectando...");
+  }
+
+  if (update.login) {
+    console.log(`Novo login: ${update.login});
   }
 });
 ```
@@ -106,9 +110,14 @@ bot.on("member", (member: { action: "add" | "remove"; user: User; chat: Chat }) 
     bot.send(msg);
   }
 
-  // Membro saiu de um grupo
   if (member.action == "remove") {
-    //...
+    // Membro saiu de um grupo
+  }
+  if (member.action == "promote") {
+    // Membro recebeu admin
+  }
+  if (member.action == "demote") {
+    // Membro perdeu admin
   }
 });
 ```
