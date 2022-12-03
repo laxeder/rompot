@@ -67,23 +67,6 @@ export class WhatsAppBot extends BaseBot {
         this._bot = makeWASocket({ ...this.config, auth: state });
         this._bot.ev.on("creds.update", saveCreds);
 
-        this._bot.ev.on("messages.upsert", async (m: { messages: WAMessage[]; type: MessageUpsertType }) => {
-          if (m.messages.length <= 0) return;
-
-          const message: WAMessage = m.messages[m.messages.length - 1];
-
-          if (message.key.remoteJid == "status@broadcast") return;
-
-          const msg = new WhatsAppConvertMessage(this, message, m.type);
-
-          if (message.key.fromMe) {
-            this.events["bot-message"].next(await msg.get());
-            return;
-          }
-
-          this.events.message.next(await msg.get());
-        });
-
         // Verificando se bot conectou
         this._bot.ev.on("connection.update", async (update: Partial<ConnectionState>) => {
           if (update.connection == "open") {
@@ -120,7 +103,9 @@ export class WhatsAppBot extends BaseBot {
         });
 
         this._bot.ev.on("chats.update", (updates) => {
-          for (const update of updates) if (update.id?.includes("@g")) this.chatUpsert(update);
+          for (const update of updates) {
+            if (update.id?.includes("@g") && !this.chats[update.id]) this.chatUpsert(update);
+          }
         });
 
         this._bot.ev.on("chats.delete", (deletions) => {
@@ -150,6 +135,23 @@ export class WhatsAppBot extends BaseBot {
 
             this.events.member.next({ action, chat: this.chats[id], user });
           }
+        });
+
+        this._bot.ev.on("messages.upsert", async (m: { messages: WAMessage[]; type: MessageUpsertType }) => {
+          if (m.messages.length <= 0) return;
+
+          const message: WAMessage = m.messages[m.messages.length - 1];
+
+          if (message.key.remoteJid == "status@broadcast") return;
+
+          const msg = new WhatsAppConvertMessage(this, message, m.type);
+
+          if (message.key.fromMe) {
+            this.events["bot-message"].next(await msg.get());
+            return;
+          }
+
+          this.events.message.next(await msg.get());
         });
       } catch (err: any) {
         reject(err?.stack || err);
@@ -222,7 +224,7 @@ export class WhatsAppBot extends BaseBot {
 
       if (id.includes("@g")) {
         const metadata = await this._bot?.groupMetadata(id);
-        if (metadata) await this.chatUpsert(new Chat(metadata.id, metadata.subject));
+        if (metadata) await this.chatUpsert(metadata);
       }
     }
 
@@ -325,9 +327,11 @@ export class WhatsAppBot extends BaseBot {
 
     if (content instanceof Status) {
       if (content.status === "reading") {
-        return this._bot?.readMessages([
-          { remoteJid: content.chat?.id, id: content.message?.id, participant: content.message?.user.id },
-        ]);
+        const key: any = { remoteJid: content.chat?.id, id: content.message?.id };
+
+        if (key.remoteJid?.includes("@g")) key.participant = content.message?.user.id;
+
+        return this._bot?.readMessages([key]);
       }
 
       const status: WAPresence = this.statusOpts[content.status];
