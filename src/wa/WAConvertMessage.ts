@@ -76,7 +76,7 @@ export class WhatsAppConvertMessage {
 
     if (chat?.id.includes("@g")) this._chat.setType("group");
     if (chat?.id.includes("@s")) this._chat.setType("pv");
-    
+
     if (message.pushName) this._chat.name = message.pushName;
 
     const userID = message.key.participant || message.participant || message.key.remoteJid || "";
@@ -85,7 +85,11 @@ export class WhatsAppConvertMessage {
 
     await this.convertContentMessage(message.message);
 
-    if (message.key.fromMe) this._convertedMessage.fromMe = message.key.fromMe;
+    if (message.key.fromMe) {
+      this._convertedMessage.fromMe = message.key.fromMe;
+      this._user.setId(this._wa.user.id);
+    }
+
     if (message.key.id) this._convertedMessage.id = message.key.id;
     if (type) this._convertedMessage.isOld = type !== "notify";
 
