@@ -46,6 +46,28 @@ export class WhatsAppBot extends BaseBot {
     this.config = {
       printQRInTerminal: true,
       logger: loggerConfig({ level: "silent" }),
+      patchMessageBeforeSending: (message: any) => {
+        const requiresPatch = !!(
+          message.buttonsMessage ||
+          // || message.templateMessage
+          message.listMessage
+        );
+        if (requiresPatch) {
+          message = {
+            viewOnceMessage: {
+              message: {
+                messageContextInfo: {
+                  deviceListMetadataVersion: 2,
+                  deviceListMetadata: {},
+                },
+                ...message,
+              },
+            },
+          };
+        }
+
+        return message;
+      },
       ...config,
     };
   }
@@ -310,17 +332,17 @@ export class WhatsAppBot extends BaseBot {
 
       const { chat, message, context } = waMSG;
 
-      if (message.hasOwnProperty("templateButtons")) {
-        const fullMsg = await generateWAMessage(chat, message, {
-          userJid: this._bot?.user?.id,
-          logger: this.config.logger,
-          ...context,
-        });
+      // if (message.hasOwnProperty("templateButtons")) {
+      //   const fullMsg = await generateWAMessage(chat, message, {
+      //     userJid: this._bot?.user?.id,
+      //     logger: this.config.logger,
+      //     ...context,
+      //   });
 
-        fullMsg.message = { viewOnceMessage: { message: fullMsg.message } };
+      //   fullMsg.message = { viewOnceMessage: { message: fullMsg.message } };
 
-        return this._bot?.relayMessage(chat, fullMsg.message!, { messageId: fullMsg.key.id! });
-      }
+      //   return this._bot?.relayMessage(chat, fullMsg.message!, { messageId: fullMsg.key.id! });
+      // }
 
       return this._bot?.sendMessage(chat, message, context);
     }
