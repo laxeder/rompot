@@ -22,6 +22,9 @@ export declare class BaseBot implements BotInterface {
     removeChat(id: Chat | string): Promise<void>;
     addMember(chat: Chat, user: User): Promise<void>;
     removeMember(chat: Chat, user: User): Promise<void>;
+    deleteMessage(message: Message): Promise<any>;
+    removeMessage(message: Message): Promise<any>;
+    deleteChat(message: Message): Promise<any>;
     /**
      * * Adiciona um evento
      * @param eventName

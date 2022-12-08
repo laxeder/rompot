@@ -96,6 +96,18 @@ export declare class Bot {
      */
     removeMember(chat: Chat, user: User): Promise<void>;
     /**
+     * * Remove uma mensagem da sala de bate-papo
+     * @param message
+     * @returns
+     */
+    removeMessage(message: Message): Promise<any>;
+    /**
+     * * Deleta uma mensagem da sala de bate-papo
+     * @param message
+     * @returns
+     */
+    deleteMessage(message: Message): Promise<any>;
+    /**
      * * Adiciona um evento
      * @param name
      * @param event

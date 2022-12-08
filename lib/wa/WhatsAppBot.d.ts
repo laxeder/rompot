@@ -82,6 +82,18 @@ export declare class WhatsAppBot extends BaseBot {
      */
     removeMember(chat: Chat, user: User): Promise<void>;
     /**
+     * * Remove uma mensagem da sala de bate-papo
+     * @param message
+     * @returns
+     */
+    removeMessage(message: Message): Promise<void | undefined>;
+    /**
+     * * Deleta uma mensagem da sala de bate-papo
+     * @param message
+     * @returns
+     */
+    deleteMessage(message: Message): Promise<any>;
+    /**
      * * Envia um conteúdo
      * @param content
      * @returns
