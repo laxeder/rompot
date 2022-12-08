@@ -168,7 +168,7 @@ export class WhatsAppBot extends BaseBot {
     this.events.connection.next({ action: "reconnecting" });
 
     if (this.status.getStatus() == "online") {
-      await this.stop(new Error("403"));
+      this.stop(DisconnectReason.loggedOut);
     }
 
     this.status.setStatus("offline");
@@ -181,11 +181,8 @@ export class WhatsAppBot extends BaseBot {
    * @param reason
    * @returns
    */
-  public stop(reason?: Error): Promise<any> {
-    return new Promise(async (resolve) => {
-      await this._bot?.end(reason);
-      resolve(true);
-    });
+  public async stop(reason?: any): Promise<any> {
+    this._bot?.end(reason);
   }
 
   /**

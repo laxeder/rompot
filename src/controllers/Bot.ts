@@ -61,7 +61,8 @@ export class Bot {
    */
   public async rebuild(config: BuildConfig = this.config): Promise<any> {
     this.config = config;
-    return this._plataform.reconnect(config);
+
+    return this._plataform?.reconnect(this.config);
   }
 
   /**
