@@ -59,7 +59,7 @@ export class Bot {
    * @param config
    * @returns
    */
-  public rebuild(config: BuildConfig = {}): Promise<any> {
+  public async rebuild(config: BuildConfig = this.config): Promise<any> {
     this.config = config;
     return this._plataform.reconnect(config);
   }

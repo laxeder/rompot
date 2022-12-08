@@ -164,8 +164,15 @@ export class WhatsAppBot extends BaseBot {
    * @param config
    * @returns
    */
-  public reconnect(config?: UserFacingSocketConfig): Promise<any> {
+  public async reconnect(config?: UserFacingSocketConfig): Promise<any> {
     this.events.connection.next({ action: "reconnecting" });
+
+    if (this.status.getStatus() == "online") {
+      await this.stop(403);
+    }
+
+    this.status.setStatus("offline");
+
     return this.connect(this._auth, config || this.config);
   }
 
@@ -174,9 +181,10 @@ export class WhatsAppBot extends BaseBot {
    * @param reason
    * @returns
    */
-  public stop(reason?: Error): Promise<any> {
-    return new Promise(() => {
-      this._bot?.end(reason);
+  public stop(reason?: Error | string | number): Promise<any> {
+    return new Promise(async (resolve) => {
+      await this._bot?.end(reason);
+      resolve(true);
     });
   }
 
