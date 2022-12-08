@@ -36,6 +36,10 @@ export class BaseBot implements BotInterface {
   public async addMember(chat: Chat, user: User) {}
   public async removeMember(chat: Chat, user: User) {}
 
+  public async deleteMessage(message: Message): Promise<any> {}
+  public async removeMessage(message: Message): Promise<any> {}
+  public async deleteChat(message: Message): Promise<any> {}
+
   /**
    * * Adiciona um evento
    * @param eventName

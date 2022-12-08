@@ -299,6 +299,31 @@ export class WhatsAppBot extends BaseBot {
   }
 
   /**
+   * * Remove uma mensagem da sala de bate-papo
+   * @param message
+   * @returns
+   */
+  public async removeMessage(message: Message) {
+    return await this._bot?.chatModify(
+      { clear: { messages: [{ id: message.id || "", fromMe: message.fromMe, timestamp: Date.now() }] } },
+      message.chat.id
+    );
+  }
+
+  /**
+   * * Deleta uma mensagem da sala de bate-papo
+   * @param message
+   * @returns
+   */
+  public async deleteMessage(message: Message): Promise<any> {
+    const key: any = { remoteJid: message.chat.id, id: message.id };
+
+    if (message.chat.id.includes("@g")) key.participant = message.user.id;
+
+    return await this._bot?.sendMessage(message.chat.id, { delete: key });
+  }
+
+  /**
    * * Envia um conteúdo
    * @param content
    * @returns

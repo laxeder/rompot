@@ -168,6 +168,24 @@ export class Bot {
   }
 
   /**
+   * * Remove uma mensagem da sala de bate-papo
+   * @param message
+   * @returns
+   */
+  public async removeMessage(message: Message) {
+    return this._plataform.removeMessage(message);
+  }
+
+  /**
+   * * Deleta uma mensagem da sala de bate-papo
+   * @param message
+   * @returns
+   */
+  public async deleteMessage(message: Message) {
+    return this._plataform.deleteMessage(message);
+  }
+
+  /**
    * * Adiciona um evento
    * @param name
    * @param event
@@ -180,7 +198,7 @@ export class Bot {
         if (v instanceof Message) {
           v.setBot(this);
           v.chat.setBot(this);
-          
+
           if (!this.config.disableAutoRead) v.read();
         }
 
