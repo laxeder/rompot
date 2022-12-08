@@ -33,7 +33,7 @@ export declare class WhatsAppBot extends BaseBot {
      * @param reason
      * @returns
      */
-    stop(reason?: Error): Promise<any>;
+    stop(reason?: any): Promise<any>;
     /**
      * * Lê o chat e seta ele
      * @param chat
