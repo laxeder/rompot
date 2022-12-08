@@ -1,4 +1,4 @@
-import { Bot, WhatsAppBot, Message, logger, Commands, Command, User, Chat, ButtonMessage } from "../lib/index";
+import { Bot, WhatsAppBot, Message, logger, Commands, Command, User, Chat } from "../lib/index";
 
 const bot = new Bot(new WhatsAppBot());
 
