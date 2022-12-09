@@ -1,4 +1,5 @@
 import { LocationMessage } from "@messages/LocationMessage";
+import { ReactionMessage } from "@messages/ReactionMessage";
 import { ContactMessage } from "@messages/ContactMessage";
 import { ButtonMessage } from "@messages/ButtonMessage";
 import { MediaMessage } from "@messages/MediaMessage";
@@ -6,7 +7,7 @@ import { ListMessage } from "@messages/ListMessage";
 import { List, ListItem } from "../types/List";
 import { WhatsAppBot } from "@wa/WhatsAppBot";
 import { Message } from "@messages/Message";
-import { ReactionMessage } from "@messages/ReactionMessage";
+import { generateWAMessage } from "@adiwajshing/baileys";
 
 export class WhatsAppMessage {
   private _message: Message;
@@ -28,10 +29,19 @@ export class WhatsAppMessage {
   public async refactory(message = this._message) {
     this.chat = message.chat.id;
     this.message = await this.refactoryMessage(message);
-
+    
     if (message.mention) {
       const original = message.getOriginalMention();
-      if (original) this.context.quoted = original;
+      const ctx: any = {};
+
+      this.context.quoted =
+        original ||
+        message.mention.getOriginalMessage() ||
+        (await generateWAMessage(this.chat, this.message, {
+          userJid: this._wa.id,
+          logger: this._wa.config.logger,
+          ...ctx,
+        }));
     }
 
     if (message instanceof ButtonMessage) await this.refactoryButtonMessage(message);
@@ -172,7 +182,7 @@ export class WhatsAppMessage {
    * @param message
    */
   public refactoryReactionMessage(message: ReactionMessage) {
-    const fromMe = message.fromMe || this._wa.user.id == message.user.id;
+    const fromMe = message.fromMe || this._wa.id == message.user.id;
 
     this.message = {
       react: {
@@ -182,7 +192,7 @@ export class WhatsAppMessage {
     };
 
     if (message.chat.id.includes("@g")) {
-      this.message.react.key.participant = message.user.id || this._wa.user.id;
+      this.message.react.key.participant = message.user.id || this._wa.id;
     }
   }
 }
