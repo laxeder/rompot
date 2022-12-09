@@ -16,7 +16,7 @@ bot.on("connection", (update: { action: string; status: string; login?: string }
   }
 
   if (update.login) {
-    logger.info("New session");
+    logger.info("Conectando...");
   }
 });
 
