@@ -311,7 +311,7 @@ export class WhatsAppBot extends BaseBot {
    */
   public async removeMessage(message: Message) {
     return await this._bot?.chatModify(
-      { clear: { messages: [{ id: message.id || "", fromMe: message.fromMe, timestamp: Date.now() }] } },
+      { clear: { messages: [{ id: message.id || "", fromMe: message.fromMe, timestamp: Number(message.timestamp) }] } },
       message.chat.id
     );
   }

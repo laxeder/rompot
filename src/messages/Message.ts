@@ -9,6 +9,7 @@ export class Message implements MessageInterface {
   private _originalMessage: any;
   private bot?: Bot;
 
+  public timestamp: number | Long = Date.now();
   public user: User = new User("");
   public mentions: string[] = [];
   public chat: Chat;
@@ -138,6 +139,10 @@ export class Message implements MessageInterface {
    */
   public setMentions(mentions: string[]) {
     this.mentions = mentions;
+  }
+
+  public setTimestamp(timestamp: number) {
+    this.timestamp = timestamp;
   }
 
   /**

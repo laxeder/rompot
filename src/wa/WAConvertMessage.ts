@@ -92,6 +92,7 @@ export class WhatsAppConvertMessage {
       this._user.setId(this._wa.user.id);
     }
 
+    if (message.messageTimestamp) this._convertedMessage.timestamp = message.messageTimestamp;
     if (message.key.id) this._convertedMessage.id = message.key.id;
     if (type) this._convertedMessage.isOld = type !== "notify";
 
