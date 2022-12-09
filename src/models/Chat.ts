@@ -1,16 +1,9 @@
-import { Bot } from "@controllers/Bot";
+import { ChatTypes } from "../types/ChatTypes";
+import { Bot } from "@models/Bot";
 import { User } from "@models/User";
 
-export interface ChatTypes {
-  community: string;
-  chanel: string;
-  group: string;
-  chat: string;
-  pv: string;
-}
-
 export class Chat {
-  private _bot?: Bot;
+  private _bot: Bot = new Bot();
 
   public members: { [key: string]: User } = {};
   public type: keyof ChatTypes = "pv";
@@ -86,7 +79,7 @@ export class Chat {
    * * Retorna o bot da sala de bate-papo
    * @returns
    */
-  public getBot() {
+  public getBot(): Bot {
     return this._bot;
   }
 
@@ -95,7 +88,9 @@ export class Chat {
    * @param external
    * @param member
    */
-  public async addMember(member: User, external: boolean = true) {
+  public async addMember(member: User | string, external: boolean = true) {
+    if (!(member instanceof User)) member = new User(`${member}`);
+
     if (external && this._bot) {
       await this._bot.addMember(this, member);
     }
@@ -109,7 +104,9 @@ export class Chat {
    * @param external
    * @returns
    */
-  public async removeMember(member: User, external: boolean = true) {
+  public async removeMember(member: User | string, external: boolean = true) {
+    if (!(member instanceof User)) member = new User(`${member}`);
+
     if (external && this._bot) {
       await this._bot.removeMember(this, member);
     }
@@ -138,7 +135,9 @@ export class Chat {
    * @param member
    * @returns
    */
-  public getMember(member: User): User | undefined {
+  public getMember(member: User | string): User | undefined {
+    if (!(member instanceof User)) member = new User(`${member}`);
+
     return this.members[member.id];
   }
 
@@ -152,7 +151,7 @@ export class Chat {
 
   /**
    * * Retorna o tipo da sala de bate-papo
-   * @returns 
+   * @returns
    */
   public getType(): keyof ChatTypes {
     return this.type;
