@@ -367,6 +367,24 @@ export class WhatsAppBot extends Bot {
     await this.add(() => this._bot?.updateBlockStatus(user.id, "unblock"));
   }
 
+  /**
+   * * Define o nome do bot
+   * @param name
+   * @returns
+   */
+  public async setName(name: string): Promise<any> {
+    return this.add(() => this._bot.updateProfileName(name));
+  }
+
+  /**
+   * * Define a descrição do bot
+   * @param desc
+   * @returns
+   */
+  public async setDescription(desc: string): Promise<any> {
+    return this.add(() => this._bot.updateProfileStatus(desc));
+  }
+
   public async sendMessage(content: Message): Promise<Message> {
     const waMSG = new WhatsAppMessage(this, content);
     await waMSG.refactory(content);

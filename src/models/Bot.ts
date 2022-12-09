@@ -259,7 +259,9 @@ export class Bot {
   public async blockUser(user: User): Promise<any> {}
   public async unblockUser(user: User): Promise<any> {}
 
-  // public async deleteChat(message: Message): Promise<any> {}
+  public async setName(name: string): Promise<any> {}
+  public async setDescription(desc: string): Promise<any> {}
+
   // public async deleteChat(message: Message): Promise<any> {}
   // public async deleteChat(message: Message): Promise<any> {}
   // public async deleteChat(message: Message): Promise<any> {}
