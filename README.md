@@ -172,6 +172,10 @@ const imageMessage = new LocationMessage(chat, 24.121231, 55.1121221);
 // import { User } from "rompot"
 const contactMessage = new ContactMessage(chat, "nome", new User("userID | phone", "nome", "5599123464"));
 
+// Cria uma mensagem de reação
+// message || id --> define a mensagem que vai receber a reação
+const reactionMessage = new ReactionMessage(chat, "❤️", message || id);
+
 // Criando botões
 const btnMessage = new ButtonMessage(chat, "texto", "rodapé");
 btn.addCall("Call", "1234567890");

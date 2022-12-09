@@ -1,3 +1,4 @@
+export * from "@messages/ReactionMessage";
 export * from "@messages/LocationMessage";
 export * from "@messages/ContactMessage";
 export * from "@messages/ButtonMessage";

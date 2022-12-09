@@ -8,6 +8,7 @@ import {
 } from "@adiwajshing/baileys";
 
 import { LocationMessage } from "@messages/LocationMessage";
+import { ReactionMessage } from "@messages/ReactionMessage";
 import { ContactMessage } from "@messages/ContactMessage";
 import { ButtonMessage } from "@messages/ButtonMessage";
 import { ImageMessage } from "@messages/ImageMessage";
@@ -15,6 +16,7 @@ import { MediaMessage } from "@messages/MediaMessage";
 import { VideoMessage } from "@messages/VideoMessage";
 import { AudioMessage } from "@messages/AudioMessage";
 import { ListMessage } from "@messages/ListMessage";
+
 import { loggerConfig } from "@config/logger";
 import { Message } from "@messages/Message";
 import { Chat } from "@models/Chat";
@@ -138,6 +140,10 @@ export class WhatsAppConvertMessage {
 
     if (contentType === "contactMessage" || contentType == "contactsArrayMessage") {
       this.convertContactMessage(content);
+    }
+
+    if (contentType === "reactionMessage") {
+      this.convertReactionMessage(content);
     }
 
     if (!!!this._convertedMessage.text) {
@@ -339,5 +345,9 @@ export class WhatsAppConvertMessage {
     });
 
     this._convertedMessage = listMSG;
+  }
+
+  public convertReactionMessage(content: any) {
+    this._convertedMessage = new ReactionMessage(this._chat, content.text, content.key.id);
   }
 }

@@ -6,6 +6,7 @@ import { ListMessage } from "@messages/ListMessage";
 import { List, ListItem } from "../types/List";
 import { WhatsAppBot } from "@wa/WhatsAppBot";
 import { Message } from "@messages/Message";
+import { ReactionMessage } from "@messages/ReactionMessage";
 
 export class WhatsAppMessage {
   private _message: Message;
@@ -38,6 +39,7 @@ export class WhatsAppMessage {
     if (message instanceof LocationMessage) this.refactoryLocationMessage(message);
     if (message instanceof ContactMessage) this.refactoryContactMessage(message);
     if (message instanceof ListMessage) this.refactoryListMessage(message);
+    if (message instanceof ReactionMessage) this.refactoryReactionMessage(message);
   }
 
   /**
@@ -163,5 +165,24 @@ export class WhatsAppMessage {
 
       this.message.sections.push({ title: list.title, rows });
     });
+  }
+
+  /**
+   * * Refatora uma mensagem de reação
+   * @param message
+   */
+  public refactoryReactionMessage(message: ReactionMessage) {
+    const fromMe = message.fromMe || this._wa.user.id == message.user.id;
+
+    this.message = {
+      react: {
+        text: message.text[0],
+        key: { remoteJid: message.chat.id, id: message.id, fromMe },
+      },
+    };
+
+    if (message.chat.id.includes("@g")) {
+      this.message.react.key.participant = message.user.id || this._wa.user.id;
+    }
   }
 }
