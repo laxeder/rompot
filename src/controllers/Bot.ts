@@ -217,7 +217,7 @@ export class Bot {
    * @param content
    * @returns
    */
-  public async send(content: Message | Status, interval?: number): Promise<any> {
+  public async send(content: Message | Status, interval?: number): Promise<any | Message> {
     if (content instanceof Message) {
       return await this.addMessage(content, interval);
     }
@@ -231,14 +231,14 @@ export class Bot {
    * @param interval
    * @returns
    */
-  public addMessage(message: Message, interval: number = 1000): Promise<any> {
+  public addMessage(message: Message, interval: number = 1000): Promise<Message> {
     return new Promise((resolve, reject) => {
       const observer = this._awaitSendMessages.subscribe(async (obs) => {
         try {
           if (obs !== observer) return;
 
           await this.sleep(interval);
-          await this._plataform.send(message);
+          const sendedMSG = await this._plataform.send(message);
 
           observer.unsubscribe();
 
@@ -249,7 +249,7 @@ export class Bot {
             this._awaitSendMessages.next(this._awaitSendMessagesObservers[index]);
           }
 
-          resolve(null);
+          resolve(sendedMSG);
         } catch (err) {
           reject(err);
         }
@@ -291,7 +291,7 @@ export class Bot {
     const now = Date.now();
 
     // Criar e atualizar dados da mensagem automatizada
-    this._autoMessages[id] = { id, chats: chats || this.getChats(), updatedAt: now, message };
+    this._autoMessages[id] = { id, chats: chats || await this.getChats(), updatedAt: now, message };
 
     // Aguarda o tempo definido
     await this.sleep(timeout - now);
