@@ -1,13 +1,12 @@
-import { MessageInterface } from "../types/Message";
 import { Status } from "@models/Status";
-import { Bot } from "@controllers/Bot";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
+import { Bot } from "@models/Bot";
 
-export class Message implements MessageInterface {
+export class Message {
+  private _bot: Bot = new Bot();
   private _originalMention: any;
   private _originalMessage: any;
-  private bot?: Bot;
 
   public timestamp: number | Long = Date.now();
   public user: User = new User("");
@@ -36,15 +35,17 @@ export class Message implements MessageInterface {
    * @param bot
    */
   public setBot(bot: Bot) {
-    this.bot = bot;
+    this._bot = bot;
+    this.chat.setBot(this._bot);
+    this.user.setBot(this._bot);
   }
 
   /**
    * * Retorna o bot que executa essa mensagem
    * @returns
    */
-  public getBot(): Bot | undefined {
-    return this.bot;
+  public getBot(): Bot {
+    return this._bot;
   }
 
   /**
@@ -53,14 +54,12 @@ export class Message implements MessageInterface {
    * @param mention
    */
   public reply(message: Message | string, mention: boolean = true) {
-    if (this.bot) {
-      if (typeof message == "string") message = new Message(this.chat, message);
-      if (mention) message.setMention(this);
+    if (!(message instanceof Message)) message = new Message(this.chat, `${message}`);
+    if (mention) message.setMention(this);
 
-      message.setChat(this.chat);
+    message.setChat(this.chat);
 
-      this.bot.send(message);
-    }
+    this._bot.send(message);
   }
 
   /**
@@ -68,9 +67,7 @@ export class Message implements MessageInterface {
    * @returns
    */
   public read() {
-    if (this.bot) {
-      return this.bot.send(new Status("reading", this.chat, this));
-    }
+    return this._bot.send(new Status("reading", this.chat, this));
   }
 
   //! ***************************

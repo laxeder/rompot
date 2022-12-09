@@ -18,10 +18,10 @@ import { AudioMessage } from "@messages/AudioMessage";
 import { ListMessage } from "@messages/ListMessage";
 
 import { loggerConfig } from "@config/logger";
+import { WhatsAppBot } from "./WhatsAppBot";
 import { Message } from "@messages/Message";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
-import { WhatsAppBot } from "./WhatsAppBot";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
@@ -89,7 +89,7 @@ export class WhatsAppConvertMessage {
 
     if (message.key.fromMe) {
       this._convertedMessage.fromMe = message.key.fromMe;
-      this._user.setId(this._wa.user.id);
+      this._user.setId(this._wa.id);
     }
 
     if (message.messageTimestamp) this._convertedMessage.timestamp = message.messageTimestamp;

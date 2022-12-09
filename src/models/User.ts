@@ -1,13 +1,19 @@
+import { Bot } from "@models/Bot";
+
 export class User {
+  private _bot: Bot;
+
   public id: string = "";
   public name?: string;
   public phone?: string;
   public isAdmin?: boolean;
   public isOwner?: boolean;
 
-  constructor(id: string, name?: string, phone?: string) {
+  constructor(id: string, name?: string, phone?: string, bot?: Bot) {
     if (phone) this.phone = phone;
     if (name) this.name = name;
+
+    this._bot = bot || new Bot();
 
     this.setId(id);
   }
@@ -59,6 +65,36 @@ export class User {
    */
   public getPhone(): string {
     return this.phone || "";
+  }
+
+  /**
+   * * Define o bot do usuário
+   * @param bot
+   */
+  public setBot(bot: Bot) {
+    this._bot = bot;
+  }
+
+  /**
+   * * Retorna o bot do usuário
+   * @returns
+   */
+  public getBot(): Bot {
+    return this._bot;
+  }
+
+  /**
+   * * Bloqueia o usuário
+   */
+  public async blockUser(): Promise<any> {
+    return await this._bot.blockUser(this);
+  }
+
+  /**
+   * * Desbloqueia o usuário
+   */
+  public async unblockUser(): Promise<any> {
+    return await this._bot.unblockUser(this);
   }
 
   /**
