@@ -46,6 +46,7 @@ export class WhatsAppBot extends BaseBot {
     this.config = {
       printQRInTerminal: true,
       logger: loggerConfig({ level: "silent" }),
+      qrTimeout: 60000,
       ...config,
     };
   }
@@ -69,14 +70,14 @@ export class WhatsAppBot extends BaseBot {
 
         // Verificando se bot conectou
         this._bot.ev.on("connection.update", async (update: Partial<ConnectionState>) => {
+          this.events.connection.next({ action: update.connection, status: this.status, login: update?.qr });
+
           if (update.connection == "open") {
             this.status.setStatus("online");
 
             // Removendo caracteres do ID do bot
             this.user = { ...this._bot?.user };
             this.user.id = this.user.id?.replace(/:(.*)@/, "@") || "";
-
-            this.events.connection.next({ action: update.connection, status: this.status, login: update?.qr });
 
             resolve(true);
           }
@@ -90,7 +91,7 @@ export class WhatsAppBot extends BaseBot {
 
             if (status === DisconnectReason.loggedOut) return;
 
-            resolve(await this.reconnect(this.config));
+            setTimeout(async () => resolve(await this.reconnect(this.config, false)), 2000);
           }
         });
 
@@ -164,8 +165,8 @@ export class WhatsAppBot extends BaseBot {
    * @param config
    * @returns
    */
-  public async reconnect(config?: UserFacingSocketConfig): Promise<any> {
-    this.events.connection.next({ action: "reconnecting" });
+  public async reconnect(config?: UserFacingSocketConfig, alert: boolean = true): Promise<any> {
+    if (alert) this.events.connection.next({ action: "reconnecting" });
 
     if (this.status.getStatus() == "online") {
       this.stop(DisconnectReason.loggedOut);
@@ -349,10 +350,14 @@ export class WhatsAppBot extends BaseBot {
 
         fullMsg.message = { viewOnceMessage: { message: fullMsg.message } };
 
-        return this._bot?.relayMessage(chat, fullMsg.message!, { messageId: fullMsg.key.id! });
+        await this._bot?.relayMessage(chat, fullMsg.message!, { messageId: fullMsg.key.id! });
+
+        return await new WhatsAppConvertMessage(this, fullMsg).get();
       }
 
-      return this._bot?.sendMessage(chat, message, context);
+      const sendedMessage = await this._bot?.sendMessage(chat, message, context);
+
+      return sendedMessage ? await new WhatsAppConvertMessage(this, sendedMessage).get() : content;
     }
 
     if (content instanceof Status) {
