@@ -23,10 +23,10 @@ Importando API
 
 ```ts
 // TypeScript
-import Bot, { WhatsAppBot } from "rompot";
+import { WhatsAppBot } from "rompot";
 
 // Javascript
-const { Bot, WhatsAppBot } = require("rompot");
+const { WhatsAppBot } = require("rompot");
 ```
 
 ## WhatsApp
@@ -34,8 +34,23 @@ const { Bot, WhatsAppBot } = require("rompot");
 Após iniciar o bot um QR Code será emprimido no terminal, escane-o com seu WhatsApp para gerar uma nova conexão entre seu número e o Bot. Essa conexão será guardada em `./path-to-auth`, para gerar uma nova delete-o ou se conecte com um novo caminho de sessão.
 
 ```ts
-const bot = new Bot(new WhatsAppBot());
+const bot = new WhatsAppBot();
 bot.build("./path-to-auth");
+```
+
+## Configurações
+
+```ts
+type BuildConfig = {
+  /** Desativa comandos automaticos */
+  disableAutoCommand?: boolean;
+  /** Ativa comandos automaticos para mensagem enviadas pelo bot */
+  autoRunBotCommand?: boolean;
+  /** Recebe as mensagem enviadas pelo bot no evento "message" */
+  receiveAllMessages?: boolean;
+  /** Desativa a visualização automatica das mensagem recebidas */
+  disableAutoRead?: boolean;
+};
 ```
 
 ## ⚙️ Criando comandos
@@ -79,6 +94,7 @@ bot.on("connection", (update: { action: string; status?: number; login?: any }) 
     console.log("Reconectando...");
   }
 
+  // update.login retorna o qr code do WhatsApp
   if (update.login) {
     console.log(`Novo login: ${update.login}`);
   }
@@ -99,7 +115,7 @@ bot.on("bot-message", async (message: Message) => {
 });
 ```
 
-### Membro
+### Novo Membro
 
 ```ts
 bot.on("member", (member: { action: "add" | "remove"; user: User; chat: Chat }) => {
@@ -133,7 +149,7 @@ bot.on("error", (err: any) => {
 ## Mensagem
 
 ```ts
-import { Message, ImageMessage, VideoMessage, AudioMessage, ContactMessage, ButtonMessage, ListMessage } from "rompot";
+import { Message } from "rompot";
 
 // Chat
 const chat = new Chat("id12345");
@@ -151,26 +167,41 @@ msg.addMentions("user.id");
 msg.setMention(message);
 
 // Responder mensagem
-// Message.setBot(Bot) deve ser chamado antes
-// Por padrão mensagens do evento "message" já vem configurado
+//! Message.setBot(Bot) deve ser chamado antes
+//? Por padrão mensagens de eventos" já vem configurado
 msg.reply(message);
+
+// Visualiza uma mensagem recebida
+msg.read();
+```
+
+## Mensagem de mídia
+
+```ts
+import { ImageMessage, VideoMessage, AudioMessage, LocationMessage, ContactMessage } from "rompot";
 
 // Criar mensagem com imagem
 const imageMessage = new ImageMessage(chat, "texto", new Buffer());
 
 // Criar mensagem com video
-const videoMessagew = new VideoMessage(chat, "texto", new Buffer());
+const videoMessage = new VideoMessage(chat, "texto", new Buffer());
 
 // Criar mensagem de audio
 const audioMessage = new AudioMessage(chat, "texto", new Buffer());
 
 // Criar mensagem de localiação
 // Latitude, Longitude
-const imageMessage = new LocationMessage(chat, 24.121231, 55.1121221);
+const locationMessage = new LocationMessage(chat, 24.121231, 55.1121221);
 
 // Criar mensagem com contatos
 // import { User } from "rompot"
 const contactMessage = new ContactMessage(chat, "nome", new User("userID | phone", "nome", "5599123464"));
+```
+
+## Outros tipos de mensagem
+
+```ts
+import { ButtonMessage, ListMessage, ReactionMessage } from "rompot";
 
 // Cria uma mensagem de reação
 // message || id --> define a mensagem que vai receber a reação
@@ -192,8 +223,11 @@ listMessage.addItem(index1, "Item 2");
 
 listMessage.addItem(index2, "Abc 1");
 listMessage.addItem(index2, "Abc 2");
+```
 
-// Lendo resposta para botões e listas
+## Lendo resposas de ButtonMessage e ListMessage
+
+```ts
 const cmd = new Command("cmd-button");
 cmd.setReply((message: Message) => {
   message.reply("Botão clicado");
@@ -208,6 +242,97 @@ bot.on("message", async (message: Message) => {
 });
 ```
 
+## Bot
+
+- Definir foto de perfil
+
+```ts
+bot.setProfile(new Buffer(""));
+```
+
+- Obter foto de perfil do bot
+
+```ts
+bot.getProfile();
+```
+
+- Definir nome do bot
+
+```ts
+bot.setBotName("Name");
+```
+
+- Definir descrição do bot
+
+```ts
+bot.setDescription("Description");
+```
+
+- Obter descrição do bot
+
+```ts
+bot.getDescription();
+```
+
+## Grupo
+
+Você pode obter o chat em `message.chat` ou `bot.getChat("id")`, o ID pode ser encontrado em `message.chat.id`
+
+- Criar grupo
+
+```ts
+bot.createChat("name");
+```
+
+- Sair de um grupo
+
+```ts
+bot.leaveChat(chat);
+```
+
+- Definir imagem do grupo
+
+```ts
+bot.setProfile(new Buffer(""), chat);
+```
+
+- Obter imagem do grupo
+
+```ts
+bot.getProfile(chat);
+```
+
+- Definir nome do grupo
+
+```ts
+bot.setChatName("Name chat", chat);
+```
+
+- Definir a descrição do grupo
+
+```ts
+bot.setDescription("Chat description");
+```
+
+- Obter descrição do grupo
+
+```ts
+bot.getDescription(chat);
+```
+
+- Adicionar membro
+  - Você pode encontrar o user em `message.user` ou em `chat.getMember("id")`, o ID pode se encontrado em `message.user.id`
+
+```ts
+bot.addMember(chat, user);
+```
+
+- Remover membro
+
+```ts
+bot.removeMember(chat, user);
+```
+
 ## 🛠️ Construído com
 
 Esse Software foi construído com:
@@ -217,4 +342,4 @@ Esse Software foi construído com:
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT - veja o arquivo [LICENSE.md](https://github.com/laxeder/multi-bot/LICENSE) para detalhes.
+Este projeto está sob a licença MIT - veja o arquivo [LICENSE.md](https://github.com/laxeder/multi-bot/LICENSE) para mais detalhes.
