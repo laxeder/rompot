@@ -166,7 +166,7 @@ export class WhatsAppBot extends Bot {
 
           msg.setBot(this);
 
-          if (message.key.fromMe && this.config.receiveAllMessages) {
+          if (message.key.fromMe && !this.config.receiveAllMessages) {
             return this.events["bot-message"].next(msg);
           }
 

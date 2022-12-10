@@ -1,6 +1,11 @@
-import { WhatsAppBot, Message, logger, Commands, Command, User, Chat } from "../lib/index";
+import { WhatsAppBot, Message, logger, Commands, Command, User, Chat } from "../src/index";
 
-const bot = new WhatsAppBot({ disableAutoCommand: false, disableAutoRead: false });
+const bot = new WhatsAppBot({
+  disableAutoCommand: false,
+  autoRunBotCommand: true,
+  disableAutoRead: true,
+  receiveAllMessages: false,
+});
 
 bot.on("connection", (update: { action: string; status: string; login?: string }) => {
   if (update.action == "open") {

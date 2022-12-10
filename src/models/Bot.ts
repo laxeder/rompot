@@ -44,7 +44,7 @@ export class Bot {
     });
 
     this.on("bot-message", (message: Message) => {
-      if (!this.config.autoRunBotCommand) return;
+      if (!this.config.autoRunBotCommand || this.config.receiveAllMessages) return;
 
       const command = this.getCommand(message.text);
 
