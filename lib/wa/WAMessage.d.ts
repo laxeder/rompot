@@ -1,4 +1,5 @@
 import { LocationMessage } from "../messages/LocationMessage";
+import { ReactionMessage } from "../messages/ReactionMessage";
 import { ContactMessage } from "../messages/ContactMessage";
 import { ButtonMessage } from "../messages/ButtonMessage";
 import { MediaMessage } from "../messages/MediaMessage";
@@ -40,4 +41,9 @@ export declare class WhatsAppMessage {
      * @param message
      */
     refactoryListMessage(message: ListMessage): void;
+    /**
+     * * Refatora uma mensagem de reação
+     * @param message
+     */
+    refactoryReactionMessage(message: ReactionMessage): void;
 }

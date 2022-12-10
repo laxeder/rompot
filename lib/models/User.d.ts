@@ -1,10 +1,12 @@
+import { Bot } from "./Bot";
 export declare class User {
+    private _bot;
     id: string;
     name?: string;
     phone?: string;
     isAdmin?: boolean;
     isOwner?: boolean;
-    constructor(id: string, name?: string, phone?: string);
+    constructor(id: string, name?: string, phone?: string, bot?: Bot);
     /**
      * * Define o ID do usuário
      * @param id
@@ -35,6 +37,34 @@ export declare class User {
      * @returns
      */
     getPhone(): string;
+    /**
+     * * Define o bot do usuário
+     * @param bot
+     */
+    setBot(bot: Bot): void;
+    /**
+     * * Retorna o bot do usuário
+     * @returns
+     */
+    getBot(): Bot;
+    /**
+     * * Bloqueia o usuário
+     */
+    blockUser(): Promise<any>;
+    /**
+     * * Desbloqueia o usuário
+     */
+    unblockUser(): Promise<any>;
+    /**
+     * * Retorna a imagem do usuário
+     * @returns
+     */
+    getProfile(): Promise<any>;
+    /**
+     * * Retorna a descrição do usuário
+     * @returns
+     */
+    getDescription(): Promise<any>;
     /**
      * * Define se o usuáio é admin da sala de bate-papo
      * @param admin

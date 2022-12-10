@@ -1,3 +1,4 @@
+export * from "./ReactionMessage";
 export * from "./LocationMessage";
 export * from "./ContactMessage";
 export * from "./ButtonMessage";

@@ -1,20 +1,21 @@
+/// <reference types="node" />
 import { DisconnectReason, proto, MediaDownloadOptions, UserFacingSocketConfig } from "@adiwajshing/baileys";
+import { BuildConfig } from "../config/BuildConfig";
+import { StatusOptions } from "../types/Status";
 import { Message } from "../messages/Message";
-import { BaseBot } from "../utils/BaseBot";
 import { Status } from "../models/Status";
 import { Chat } from "../models/Chat";
 import { User } from "../models/User";
-import { BuildConfig } from "../config/BuildConfig";
-export declare class WhatsAppBot extends BaseBot {
+import { Bot } from "../models/Bot";
+export declare class WhatsAppBot extends Bot {
     private _auth;
-    private _bot?;
+    private _bot;
+    statusOpts: keyof StatusOptions | any;
     DisconnectReason: typeof DisconnectReason;
     chats: {
         [key: string]: Chat;
     };
-    config: any;
-    statusOpts: any;
-    constructor(config?: BuildConfig);
+    constructor(config?: BuildConfig | any);
     /**
      * * Conecta ao servidor do WhatsApp
      * @param auth
@@ -27,7 +28,7 @@ export declare class WhatsAppBot extends BaseBot {
      * @param config
      * @returns
      */
-    reconnect(config?: UserFacingSocketConfig): Promise<any>;
+    reconnect(config?: UserFacingSocketConfig, alert?: boolean): Promise<any>;
     /**
      * * Desliga a conexão com o servidor do WhatsApp
      * @param reason
@@ -86,7 +87,7 @@ export declare class WhatsAppBot extends BaseBot {
      * @param message
      * @returns
      */
-    removeMessage(message: Message): Promise<void | undefined>;
+    removeMessage(message: Message): Promise<any>;
     /**
      * * Deleta uma mensagem da sala de bate-papo
      * @param message
@@ -94,11 +95,73 @@ export declare class WhatsAppBot extends BaseBot {
      */
     deleteMessage(message: Message): Promise<any>;
     /**
+     * * Bloqueia um usuário
+     * @param user
+     */
+    blockUser(user: User): Promise<any>;
+    /**
+     * * Desbloqueia um usuário
+     * @param user
+     */
+    unblockUser(user: User): Promise<any>;
+    /**
+     * * Define o nome do bot
+     * @param name
+     * @returns
+     */
+    setBotName(name: string): Promise<any>;
+    /**
+     * * Retorna a imagem do bot / usuário / chat
+     * @param id
+     * @returns
+     */
+    getProfile(id?: string | Chat | User): Promise<any>;
+    /**
+     * * Define a imagem do bot ou de um grupo
+     * @param image
+     * @param id
+     * @returns
+     */
+    setProfile(image: Buffer, id?: Chat | string): Promise<any>;
+    /**
+     * * Cria uma nova sala de bate-papo
+     * @param name
+     * @returns
+     */
+    createChat(name: string): Promise<any>;
+    /**
+     * * Define o nome da sala de bate-papo
+     * @param id
+     * @param name
+     * @returns
+     */
+    setChatName(id: string | Chat, name: string): Promise<any>;
+    /**
+     * * Retorna a descrição do bot ou de um usuário
+     * @param id
+     * @returns
+     */
+    getDescription(id?: User | string): Promise<any>;
+    /**
+     * * Define a descrição do bot ou de uma sala de bate-papo
+     * @param desc
+     * @param id
+     * @returns
+     */
+    setDescription(desc: string, id?: string | Chat): Promise<any>;
+    /**
+     * * Sai da sala de bate-papo
+     * @param chat
+     * @returns
+     */
+    leaveChat(chat: Chat | string): Promise<any>;
+    sendMessage(content: Message): Promise<Message>;
+    /**
      * * Envia um conteúdo
      * @param content
      * @returns
      */
-    send(content: Message | Status): Promise<any>;
+    sendStatus(content: Status): Promise<any>;
     /**
      * * Faz o download de arquivos do WhatsApp
      * @param message

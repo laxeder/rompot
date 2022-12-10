@@ -1,6 +1,6 @@
 import { MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
-import { Message } from "../messages/Message";
 import { WhatsAppBot } from "./WhatsAppBot";
+import { Message } from "../messages/Message";
 export declare class WhatsAppConvertMessage {
     private _type?;
     private _message;
@@ -66,4 +66,5 @@ export declare class WhatsAppConvertMessage {
      * @returns
      */
     convertListMessage(content: WAMessageContent): void;
+    convertReactionMessage(content: any): void;
 }

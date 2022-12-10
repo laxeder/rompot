@@ -1,2 +1,1 @@
-export * from "./handle";
-export * from "./BaseBot";
+export * from "./getImageURL";

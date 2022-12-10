@@ -1,11 +1,12 @@
-import { MessageInterface } from "../types/Message";
-import { Bot } from "../controllers/Bot";
+/// <reference types="long" />
 import { Chat } from "../models/Chat";
 import { User } from "../models/User";
-export declare class Message implements MessageInterface {
+import { Bot } from "../models/Bot";
+export declare class Message {
+    private _bot;
     private _originalMention;
     private _originalMessage;
-    private bot?;
+    timestamp: number | Long;
     user: User;
     mentions: string[];
     chat: Chat;
@@ -25,7 +26,7 @@ export declare class Message implements MessageInterface {
      * * Retorna o bot que executa essa mensagem
      * @returns
      */
-    getBot(): Bot | undefined;
+    getBot(): Bot;
     /**
      * * Responde uma mensagem
      * @param message
@@ -36,7 +37,7 @@ export declare class Message implements MessageInterface {
      * * Marca como visualizada a mensagem
      * @returns
      */
-    read(): Promise<any> | undefined;
+    read(): Promise<any>;
     /**
      * * Define a sala de bate-papo
      * @param chat
@@ -79,6 +80,7 @@ export declare class Message implements MessageInterface {
      * @param mentions
      */
     setMentions(mentions: string[]): void;
+    setTimestamp(timestamp: number): void;
     /**
      * * Adiciona um numero a lista de mencionados
      * @param id
