@@ -91,6 +91,8 @@ export class Commands {
 
     const cmd = this.commands[name.replace(this.prefix || "", "").trim()];
 
+    if (cmd) cmd.setBot(this._bot);
+
     return cmd;
   }
 }
