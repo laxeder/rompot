@@ -42,14 +42,14 @@ export class WhatsAppBot extends Bot {
   public DisconnectReason = DisconnectReason;
   public chats: { [key: string]: Chat } = {};
 
-  constructor(config: BuildConfig | any = {}) {
+  constructor(config: BuildConfig = {}) {
     super();
 
     this.config = {
       printQRInTerminal: true,
       logger: loggerConfig({ level: "silent" }),
       qrTimeout: 60000,
-
+      browser: ["Rompot", "Chrome", "1.0.0"],
       ...config,
     };
   }
