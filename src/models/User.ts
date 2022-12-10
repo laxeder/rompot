@@ -98,6 +98,22 @@ export class User {
   }
 
   /**
+   * * Retorna a imagem do usuário
+   * @returns
+   */
+  public async getProfile(): Promise<any> {
+    return await this._bot.getProfile(this);
+  }
+
+  /**
+   * * Retorna a descrição do usuário
+   * @returns 
+   */
+  public async getDescription(): Promise<any> {
+    return await this._bot.getDescription(this);
+  }
+
+  /**
    * * Define se o usuáio é admin da sala de bate-papo
    * @param admin
    */

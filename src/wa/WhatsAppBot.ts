@@ -15,16 +15,17 @@ import makeWASocket, {
 } from "@adiwajshing/baileys";
 
 import { WhatsAppConvertMessage } from "@wa/WAConvertMessage";
+import { MediaMessage } from "@messages/MediaMessage";
 import { BuildConfig } from "@config/BuildConfig";
 import { WhatsAppMessage } from "@wa/WAMessage";
 import { StatusOptions } from "../types/Status";
 import { loggerConfig } from "@config/logger";
+import getImageURL from "@utils/getImageURL";
 import { Message } from "@messages/Message";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
 import { Bot } from "@models/Bot";
-import { MediaMessage } from "@messages/MediaMessage";
 
 export class WhatsAppBot extends Bot {
   private _auth: string = "";
@@ -217,6 +218,7 @@ export class WhatsAppBot extends Bot {
 
             chat.participants = metadata?.participants || [];
             newChat.name = metadata?.subject;
+            newChat.description = Buffer.from(metadata?.desc, "base64").toString();
           }
 
           for (const user of chat.participants) {
@@ -372,17 +374,102 @@ export class WhatsAppBot extends Bot {
    * @param name
    * @returns
    */
-  public async setName(name: string): Promise<any> {
+  public async setBotName(name: string): Promise<any> {
     return this.add(() => this._bot.updateProfileName(name));
   }
 
   /**
-   * * Define a descrição do bot
-   * @param desc
+   * * Retorna a imagem do bot / usuário / chat
+   * @param id
    * @returns
    */
-  public async setDescription(desc: string): Promise<any> {
-    return this.add(() => this._bot.updateProfileStatus(desc));
+  public async getProfile(id: string | Chat | User = this.id): Promise<any> {
+    let url: any;
+
+    if (typeof id == "string") url = await this.add(() => this._bot.profilePictureUrl(id, "image"));
+    if (id instanceof Chat || id instanceof User)
+      url = await this.add(() => this._bot.profilePictureUrl(id.id, "image"));
+
+    if (!!url) return await getImageURL(url);
+
+    return undefined;
+  }
+
+  /**
+   * * Define a imagem do bot ou de um grupo
+   * @param image
+   * @param id
+   * @returns
+   */
+  public async setProfile(image: Buffer, id: Chat | string = this.id): Promise<any> {
+    if (typeof id == "string") return this.add(() => this._bot.updateProfilePicture(id, image));
+    if (id instanceof Chat) return this.add(() => this._bot.updateProfilePicture(id.id, { url: image }));
+  }
+
+  /**
+   * * Cria uma nova sala de bate-papo
+   * @param name
+   * @returns
+   */
+  public async createChat(name: string): Promise<any> {
+    return this.add(() => this._bot.groupCreate(name, [this.id]));
+  }
+
+  /**
+   * * Define o nome da sala de bate-papo
+   * @param id
+   * @param name
+   * @returns
+   */
+  public async setChatName(id: string | Chat, name: string): Promise<any> {
+    if (typeof id == "string") return this.add(() => this._bot.groupUpdateSubject(id, name));
+    if (id instanceof Chat) return this.add(() => this._bot.groupUpdateSubject(id.id, name));
+  }
+
+  /**
+   * * Retorna a descrição do bot ou de um usuário
+   * @param id
+   * @returns
+   */
+  public async getDescription(id: User | string = this.id): Promise<any> {
+    if (typeof id != "string" && id.id) id = id.id;
+
+    if (typeof id == "string" && id?.includes("@s")) {
+      return this.add(async () => (await this._bot.fetchStatus(id))?.status);
+    }
+
+    return "";
+  }
+
+  /**
+   * * Define a descrição do bot ou de uma sala de bate-papo
+   * @param desc
+   * @param id
+   * @returns
+   */
+  public async setDescription(desc: string, id?: string | Chat): Promise<any> {
+    if (typeof id != "string" && id?.id) id = id.id;
+
+    if (typeof id == "string" && id?.includes("@g")) {
+      this.chats[id]?.setDescription(desc);
+      return this.add(() => this._bot.groupUpdateDescription(id, desc));
+    }
+
+    if (!!!id) {
+      return this.add(() => this._bot.updateProfileStatus(desc));
+    }
+  }
+
+  /**
+   * * Sai da sala de bate-papo
+   * @param chat
+   * @returns
+   */
+  public async leaveChat(chat: Chat | string): Promise<any> {
+    if (typeof chat == "string") return this.add(() => this._bot.groupLeave(chat));
+    if (chat.id) return this.add(() => this._bot.groupLeave(chat.id));
+
+    if (this.chats[chat.id]) this.removeChat(chat.id);
   }
 
   public async sendMessage(content: Message): Promise<Message> {

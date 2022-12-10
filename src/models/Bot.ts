@@ -256,15 +256,18 @@ export class Bot {
   public async removeMessage(message: Message): Promise<any> {}
   public async deleteChat(message: Message): Promise<any> {}
 
-  public async blockUser(user: User): Promise<any> {}
+  public async setDescription(desc: string, id?: Chat | string): Promise<any> {}
+  public async getDescription(id?: User | string): Promise<any> {}
+
+  public async setChatName(id: Chat | string, name: string): Promise<any> {}
+  public async createChat(name: string): Promise<any> {}
+  public async leaveChat(chat: Chat | string): Promise<any> {}
+
   public async unblockUser(user: User): Promise<any> {}
+  public async blockUser(user: User): Promise<any> {}
 
-  public async setName(name: string): Promise<any> {}
-  public async setDescription(desc: string): Promise<any> {}
+  public async setBotName(name: string): Promise<any> {}
 
-  // public async deleteChat(message: Message): Promise<any> {}
-  // public async deleteChat(message: Message): Promise<any> {}
-  // public async deleteChat(message: Message): Promise<any> {}
-  // public async deleteChat(message: Message): Promise<any> {}
-  // public async deleteChat(message: Message): Promise<any> {}
+  public async setProfile(image: Buffer, id?: Chat | string): Promise<any> {}
+  public async getProfile(id?: Chat | User | string): Promise<any> {}
 }

@@ -10,6 +10,7 @@ export class Chat {
 
   public id: string;
   public name?: string;
+  public description?: string;
   public isOld?: boolean;
 
   constructor(id: string, name?: string, isOld?: boolean) {
@@ -31,8 +32,20 @@ export class Chat {
    * * Define o nome da sala de bate-papo
    * @param name
    */
-  public setName(name: string) {
+  public async setName(name: string, external: boolean = false) {
     this.name = name;
+
+    if (external) await this._bot.setChatName(this, name);
+  }
+
+  /**
+   * * Define a descrição da sala de bate-papo
+   * @param desc
+   */
+  public async setDescription(desc: string, external: boolean = false) {
+    this.description = this.description;
+
+    if (external) await this._bot.setDescription(desc, this);
   }
 
   /**
@@ -57,6 +70,14 @@ export class Chat {
    */
   public getName(): string | undefined {
     return this.name;
+  }
+
+  /**
+   * * Retorna a descrição da sala de bate-papo
+   * @returns
+   */
+  public getDescription(): string | undefined {
+    return this.description;
   }
 
   /**
@@ -155,5 +176,29 @@ export class Chat {
    */
   public getType(): keyof ChatTypes {
     return this.type;
+  }
+
+  /**
+   * * Retorna a imagem do chat
+   * @returns
+   */
+  public async getProfile(): Promise<any> {
+    return await this._bot.getProfile(this);
+  }
+
+  /**
+   * * Define a imagem da sala de bate-papo
+   * @param image
+   */
+  public async setProfile(image: Buffer): Promise<any> {
+    return await this._bot.setProfile(image, this);
+  }
+
+  /**
+   * * Sai da sala de bate-papo
+   * @returns 
+   */
+  public async leave() {
+    return await this._bot.leaveChat(this);
   }
 }
