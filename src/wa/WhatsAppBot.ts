@@ -234,7 +234,9 @@ export class WhatsAppBot extends Bot {
 
         this.setChat(newChat);
       }
-    } catch (e) {}
+    } catch (e) {
+      this.events.error.next(e);
+    }
   }
 
   /**
