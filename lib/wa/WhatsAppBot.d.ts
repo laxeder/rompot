@@ -15,7 +15,7 @@ export declare class WhatsAppBot extends Bot {
     chats: {
         [key: string]: Chat;
     };
-    constructor(config?: BuildConfig | any);
+    constructor(config?: BuildConfig);
     /**
      * * Conecta ao servidor do WhatsApp
      * @param auth
