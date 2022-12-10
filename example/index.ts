@@ -1,6 +1,6 @@
-import { Bot, WhatsAppBot, Message, logger, Commands, Command, User, Chat } from "../lib/index";
+import { WhatsAppBot, Message, logger, Commands, Command, User, Chat } from "../lib/index";
 
-const bot = new Bot(new WhatsAppBot());
+const bot = new WhatsAppBot({ disableAutoCommand: false, disableAutoRead: false });
 
 bot.on("connection", (update: { action: string; status: string; login?: string }) => {
   if (update.action == "open") {
@@ -65,7 +65,7 @@ ban.setExecute((message: Message) => {
     return message.reply("Vocẽ não tem permissão para executar esse comando");
   }
 
-  if (!message.chat.getMember(bot.getBot().user)?.isAdmin) {
+  if (!message.chat.getMember(bot.id)?.isAdmin) {
     return message.reply("Eu não tenho permissão para executar esse comando");
   }
 
@@ -86,7 +86,7 @@ add.setExecute((message: Message) => {
     return message.reply("Vocẽ não tem permissão para executar esse comando");
   }
 
-  if (!message.chat.getMember(bot.getBot().user)?.isAdmin) {
+  if (!message.chat.getMember(bot.id)?.isAdmin) {
     return message.reply("Eu não tenho permissão para executar esse comando");
   }
 
@@ -101,4 +101,4 @@ const commands = new Commands({ hello, date, ban, add }, bot);
 commands.setPrefix("/");
 
 bot.setCommands(commands);
-bot.build("./example/auth", { disableAutoCommand: false, disableAutoRead: false });
+bot.connect("./example/auth");
