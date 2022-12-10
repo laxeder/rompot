@@ -162,14 +162,15 @@ export class WhatsAppBot extends Bot {
 
           if (message.key.remoteJid == "status@broadcast") return;
 
-          const msg = new WhatsAppConvertMessage(this, message, m.type);
+          const msg = await new WhatsAppConvertMessage(this, message, m.type).get();
 
-          if (message.key.fromMe) {
-            this.events["bot-message"].next(await msg.get());
-            return;
+          msg.setBot(this);
+
+          if (message.key.fromMe && this.config.receiveAllMessages) {
+            return this.events["bot-message"].next(msg);
           }
 
-          this.events.message.next(await msg.get());
+          this.events.message.next(msg);
         });
       } catch (err: any) {
         reject(err?.stack || err);

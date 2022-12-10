@@ -1,4 +1,4 @@
-import { BehaviorSubject, catchError, map, of, OperatorFunction, Subject } from "rxjs";
+import { catchError, map, of, OperatorFunction, Subject } from "rxjs";
 
 import { Events, EventsName } from "../types/index";
 import { BuildConfig } from "@config/BuildConfig";
@@ -11,7 +11,7 @@ import { uuid } from "uuidv4";
 
 export class Bot {
   public events: Events = {
-    connection: new BehaviorSubject({}),
+    connection: new Subject(),
     "bot-message": new Subject(),
     message: new Subject(),
     member: new Subject(),
@@ -35,7 +35,16 @@ export class Bot {
     }
 
     this.on("message", (message: Message) => {
-      if (this.config.disableAutoCommand) return;
+      if (message.fromMe && !this.config.autoRunBotCommand) return;
+      if (!message.fromMe && this.config.disableAutoCommand) return;
+
+      const command = this.getCommand(message.text);
+
+      if (command) command.execute(message);
+    });
+
+    this.on("bot-message", (message: Message) => {
+      if (!this.config.autoRunBotCommand) return;
 
       const command = this.getCommand(message.text);
 
@@ -232,6 +241,8 @@ export class Bot {
   public setId(id: string) {
     this.id = id;
   }
+
+  //! ****************** Bot functions ******************
 
   public async sendMessage(message: Message): Promise<Message> {
     return message;
