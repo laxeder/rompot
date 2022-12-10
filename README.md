@@ -82,6 +82,15 @@ bot.setCommands(commands);
 
 ```ts
 bot.on("connection", (update: { action: string; status?: number; login?: any }) => {
+  if (update.action == "connecting") {
+    console.log("Tentando conectar bot...");
+  }
+
+  if (update.action == "new") {
+    // update.login retorna o qr code do bot aqui
+    console.log("Nova conexão");
+  }
+  
   if (update.action == "open") {
     console.log("Bot conectado!");
   }
@@ -92,11 +101,6 @@ bot.on("connection", (update: { action: string; status?: number; login?: any }) 
 
   if (update.action == "reconnecting") {
     console.log("Reconectando...");
-  }
-
-  // update.login retorna o qr code do WhatsApp
-  if (update.login) {
-    console.log(`Novo login: ${update.login}`);
   }
 });
 ```

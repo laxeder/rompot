@@ -73,6 +73,13 @@ export class WhatsAppBot extends Bot {
 
         // Verificando se bot conectou
         this._bot.ev.on("connection.update", async (update: Partial<ConnectionState>) => {
+          if (update.connection == "connecting") {
+            this.events.connection.next({
+              action: "connecting",
+              status: this.status.getStatus(),
+            });
+          }
+
           if (update.qr) {
             this.events.connection.next({
               action: "new",
@@ -95,16 +102,18 @@ export class WhatsAppBot extends Bot {
           }
 
           if (update.connection == "close") {
-            this.status.setStatus("offline");
-
-            this.events.connection.next({
-              action: update.connection,
-              status: this.status.getStatus(),
-            });
-
             // Bot desligado
             const status =
               (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
+
+            if (this.status.getStatus() == "online") {
+              this.status.setStatus("offline");
+
+              this.events.connection.next({
+                action: update.connection,
+                status: this.status.getStatus(),
+              });
+            }
 
             if (status === DisconnectReason.loggedOut) return;
 

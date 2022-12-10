@@ -1,4 +1,4 @@
-import { WhatsAppBot, Message, logger, Commands, Command, User, Chat } from "../src/index";
+import { WhatsAppBot, Message, logger, Commands, Command, User, Chat } from "../lib/index";
 
 const bot = new WhatsAppBot({
   disableAutoCommand: false,
@@ -8,6 +8,14 @@ const bot = new WhatsAppBot({
 });
 
 bot.on("connection", (update: { action: string; status: string; login?: string }) => {
+  if (update.action == "connecting") {
+    logger.info("Tentando conectar bot...");
+  }
+
+  if (update.action == "new") {
+    logger.info("Nova conexão");
+  }
+
   if (update.action == "open") {
     logger.info("Bot conectado!");
   }
@@ -18,10 +26,6 @@ bot.on("connection", (update: { action: string; status: string; login?: string }
 
   if (update.action == "reconnecting") {
     logger.warn("Reconectando...");
-  }
-
-  if (update.login) {
-    logger.info("Conectando...");
   }
 });
 
