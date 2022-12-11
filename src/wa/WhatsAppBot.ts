@@ -49,7 +49,7 @@ export class WhatsAppBot extends Bot {
       printQRInTerminal: true,
       logger: loggerConfig({ level: "silent" }),
       qrTimeout: 60000,
-      browser: ["Rompot", "Chrome", "1.0.0"],
+      // browser: ["Rompot", "Chrome", "1.0.0"],
       ...config,
     };
   }
