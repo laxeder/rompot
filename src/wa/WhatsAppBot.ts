@@ -209,7 +209,7 @@ export class WhatsAppBot extends Bot {
    * @param reason
    * @returns
    */
-  public async stop(reason?: any): Promise<any> {
+  public async stop(reason: any = DisconnectReason.loggedOut): Promise<any> {
     this._bot?.end(reason);
   }
 
