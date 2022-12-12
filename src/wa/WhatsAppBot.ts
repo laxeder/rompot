@@ -26,6 +26,7 @@ import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
 import { Bot } from "@models/Bot";
+import * as fs from "fs";
 
 export class WhatsAppBot extends Bot {
   private _auth: string = "";
@@ -41,6 +42,7 @@ export class WhatsAppBot extends Bot {
 
   public DisconnectReason = DisconnectReason;
   public chats: { [key: string]: Chat } = {};
+  private _savedChats: any = {};
 
   constructor(config: BuildConfig = {}) {
     super();
@@ -48,8 +50,6 @@ export class WhatsAppBot extends Bot {
     this.config = {
       printQRInTerminal: true,
       logger: loggerConfig({ level: "silent" }),
-      qrTimeout: 60000,
-      // browser: ["Rompot", "Chrome", "1.0.0"],
       ...config,
     };
   }
@@ -93,6 +93,44 @@ export class WhatsAppBot extends Bot {
 
             this.setId(this._bot?.user?.id?.replace(/:(.*)@/, "@") || "");
 
+            if (fs.existsSync(`${this._auth}/chats`)) {
+              const data = fs.readFileSync(`${this._auth}/chats`);
+              const chats = JSON.parse(data.toString() || "{}");
+
+              Object.keys(chats).forEach((key) => {
+                const chat = chats[key];
+
+                if (!!!chat) return;
+
+                this.chats[key] = new Chat(chat.id, chat.name);
+                this.chats[key].description = chat.description;
+                this.chats[key].setBot(this);
+
+                this._savedChats[key] = { id: chat.id, description: chat.description, members: {} };
+
+                if (chat.members) {
+                  Object.keys(chat.members).forEach((mKey) => {
+                    const member = chat.members[mKey];
+
+                    if (!!!member) return;
+
+                    this.chats[key].members[mKey] = new User(member.id, member.name, member.phone, this);
+                    this._savedChats[key].members[mKey] = {
+                      id: member.id,
+                      name: member.name,
+                      phone: member.phone,
+                      isAdmin: member.isAdmin,
+                      isOwner: member.isOwner,
+                    };
+                  });
+                }
+              });
+
+              this.saveChats(this._savedChats);
+            } else {
+              this.saveChats(this._savedChats);
+            }
+
             this.events.connection.next({
               action: update.connection,
               status: this.status.getStatus(),
@@ -115,23 +153,51 @@ export class WhatsAppBot extends Bot {
               });
             }
 
-            if (status === DisconnectReason.loggedOut) return;
+            if (status == DisconnectReason.badSession || status === DisconnectReason.loggedOut) {
+              this.events.connection.next({
+                action: "closed",
+                status: this.status.getStatus(),
+              });
 
+              return;
+            }
+            
             setTimeout(async () => resolve(await this.reconnect(this.config, false)), 2000);
           }
         });
 
         this._bot.ev.on("contacts.update", (updates: any) => {
-          for (const update of updates) this.chatUpsert(update);
+          for (const update of updates) {
+            if (this.chats[update.id]) {
+              const name = update.notify || update.verifiedName;
+
+              if (this.chats[update.id].name !== name) {
+                this.chatUpsert(update);
+              }
+            } else this.chatUpsert(update);
+          }
         });
 
-        this._bot.ev.on("chats.upsert", (newChats: any) => {
-          for (const chat of newChats) this.chatUpsert(chat);
+        this._bot.ev.on("chats.upsert", (updates: any) => {
+          for (const update of updates) {
+            if (!this.chats[update.id]) this.chatUpsert(update);
+            else if (!this.chats[update.id].members[this.id]) {
+              this.chats[update.id].members[this.id] = new User(this.id);
+              this._savedChats[update.id].members[this.id] = {
+                id: this.id,
+                name: "",
+                isAdmin: false,
+                isOwner: false,
+              };
+
+              this.saveChats(this._savedChats);
+            }
+          }
         });
 
         this._bot.ev.on("chats.update", (updates: any) => {
           for (const update of updates) {
-            if (update.id?.includes("@g") && !this.chats[update.id]) this.chatUpsert(update);
+            if (!this.chats[update.id] && !update.readOnly) this.chatUpsert(update);
           }
         });
 
@@ -140,27 +206,58 @@ export class WhatsAppBot extends Bot {
         });
 
         this._bot.ev.on("groups.update", (updates: any) => {
-          for (const update of updates) this.chatUpsert(update);
+          for (const update of updates) {
+            if (this.chats[update.id]) {
+              if (update.subject) {
+                this.chats[update.id].name = update.subject;
+                this._savedChats[update.id].name = update.subject;
+
+                this.saveChats(this._savedChats);
+              }
+            }
+          }
         });
 
         this._bot.ev.on("group-participants.update", async ({ id, participants, action }: any) => {
-          if (!this.chats[id]) await this.chatUpsert({ id });
+          if (!this.chats[id] && action !== "remove") await this.chatUpsert({ id });
 
           for (const u of participants) {
             const member = new User(u);
 
-            if (action == "add") await this.chats[id].addMember(member, false);
+            if (action == "add") {
+              await this.chats[id].addMember(member, false);
+            }
             if (action == "promote") this.chats[id].members[u].setAdmin(true);
             if (action == "demote") {
               this.chats[id].members[u].setAdmin(false);
               this.chats[id].members[u].setLeader(false);
             }
 
-            const user = this.chats[id].getMember(member);
+            const user = this.chats[id]?.getMember(member) || member;
+            const chat = this.chats[id];
 
-            if (action == "remove") await this.chats[id].removeMember(member, false);
+            if (this._savedChats[id] && this._savedChats[id].members[u])
+              this._savedChats[id].members[u] = {
+                id: user?.id,
+                name: user?.name || "",
+                isAdmin: user?.isAdmin,
+                isOwner: user?.isOwner,
+              };
 
-            this.events.member.next({ action, chat: this.chats[id], user });
+            if (action == "remove") {
+              if (u == this.id) {
+                delete this.chats[id];
+                delete this._savedChats[id];
+              } else {
+                await this.chats[id]?.removeMember(member, false);
+                delete this._savedChats[id].members[u];
+                delete chat.members[u];
+              }
+            }
+
+            this.saveChats(this._savedChats);
+
+            this.events.member.next({ action, chat: chat || new Chat(id), user });
           }
         });
 
@@ -170,6 +267,7 @@ export class WhatsAppBot extends Bot {
           const message: WAMessage = m.messages[m.messages.length - 1];
 
           if (message.key.remoteJid == "status@broadcast") return;
+          if (!message.message) return;
 
           const msg = await new WhatsAppConvertMessage(this, message, m.type).get();
 
@@ -214,6 +312,14 @@ export class WhatsAppBot extends Bot {
   }
 
   /**
+   * * Salva os chats salvos
+   * @param chats
+   */
+  private saveChats(chats: any = this._savedChats) {
+    fs.writeFileSync(`${this._auth}/chats`, JSON.stringify(chats));
+  }
+
+  /**
    * * Lê o chat e seta ele
    * @param chat
    */
@@ -228,14 +334,15 @@ export class WhatsAppBot extends Bot {
 
             chat.participants = metadata?.participants || [];
             newChat.name = metadata?.subject;
-            newChat.description = Buffer.from(metadata?.desc, "base64").toString();
+
+            newChat.description = Buffer.from(metadata?.desc || "", "base64").toString();
           }
 
           for (const user of chat.participants) {
             const u = new User(user.id);
 
             u.setAdmin(!!user.admin || user.isAdmin || user.isSuperAdmin || false);
-            u.setLeader(user.isSuperAdmin || false);
+            u.setLeader(user.admin == "superadmin" || user.isSuperAdmin || false);
 
             newChat.addMember(u, false);
           }
@@ -243,7 +350,7 @@ export class WhatsAppBot extends Bot {
 
         this.setChat(newChat);
       }
-    } catch (e) {
+    } catch (e: any) {
       this.events.error.next(e);
     }
   }
@@ -254,19 +361,22 @@ export class WhatsAppBot extends Bot {
    * @returns
    */
   public async getChat(id: string): Promise<Chat | null> {
-    if (!this.chats[id]) {
-      if (id.includes("@s")) {
-        const [user] = (await this.add(() => this._bot?.onWhatsApp(id))) || [];
-        if (user && user.exists) await this.chatUpsert(new Chat(user.jid));
-      }
+    try {
+      if (!this.chats[id]) {
+        if (id.includes("@s")) {
+          await this.chatUpsert(new Chat(id));
+        }
 
-      if (id.includes("@g")) {
-        const metadata = await this.add(() => this._bot?.groupMetadata(id));
-        if (metadata) await this.chatUpsert(metadata);
+        if (id.includes("@g")) {
+          const metadata = await this.add(() => this._bot?.groupMetadata(id));
+          if (metadata) await this.chatUpsert(metadata);
+        }
       }
+    } catch (e: any) {
+      this.events.error.next(e);
     }
 
-    return this.chats[id];
+    return this.chats[id] || {};
   }
 
   /**
@@ -285,6 +395,28 @@ export class WhatsAppBot extends Bot {
     if (chat.id == "status@broadcast" || this.chats[chat.id]) return;
     if (chat.id.includes("@g")) chat.setType("group");
     if (chat.id.includes("@s")) chat.setType("pv");
+
+    chat.setBot(this);
+
+    this._savedChats[chat.id] = { id: chat.id, name: chat.name, description: chat.description, members: {} };
+
+    if (chat.members) {
+      Object.keys(chat.members).forEach((mKey) => {
+        const member = chat.members[mKey];
+
+        if (!!!member) return;
+
+        this._savedChats[chat.id].members[mKey] = {
+          id: member.id,
+          name: member.name,
+          phone: member.phone,
+          isAdmin: member.isAdmin,
+          isOwner: member.isOwner,
+        };
+      });
+    }
+
+    this.saveChats(this._savedChats);
 
     this.chats[chat.id] = chat;
     this.events.chat.next(chat);
