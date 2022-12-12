@@ -15,6 +15,7 @@ export declare class WhatsAppBot extends Bot {
     chats: {
         [key: string]: Chat;
     };
+    private _savedChats;
     constructor(config?: BuildConfig);
     /**
      * * Conecta ao servidor do WhatsApp
@@ -35,6 +36,11 @@ export declare class WhatsAppBot extends Bot {
      * @returns
      */
     stop(reason?: any): Promise<any>;
+    /**
+     * * Salva os chats salvos
+     * @param chats
+     */
+    private saveChats;
     /**
      * * Lê o chat e seta ele
      * @param chat
