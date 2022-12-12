@@ -161,7 +161,7 @@ export class WhatsAppBot extends Bot {
 
               return;
             }
-            
+
             setTimeout(async () => resolve(await this.reconnect(this.config, false)), 2000);
           }
         });
@@ -183,12 +183,23 @@ export class WhatsAppBot extends Bot {
             if (!this.chats[update.id]) this.chatUpsert(update);
             else if (!this.chats[update.id].members[this.id]) {
               this.chats[update.id].members[this.id] = new User(this.id);
-              this._savedChats[update.id].members[this.id] = {
-                id: this.id,
-                name: "",
-                isAdmin: false,
-                isOwner: false,
-              };
+              if (!this._savedChats[update.id]) {
+                this._savedChats[update.id] = {
+                  id: update.id,
+                  name: this.chats[update.id].name,
+                  desc: this.chats[update.id].description,
+                  members: this.chats[update.id].members || {},
+                };
+              }
+
+              if (this._savedChats[update.id].members) {
+                this._savedChats[update.id].members[this.id] = {
+                  id: this.id,
+                  name: "",
+                  isAdmin: false,
+                  isOwner: false,
+                };
+              }
 
               this.saveChats(this._savedChats);
             }
