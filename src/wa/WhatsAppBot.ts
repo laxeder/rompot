@@ -250,7 +250,7 @@ export class WhatsAppBot extends Bot {
                 delete this._savedChats[id];
               } else {
                 await this.chats[id]?.removeMember(member, false);
-                delete this._savedChats[id].members[u];
+                delete this._savedChats[id]?.members[u];
                 delete chat.members[u];
               }
             }
