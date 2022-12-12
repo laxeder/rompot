@@ -68,28 +68,30 @@ export class WhatsAppConvertMessage {
    * @param type
    */
   public async convertMessage(message: WAMessage, type?: MessageUpsertType) {
-    const chat = await this._wa.getChat(message.key.remoteJid || "");
+    const chat = this._wa.chats[message.key.remoteJid || ""]
+      ? await this._wa.getChat(message.key.remoteJid || "")
+      : new Chat(message.key.remoteJid || "");
 
     if (message.key.remoteJid) {
       if (chat) this._chat = chat;
 
-      this._chat.setId(message.key.remoteJid);
+      this._chat.id = message.key.remoteJid;
     }
 
-    if (chat?.id.includes("@g")) this._chat.setType("group");
-    if (chat?.id.includes("@s")) this._chat.setType("pv");
+    if (chat?.id.includes("@g")) this._chat.type = "group";
+    if (chat?.id.includes("@s")) this._chat.type = "pv";
 
     if (message.pushName) this._chat.name = message.pushName;
 
     const userID = message.key.participant || message.participant || message.key.remoteJid || "";
-    this._user = chat?.members[userID] || new User(userID);
-    this._user.setName(message.pushName as string);
+    this._user = chat?.members && chat?.members[userID] ? chat?.members[userID] : new User(userID);
+    this._user.name = message.pushName as string;
 
     await this.convertContentMessage(message.message);
 
     if (message.key.fromMe) {
       this._convertedMessage.fromMe = message.key.fromMe;
-      this._user.setId(this._wa.id);
+      this._user.id = this._wa.id;
     }
 
     if (message.messageTimestamp) this._convertedMessage.timestamp = message.messageTimestamp;
