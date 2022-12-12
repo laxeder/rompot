@@ -59,8 +59,8 @@ export class Bot {
    * @returns
    */
   on(eventName: keyof EventsName, event: any, pipe?: OperatorFunction<any, unknown>) {
-    const error = catchError((err) => {
-      this.events.error.next(err);
+    const error = catchError((e) => {
+      this.events.error.next(e);
       return of("Error in event");
     });
 
