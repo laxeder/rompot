@@ -1,8 +1,21 @@
-const { Bot, WhatsAppBot, Message, logger, Commands, Command } = require("rompot");
+const { WhatsAppBot, Message, logger, Commands, Command, User, Chat } = require("rompot");
 
-const bot = new Bot(new WhatsAppBot());
+const bot = new WhatsAppBot({
+  disableAutoCommand: false,
+  autoRunBotCommand: true,
+  disableAutoRead: true,
+  receiveAllMessages: false,
+});
 
 bot.on("connection", (update) => {
+  if (update.action == "connecting") {
+    logger.info("Tentando conectar bot...");
+  }
+
+  if (update.action == "new") {
+    logger.info("Nova conexão");
+  }
+
   if (update.action == "open") {
     logger.info("Bot conectado!");
   }
@@ -11,12 +24,12 @@ bot.on("connection", (update) => {
     logger.error(`Bot desligado! Status: ${update.status}`);
   }
 
-  if (update.action == "reconnecting") {
-    logger.warn("Reconectando...");
+  if (update.action == "closed") {
+    logger.error(`A conexão desse bot foi fechada`);
   }
 
-  if (update.login) {
-    logger.info("New session");
+  if (update.action == "reconnecting") {
+    logger.warn("Reconectando...");
   }
 });
 
@@ -65,7 +78,7 @@ ban.setExecute((message) => {
     return message.reply("Vocẽ não tem permissão para executar esse comando");
   }
 
-  if (!message.chat.getMember(bot.getBot().user)?.isAdmin) {
+  if (!message.chat.getMember(bot.id)?.isAdmin) {
     return message.reply("Eu não tenho permissão para executar esse comando");
   }
 
@@ -86,7 +99,7 @@ add.setExecute((message) => {
     return message.reply("Vocẽ não tem permissão para executar esse comando");
   }
 
-  if (!message.chat.getMember(bot.getBot().user)?.isAdmin) {
+  if (!message.chat.getMember(bot.id)?.isAdmin) {
     return message.reply("Eu não tenho permissão para executar esse comando");
   }
 
@@ -101,4 +114,4 @@ const commands = new Commands({ hello, date, ban, add }, bot);
 commands.setPrefix("/");
 
 bot.setCommands(commands);
-bot.build("./example/auth", { disableAutoCommand: false, disableAutoRead: false });
+bot.connect("./example/auth");

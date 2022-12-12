@@ -24,6 +24,10 @@ bot.on("connection", (update: { action: string; status: string; login?: string }
     logger.error(`Bot desligado! Status: ${update.status}`);
   }
 
+  if (update.action == "closed") {
+    logger.error(`A conexão desse bot foi fechada`);
+  }
+
   if (update.action == "reconnecting") {
     logger.warn("Reconectando...");
   }
