@@ -36,8 +36,8 @@ export class Message {
    */
   public setBot(bot: Bot) {
     this._bot = bot;
-    this.chat.setBot(this._bot);
-    this.user.setBot(this._bot);
+    this.chat?.setBot(this._bot);
+    this.user?.setBot(this._bot);
   }
 
   /**
