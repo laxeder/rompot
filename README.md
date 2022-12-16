@@ -90,7 +90,7 @@ bot.on("connection", (update: { action: string; status?: number; login?: any }) 
     // update.login retorna o qr code do bot aqui
     console.log("Nova conexão");
   }
-  
+
   if (update.action == "open") {
     console.log("Bot conectado!");
   }
@@ -122,7 +122,7 @@ bot.on("bot-message", async (message: Message) => {
 ### Novo Membro
 
 ```ts
-bot.on("member", (member: { action: "add" | "remove"; user: User; chat: Chat }) => {
+bot.on("member", (member: { action: "add" | "remove" | "promote" | "demote"; user: User; chat: Chat }) => {
   // Novo membro de um grupo
   if (member.action == "add") {
     const msg = new Message(member.chat, `Bem vindo ao grupo @${member.user.phone}`);
