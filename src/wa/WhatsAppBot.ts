@@ -108,9 +108,9 @@ export class WhatsAppBot extends Bot {
 
                 this._savedChats[key] = { id: chat.id, description: chat.description, members: {} };
 
-                if (chat.members) {
-                  Object.keys(chat.members).forEach((mKey) => {
-                    const member = chat.members[mKey];
+                if (chat?.members) {
+                  Object.keys(chat?.members || {}).forEach((mKey) => {
+                    const member = chat?.members[mKey];
 
                     if (!!!member) return;
 
@@ -262,7 +262,7 @@ export class WhatsAppBot extends Bot {
               } else {
                 await this.chats[id]?.removeMember(member, false);
                 delete this._savedChats[id]?.members[u];
-                delete chat.members[u];
+                delete chat?.members[u];
               }
             }
 
@@ -411,9 +411,9 @@ export class WhatsAppBot extends Bot {
 
     this._savedChats[chat.id] = { id: chat.id, name: chat.name, description: chat.description, members: {} };
 
-    if (chat.members) {
-      Object.keys(chat.members).forEach((mKey) => {
-        const member = chat.members[mKey];
+    if (chat?.members) {
+      Object.keys(chat?.members || {}).forEach((mKey) => {
+        const member = chat?.members[mKey];
 
         if (!!!member) return;
 
