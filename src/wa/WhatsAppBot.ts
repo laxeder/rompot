@@ -15,11 +15,10 @@ import makeWASocket, {
 } from "@adiwajshing/baileys";
 
 import { WhatsAppConvertMessage } from "@wa/WAConvertMessage";
+import { ConnectionConfig } from "@config/ConnectionConfig";
 import { MediaMessage } from "@messages/MediaMessage";
-import { BuildConfig } from "@config/BuildConfig";
 import { WhatsAppMessage } from "@wa/WAMessage";
 import { StatusOptions } from "../types/Status";
-import { loggerConfig } from "@config/logger";
 import getImageURL from "@utils/getImageURL";
 import { Message } from "@messages/Message";
 import { Status } from "@models/Status";
@@ -27,6 +26,7 @@ import { Chat } from "@models/Chat";
 import { User } from "@models/User";
 import { Bot } from "@models/Bot";
 import * as fs from "fs";
+import pino from "pino";
 
 export class WhatsAppBot extends Bot {
   private _auth: string = "";
@@ -44,12 +44,12 @@ export class WhatsAppBot extends Bot {
   public chats: { [key: string]: Chat } = {};
   private _savedChats: any = {};
 
-  constructor(config: BuildConfig = {}) {
+  constructor(config: ConnectionConfig = {}) {
     super();
 
     this.config = {
       printQRInTerminal: true,
-      logger: loggerConfig({ level: "silent" }),
+      logger: pino({ level: "silent" }),
       ...config,
     };
   }
@@ -60,7 +60,7 @@ export class WhatsAppBot extends Bot {
    * @param config
    * @returns
    */
-  public async connect(auth: string, config: BuildConfig = {}): Promise<any> {
+  public async connect(auth: string, config: ConnectionConfig = {}): Promise<any> {
     return await new Promise(async (resolve, reject) => {
       try {
         this._auth = auth;
