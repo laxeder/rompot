@@ -1,7 +1,7 @@
 import { catchError, map, of, OperatorFunction, Subject } from "rxjs";
 
 import { Events, EventsName } from "../types/index";
-import { BuildConfig } from "@config/BuildConfig";
+import { ConnectionConfig } from "@config/ConnectionConfig";
 import { Commands } from "@models/Commands";
 import { Message } from "@messages/Message";
 import { Status } from "@models/Status";
@@ -26,7 +26,7 @@ export class Bot {
   private _commands?: Commands;
 
   public status: Status = new Status("offline");
-  public config: BuildConfig | any = {};
+  public config: ConnectionConfig | any = {};
   public id: string = "";
 
   constructor(commands?: Commands) {
