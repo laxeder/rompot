@@ -1,5 +1,3 @@
-import { uuid } from "uuidv4";
-
 import { List, ListItem } from "../types/List";
 import { Message } from "@messages/Message";
 import { Chat } from "@models/Chat";
@@ -48,9 +46,9 @@ export class ListMessage extends Message {
 
   /**
    * * Gera um novo ID
-   * @returns 
+   * @returns
    */
   public generateID(): string {
-    return uuid();
+    return String(Date.now());
   }
 }

@@ -7,8 +7,6 @@ import { Message } from "@messages/Message";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
-import { uuid } from "uuidv4";
-
 export class Bot {
   public events: Events = {
     connection: new Subject(),
@@ -194,7 +192,7 @@ export class Bot {
     message: Message,
     timeout: number,
     chats?: { [key: string]: Chat },
-    id: string = uuid()
+    id: string = String(Date.now())
   ): Promise<any> {
     const now = Date.now();
 
