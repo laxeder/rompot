@@ -1,63 +1,25 @@
-import { StatusOptions } from "../types/Status";
+import { StatusTypes } from "../types/Status";
 import { Message } from "@messages/Message";
 import { Chat } from "@models/Chat";
 
 export class Status {
-  public status: keyof StatusOptions;
-  public chat?: Chat;
+  public status: StatusTypes;
   public message?: Message;
+  public chat?: Chat;
 
-  constructor(status: keyof StatusOptions, chat?: Chat, message?: Message) {
+  constructor(status: StatusTypes, chat?: Chat, message?: Message) {
     this.message = message;
     this.status = status;
     this.chat = chat;
-  }
-
-  /**
-   * * Define o status
-   * @param status
-   */
-  public setStatus(status: keyof StatusOptions) {
-    this.status = status;
   }
 
   /**
    * * Define a sala de bate-papo que está com o status
    * @param chat
    */
-  public setChat(chat: Chat) {
+  public setChat(chat: Chat | string) {
+    if (!(chat instanceof Chat)) chat = new Chat(`${chat}`);
+
     this.chat = chat;
-  }
-
-  /**
-   * * Define a mensagem que está com esse status
-   * @param message
-   */
-  public setMessage(message: Message) {
-    this.message = message;
-  }
-
-  /**
-   * * Retorna o status
-   * @returns
-   */
-  public getStatus(): string {
-    return this.status;
-  }
-
-  /**
-   * * retorna a sala de bate-papo que está com o status
-   * @returns
-   */
-  public getChat(): Chat | undefined {
-    return this.chat;
-  }
-
-  /**
-   * *  Retorna a mensagem que está com esse status
-   * @returns
-   */
-  public getMessage(): Message | undefined {
-    return this.message;
   }
 }

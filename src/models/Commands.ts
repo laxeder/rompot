@@ -1,5 +1,5 @@
-import { Bot } from "@models/Bot";
 import { Command } from "@models/Command";
+import { Bot } from "@models/Bot";
 
 export class Commands {
   private _bot: Bot;

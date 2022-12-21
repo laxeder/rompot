@@ -1,13 +1,14 @@
 import { LocationMessage } from "@messages/LocationMessage";
 import { ReactionMessage } from "@messages/ReactionMessage";
 import { ContactMessage } from "@messages/ContactMessage";
+import { generateWAMessage } from "@adiwajshing/baileys";
 import { ButtonMessage } from "@messages/ButtonMessage";
 import { MediaMessage } from "@messages/MediaMessage";
 import { ListMessage } from "@messages/ListMessage";
 import { List, ListItem } from "../types/List";
 import { WhatsAppBot } from "@wa/WhatsAppBot";
 import { Message } from "@messages/Message";
-import { generateWAMessage } from "@adiwajshing/baileys";
+import { getID } from "@wa/ID";
 
 export class WhatsAppMessage {
   private _message: Message;
@@ -27,9 +28,9 @@ export class WhatsAppMessage {
    * @param message
    */
   public async refactory(message = this._message) {
-    this.chat = message.chat.id;
+    this.chat = getID(message.chat.id);
     this.message = await this.refactoryMessage(message);
-    
+
     if (message.mention) {
       const original = message.getOriginalMention();
       const ctx: any = {};
@@ -61,7 +62,7 @@ export class WhatsAppMessage {
     const msg: any = {};
 
     msg.text = message.text;
-    msg.participant = message.user.id;
+    msg.participant = getID(message.user.id);
 
     if (message.mentions) msg.mentions = message.mentions;
     if (message.fromMe) msg.fromMe = message.fromMe;
@@ -116,8 +117,8 @@ export class WhatsAppMessage {
         "BEGIN:VCARD\n" +
         "VERSION:3.0\n" +
         `FN:${user.name || ""}\n` +
-        // "ORG:${user.description};\n" +
-        `TEL;type=CELL;type=VOICE;waid=${user.id.split("@")[0]}: ${user.phone}\n` +
+        // `ORG:${user.description};\n` +
+        `TEL;type=CELL;type=VOICE;waid=${user.id}: ${getID(user.id)}\n` +
         "END:VCARD";
 
       if (message.contacts.length < 2) {
@@ -187,12 +188,12 @@ export class WhatsAppMessage {
     this.message = {
       react: {
         text: message.text[0],
-        key: { remoteJid: message.chat.id, id: message.id, fromMe },
+        key: { remoteJid: getID(message.chat.id), id: message.id, fromMe },
       },
     };
 
     if (message.chat.id.includes("@g")) {
-      this.message.react.key.participant = message.user.id || this._wa.id;
+      this.message.react.key.participant = getID(message.user.id || this._wa.id);
     }
   }
 }

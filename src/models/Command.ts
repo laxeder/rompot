@@ -1,6 +1,6 @@
 import { Message } from "@messages/Message";
+import { Chat } from "@models/Chat";
 import { Bot } from "@models/Bot";
-import { Chat } from "./Chat";
 
 export class Command {
   private _bot: Bot = new Bot();

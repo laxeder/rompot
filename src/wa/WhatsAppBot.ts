@@ -13,6 +13,7 @@ import makeWASocket, {
   WAPresence,
   generateWAMessage,
 } from "@adiwajshing/baileys";
+import CircularJSON from "circular-json";
 
 import { WhatsAppConvertMessage } from "@wa/WAConvertMessage";
 import { ConnectionConfig } from "@config/ConnectionConfig";
@@ -21,6 +22,7 @@ import { WhatsAppMessage } from "@wa/WAMessage";
 import { StatusOptions } from "../types/Status";
 import getImageURL from "@utils/getImageURL";
 import { Message } from "@messages/Message";
+import { getID, replaceID } from "@wa/ID";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
@@ -42,7 +44,6 @@ export class WhatsAppBot extends Bot {
 
   public DisconnectReason = DisconnectReason;
   public chats: { [key: string]: Chat } = {};
-  private _savedChats: any = {};
 
   constructor(config: ConnectionConfig = {}) {
     super();
@@ -74,67 +75,57 @@ export class WhatsAppBot extends Bot {
         // Verificando se bot conectou
         this._bot.ev.on("connection.update", async (update: Partial<ConnectionState>) => {
           if (update.connection == "connecting") {
-            this.events.connection.next({
-              action: "connecting",
-              status: this.status.getStatus(),
-            });
+            this.emit("conn", { action: "connecting", status: "offline" });
           }
 
           if (update.qr) {
-            this.events.connection.next({
-              action: "new",
-              status: this.status.getStatus(),
-              login: update.qr,
-            });
+            this.emit("qr", update.qr);
           }
 
           if (update.connection == "open") {
-            this.status.setStatus("online");
+            this.status.status = "online";
 
-            this.setId(this._bot?.user?.id?.replace(/:(.*)@/, "@") || "");
+            this.id = replaceID(this._bot?.user?.id || "");
 
             if (fs.existsSync(`${this._auth}/chats`)) {
               const data = fs.readFileSync(`${this._auth}/chats`);
-              const chats = JSON.parse(data.toString() || "{}");
+              const chats = CircularJSON.parse(data.toString() || "{}");
 
               Object.keys(chats).forEach((key) => {
+                key = replaceID(key);
+
                 const chat = chats[key];
 
                 if (!!!chat) return;
 
-                this.chats[key] = new Chat(chat.id, chat.name);
+                this.chats[key] = new Chat(replaceID(chat.id), chat.name);
                 this.chats[key].description = chat.description;
                 this.chats[key].setBot(this);
 
-                this._savedChats[key] = { id: chat.id, description: chat.description, members: {} };
-
                 if (chat?.members) {
                   Object.keys(chat?.members || {}).forEach((mKey) => {
+                    if (!!!mKey) return;
+
+                    mKey = replaceID(mKey);
+
                     const member = chat?.members[mKey];
 
                     if (!!!member) return;
 
-                    this.chats[key].members[mKey] = new User(member.id, member.name, member.phone, this);
-                    this._savedChats[key].members[mKey] = {
-                      id: member.id,
-                      name: member.name,
-                      phone: member.phone,
-                      isAdmin: member.isAdmin,
-                      isOwner: member.isOwner,
-                    };
+                    this.chats[key].members[mKey] = new User(
+                      replaceID(member.id),
+                      member.name,
+                      member.isAdmin,
+                      member.isLeader
+                    );
                   });
                 }
               });
 
-              this.saveChats(this._savedChats);
-            } else {
-              this.saveChats(this._savedChats);
+              this.saveChats();
             }
 
-            this.events.connection.next({
-              action: update.connection,
-              status: this.status.getStatus(),
-            });
+            this.emit("open", { status: "online", isNewLogin: update.isNewLogin || false });
 
             resolve(true);
           }
@@ -144,30 +135,33 @@ export class WhatsAppBot extends Bot {
             const status =
               (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
 
-            if (this.status.getStatus() == "online") {
-              this.status.setStatus("offline");
+            if (this.status.status == "online") {
+              this.status.status = "offline";
 
-              this.events.connection.next({
-                action: update.connection,
-                status: this.status.getStatus(),
-              });
+              this.emit("close", { status: "offline" });
             }
 
             if (status == DisconnectReason.badSession || status === DisconnectReason.loggedOut) {
-              this.events.connection.next({
-                action: "closed",
-                status: this.status.getStatus(),
-              });
-
-              return;
+              return this.emit("closed", { status: "offline" });
             }
 
-            setTimeout(async () => resolve(await this.reconnect(this.config, false)), 2000);
+            setTimeout(
+              async () =>
+                resolve(
+                  await this.reconnect(
+                    this.config,
+                    status != DisconnectReason.restartRequired || this.status.status == "offline"
+                  )
+                ),
+              2000
+            );
           }
         });
 
         this._bot.ev.on("contacts.update", (updates: any) => {
           for (const update of updates) {
+            update.id = replaceID(update.id);
+
             if (this.chats[update.id]) {
               const name = update.notify || update.verifiedName;
 
@@ -180,95 +174,91 @@ export class WhatsAppBot extends Bot {
 
         this._bot.ev.on("chats.upsert", (updates: any) => {
           for (const update of updates) {
+            update.id = replaceID(update.id);
+
             if (!this.chats[update.id]) this.chatUpsert(update);
             else if (!this.chats[update.id].members[this.id]) {
               this.chats[update.id].members[this.id] = new User(this.id);
-              if (!this._savedChats[update.id]) {
-                this._savedChats[update.id] = {
-                  id: update.id,
-                  name: this.chats[update.id].name,
-                  desc: this.chats[update.id].description,
-                  members: this.chats[update.id].members || {},
-                };
-              }
-
-              if (this._savedChats[update.id].members) {
-                this._savedChats[update.id].members[this.id] = {
-                  id: this.id,
-                  name: "",
-                  isAdmin: false,
-                  isOwner: false,
-                };
-              }
-
-              this.saveChats(this._savedChats);
             }
           }
         });
 
         this._bot.ev.on("chats.update", (updates: any) => {
           for (const update of updates) {
+            update.id = replaceID(update.id);
+
             if (!this.chats[update.id] && !update.readOnly) this.chatUpsert(update);
           }
         });
 
         this._bot.ev.on("chats.delete", (deletions: any) => {
-          for (const id of deletions) this.removeChat(id);
+          for (const id of deletions) this.removeChat(replaceID(id));
         });
 
         this._bot.ev.on("groups.update", (updates: any) => {
           for (const update of updates) {
+            update.id = replaceID(update.id);
+
             if (this.chats[update.id]) {
               if (update.subject) {
                 this.chats[update.id].name = update.subject;
-                this._savedChats[update.id].name = update.subject;
 
-                this.saveChats(this._savedChats);
+                this.saveChats();
               }
             }
           }
         });
 
         this._bot.ev.on("group-participants.update", async ({ id, participants, action }: any) => {
-          if (!this.chats[id] && action !== "remove") await this.chatUpsert({ id });
+          id = replaceID(id);
 
-          for (const u of participants) {
+          if (!this.chats[id]) {
+            if (action != "remove") await this.chatUpsert({ id });
+            else if (!participants.includes(getID(this.id))) await this.chatUpsert({ id });
+          }
+
+          for (let u of participants) {
+            u = replaceID(u);
+
             const member = new User(u);
 
-            if (action == "add") {
-              await this.chats[id].addMember(member, false);
-            }
-            if (action == "promote") this.chats[id].members[u].setAdmin(true);
+            if (action == "add") this.chats[id].members[u] = member;
+            if (action == "promote") this.chats[id].members[u].isAdmin = true;
             if (action == "demote") {
-              this.chats[id].members[u].setAdmin(false);
-              this.chats[id].members[u].setLeader(false);
+              this.chats[id].members[u].isAdmin = false;
+              this.chats[id].members[u].isLeader = false;
             }
 
-            const user = this.chats[id]?.getMember(member) || member;
-            const chat = this.chats[id];
+            const user = new User(member.id);
+            const chat = new Chat(id);
 
-            if (this._savedChats[id] && this._savedChats[id].members[u])
-              this._savedChats[id].members[u] = {
-                id: user?.id,
-                name: user?.name || "",
-                isAdmin: user?.isAdmin,
-                isOwner: user?.isOwner,
-              };
+            if (this.chats[id]) {
+              chat.name = this.chats[id].name;
+              chat.description = this.chats[id].description;
+              chat.members = this.chats[id].members;
+              chat.type = this.chats[id].type;
+
+              const m = this.chats[id]?.getMember(member);
+
+              user.id = m?.id || "";
+              user.name = m?.name || "";
+              user.isAdmin = m?.isAdmin || false;
+              user.isAdmin = m?.isAdmin || false;
+            }
 
             if (action == "remove") {
               if (u == this.id) {
                 delete this.chats[id];
-                delete this._savedChats[id];
+
+                this.emit("chat", { action: "remove", chat });
               } else {
-                await this.chats[id]?.removeMember(member, false);
-                delete this._savedChats[id]?.members[u];
-                delete chat?.members[u];
+                delete this.chats[id]?.members[member.id];
               }
             }
 
-            this.saveChats(this._savedChats);
+            this.saveChats();
 
-            this.events.member.next({ action, chat: chat || new Chat(id), user });
+            this.emit("member", { action, member: user, chat });
           }
         });
 
@@ -285,10 +275,10 @@ export class WhatsAppBot extends Bot {
           msg.setBot(this);
 
           if (message.key.fromMe && !this.config.receiveAllMessages) {
-            return this.events["bot-message"].next(msg);
+            return this.emit("me", msg);
           }
 
-          this.events.message.next(msg);
+          this.emit("message", msg);
         });
       } catch (err: any) {
         reject(err?.stack || err);
@@ -302,13 +292,13 @@ export class WhatsAppBot extends Bot {
    * @returns
    */
   public async reconnect(config?: UserFacingSocketConfig, alert: boolean = true): Promise<any> {
-    if (alert) this.events.connection.next({ action: "reconnecting" });
+    if (alert) this.emit("reconnecting", { status: "offline" });
 
-    if (this.status.getStatus() == "online") {
+    if (this.status.status == "online") {
       this.stop(DisconnectReason.loggedOut);
     }
 
-    this.status.setStatus("offline");
+    this.status.status = "offline";
 
     return this.connect(this._auth, config || this.config);
   }
@@ -326,8 +316,8 @@ export class WhatsAppBot extends Bot {
    * * Salva os chats salvos
    * @param chats
    */
-  private saveChats(chats: any = this._savedChats) {
-    fs.writeFileSync(`${this._auth}/chats`, JSON.stringify(chats));
+  private saveChats(chats: any = this.chats) {
+    fs.writeFileSync(`${this._auth}/chats`, CircularJSON.stringify(chats));
   }
 
   /**
@@ -337,11 +327,13 @@ export class WhatsAppBot extends Bot {
   private async chatUpsert(chat: any) {
     try {
       if (chat.id || chat.newJId) {
-        const newChat = new Chat(chat.id || chat.newJid, chat.name || chat.verifiedName || chat.notify || chat.subject);
+        chat.id = replaceID(chat.id || chat.newJID);
+
+        const newChat = new Chat(chat.id, chat.name || chat.verifiedName || chat.notify || chat.subject);
 
         if (newChat.id.includes("@g")) {
           if (!chat.participants) {
-            const metadata = await this.add(() => this._bot?.groupMetadata(newChat.id));
+            const metadata = await this.add(() => this._bot?.groupMetadata(getID(newChat.id)));
 
             chat.participants = metadata?.participants || [];
             newChat.name = metadata?.subject;
@@ -350,19 +342,19 @@ export class WhatsAppBot extends Bot {
           }
 
           for (const user of chat.participants) {
-            const u = new User(user.id);
+            const u = new User(replaceID(user.id));
 
-            u.setAdmin(!!user.admin || user.isAdmin || user.isSuperAdmin || false);
-            u.setLeader(user.admin == "superadmin" || user.isSuperAdmin || false);
+            u.isAdmin = !!user.admin || user.isAdmin || user.isSuperAdmin || false;
+            u.isLeader = user.admin == "superadmin" || user.isSuperAdmin || false;
 
-            newChat.addMember(u, false);
+            newChat.members[u.id] = u;
           }
         }
 
         this.setChat(newChat);
       }
     } catch (e: any) {
-      this.events.error.next(e);
+      this.emit("error", e);
     }
   }
 
@@ -373,18 +365,20 @@ export class WhatsAppBot extends Bot {
    */
   public async getChat(id: string): Promise<Chat | null> {
     try {
+      id = replaceID(id);
+
       if (!this.chats[id]) {
-        if (id.includes("@s")) {
+        if (id.includes("@s") || !id.includes("@")) {
           await this.chatUpsert(new Chat(id));
         }
 
         if (id.includes("@g")) {
-          const metadata = await this.add(() => this._bot?.groupMetadata(id));
+          const metadata = await this.add(() => this._bot?.groupMetadata(getID(id)));
           if (metadata) await this.chatUpsert(metadata);
         }
       }
     } catch (e: any) {
-      this.events.error.next(e);
+      this.emit("error", e);
     }
 
     return this.chats[id] || {};
@@ -403,34 +397,19 @@ export class WhatsAppBot extends Bot {
    * @param chat
    */
   public async setChat(chat: Chat) {
-    if (chat.id == "status@broadcast" || this.chats[chat.id]) return;
-    if (chat.id.includes("@g")) chat.setType("group");
-    if (chat.id.includes("@s")) chat.setType("pv");
+    chat.id = replaceID(chat.id);
+
+    if (chat.id == "status@broadcast") return;
+    if (chat.id.includes("@g")) chat.type = "group";
+    if (!chat.id.includes("@")) chat.type = "pv";
 
     chat.setBot(this);
 
-    this._savedChats[chat.id] = { id: chat.id, name: chat.name, description: chat.description, members: {} };
-
-    if (chat?.members) {
-      Object.keys(chat?.members || {}).forEach((mKey) => {
-        const member = chat?.members[mKey];
-
-        if (!!!member) return;
-
-        this._savedChats[chat.id].members[mKey] = {
-          id: member.id,
-          name: member.name,
-          phone: member.phone,
-          isAdmin: member.isAdmin,
-          isOwner: member.isOwner,
-        };
-      });
-    }
-
-    this.saveChats(this._savedChats);
+    this.saveChats();
 
     this.chats[chat.id] = chat;
-    this.events.chat.next(chat);
+
+    this.emit("chat", { action: "add", chat });
   }
 
   /**
@@ -446,7 +425,11 @@ export class WhatsAppBot extends Bot {
    * @param id
    */
   public async removeChat(id: Chat | string) {
+    const chat = new Chat(typeof id == "string" ? id : id.id);
+
     delete this.chats[typeof id == "string" ? id : id.id];
+
+    this.emit("chat", { action: "remove", chat });
   }
 
   /**
@@ -455,13 +438,13 @@ export class WhatsAppBot extends Bot {
    * @param user
    */
   public async addMember(chat: Chat, user: User) {
-    if (!chat.id.includes("@g.us")) return;
+    if (!chat.id.includes("@g")) return;
 
     const bot = (await this.getChat(chat.id))?.getMember(new User(this.id || ""));
 
-    if (!bot || !bot.getAdmin()) return;
+    if (!bot || !bot.isAdmin) return;
 
-    await this.add(() => this._bot?.groupParticipantsUpdate(chat.id, [user.id], "add"));
+    await this.add(() => this._bot?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "add"));
   }
 
   /**
@@ -474,9 +457,9 @@ export class WhatsAppBot extends Bot {
 
     const bot = (await this.getChat(chat.id))?.getMember(new User(this.id || ""));
 
-    if (!bot || !bot.getAdmin()) return;
+    if (!bot || !bot.isAdmin) return;
 
-    await this.add(() => this._bot?.groupParticipantsUpdate(chat.id, [user.id], "remove"));
+    await this.add(() => this._bot?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "remove"));
   }
 
   /**
@@ -490,7 +473,7 @@ export class WhatsAppBot extends Bot {
         {
           clear: { messages: [{ id: message.id || "", fromMe: message.fromMe, timestamp: Number(message.timestamp) }] },
         },
-        message.chat.id
+        getID(message.chat.id)
       )
     );
   }
@@ -501,11 +484,11 @@ export class WhatsAppBot extends Bot {
    * @returns
    */
   public async deleteMessage(message: Message): Promise<any> {
-    const key: any = { remoteJid: message.chat.id, id: message.id };
+    const key: any = { remoteJid: getID(message.chat.id), id: message.id };
 
-    if (message.chat.id.includes("@g")) key.participant = message.user.id;
+    if (message.chat.id.includes("@g")) key.participant = getID(message.user.id);
 
-    return await this.add(() => this._bot?.sendMessage(message.chat.id, { delete: key }));
+    return await this.add(() => this._bot?.sendMessage(getID(message.chat.id), { delete: key }));
   }
 
   /**
@@ -513,7 +496,7 @@ export class WhatsAppBot extends Bot {
    * @param user
    */
   public async blockUser(user: User): Promise<any> {
-    await this.add(() => this._bot?.updateBlockStatus(user.id, "block"));
+    await this.add(() => this._bot?.updateBlockStatus(getID(user.id), "block"));
   }
 
   /**
@@ -521,7 +504,7 @@ export class WhatsAppBot extends Bot {
    * @param user
    */
   public async unblockUser(user: User): Promise<any> {
-    await this.add(() => this._bot?.updateBlockStatus(user.id, "unblock"));
+    await this.add(() => this._bot?.updateBlockStatus(getID(user.id), "unblock"));
   }
 
   /**
@@ -538,12 +521,12 @@ export class WhatsAppBot extends Bot {
    * @param id
    * @returns
    */
-  public async getProfile(id: string | Chat | User = this.id): Promise<any> {
+  public async getProfile(id: string | Chat | User = getID(this.id)): Promise<any> {
     let url: any;
 
-    if (typeof id == "string") url = await this.add(() => this._bot.profilePictureUrl(id, "image"));
+    if (typeof id == "string") url = await this.add(() => this._bot.profilePictureUrl(getID(id), "image"));
     if (id instanceof Chat || id instanceof User)
-      url = await this.add(() => this._bot.profilePictureUrl(id.id, "image"));
+      url = await this.add(() => this._bot.profilePictureUrl(getID(id.id), "image"));
 
     if (!!url) return await getImageURL(url);
 
@@ -556,9 +539,9 @@ export class WhatsAppBot extends Bot {
    * @param id
    * @returns
    */
-  public async setProfile(image: Buffer, id: Chat | string = this.id): Promise<any> {
-    if (typeof id == "string") return this.add(() => this._bot.updateProfilePicture(id, image));
-    if (id instanceof Chat) return this.add(() => this._bot.updateProfilePicture(id.id, { url: image }));
+  public async setProfile(image: Buffer, id: Chat | string = getID(this.id)): Promise<any> {
+    if (typeof id == "string") return this.add(() => this._bot.updateProfilePicture(getID(id), image));
+    if (id instanceof Chat) return this.add(() => this._bot.updateProfilePicture(getID(id.id), { url: image }));
   }
 
   /**
@@ -567,7 +550,7 @@ export class WhatsAppBot extends Bot {
    * @returns
    */
   public async createChat(name: string): Promise<any> {
-    return this.add(() => this._bot.groupCreate(name, [this.id]));
+    return this.add(() => this._bot.groupCreate(name, [getID(this.id)]));
   }
 
   /**
@@ -577,8 +560,8 @@ export class WhatsAppBot extends Bot {
    * @returns
    */
   public async setChatName(id: string | Chat, name: string): Promise<any> {
-    if (typeof id == "string") return this.add(() => this._bot.groupUpdateSubject(id, name));
-    if (id instanceof Chat) return this.add(() => this._bot.groupUpdateSubject(id.id, name));
+    if (typeof id == "string") return this.add(() => this._bot.groupUpdateSubject(getID(id), name));
+    if (id instanceof Chat) return this.add(() => this._bot.groupUpdateSubject(getID(id.id), name));
   }
 
   /**
@@ -588,6 +571,8 @@ export class WhatsAppBot extends Bot {
    */
   public async getDescription(id: User | string = this.id): Promise<any> {
     if (typeof id != "string" && id.id) id = id.id;
+
+    id = getID(`${id}`);
 
     if (typeof id == "string" && id?.includes("@s")) {
       return this.add(async () => (await this._bot.fetchStatus(id))?.status);
@@ -605,8 +590,10 @@ export class WhatsAppBot extends Bot {
   public async setDescription(desc: string, id?: string | Chat): Promise<any> {
     if (typeof id != "string" && id?.id) id = id.id;
 
+    id = getID(`${id}`);
+
     if (typeof id == "string" && id?.includes("@g")) {
-      this.chats[id]?.setDescription(desc);
+      this.chats[replaceID(id)]?.setDescription(desc);
       return this.add(() => this._bot.groupUpdateDescription(id, desc));
     }
 
@@ -621,10 +608,10 @@ export class WhatsAppBot extends Bot {
    * @returns
    */
   public async leaveChat(chat: Chat | string): Promise<any> {
-    if (typeof chat == "string") return this.add(() => this._bot.groupLeave(chat));
-    if (chat.id) return this.add(() => this._bot.groupLeave(chat.id));
+    if (typeof chat == "string") return this.add(() => this._bot.groupLeave(getID(chat)));
+    if (chat.id) return this.add(() => this._bot.groupLeave(getID(chat.id)));
 
-    if (this.chats[chat.id]) this.removeChat(chat.id);
+    if (this.chats[replaceID(chat.id)]) this.removeChat(chat.id);
   }
 
   public async sendMessage(content: Message): Promise<Message> {
@@ -636,7 +623,7 @@ export class WhatsAppBot extends Bot {
     if (message.hasOwnProperty("templateButtons")) {
       const fullMsg = await this.add(() =>
         generateWAMessage(chat, message, {
-          userJid: this._bot?.user?.id,
+          userJid: getID(this.id),
           logger: this.config.logger,
           ...context,
         })
@@ -667,15 +654,15 @@ export class WhatsAppBot extends Bot {
    */
   public async sendStatus(content: Status): Promise<any> {
     if (content.status === "reading") {
-      const key: any = { remoteJid: content.chat?.id, id: content.message?.id };
+      const key: any = { remoteJid: getID(content.chat?.id || ""), id: content.message?.id };
 
-      if (key.remoteJid?.includes("@g")) key.participant = content.message?.user.id;
+      if (key.remoteJid?.includes("@g")) key.participant = getID(content.message?.user.id || "");
 
       return await this.add(() => this._bot?.readMessages([key]));
     }
 
     const status: WAPresence = this.statusOpts[content.status];
-    return await this.add(() => this._bot?.sendPresenceUpdate(status, content.chat?.id));
+    return await this.add(() => this._bot?.sendPresenceUpdate(status, getID(content.chat?.id || "")));
   }
 
   /**
@@ -695,11 +682,11 @@ export class WhatsAppBot extends Bot {
    * @returns
    */
   public async onExists(id: string): Promise<{ exists: boolean; id: string }> {
-    const user = await this.add(() => this._bot?.onWhatsApp(id));
+    const user = await this.add(() => this._bot?.onWhatsApp(getID(id)));
 
-    if (user && user.length > 0) return { exists: user[0].exists, id: user[0].jid };
+    if (user && user.length > 0) return { exists: user[0].exists, id: replaceID(user[0].jid) };
 
-    return { exists: false, id };
+    return { exists: false, id: replaceID(id) };
   }
 
   /**

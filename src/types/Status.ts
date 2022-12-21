@@ -5,3 +5,5 @@ export interface StatusOptions {
   typing: string;
   online: string;
 }
+
+export type StatusTypes = keyof StatusOptions;

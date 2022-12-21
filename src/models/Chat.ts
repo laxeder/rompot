@@ -1,91 +1,41 @@
-import { ChatTypes } from "../types/ChatTypes";
-import { Bot } from "@models/Bot";
+import { ChatTypes } from "../types/Chat";
 import { User } from "@models/User";
+import { Bot } from "@models/Bot";
+
+var bot: Bot;
 
 export class Chat {
-  private _bot: Bot = new Bot();
-
-  public members: { [key: string]: User } = {};
-  public type: keyof ChatTypes = "pv";
-
   public id: string;
-  public name?: string;
-  public description?: string;
-  public isOld?: boolean;
+  public name: string;
+  public description: string;
+  public type: ChatTypes;
+  public members: { [key: string]: User } = {};
 
-  constructor(id: string, name?: string, isOld?: boolean) {
+  constructor(id: string, name?: string, description?: string, type?: ChatTypes) {
     this.id = id;
-
-    if (name) this.name = name;
-    if (isOld) this.isOld = isOld;
-  }
-
-  /**
-   * * Define o ID da sala de bate-papo
-   * @param id
-   */
-  public setId(id: string) {
-    this.id = id;
+    this.name = name || "";
+    this.description = description || "";
+    this.type = type || "pv";
   }
 
   /**
    * * Define o nome da sala de bate-papo
    * @param name
    */
-  public async setName(name: string, external: boolean = false) {
+  public async setName(name: string) {
     this.name = name;
 
-    if (external) await this._bot.setChatName(this, name);
+    await bot?.setChatName(this, name);
   }
 
   /**
    * * Define a descrição da sala de bate-papo
    * @param desc
    */
-  public async setDescription(desc: string, external: boolean = false) {
+  public async setDescription(desc: string) {
     this.description = this.description;
 
-    if (external) await this._bot.setDescription(desc, this);
-  }
-
-  /**
-   * * Define se é uma nova sala de bate-papo
-   * @param isOld
-   */
-  public setIsOld(isOld: boolean) {
-    this.isOld = isOld;
-  }
-
-  /**
-   * * Retorna o ID da sala de bate-papo
-   * @returns
-   */
-  public getId(): string {
-    return this.id;
-  }
-
-  /**
-   * * Retorna o nome da sala de bate-papo
-   * @returns
-   */
-  public getName(): string | undefined {
-    return this.name;
-  }
-
-  /**
-   * * Retorna a descrição da sala de bate-papo
-   * @returns
-   */
-  public getDescription(): string | undefined {
-    return this.description;
-  }
-
-  /**
-   * * Retorna se é uma nova sala de bate-papo
-   * @returns
-   */
-  public getIsOld(): boolean {
-    return this.isOld || false;
+    await bot?.setDescription(desc, this);
   }
 
   /**
@@ -93,7 +43,7 @@ export class Chat {
    * @param bot
    */
   public setBot(bot: Bot) {
-    this._bot = bot;
+    bot = bot;
   }
 
   /**
@@ -101,20 +51,17 @@ export class Chat {
    * @returns
    */
   public getBot(): Bot {
-    return this._bot;
+    return bot;
   }
 
   /**
    * * Adiciona um novo membro a sala de bate-papo
-   * @param external
    * @param member
    */
-  public async addMember(member: User | string, external: boolean = true) {
+  public async addMember(member: User | string) {
     if (!(member instanceof User)) member = new User(`${member}`);
 
-    if (external && this._bot) {
-      await this._bot.addMember(this, member);
-    }
+    await bot?.addMember(this, member);
 
     this.members[member.id] = member;
   }
@@ -122,33 +69,14 @@ export class Chat {
   /**
    * * Remove um membro da sala de bate-papo
    * @param member
-   * @param external
    * @returns
    */
-  public async removeMember(member: User | string, external: boolean = true) {
+  public async removeMember(member: User | string) {
     if (!(member instanceof User)) member = new User(`${member}`);
 
-    if (external && this._bot) {
-      await this._bot.removeMember(this, member);
-    }
+    await bot?.removeMember(this, member);
 
     delete this.members[member.id];
-  }
-
-  /**
-   * * Define os membros da sala de bate-papo
-   * @param members
-   */
-  public setMembers(members: { [key: string]: User }) {
-    this.members = members;
-  }
-
-  /**
-   * * Retorna os membros da sala de bate-papo
-   * @returns
-   */
-  public getMembers(): { [key: string]: User } {
-    return this.members;
   }
 
   /**
@@ -163,27 +91,11 @@ export class Chat {
   }
 
   /**
-   * * Definir tipo da sala de bate-papo
-   * @param type
-   */
-  public setType(type: keyof ChatTypes) {
-    this.type = type;
-  }
-
-  /**
-   * * Retorna o tipo da sala de bate-papo
-   * @returns
-   */
-  public getType(): keyof ChatTypes {
-    return this.type;
-  }
-
-  /**
    * * Retorna a imagem do chat
    * @returns
    */
   public async getProfile(): Promise<any> {
-    return await this._bot.getProfile(this);
+    return await bot?.getProfile(this);
   }
 
   /**
@@ -191,14 +103,14 @@ export class Chat {
    * @param image
    */
   public async setProfile(image: Buffer): Promise<any> {
-    return await this._bot.setProfile(image, this);
+    return await bot?.setProfile(image, this);
   }
 
   /**
    * * Sai da sala de bate-papo
-   * @returns 
+   * @returns
    */
   public async leave() {
-    return await this._bot.leaveChat(this);
+    return await bot?.leaveChat(this);
   }
 }

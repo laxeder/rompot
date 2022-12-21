@@ -1,22 +1,14 @@
-import { catchError, map, of, OperatorFunction, Subject } from "rxjs";
+import { Subject } from "rxjs";
 
-import { Events, EventsName } from "../types/index";
 import { ConnectionConfig } from "@config/ConnectionConfig";
 import { Commands } from "@models/Commands";
 import { Message } from "@messages/Message";
+import { Emmiter } from "@utils/Emmiter";
 import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
-export class Bot {
-  public events: Events = {
-    connection: new Subject(),
-    "bot-message": new Subject(),
-    message: new Subject(),
-    member: new Subject(),
-    chat: new Subject(),
-    error: new Subject(),
-  };
 
+export class Bot extends Emmiter {
   private _await: Subject<any> = new Subject();
   private _awaitObv: any[] = [];
 
@@ -28,6 +20,8 @@ export class Bot {
   public id: string = "";
 
   constructor(commands?: Commands) {
+    super();
+
     if (commands) {
       this.setCommands(commands);
     }
@@ -41,37 +35,13 @@ export class Bot {
       if (command) command.execute(message);
     });
 
-    this.on("bot-message", (message: Message) => {
+    this.on("me", (message: Message) => {
       if (!this.config.autoRunBotCommand || this.config.receiveAllMessages) return;
 
       const command = this.getCommand(message.text);
 
       if (command) command.execute(message);
     });
-  }
-
-  /**
-   * * Adiciona um evento
-   * @param eventName
-   * @param event
-   * @returns
-   */
-  on(eventName: keyof EventsName, event: any, pipe?: OperatorFunction<any, unknown>) {
-    const error = catchError((e) => {
-      this.events.error.next(e);
-      return of("Error in event");
-    });
-
-    const m = map((v: any) => {
-      if (v.setBot) {
-        v.setBot(this);
-      }
-
-      return v;
-    });
-
-    if (!!!pipe) return this.events[eventName].pipe(error, m).subscribe(event);
-    return this.events[eventName].pipe(error, pipe, m).subscribe(event);
   }
 
   /**
@@ -106,14 +76,6 @@ export class Bot {
     }
 
     return this._commands;
-  }
-
-  /**
-   * * Retorna o status do bot
-   * @returns
-   */
-  public getStatus(): Status {
-    return this.status;
   }
 
   /**
@@ -222,22 +184,6 @@ export class Bot {
         this._autoMessages[id].chats = nowChats.splice(index + 1, nowChats.length);
       })
     );
-  }
-
-  /**
-   * * Retorna o ID do bot
-   * @returns
-   */
-  public getId(): string {
-    return this.id;
-  }
-
-  /**
-   * * Define o ID do bot
-   * @param id
-   */
-  public setId(id: string) {
-    this.id = id;
   }
 
   //! ****************** Bot functions ******************

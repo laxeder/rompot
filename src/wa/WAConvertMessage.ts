@@ -6,6 +6,7 @@ import {
   WAMessage,
   WAMessageContent,
 } from "@adiwajshing/baileys";
+import pino from "pino";
 
 import { LocationMessage } from "@messages/LocationMessage";
 import { ReactionMessage } from "@messages/ReactionMessage";
@@ -17,11 +18,11 @@ import { VideoMessage } from "@messages/VideoMessage";
 import { AudioMessage } from "@messages/AudioMessage";
 import { ListMessage } from "@messages/ListMessage";
 
-import { loggerConfig } from "@config/logger";
-import { WhatsAppBot } from "./WhatsAppBot";
+import { WhatsAppBot } from "@wa/WhatsAppBot";
 import { Message } from "@messages/Message";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
+import { replaceID } from "@wa/ID";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
@@ -68,14 +69,14 @@ export class WhatsAppConvertMessage {
    * @param type
    */
   public async convertMessage(message: WAMessage, type?: MessageUpsertType) {
-    const chat = this._wa.chats[message.key.remoteJid || ""]
-      ? await this._wa.getChat(message.key.remoteJid || "")
-      : new Chat(message.key.remoteJid || "");
+    const id = replaceID(message.key.remoteJid || "");
 
-    if (message.key.remoteJid) {
+    const chat = this._wa.chats[id] ? await this._wa.getChat(id) : new Chat(id);
+
+    if (id) {
       if (chat) this._chat = chat;
 
-      this._chat.id = message.key.remoteJid;
+      this._chat.id = id;
     }
 
     if (chat?.id.includes("@g")) this._chat.type = "group";
@@ -83,15 +84,15 @@ export class WhatsAppConvertMessage {
 
     if (message.pushName) this._chat.name = message.pushName;
 
-    const userID = message.key.participant || message.participant || message.key.remoteJid || "";
+    const userID = replaceID(message.key.participant || message.participant || message.key.remoteJid || "");
     this._user = chat?.members && chat?.members[userID] ? chat?.members[userID] : new User(userID);
-    this._user.name = message.pushName as string;
+    this._user.name = message.pushName || "";
 
     await this.convertContentMessage(message.message);
 
     if (message.key.fromMe) {
       this._convertedMessage.fromMe = message.key.fromMe;
-      this._user.id = this._wa.id;
+      this._user.id = replaceID(this._wa.id);
     }
 
     if (message.messageTimestamp) this._convertedMessage.timestamp = message.messageTimestamp;
@@ -108,10 +109,6 @@ export class WhatsAppConvertMessage {
    */
   public async convertContentMessage(messageContent: WAMessageContent | undefined | null) {
     if (!!!messageContent) return;
-
-    if (Object.keys(messageContent).includes("senderKeyDistributionMessage")) {
-      this._chat.setIsOld(true);
-    }
 
     const contentType = getContentType(messageContent);
 
@@ -185,8 +182,8 @@ export class WhatsAppConvertMessage {
     if (context.quotedMessage) {
       const message = {
         key: {
-          remoteJid: this._chat.id,
-          participant: context.participant,
+          remoteJid: replaceID(this._chat.id),
+          participant: replaceID(context.participant),
           id: context.stanzaId,
         },
         message: context.quotedMessage,
@@ -223,10 +220,10 @@ export class WhatsAppConvertMessage {
       }
 
       const name = vcard.slice(vcard.indexOf("FN:"));
-      user.setName(name.slice(3, name.indexOf("\n")));
+      user.name = name.slice(3, name.indexOf("\n"));
 
       const id = vcard.slice(vcard.indexOf("waid=") + 5);
-      user.setId(id.slice(0, id.indexOf(":")) + "@s.whatsapp.net");
+      user.id = replaceID(id.slice(0, id.indexOf(":")) + "@s.whatsapp.net");
 
       return user;
     };
@@ -270,7 +267,7 @@ export class WhatsAppConvertMessage {
       this._convertedMessage.setIsGIF(true);
     }
 
-    const logger: any = loggerConfig({ level: "silent" });
+    const logger: any = pino({ level: "silent" });
 
     if (this._convertedMessage instanceof MediaMessage) {
       const download = () =>

@@ -1,1 +1,2 @@
-export * from "./getImageURL"
+export * from "./getImageURL";
+export * from "./Emmiter";
