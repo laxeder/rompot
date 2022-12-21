@@ -342,7 +342,6 @@ bot.removeMember(chat, user);
 Esse Software foi construído com:
 
 - [Baileys](https://github.com/adiwajshing/Baileys) - API para se conectar ao WhatsApp
-- [RXJS](https://rxjs.dev/) - Gerenciador de eventos
 
 ## 📄 Licença
 
