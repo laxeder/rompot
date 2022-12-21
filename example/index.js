@@ -7,56 +7,74 @@ const bot = new WhatsAppBot({
   receiveAllMessages: false,
 });
 
-bot.on("connection", (update) => {
+bot.on("open", (open) => {
+  if (open.isNewLogin) {
+    console.log("Nova conexão");
+  }
+
+  console.log("Bot conectado!");
+});
+
+bot.on("close", () => {
+  console.log(`Bot desligado!`);
+});
+
+bot.on("qr", (qr) => {
+  console.log("QR Gerado:", qr);
+});
+
+bot.on("conn", (update) => {
   if (update.action == "connecting") {
-    logger.info("Tentando conectar bot...");
-  }
-
-  if (update.action == "new") {
-    logger.info("Nova conexão");
-  }
-
-  if (update.action == "open") {
-    logger.info("Bot conectado!");
-  }
-
-  if (update.action == "close") {
-    logger.error(`Bot desligado! Status: ${update.status}`);
+    console.log("Tentando conectar bot...");
   }
 
   if (update.action == "closed") {
-    logger.error(`A conexão desse bot foi fechada`);
+    console.log(`A conexão desse bot foi fechada`);
   }
 
   if (update.action == "reconnecting") {
-    logger.warn("Reconectando...");
+    console.log("Reconectando...");
   }
 });
 
 bot.on("message", async (message) => {
-  logger.info(`New message in ${message.chat.id}`);
+  console.log(`New message in ${message.chat.id}`);
 });
 
-bot.on("bot-message", (message) => {
-  logger.info(`Send message to ${message.user.phone}`);
+bot.on("me", (message) => {
+  console.log(`Send message to ${message.user.id}`);
 });
 
-bot.on("chat", (chat) => {
-  logger.info(`New chat: ${chat.id}`);
-});
-
-bot.on("member", (member) => {
-  if (member.action == "add") {
-    logger.info(`Number ${member.user.phone} joined group ${member.chat.id}`);
+bot.on("chat", (update) => {
+  if (update.action == "add") {
+    console.log(`New chat: ${update.chat.id}`);
   }
 
-  if (member.action == "remove") {
-    logger.info(`Member group ${member.chat.id} left`);
+  if (update.action == "remove") {
+    console.log(`Remove chat: ${update.chat.id}`);
+  }
+});
+
+bot.on("member", (update) => {
+  if (update.action == "add") {
+    console.log(`Number ${update.member.id} joined group ${update.chat.id}`);
+  }
+
+  if (update.action == "remove") {
+    console.log(`Member group ${update.chat.id} left`);
+  }
+
+  if (update.action == "promote") {
+    console.log(`Member (${update.member.id}) promoved!`);
+  }
+
+  if (update.action == "demote") {
+    console.log(`Member (${update.member.id}) demoted!`);
   }
 });
 
 bot.on("error", (err) => {
-  logger.error("Um erro ocorreu:", err);
+  console.log("Um erro ocorreu:", err);
 });
 
 const hello = new Command("hello", "Manda um simples Hello");

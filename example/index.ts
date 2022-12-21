@@ -24,8 +24,6 @@ bot.on("qr", (qr: string) => {
 });
 
 bot.on("conn", (update) => {
-  console.log(update);
-
   if (update.action == "connecting") {
     console.log("Tentando conectar bot...");
   }
@@ -40,14 +38,10 @@ bot.on("conn", (update) => {
 });
 
 bot.on("message", async (message: Message) => {
-  console.log(message);
-
   console.log(`New message in ${message.chat.id}`);
 });
 
 bot.on("me", (message: Message) => {
-  console.log(message);
-
   console.log(`Send message to ${message.user.id}`);
 });
 
