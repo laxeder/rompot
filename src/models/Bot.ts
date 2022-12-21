@@ -1,16 +1,15 @@
-import { Subject } from "rxjs";
-
 import { ConnectionConfig } from "@config/ConnectionConfig";
 import { Commands } from "@models/Commands";
 import { Message } from "@messages/Message";
 import { Emmiter } from "@utils/Emmiter";
 import { Status } from "@models/Status";
+import { PubSub } from "@utils/PubSub";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
 
 export class Bot extends Emmiter {
-  private _await: Subject<any> = new Subject();
-  private _awaitObv: any[] = [];
+  private pb = new PubSub();
+  private pbNames: string[] = [];
 
   private _autoMessages: any = {};
   private _commands?: Commands;
@@ -99,10 +98,12 @@ export class Bot extends Emmiter {
    * @returns
    */
   public add(fn: Function): Promise<any> {
+    const name = String(Date.now());
+
     return new Promise((resolve, reject) => {
-      const observer = this._await.subscribe(async (obs) => {
+      const token = this.pb.sub(name, async (nm: string) => {
         try {
-          if (obs !== observer) return;
+          if (name !== nm) return;
 
           try {
             var response = await fn();
@@ -110,13 +111,13 @@ export class Bot extends Emmiter {
             reject(e);
           }
 
-          observer.unsubscribe();
+          this.pb.unsub(token);
 
-          const index = this._awaitObv.indexOf(observer);
-          this._awaitObv.splice(index, 1);
+          const index = this.pbNames.indexOf(name);
+          this.pbNames.splice(index, 1);
 
-          if (this._awaitObv.length > 0) {
-            this._await.next(this._awaitObv[index]);
+          if (this.pbNames.length > 0) {
+            this.pb.pub(this.pbNames[index], {});
           }
 
           resolve(response);
@@ -125,10 +126,10 @@ export class Bot extends Emmiter {
         }
       });
 
-      this._awaitObv.push(observer);
+      this.pbNames.push(name);
 
-      if (this._awaitObv.length <= 1) {
-        this._await.next(observer);
+      if (this.pbNames.length <= 1) {
+        this.pb.pub(name, {});
       }
     });
   }
