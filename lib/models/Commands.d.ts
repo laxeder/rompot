@@ -1,5 +1,5 @@
-import { Bot } from "./Bot";
 import { Command } from "./Command";
+import { Bot } from "./Bot";
 export declare class Commands {
     private _bot;
     commands: {

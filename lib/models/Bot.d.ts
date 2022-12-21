@@ -1,29 +1,20 @@
 /// <reference types="node" />
-import { OperatorFunction } from "rxjs";
-import { Events, EventsName } from "../types/index";
-import { BuildConfig } from "../config/BuildConfig";
+import { ConnectionConfig } from "../config/ConnectionConfig";
 import { Commands } from "./Commands";
 import { Message } from "../messages/Message";
+import { Emmiter } from "../utils/Emmiter";
 import { Status } from "./Status";
 import { Chat } from "./Chat";
 import { User } from "./User";
-export declare class Bot {
-    events: Events;
-    private _await;
-    private _awaitObv;
+export declare class Bot extends Emmiter {
+    private pb;
+    private pbNames;
     private _autoMessages;
     private _commands?;
     status: Status;
-    config: BuildConfig | any;
+    config: ConnectionConfig | any;
     id: string;
     constructor(commands?: Commands);
-    /**
-     * * Adiciona um evento
-     * @param eventName
-     * @param event
-     * @returns
-     */
-    on(eventName: keyof EventsName, event: any, pipe?: OperatorFunction<any, unknown>): import("rxjs").Subscription;
     /**
      * * Define a lista de comandos
      * @param commands
@@ -41,11 +32,6 @@ export declare class Bot {
      * @returns
      */
     getCommands(): Commands;
-    /**
-     * * Retorna o status do bot
-     * @returns
-     */
-    getStatus(): Status;
     /**
      * * Envia um conteúdo
      * @param content
@@ -75,16 +61,6 @@ export declare class Bot {
     addAutomate(message: Message, timeout: number, chats?: {
         [key: string]: Chat;
     }, id?: string): Promise<any>;
-    /**
-     * * Retorna o ID do bot
-     * @returns
-     */
-    getId(): string;
-    /**
-     * * Define o ID do bot
-     * @param id
-     */
-    setId(id: string): void;
     sendMessage(message: Message): Promise<Message>;
     sendStatus(status: Status): Promise<any>;
     connect(auth: any, config?: any): Promise<any>;

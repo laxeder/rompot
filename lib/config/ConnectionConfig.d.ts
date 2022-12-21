@@ -1,7 +1,4 @@
-import { LoggerOptions } from "pino";
-import PinoPretty from "pino-pretty";
-export interface BuildConfig {
-    logger?: LoggerOptions | PinoPretty.PrettyStream;
+export interface ConnectionConfig {
     disableAutoCommand?: boolean;
     autoRunBotCommand?: boolean;
     receiveAllMessages?: boolean;

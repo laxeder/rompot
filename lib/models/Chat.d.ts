@@ -1,58 +1,26 @@
 /// <reference types="node" />
-import { ChatTypes } from "../types/ChatTypes";
-import { Bot } from "./Bot";
+import { ChatTypes } from "../types/Chat";
 import { User } from "./User";
+import { Bot } from "./Bot";
 export declare class Chat {
-    private _bot;
+    id: string;
+    name: string;
+    description: string;
+    type: ChatTypes;
     members: {
         [key: string]: User;
     };
-    type: keyof ChatTypes;
-    id: string;
-    name?: string;
-    description?: string;
-    isOld?: boolean;
-    constructor(id: string, name?: string, isOld?: boolean);
-    /**
-     * * Define o ID da sala de bate-papo
-     * @param id
-     */
-    setId(id: string): void;
+    constructor(id: string, name?: string, description?: string, type?: ChatTypes);
     /**
      * * Define o nome da sala de bate-papo
      * @param name
      */
-    setName(name: string, external?: boolean): Promise<void>;
+    setName(name: string): Promise<void>;
     /**
      * * Define a descrição da sala de bate-papo
      * @param desc
      */
-    setDescription(desc: string, external?: boolean): Promise<void>;
-    /**
-     * * Define se é uma nova sala de bate-papo
-     * @param isOld
-     */
-    setIsOld(isOld: boolean): void;
-    /**
-     * * Retorna o ID da sala de bate-papo
-     * @returns
-     */
-    getId(): string;
-    /**
-     * * Retorna o nome da sala de bate-papo
-     * @returns
-     */
-    getName(): string | undefined;
-    /**
-     * * Retorna a descrição da sala de bate-papo
-     * @returns
-     */
-    getDescription(): string | undefined;
-    /**
-     * * Retorna se é uma nova sala de bate-papo
-     * @returns
-     */
-    getIsOld(): boolean;
+    setDescription(desc: string): Promise<void>;
     /**
      * * Define o bot da sala de bate-papo
      * @param bot
@@ -65,47 +33,21 @@ export declare class Chat {
     getBot(): Bot;
     /**
      * * Adiciona um novo membro a sala de bate-papo
-     * @param external
      * @param member
      */
-    addMember(member: User | string, external?: boolean): Promise<void>;
+    addMember(member: User | string): Promise<void>;
     /**
      * * Remove um membro da sala de bate-papo
      * @param member
-     * @param external
      * @returns
      */
-    removeMember(member: User | string, external?: boolean): Promise<void>;
-    /**
-     * * Define os membros da sala de bate-papo
-     * @param members
-     */
-    setMembers(members: {
-        [key: string]: User;
-    }): void;
-    /**
-     * * Retorna os membros da sala de bate-papo
-     * @returns
-     */
-    getMembers(): {
-        [key: string]: User;
-    };
+    removeMember(member: User | string): Promise<void>;
     /**
      * * Retorna um membro da sala de bate-papo
      * @param member
      * @returns
      */
     getMember(member: User | string): User | undefined;
-    /**
-     * * Definir tipo da sala de bate-papo
-     * @param type
-     */
-    setType(type: keyof ChatTypes): void;
-    /**
-     * * Retorna o tipo da sala de bate-papo
-     * @returns
-     */
-    getType(): keyof ChatTypes;
     /**
      * * Retorna a imagem do chat
      * @returns

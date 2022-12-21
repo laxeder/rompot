@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { DisconnectReason, proto, MediaDownloadOptions, UserFacingSocketConfig } from "@adiwajshing/baileys";
-import { BuildConfig } from "../config/BuildConfig";
+import { ConnectionConfig } from "../config/ConnectionConfig";
 import { StatusOptions } from "../types/Status";
 import { Message } from "../messages/Message";
 import { Status } from "../models/Status";
@@ -15,15 +15,14 @@ export declare class WhatsAppBot extends Bot {
     chats: {
         [key: string]: Chat;
     };
-    private _savedChats;
-    constructor(config?: BuildConfig);
+    constructor(config?: ConnectionConfig);
     /**
      * * Conecta ao servidor do WhatsApp
      * @param auth
      * @param config
      * @returns
      */
-    connect(auth: string, config?: BuildConfig): Promise<any>;
+    connect(auth: string, config?: ConnectionConfig): Promise<any>;
     /**
      * * Reconecta ao servidor do WhatsApp
      * @param config
