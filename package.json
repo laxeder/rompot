@@ -24,6 +24,8 @@
   "dependencies": {
     "@adiwajshing/baileys": "4.4.0",
     "@adiwajshing/keyed-db": "0.2.4",
+    "@types/circular-json": "0.4.0",
+    "circular-json": "0.5.9",
     "jimp": "0.16.2",
     "link-preview-js": "2.1.19",
     "pino": "8.7.0",
