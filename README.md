@@ -36,6 +36,10 @@ Após iniciar o bot um QR Code será emprimido no terminal, escane-o com seu Wha
 ```ts
 const bot = new WhatsAppBot();
 bot.connect("./path-to-auth");
+
+bot.on("qr", (qr) => {
+  console.log("Scan QR:" qr)
+})
 ```
 
 ## Configurações
@@ -78,54 +82,53 @@ bot.setCommands(commands);
 
 ## Eventos
 
-### Conexão alterada
+### Conexão
 
 ```ts
-bot.on("connection", (update: { action: string; status?: number; login?: any }) => {
-  if (update.action == "connecting") {
-    console.log("Tentando conectar bot...");
-  }
+bot.on("open", (open) => {
+  console.log("Bot conectado!");
+});
 
-  if (update.action == "new") {
-    // update.login retorna o qr code do bot aqui
-    console.log("Nova conexão");
-  }
+bot.on("close", (close) => {
+  console.log("Bot desconectado!");
+});
 
-  if (update.action == "open") {
-    console.log("Bot conectado!");
-  }
+bot.on("closed", (closed) => {
+  console.log("Conexão com o bot encerrada!");
+});
 
-  if (update.action == "close") {
-    console.log(`Bot desligado! Status: ${update.status}`);
-  }
+bot.on("connecting", (conn) => {
+  console.log("Conectando bot");
+});
 
-  if (update.action == "reconnecting") {
-    console.log("Reconectando...");
-  }
+bot.on("reconnecting", (conn) => {
+  console.log("Reconectando bot");
 });
 ```
 
-### Nova mensagem
+### Mensagem
 
 ```ts
-bot.on("message", async (message: Message) => {
+bot.on("message", (message) => {
+  console.log(`Mensagem recebida de ${message.user.name}`);
+
   if (message.text == "Oi") {
     message.reply("Olá");
   }
 });
 
-bot.on("bot-message", async (message: Message) => {
+bot.on("me", (message) => {
   console.log(`Mensagem enviada para ${message.chat.id}`);
 });
 ```
 
-### Novo Membro
+### Membros
 
 ```ts
-bot.on("member", (member: { action: "add" | "remove" | "promote" | "demote"; user: User; chat: Chat }) => {
+bot.on("member", (member) => {
   // Novo membro de um grupo
   if (member.action == "add") {
-    const msg = new Message(member.chat, `Bem vindo ao grupo @${member.user.phone}`);
+    const msg = new Message(member.chat, `Bem vindo ao grupo @${member.user.id}`);
     msg.addMentions(member.user.id);
     bot.send(msg);
   }
@@ -146,7 +149,7 @@ bot.on("member", (member: { action: "add" | "remove" | "promote" | "demote"; use
 
 ```ts
 bot.on("error", (err: any) => {
-  logger.error(`Um erro ocorreu: ${err}`);
+  console.error(`Um erro ocorreu: ${err}`);
 });
 ```
 
@@ -199,7 +202,7 @@ const locationMessage = new LocationMessage(chat, 24.121231, 55.1121221);
 
 // Criar mensagem com contatos
 // import { User } from "rompot"
-const contactMessage = new ContactMessage(chat, "nome", new User("userID | phone", "nome", "5599123464"));
+const contactMessage = new ContactMessage(chat, "nome", new User("id", "nome", "5599123464"));
 ```
 
 ## Outros tipos de mensagem
