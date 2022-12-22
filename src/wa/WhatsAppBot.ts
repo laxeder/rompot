@@ -87,7 +87,7 @@ export class WhatsAppBot extends Bot {
 
             this.id = replaceID(this._bot?.user?.id || "");
 
-            const chats = await this.config.auth.get(`chats`);
+            const chats = JSON.parse((await this.config.auth.get(`chats`)) || "{}");
 
             if (!!chats) {
               Object.keys(chats).forEach((key) => {
@@ -316,7 +316,7 @@ export class WhatsAppBot extends Bot {
    * @param chats
    */
   private async saveChats(chats: any = this.chats) {
-    await this.config.auth.set(`chats`, chats);
+    await this.config.auth.set(`chats`, JSON.stringify(chats));
   }
 
   /**

@@ -8,10 +8,10 @@ export declare class MultiFileAuthState implements Auth {
     folder: string;
     constructor(folder: string);
     getStat(folder: string): import("fs").Stats | null;
-    get: (key: string) => Promise<any>;
+    get: (key: string) => Promise<string | null>;
     set: (key: string, data: any) => Promise<void>;
     writeData: (data: any, file: string) => Promise<void>;
-    readData: (file: string) => any;
+    readData: (file: string) => string | null;
     removeData: (file: string) => Promise<void>;
     fixFileName: (file?: string) => string | undefined;
 }

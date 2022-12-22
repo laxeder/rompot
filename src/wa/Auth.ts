@@ -44,14 +44,14 @@ export class MultiFileAuthState implements Auth {
   };
 
   public writeData = async (data: any, file: string) => {
-    return writeFileSync(join(this.folder, this.fixFileName(file)!), JSON.stringify(data, BufferJSON.replacer));
+    return writeFileSync(join(this.folder, this.fixFileName(file)!), data);
   };
 
   public readData = (file: string) => {
     try {
       const data = readFileSync(join(this.folder, this.fixFileName(file)!), { encoding: "utf-8" });
 
-      return JSON.parse(data, BufferJSON.reviver);
+      return data;
     } catch (error) {
       return null;
     }
@@ -67,11 +67,11 @@ export class MultiFileAuthState implements Auth {
 }
 
 export async function getBaileysAuth(auth: Auth) {
-  let creds = (await auth.get("creds")) || initAuthCreds();
+  let creds = JSON.parse(await auth.get("creds"), BufferJSON.reviver) || initAuthCreds();
 
   return {
     saveCreds: async () => {
-      return await auth.set("creds", creds);
+      return await auth.set("creds", JSON.stringify(creds, BufferJSON.replacer));
     },
     state: {
       creds,
@@ -83,7 +83,7 @@ export async function getBaileysAuth(auth: Auth) {
             ids.map(async (id) => {
               const path = `${type}-${id}`;
 
-              let value: any = await auth.get(path);
+              let value: any = JSON.parse(await auth.get(path), BufferJSON.reviver);
 
               if (type === "app-state-sync-key" && value) {
                 value = proto.Message.AppStateSyncKeyData.fromObject(value);
@@ -104,7 +104,7 @@ export async function getBaileysAuth(auth: Auth) {
 
               const key = `${category}-${id}`;
 
-              tasks.push(auth.set(key, value));
+              tasks.push(auth.set(key, JSON.stringify(value, BufferJSON.replacer)));
             }
           }
 
