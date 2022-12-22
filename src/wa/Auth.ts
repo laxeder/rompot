@@ -69,16 +69,10 @@ export class MultiFileAuthState implements Auth {
 export async function getBaileysAuth(auth: Auth) {
   let creds = (await auth.get("creds")) || initAuthCreds();
 
-  const originalSet = auth.set;
-
-  auth.set = async (key: string, data: any) => {
-    if (key == "creds") creds = creds;
-
-    return originalSet(key, data);
-  };
-
   return {
-    saveCreds: async () => await auth.set("creds", creds),
+    saveCreds: async () => {
+      return await auth.set("creds", creds);
+    },
     state: {
       creds,
       keys: {
