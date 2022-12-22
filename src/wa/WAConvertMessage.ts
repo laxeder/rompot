@@ -71,7 +71,7 @@ export class WhatsAppConvertMessage {
   public async convertMessage(message: WAMessage, type?: MessageUpsertType) {
     const id = replaceID(message.key.remoteJid || "");
 
-    const chat = this._wa.chats[id] ? await this._wa.getChat(id) : new Chat(id);
+    const chat = this._wa.chats[id] ? this._wa.chats[id] : new Chat(id);
 
     if (id) {
       if (chat) this._chat = chat;
