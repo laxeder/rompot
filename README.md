@@ -35,7 +35,7 @@ Após iniciar o bot um QR Code será emprimido no terminal, escane-o com seu Wha
 
 ```ts
 const bot = new WhatsAppBot();
-bot.connect("./path-to-auth");
+bot.connect({ auth: "./path-to-auth" });
 
 bot.on("qr", (qr) => {
   console.log("Scan QR:" qr)
@@ -46,6 +46,8 @@ bot.on("qr", (qr) => {
 
 ```ts
 type BuildConfig = {
+  /** Define o caminho da sessão do bot ou o gerenciador da sessão */
+  auth: string | Auth;
   /** Desativa comandos automaticos */
   disableAutoCommand?: boolean;
   /** Ativa comandos automaticos para mensagem enviadas pelo bot */
