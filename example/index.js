@@ -5,6 +5,7 @@ const bot = new WhatsAppBot({
   autoRunBotCommand: true,
   disableAutoRead: true,
   receiveAllMessages: false,
+  auth: "./example/auth",
 });
 
 bot.on("open", (open) => {
@@ -132,4 +133,4 @@ const commands = new Commands({ hello, date, ban, add }, bot);
 commands.setPrefix("/");
 
 bot.setCommands(commands);
-bot.connect("./example/auth");
+bot.connect();

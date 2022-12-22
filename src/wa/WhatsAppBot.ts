@@ -1,7 +1,6 @@
 import { Boom } from "@hapi/boom";
 import makeWASocket, {
   DisconnectReason,
-  useMultiFileAuthState,
   downloadMediaMessage,
   proto,
   MediaDownloadOptions,
@@ -13,9 +12,9 @@ import makeWASocket, {
   WAPresence,
   generateWAMessage,
 } from "@adiwajshing/baileys";
-import CircularJSON from "circular-json";
 
 import { WhatsAppConvertMessage } from "@wa/WAConvertMessage";
+import { getBaileysAuth, MultiFileAuthState } from "@wa/Auth";
 import { ConnectionConfig } from "@config/ConnectionConfig";
 import { MediaMessage } from "@messages/MediaMessage";
 import { WhatsAppMessage } from "@wa/WAMessage";
@@ -27,11 +26,9 @@ import { Status } from "@models/Status";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
 import { Bot } from "@models/Bot";
-import * as fs from "fs";
 import pino from "pino";
 
 export class WhatsAppBot extends Bot {
-  private _auth: string = "";
   private _bot: WASocket | any;
 
   public statusOpts: keyof StatusOptions | any = {
@@ -45,7 +42,7 @@ export class WhatsAppBot extends Bot {
   public DisconnectReason = DisconnectReason;
   public chats: { [key: string]: Chat } = {};
 
-  constructor(config: ConnectionConfig = {}) {
+  constructor(config: ConnectionConfig) {
     super();
 
     this.config = {
@@ -61,13 +58,16 @@ export class WhatsAppBot extends Bot {
    * @param config
    * @returns
    */
-  public async connect(auth: string, config: ConnectionConfig = {}): Promise<any> {
+  public async connect(config: ConnectionConfig = this.config): Promise<any> {
     return await new Promise(async (resolve, reject) => {
       try {
-        this._auth = auth;
         this.config = { ...this.config, ...config };
 
-        const { state, saveCreds } = await useMultiFileAuthState(this._auth);
+        if (!!!this.config.auth) this.config.auth = String(Date.now());
+
+        if (typeof this.config.auth == "string") this.config.auth = new MultiFileAuthState(this.config.auth);
+
+        const { state, saveCreds } = await getBaileysAuth(this.config.auth);
 
         this._bot = makeWASocket({ ...this.config, auth: state });
         this._bot.ev.on("creds.update", saveCreds);
@@ -87,10 +87,9 @@ export class WhatsAppBot extends Bot {
 
             this.id = replaceID(this._bot?.user?.id || "");
 
-            if (fs.existsSync(`${this._auth}/chats`)) {
-              const data = fs.readFileSync(`${this._auth}/chats`);
-              const chats = CircularJSON.parse(data.toString() || "{}");
+            const chats = await this.config.auth.get(`chats`);
 
+            if (!!chats) {
               Object.keys(chats).forEach((key) => {
                 key = replaceID(key);
 
@@ -300,7 +299,7 @@ export class WhatsAppBot extends Bot {
 
     this.status.status = "offline";
 
-    return this.connect(this._auth, config || this.config);
+    return this.connect(config || this.config);
   }
 
   /**
@@ -316,8 +315,8 @@ export class WhatsAppBot extends Bot {
    * * Salva os chats salvos
    * @param chats
    */
-  private saveChats(chats: any = this.chats) {
-    fs.writeFileSync(`${this._auth}/chats`, CircularJSON.stringify(chats));
+  private async saveChats(chats: any = this.chats) {
+    await this.config.auth.set(`chats`, chats);
   }
 
   /**
@@ -405,9 +404,9 @@ export class WhatsAppBot extends Bot {
 
     chat.setBot(this);
 
-    this.saveChats();
-
     this.chats[chat.id] = chat;
+
+    this.saveChats();
 
     this.emit("chat", { action: "add", chat });
   }
