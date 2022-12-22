@@ -8,21 +8,20 @@ import { Chat } from "../models/Chat";
 import { User } from "../models/User";
 import { Bot } from "../models/Bot";
 export declare class WhatsAppBot extends Bot {
-    private _auth;
     private _bot;
     statusOpts: keyof StatusOptions | any;
     DisconnectReason: typeof DisconnectReason;
     chats: {
         [key: string]: Chat;
     };
-    constructor(config?: ConnectionConfig);
+    constructor(config: ConnectionConfig);
     /**
      * * Conecta ao servidor do WhatsApp
      * @param auth
      * @param config
      * @returns
      */
-    connect(auth: string, config?: ConnectionConfig): Promise<any>;
+    connect(config?: ConnectionConfig): Promise<any>;
     /**
      * * Reconecta ao servidor do WhatsApp
      * @param config

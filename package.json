@@ -1,6 +1,6 @@
 {
   "name": "rompot",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "description": "Chatbot API em TypeScript",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -24,7 +24,6 @@
   "dependencies": {
     "@adiwajshing/baileys": "4.4.0",
     "@adiwajshing/keyed-db": "0.2.4",
-    "circular-json": "0.5.9",
     "jimp": "0.16.2",
     "link-preview-js": "2.1.19",
     "pino": "8.7.0",
@@ -35,7 +34,6 @@
     "lib/**/*"
   ],
   "devDependencies": {
-    "@types/circular-json": "0.4.0",
     "@types/pubsub-js": "1.8.3",
     "@types/node": "18.7.14",
     "@types/ws": "8.5.3",
