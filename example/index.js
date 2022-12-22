@@ -1,4 +1,4 @@
-const { WhatsAppBot, Message, logger, Commands, Command, User, Chat } = require("rompot");
+const { WhatsAppBot, Message, Commands, Command, User } = require("rompot");
 
 const bot = new WhatsAppBot({
   disableAutoCommand: false,
