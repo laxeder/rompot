@@ -32,7 +32,7 @@ export declare class Message {
      * @param message
      * @param mention
      */
-    reply(message: Message | string, mention?: boolean): void;
+    reply(message: Message | string, mention?: boolean): Promise<any>;
     /**
      * * Marca como visualizada a mensagem
      * @returns

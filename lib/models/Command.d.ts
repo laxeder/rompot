@@ -4,12 +4,14 @@ export declare class Command {
     private _bot;
     private _executeCallback;
     private _replyCallback;
+    private _update;
     private _send?;
     permissions: Array<string>;
     category: Array<string>;
     description: string;
     allowed: boolean;
     names: string[];
+    prefix?: string;
     constructor(name: string | string[], description?: string, permissions?: Array<string> | string, category?: Array<string> | string, executeCallback?: Function, replyCallback?: Function);
     /**
      * * Define o bot que executa o comando
@@ -22,16 +24,21 @@ export declare class Command {
      */
     getBot(): Bot;
     /**
+     * * Define uma função que lê atualizações do comando
+     * @param update funcão que receberá a atualização
+     */
+    setUpdate(update: Function): void;
+    /**
      * * Executa o comando
      * @param message
      * @param args
      */
-    execute(message: Message, ...args: any): any;
+    execute(message: Message, ...args: any[]): Promise<any>;
     /**
      * * Executa a resposta do comando
      * @param args
      */
-    reply(...args: any): any;
+    reply(...args: any[]): Promise<any>;
     /**
      * * Define a função do comando
      * @param executeCallback
@@ -43,6 +50,11 @@ export declare class Command {
      */
     setReply(replyCallback: Function): void;
     setSend(message: string | Message): Message | undefined;
+    /**
+     * * Define um prefixo geral
+     * @param prefix
+     */
+    setPrefix(prefix: string): void;
     /**
      * * Define o nome do comando
      * @param name

@@ -8,7 +8,7 @@ import { Chat } from "./Chat";
 import { User } from "./User";
 export declare class Bot extends Emmiter {
     private pb;
-    private pbNames;
+    private _awaitMessages;
     private _autoMessages;
     private _commands?;
     status: Status;
@@ -26,7 +26,7 @@ export declare class Bot extends Emmiter {
      * @param commands
      * @returns
      */
-    getCommand(cmd: string, commands?: Commands): import("./Command").Command | undefined;
+    getCommand(cmd: string | string[], commands?: Commands): import("./Command").Command | undefined;
     /**
      * * Retorna os comandos do bot
      * @returns
@@ -44,6 +44,19 @@ export declare class Bot extends Emmiter {
      * @returns
      */
     add(fn: Function): Promise<any>;
+    /**
+     * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
+     * @param chat chat que aguardará a mensagem
+     * @param ignoreBot ignorar mensagem do bot
+     * @returns
+     */
+    awaitMessage(chat: Chat, ignoreBot?: boolean): Promise<any>;
+    /**
+     * * Responde as mensagens que estão em aguarde
+     * @param message mensagem do chat que aguarda as mensagens
+     * @returns
+     */
+    private sendAwaitMessages;
     /**
      * * Cria um tempo de espera
      * @param timeout

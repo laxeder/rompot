@@ -2,13 +2,18 @@ import { Command } from "./Command";
 import { Bot } from "./Bot";
 export declare class Commands {
     private _bot;
-    commands: {
-        [key: string]: Command;
-    };
-    prefix?: string;
+    private prefix?;
+    private maxCommandLength;
+    private commands;
     constructor(commands?: {
         [key: string]: Command;
-    }, bot?: Bot);
+    }, prefix?: string);
+    /**
+     * * Atualiza os comandos
+     */
+    update(commands?: {
+        [key: string]: Command;
+    }): void;
     /**
      * * Define um prefixo geral
      * @param prefix
@@ -35,16 +40,21 @@ export declare class Commands {
      */
     addCommand(command: Command): void;
     /**
+     * * remove um comando
+     * @param command
+     */
+    removeCommand(command: Command): void;
+    /**
      * * Define os comandos
      * @param commands
      */
     setCommands(commands: {
         [key: string]: Command;
-    }): void;
+    } | Command[]): void;
     /**
      * * Retorna um comando
      * @param names
      * @returns
      */
-    get(names: string | string[]): Command | undefined;
+    getCommand(names: string | string[]): Command | undefined;
 }
