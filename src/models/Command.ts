@@ -7,6 +7,7 @@ export class Command {
 
   private _executeCallback: Function = () => {};
   private _replyCallback: Function = () => {};
+  private _update: Function = () => {};
   private _send?: Message;
 
   public permissions: Array<string> = [];
@@ -14,6 +15,7 @@ export class Command {
   public description: string = "";
   public allowed: boolean = true;
   public names: string[] = [];
+  public prefix?: string;
 
   constructor(
     name: string | string[],
@@ -49,24 +51,32 @@ export class Command {
   }
 
   /**
+   * * Define uma função que lê atualizações do comando
+   * @param update funcão que receberá a atualização
+   */
+  public setUpdate(update: Function) {
+    this._update = update;
+  }
+
+  /**
    * * Executa o comando
    * @param message
    * @param args
    */
-  public execute(message: Message, ...args: any): any {
+  public async execute(message: Message, ...args: any[]) {
     if (!this._send || !this._bot) {
       return this._executeCallback(message, ...args);
     }
 
     this._send.chat = message.chat;
-    this._bot.send(this._send);
+    return this._bot.send(this._send);
   }
 
   /**
    * * Executa a resposta do comando
    * @param args
    */
-  public reply(...args: any): any {
+  public async reply(...args: any[]) {
     return this._replyCallback(...args);
   }
 
@@ -89,6 +99,16 @@ export class Command {
   public setSend(message: string | Message) {
     if (typeof message == "string") return (this._send = new Message(new Chat(""), message));
     this._send = message;
+  }
+
+  /**
+   * * Define um prefixo geral
+   * @param prefix
+   */
+  public setPrefix(prefix: string) {
+    this.prefix = prefix;
+
+    this._update();
   }
 
   /**
