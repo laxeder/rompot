@@ -1,21 +1,31 @@
 export class PubSub {
-  private ps = require("pubsub-js");
+  private observers: Function[] = [];
 
-  constructor() {}
+  public sub(callback: (...args: any) => {}) {
+    this.observers.push(callback);
 
-  sub(name: string, callback: (msg: any, data: any) => {}): string {
-    return this.ps.subscribe(name, callback);
+    if (this.observers.length > 1) return;
+
+    return this.pub();
   }
 
-  unsub(token: string): string | boolean {
-    return this.ps.unsubscribe(token);
+  public unsub(index: number) {
+    this.observers.splice(index, 1);
+
+    if (this.observers.length > 0) this.pub(index + 1);
   }
 
-  getSub(token: string) {
-    return this.ps.getSubscriptions(token);
+  public getSub(index: number) {
+    return this.observers[index];
   }
 
-  pub(name: string, data: any = {}): boolean {
-    return this.ps.publish(name, data);
+  public async pub(...args: any[]) {
+    if (this.observers.length <= 0) return;
+
+    const result = await this.observers[0](...args);
+
+    this.unsub(0);
+
+    return result;
   }
 }
