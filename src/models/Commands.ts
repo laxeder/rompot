@@ -8,12 +8,13 @@ export class Commands {
   private commands: { [key: string]: Command } = {};
 
   constructor(commands?: { [key: string]: Command }, prefix?: string) {
+    this.prefix = prefix;
+
     if (commands) {
       this.setCommands(commands);
     }
 
     this._bot = new Bot();
-    this.prefix = prefix;
   }
 
   /**
