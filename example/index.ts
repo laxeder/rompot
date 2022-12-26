@@ -1,10 +1,11 @@
-import { WhatsAppBot, Message, Commands, Command, User } from "../src";
+import { WhatsAppBot, Message, Commands, Command, User } from "../src/index";
 
 const bot = new WhatsAppBot({
   disableAutoCommand: false,
   autoRunBotCommand: true,
   disableAutoRead: true,
   receiveAllMessages: false,
+  disableAutoTyping: false,
   auth: "./example/auth",
 });
 
@@ -129,7 +130,7 @@ add.setExecute((message: Message) => {
   bot.addMember(message.chat, new User(message.mentions[0] || ""));
 });
 
-const commands = new Commands({ hello, date, ban, add }, bot);
+const commands = new Commands({ hello, date, ban, add });
 commands.setPrefix("/");
 
 bot.setCommands(commands);
