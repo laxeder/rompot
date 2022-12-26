@@ -39,7 +39,7 @@ export class WhatsAppMessage {
         original ||
         message.mention.getOriginalMessage() ||
         (await generateWAMessage(this.chat, this.message, {
-          userJid: this._wa.id,
+          userJid: getID(this._wa.id),
           logger: this._wa.config.logger,
           ...ctx,
         }));
@@ -64,7 +64,14 @@ export class WhatsAppMessage {
     msg.text = message.text;
     msg.participant = getID(message.user.id);
 
-    if (message.mentions) msg.mentions = message.mentions;
+    if (message.mentions) {
+      msg.mentions = [];
+
+      message.mentions.forEach((jid) => {
+        msg.mentions.push(getID(jid));
+      });
+    }
+
     if (message.fromMe) msg.fromMe = message.fromMe;
     if (message.id) msg.id = message.id;
 

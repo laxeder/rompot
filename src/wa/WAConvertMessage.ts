@@ -177,7 +177,11 @@ export class WhatsAppConvertMessage {
    * @returns
    */
   public async convertContextMessage(context: proto.ContextInfo) {
-    if (context.mentionedJid) this._convertedMessage.setMentions(context.mentionedJid);
+    if (context.mentionedJid) {
+      context.mentionedJid.forEach((jid) => {
+        this._convertedMessage.addMentions(replaceID(jid));
+      });
+    }
 
     if (context.quotedMessage) {
       const message = {
