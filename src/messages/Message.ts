@@ -53,20 +53,20 @@ export class Message {
    * @param message
    * @param mention
    */
-  public reply(message: Message | string, mention: boolean = true) {
+  public async reply(message: Message | string, mention: boolean = true) {
     if (!(message instanceof Message)) message = new Message(this.chat, `${message}`);
     if (mention) message.setMention(this);
 
     message.setChat(this.chat);
 
-    this._bot.send(message);
+    return this._bot.send(message);
   }
 
   /**
    * * Marca como visualizada a mensagem
    * @returns
    */
-  public read() {
+  public async read() {
     return this._bot.send(new Status("reading", this.chat, this));
   }
 
