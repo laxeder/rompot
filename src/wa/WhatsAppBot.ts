@@ -614,6 +614,8 @@ export class WhatsAppBot extends Bot {
   }
 
   public async sendMessage(content: Message): Promise<Message> {
+    if (!this.config.disableAutoTyping) await this.sendStatus(new Status("typing", content.chat, content));
+
     const waMSG = new WhatsAppMessage(this, content);
     await waMSG.refactory(content);
 

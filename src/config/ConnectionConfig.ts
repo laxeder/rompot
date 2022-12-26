@@ -6,5 +6,6 @@ export interface ConnectionConfig {
   receiveAllMessages?: boolean;
   printQRInTerminal?: boolean;
   disableAutoRead?: boolean;
+  disableAutoTyping?: boolean;
   auth: string | Auth;
 }
