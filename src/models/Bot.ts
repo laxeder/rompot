@@ -9,8 +9,8 @@ import { User } from "@models/User";
 
 export class Bot extends Emmiter {
   private pb = new PubSub();
-  private pbNames: string[] = [];
 
+  private _awaitMessages: { [key: string]: [{ ignoreBot: boolean; callback: Function }] } = {};
   private _autoMessages: any = {};
   private _commands?: Commands;
 
@@ -26,6 +26,8 @@ export class Bot extends Emmiter {
     }
 
     this.on("message", (message: Message) => {
+      this.sendAwaitMessages(message);
+
       if (message.fromMe && !this.config.autoRunBotCommand) return;
       if (!message.fromMe && this.config.disableAutoCommand) return;
 
@@ -35,6 +37,8 @@ export class Bot extends Emmiter {
     });
 
     this.on("me", (message: Message) => {
+      this.sendAwaitMessages(message);
+
       if (!this.config.autoRunBotCommand || this.config.receiveAllMessages) return;
 
       const command = this.getCommand(message.text);
@@ -58,11 +62,8 @@ export class Bot extends Emmiter {
    * @param commands
    * @returns
    */
-  public getCommand(cmd: string, commands: Commands = this.getCommands()) {
-    const text = cmd.split(/\s+/i)[0];
-    const lowText = text.toLowerCase().trim();
-
-    return commands.get([cmd, text, lowText]);
+  public getCommand(cmd: string | string[], commands: Commands = this.getCommands()) {
+    return commands.getCommand(cmd);
   }
 
   /**
@@ -71,7 +72,8 @@ export class Bot extends Emmiter {
    */
   public getCommands(): Commands {
     if (!this._commands) {
-      this._commands = new Commands({}, this);
+      this._commands = new Commands({});
+      this._commands.setBot(this);
     }
 
     return this._commands;
@@ -98,40 +100,53 @@ export class Bot extends Emmiter {
    * @returns
    */
   public add(fn: Function): Promise<any> {
-    const name = String(Date.now());
-
     return new Promise((resolve, reject) => {
-      const token = this.pb.sub(name, async (nm: string) => {
+      this.pb.sub(async () => {
         try {
-          if (name !== nm) return;
-
-          try {
-            var response = await fn();
-          } catch (e) {
-            reject(e);
-          }
-
-          this.pb.unsub(token);
-
-          const index = this.pbNames.indexOf(name);
-          this.pbNames.splice(index, 1);
-
-          if (this.pbNames.length > 0) {
-            this.pb.pub(this.pbNames[index], {});
-          }
-
-          resolve(response);
-        } catch (err) {
-          reject(err);
+          resolve(await fn());
+        } catch (e: any) {
+          this.emit("error", e);
+          reject(e);
         }
       });
+    });
+  }
 
-      this.pbNames.push(name);
-
-      if (this.pbNames.length <= 1) {
-        this.pb.pub(name, {});
+  /**
+   * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
+   * @param chat chat que aguardará a mensagem
+   * @param ignoreBot ignorar mensagem do bot
+   * @returns
+   */
+  public awaitMessage(chat: Chat, ignoreBot: boolean = true): Promise<any> {
+    return new Promise((resolve, reject) => {
+      try {
+        if (!this._awaitMessages[chat.id]) {
+          this._awaitMessages[chat.id] = [{ ignoreBot, callback: resolve }];
+        } else {
+          this._awaitMessages[chat.id].push({ ignoreBot, callback: resolve });
+        }
+      } catch (e: any) {
+        this.emit("error", e);
+        reject(e);
       }
     });
+  }
+
+  /**
+   * * Responde as mensagens que estão em aguarde
+   * @param message mensagem do chat que aguarda as mensagens
+   * @returns
+   */
+  private sendAwaitMessages(message: Message) {
+    if (this._awaitMessages[message.chat.id]) {
+      this._awaitMessages[message.chat.id].forEach((value, index) => {
+        if (!message.fromMe || (message.fromMe && !value.ignoreBot)) {
+          value?.callback();
+          this._awaitMessages[message.chat.id].splice(index, 1);
+        }
+      });
+    }
   }
 
   /**
