@@ -3,17 +3,24 @@ import { Bot } from "@models/Bot";
 
 export class Commands {
   private _bot: Bot;
+  private prefix?: string;
+  private maxCommandLength: number = 0;
+  private commands: { [key: string]: Command } = {};
 
-  public commands: { [key: string]: Command } = {};
-  public prefix?: string;
-
-  constructor(commands?: { [key: string]: Command }, bot?: Bot) {
-    if (bot) this._bot = bot;
-    else this._bot = new Bot();
-
+  constructor(commands?: { [key: string]: Command }, prefix?: string) {
     if (commands) {
       this.setCommands(commands);
     }
+
+    this._bot = new Bot();
+    this.prefix = prefix;
+  }
+
+  /**
+   * * Atualiza os comandos
+   */
+  public update(commands = this.commands) {
+    this.setCommands(commands);
   }
 
   /**
@@ -22,6 +29,8 @@ export class Commands {
    */
   public setPrefix(prefix: string) {
     this.prefix = prefix;
+
+    this.update();
   }
 
   /**
@@ -55,19 +64,49 @@ export class Commands {
   public addCommand(command: Command) {
     if (this._bot) command.setBot(this._bot);
 
-    command.getNames().forEach((name) => {
-      this.commands[name] = command;
+    command.names.forEach((name) => {
+      if (name.length > this.maxCommandLength) this.maxCommandLength = name.length;
+
+      command.setUpdate(() => this.update());
+
+      const prefix = command.prefix || this.prefix || "";
+
+      this.commands[`${prefix}${name}`] = command;
+      this.commands[`${prefix}${name}`.toLowerCase().trim()] = command;
     });
+  }
+
+  /**
+   * * remove um comando
+   * @param command
+   */
+  public removeCommand(command: Command) {
+    command.names.forEach((name) => {
+      const prefix = command.prefix || this.prefix || "";
+
+      delete this.commands[`${prefix}${name}`];
+      delete this.commands[`${prefix}${name}`.toLowerCase().trim()];
+    });
+
+    this.update();
   }
 
   /**
    * * Define os comandos
    * @param commands
    */
-  public setCommands(commands: { [key: string]: Command }) {
-    Object.keys(commands).forEach((key) => {
-      this.addCommand(commands[key]);
-    });
+  public setCommands(commands: { [key: string]: Command } | Command[]) {
+    this.commands = {};
+
+    if (Array.isArray(commands)) {
+      commands.forEach((command) => {
+        this.addCommand(command);
+      });
+    } else {
+      Object.keys(commands).forEach((key) => {
+        this.addCommand(commands[key]);
+      });
+    }
   }
 
   /**
@@ -75,21 +114,27 @@ export class Commands {
    * @param names
    * @returns
    */
-  public get(names: string | string[]): Command | undefined {
-    if (typeof names != "string") {
-      names = names.filter((v) => {
-        if (!!this.prefix) {
-          if (!v.startsWith(this.prefix)) return;
-          v = v.replace(this.prefix || "", "");
+  public getCommand(names: string | string[]): Command | undefined {
+    if (!Array.isArray(names)) {
+      names = [names];
+    }
+
+    var cmd: Command | undefined;
+
+    for (let name of names) {
+      let text = "";
+      for (let char of name) {
+        if (text.length > this.maxCommandLength) break;
+
+        text += char;
+
+        if (this.commands[text]) {
+          cmd = this.commands[text];
+        } else if (this.commands[text.toLowerCase().trim()]) {
+          cmd = this.commands[text.toLowerCase().trim()];
         }
-
-        return this.commands[v?.trim()];
-      });
-    } else names = [names];
-
-    const name: string = names[0] || "";
-
-    const cmd = this.commands[name.replace(this.prefix || "", "").trim()];
+      }
+    }
 
     if (cmd) cmd.setBot(this._bot);
 
