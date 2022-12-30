@@ -273,6 +273,8 @@ export class WhatsAppBot extends Bot {
 
           msg.setBot(this);
 
+          if (this.sendAwaitMessages(msg)) return;
+
           if (message.key.fromMe && !this.config.receiveAllMessages) {
             return this.emit("me", msg);
           }
@@ -315,7 +317,7 @@ export class WhatsAppBot extends Bot {
    * * Salva os chats salvos
    * @param chats
    */
-  private async saveChats(chats: any = this.chats) {
+  protected async saveChats(chats: any = this.chats) {
     await this.config.auth.set(`chats`, JSON.stringify(chats));
   }
 
@@ -323,7 +325,7 @@ export class WhatsAppBot extends Bot {
    * * Lê o chat e seta ele
    * @param chat
    */
-  private async chatUpsert(chat: any) {
+  protected async chatUpsert(chat: any) {
     try {
       if (chat.id || chat.newJId) {
         chat.id = replaceID(chat.id || chat.newJID);

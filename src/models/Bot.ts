@@ -10,7 +10,7 @@ import { User } from "@models/User";
 export class Bot extends Emmiter {
   private pb = new PubSub();
 
-  private _awaitMessages: { [key: string]: [{ ignoreBot: boolean; callback: Function }] } = {};
+  private _awaitMessages: { [key: string]: [{ ignoreBot: boolean; stopRead: boolean; callback: Function }] } = {};
   private _autoMessages: any = {};
   private _commands?: Commands;
 
@@ -26,8 +26,6 @@ export class Bot extends Emmiter {
     }
 
     this.on("message", (message: Message) => {
-      this.sendAwaitMessages(message);
-
       if (message.fromMe && !this.config.autoRunBotCommand) return;
       if (!message.fromMe && this.config.disableAutoCommand) return;
 
@@ -37,8 +35,6 @@ export class Bot extends Emmiter {
     });
 
     this.on("me", (message: Message) => {
-      this.sendAwaitMessages(message);
-
       if (!this.config.autoRunBotCommand || this.config.receiveAllMessages) return;
 
       const command = this.getCommand(message.text);
@@ -116,15 +112,16 @@ export class Bot extends Emmiter {
    * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
    * @param chat chat que aguardará a mensagem
    * @param ignoreBot ignorar mensagem do bot
+   * @param stopRead para de fazer a leitura da mensagem
    * @returns
    */
-  public awaitMessage(chat: Chat, ignoreBot: boolean = true): Promise<any> {
+  public awaitMessage(chat: Chat, stopRead: boolean = true, ignoreBot: boolean = true): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
         if (!this._awaitMessages[chat.id]) {
-          this._awaitMessages[chat.id] = [{ ignoreBot, callback: resolve }];
+          this._awaitMessages[chat.id] = [{ ignoreBot, stopRead, callback: resolve }];
         } else {
-          this._awaitMessages[chat.id].push({ ignoreBot, callback: resolve });
+          this._awaitMessages[chat.id].push({ ignoreBot, stopRead, callback: resolve });
         }
       } catch (e: any) {
         this.emit("error", e);
@@ -138,15 +135,21 @@ export class Bot extends Emmiter {
    * @param message mensagem do chat que aguarda as mensagens
    * @returns
    */
-  private sendAwaitMessages(message: Message) {
+  protected sendAwaitMessages(message: Message) {
+    var stop: boolean = false;
+
     if (this._awaitMessages[message.chat.id]) {
       this._awaitMessages[message.chat.id].forEach((value, index) => {
         if (!message.fromMe || (message.fromMe && !value.ignoreBot)) {
           value?.callback(message);
           this._awaitMessages[message.chat.id].splice(index, 1);
+
+          if (value.stopRead) stop = true;
         }
       });
     }
+
+    return stop;
   }
 
   /**
