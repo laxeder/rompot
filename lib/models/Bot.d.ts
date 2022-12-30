@@ -48,15 +48,16 @@ export declare class Bot extends Emmiter {
      * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
      * @param chat chat que aguardará a mensagem
      * @param ignoreBot ignorar mensagem do bot
+     * @param stopRead para de fazer a leitura da mensagem
      * @returns
      */
-    awaitMessage(chat: Chat, ignoreBot?: boolean): Promise<any>;
+    awaitMessage(chat: Chat, stopRead?: boolean, ignoreBot?: boolean): Promise<any>;
     /**
      * * Responde as mensagens que estão em aguarde
      * @param message mensagem do chat que aguarda as mensagens
      * @returns
      */
-    private sendAwaitMessages;
+    protected sendAwaitMessages(message: Message): boolean;
     /**
      * * Cria um tempo de espera
      * @param timeout

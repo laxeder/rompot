@@ -38,12 +38,12 @@ export declare class WhatsAppBot extends Bot {
      * * Salva os chats salvos
      * @param chats
      */
-    private saveChats;
+    protected saveChats(chats?: any): Promise<void>;
     /**
      * * Lê o chat e seta ele
      * @param chat
      */
-    private chatUpsert;
+    protected chatUpsert(chat: any): Promise<void>;
     /**
      * * Obter uma sala de bate-papo
      * @param id

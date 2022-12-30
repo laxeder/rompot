@@ -23,7 +23,7 @@ export declare class Commands {
      * * Obter prefixo geral
      * @returns
      */
-    getPrefix(): string | undefined;
+    getPrefix(command?: Command): string | undefined;
     /**
      * * Define o bot que executa os comandos
      * @param bot
