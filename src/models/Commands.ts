@@ -38,8 +38,8 @@ export class Commands {
    * * Obter prefixo geral
    * @returns
    */
-  public getPrefix(): string | undefined {
-    return this.prefix;
+  public getPrefix(command?: Command): string | undefined {
+    return command && !!command.prefix ? command.prefix : this.prefix;
   }
 
   /**
