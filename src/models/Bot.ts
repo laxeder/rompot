@@ -142,7 +142,7 @@ export class Bot extends Emmiter {
     if (this._awaitMessages[message.chat.id]) {
       this._awaitMessages[message.chat.id].forEach((value, index) => {
         if (!message.fromMe || (message.fromMe && !value.ignoreBot)) {
-          value?.callback();
+          value?.callback(message);
           this._awaitMessages[message.chat.id].splice(index, 1);
         }
       });
