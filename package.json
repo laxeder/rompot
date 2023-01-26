@@ -22,10 +22,10 @@
   },
   "homepage": "https://github.com/Laxeder/rompot#readme",
   "dependencies": {
-    "@adiwajshing/baileys": "4.4.0",
+    "@adiwajshing/baileys": "5.0.0",
     "@adiwajshing/keyed-db": "0.2.4",
     "jimp": "0.16.2",
-    "link-preview-js": "2.1.19",
+    "link-preview-js": "3.0.0",
     "pino": "8.7.0",
     "qrcode-terminal": "0.12.0"
   },
