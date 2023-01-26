@@ -16,6 +16,7 @@ import makeWASocket, {
 import { WhatsAppConvertMessage } from "@wa/WAConvertMessage";
 import { getBaileysAuth, MultiFileAuthState } from "@wa/Auth";
 import { ConnectionConfig } from "@config/ConnectionConfig";
+import { ReactionMessage } from "@messages/ReactionMessage";
 import { MediaMessage } from "@messages/MediaMessage";
 import { WhatsAppMessage } from "@wa/WAMessage";
 import { StatusOptions } from "../types/Status";
@@ -29,7 +30,8 @@ import { Bot } from "@models/Bot";
 import pino from "pino";
 
 export class WhatsAppBot extends Bot {
-  private _bot: WASocket | any;
+  //@ts-ignore
+  private _bot: WASocket;
 
   public statusOpts: keyof StatusOptions | any = {
     typing: "composing",
@@ -542,6 +544,8 @@ export class WhatsAppBot extends Bot {
    */
   public async setProfile(image: Buffer, id: Chat | string = getID(this.id)): Promise<any> {
     if (typeof id == "string") return this.add(() => this._bot.updateProfilePicture(getID(id), image));
+
+    //@ts-ignore
     if (id instanceof Chat) return this.add(() => this._bot.updateProfilePicture(getID(id.id), { url: image }));
   }
 
@@ -576,7 +580,7 @@ export class WhatsAppBot extends Bot {
     id = getID(`${id}`);
 
     if (typeof id == "string" && id?.includes("@s")) {
-      return this.add(async () => (await this._bot.fetchStatus(id))?.status);
+      return this.add(async () => (await this._bot.fetchStatus(String(id)))?.status);
     }
 
     return "";
@@ -595,7 +599,7 @@ export class WhatsAppBot extends Bot {
 
     if (typeof id == "string" && id?.includes("@g")) {
       this.chats[replaceID(id)]?.setDescription(desc);
-      return this.add(() => this._bot.groupUpdateDescription(id, desc));
+      return this.add(() => this._bot.groupUpdateDescription(String(id), desc));
     }
 
     if (!!!id) {
@@ -616,12 +620,16 @@ export class WhatsAppBot extends Bot {
   }
 
   public async sendMessage(content: Message): Promise<Message> {
-    if (!this.config.disableAutoTyping) await this.sendStatus(new Status("typing", content.chat, content));
+    if (!this.config.disableAutoTyping && !(content instanceof ReactionMessage)) {
+      await this.sendStatus(new Status("typing", content.chat, content));
+    }
 
     const waMSG = new WhatsAppMessage(this, content);
     await waMSG.refactory(content);
 
     const { chat, message, context } = waMSG;
+
+    var sendedMessage: proto.WebMessageInfo | undefined;
 
     if (message.hasOwnProperty("templateButtons")) {
       const fullMsg = await this.add(() =>
@@ -635,17 +643,13 @@ export class WhatsAppBot extends Bot {
       fullMsg.message = { viewOnceMessage: { message: fullMsg.message } };
 
       if (content instanceof MediaMessage) {
-        await this._bot?.relayMessage(chat, fullMsg.message!, { messageId: fullMsg.key.id! });
+        await this.add(() => this._bot?.relayMessage(chat, fullMsg.message!, { messageId: fullMsg.key.id! }));
       } else await this.add(() => this._bot?.relayMessage(chat, fullMsg.message!, { messageId: fullMsg.key.id! }));
 
-      return await new WhatsAppConvertMessage(this, fullMsg).get();
+      sendedMessage = fullMsg;
+    } else {
+      sendedMessage = await this.add(() => this._bot?.sendMessage(chat, message, context));
     }
-
-    if (content instanceof MediaMessage) {
-      return await new WhatsAppConvertMessage(this, await this._bot?.sendMessage(chat, message, context)).get();
-    }
-
-    const sendedMessage = await this.add(() => this._bot?.sendMessage(chat, message, context));
 
     return sendedMessage ? await new WhatsAppConvertMessage(this, sendedMessage).get() : content;
   }
