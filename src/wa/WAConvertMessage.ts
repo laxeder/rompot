@@ -309,14 +309,20 @@ export class WhatsAppConvertMessage {
     });
 
     buttonMessage.hydratedButtons?.map((button: any) => {
-      if (button.callButton)
+      if (button.callButton) {
         buttonMSG.addCall(
           button.callButton.displayText || "",
           button.callButton.phoneNumber || buttonMSG.buttons.length
         );
-      if (button.urlButton) buttonMSG.addCall(button.urlButton.displayText || "", button.urlButton.url || "");
-      if (button.quickReplyButton)
-        buttonMSG.addCall(button.quickReplyButton.displayText || "", button.quickReplyButton.id);
+      }
+
+      if (button.urlButton) {
+        buttonMSG.addUrl(button.urlButton.displayText || "", button.urlButton.url || "");
+      }
+
+      if (button.quickReplyButton) {
+        buttonMSG.addReply(button.quickReplyButton.displayText || "", button.quickReplyButton.id);
+      }
     });
 
     this._convertedMessage = buttonMSG;
