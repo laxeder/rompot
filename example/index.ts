@@ -1,4 +1,4 @@
-import { WhatsAppBot, Message, Commands, Command, User } from "rompot";
+import { WhatsAppBot, Message, Commands, Command, User } from "../src/index";
 
 const bot = new WhatsAppBot({
   disableAutoCommand: false,
