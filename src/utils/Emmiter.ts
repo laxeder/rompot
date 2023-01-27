@@ -23,7 +23,7 @@ export type EventsMap = {
 export type Event = keyof EventsMap;
 
 export class Emmiter {
-  private events = new EventEmitter();
+  public events = new EventEmitter();
 
   constructor() {
     this.on("close", (update: { status: ConnectionStatus }) => {
