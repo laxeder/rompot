@@ -13,28 +13,52 @@ import { User } from "@models/User";
 import sleep from "@utils/sleep";
 
 export default class BotModule extends Emmiter {
-  private _promiseMessages: PromiseMessages;
-  private _pb: PubSub;
+  public promiseMessages: PromiseMessages;
+  public pb: PubSub;
 
-  private _autoMessages: any = {};
-  private commands: Commands;
+  public autoMessages: any = {};
 
-  public status: StatusTypes;
+  public bot: BotInterface;
   public config: ConnectionConfig;
+  public status: StatusTypes;
+  public commands: Commands;
   public id: string;
 
-  constructor() {
+  constructor(bot: BotInterface) {
     super();
 
-    this._promiseMessages = new PromiseMessages();
-    this._pb = new PubSub();
-    this.config = { auth: "./session" };
+    this.promiseMessages = new PromiseMessages();
+    this.pb = new PubSub();
 
+    this.bot = bot;
+    this.config = { auth: "./session" };
     this.status = "offline";
     this.id = "";
 
-    this.commands = new Commands();
+    this.commands = new Commands(this);
     this.commands.setBot(this);
+  }
+
+  /**
+   * * Constrói um novo bot
+   * @param bot Instância do bot que será construído
+   * @returns Bot construído
+   */
+
+  public static Build<Bot extends BotInterface>(bot: Bot) {
+    class BotBuild extends BotModule {
+      public bot: Bot;
+
+      constructor(bot: Bot) {
+        super(bot);
+        this.bot = bot;
+      }
+    }
+
+    const botBuild = new BotBuild(bot);
+    botBuild.configEvents();
+
+    return { ...bot, ...botBuild };
   }
 
   public configEvents() {
@@ -54,13 +78,6 @@ export default class BotModule extends Emmiter {
 
       if (command) command.execute(message);
     });
-  }
-
-  public static Build(bot: BotInterface): BotModule {
-    const botModule = new BotModule();
-    botModule.configEvents();
-
-    return botModule;
   }
 
   /**
@@ -114,7 +131,7 @@ export default class BotModule extends Emmiter {
    */
   public add(fn: Function): Promise<any> {
     return new Promise((resolve, reject) => {
-      this._pb.sub(async () => {
+      this.pb.sub(async () => {
         try {
           resolve(await fn());
         } catch (err) {
@@ -141,7 +158,7 @@ export default class BotModule extends Emmiter {
   ): Promise<any> {
     if (chat instanceof Chat) return this.awaitMessage(chat.id, ignoreMessageFromMe, stopRead, ...ignoreMessages);
 
-    return this._promiseMessages.addPromiseMessage(chat, ignoreMessageFromMe, stopRead, ...ignoreMessages);
+    return this.promiseMessages.addPromiseMessage(chat, ignoreMessageFromMe, stopRead, ...ignoreMessages);
   }
 
   /**
@@ -161,17 +178,17 @@ export default class BotModule extends Emmiter {
     const now = Date.now();
 
     // Criar e atualizar dados da mensagem automatizada
-    this._autoMessages[id] = { id, chats: chats || (await this.getChats()), updatedAt: now, message };
+    this.autoMessages[id] = { id, chats: chats || (await this.getChats()), updatedAt: now, message };
 
     // Aguarda o tempo definido
     await sleep(timeout - now);
 
     // Cancelar se estiver desatualizado
-    if (this._autoMessages[id].updatedAt !== now) return;
+    if (this.autoMessages[id].updatedAt !== now) return;
 
     await Promise.all(
-      this._autoMessages[id].chats.map(async (chat: Chat) => {
-        const automated: any = this._autoMessages[id];
+      this.autoMessages[id].chats.map(async (chat: Chat) => {
+        const automated: any = this.autoMessages[id];
 
         if (automated.updatedAt !== now) return;
 
@@ -183,7 +200,7 @@ export default class BotModule extends Emmiter {
         // Remover sala de bate-papo da mensagem
         const nowChats = automated.chats;
         const index = nowChats.indexOf(automated.chats[chat.id]);
-        this._autoMessages[id].chats = nowChats.splice(index + 1, nowChats.length);
+        this.autoMessages[id].chats = nowChats.splice(index + 1, nowChats.length);
       })
     );
   }
