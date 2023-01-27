@@ -49,7 +49,7 @@ export class WhatsAppBot extends Bot {
 
     this.config = {
       printQRInTerminal: true,
-      logger: pino({ level: "silent" }),
+      logger: pino({ level: "fatal" }),
       ...config,
     };
   }
