@@ -1,33 +1,46 @@
 import { ConnectionConfig } from "@config/ConnectionConfig";
+import PromiseMessages from "@utils/PromiseMessages";
+import { BotInterface } from "@models/BotInterface";
+import { StatusTypes } from "../types/Status";
 import { Commands } from "@models/Commands";
 import { Message } from "@messages/Message";
 import { Emmiter } from "@utils/Emmiter";
+import { getError } from "@utils/error";
 import { Status } from "@models/Status";
 import { PubSub } from "@utils/PubSub";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
+import sleep from "@utils/sleep";
 
-export class Bot extends Emmiter {
-  private pb = new PubSub();
+export default class BotModule extends Emmiter {
+  private _promiseMessages: PromiseMessages;
+  private _pb: PubSub;
 
-  private _awaitMessages: { [key: string]: [{ ignoreBot: boolean; stopRead: boolean; callback: Function }] } = {};
   private _autoMessages: any = {};
-  private _commands?: Commands;
+  private commands: Commands;
 
-  public status: Status = new Status("offline");
-  public config: ConnectionConfig | any = {};
-  public id: string = "";
+  public status: StatusTypes;
+  public config: ConnectionConfig;
+  public id: string;
 
-  constructor(commands?: Commands) {
+  constructor() {
     super();
 
-    if (commands) {
-      this.setCommands(commands);
-    }
+    this._promiseMessages = new PromiseMessages();
+    this._pb = new PubSub();
+    this.config = { auth: "./session" };
 
+    this.status = "offline";
+    this.id = "";
+
+    this.commands = new Commands();
+    this.commands.setBot(this);
+  }
+
+  public configEvents() {
     this.on("message", (message: Message) => {
+      if (this.config.disableAutoCommand) return;
       if (message.fromMe && !this.config.autoRunBotCommand) return;
-      if (!message.fromMe && this.config.disableAutoCommand) return;
 
       const command = this.getCommand(message.text);
 
@@ -43,13 +56,20 @@ export class Bot extends Emmiter {
     });
   }
 
+  public static Build(bot: BotInterface): BotModule {
+    const botModule = new BotModule();
+    botModule.configEvents();
+
+    return botModule;
+  }
+
   /**
    * * Define a lista de comandos
    * @param commands
    */
   public setCommands(commands: Commands) {
-    this._commands = commands;
-    this._commands.setBot(this);
+    this.commands = commands;
+    this.commands.setBot(this);
   }
 
   /**
@@ -67,12 +87,7 @@ export class Bot extends Emmiter {
    * @returns
    */
   public getCommands(): Commands {
-    if (!this._commands) {
-      this._commands = new Commands({});
-      this._commands.setBot(this);
-    }
-
-    return this._commands;
+    return this.commands;
   }
 
   /**
@@ -81,6 +96,8 @@ export class Bot extends Emmiter {
    * @returns
    */
   public async send(content: Message | Status): Promise<any | Message> {
+    //TODO: Fazer mapa dos valores que são retornados como o do emmiter
+
     if (content instanceof Message) {
       return await this.sendMessage(content);
     }
@@ -97,12 +114,12 @@ export class Bot extends Emmiter {
    */
   public add(fn: Function): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.pb.sub(async () => {
+      this._pb.sub(async () => {
         try {
           resolve(await fn());
-        } catch (e: any) {
-          this.emit("error", e);
-          reject(e);
+        } catch (err) {
+          this.emit("error", getError(err));
+          reject(err);
         }
       });
     });
@@ -110,55 +127,21 @@ export class Bot extends Emmiter {
 
   /**
    * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
-   * @param chat chat que aguardará a mensagem
-   * @param ignoreBot ignorar mensagem do bot
-   * @param stopRead para de fazer a leitura da mensagem
+   * @param chatId Sala de bate-papo que irá receber a mensagem
+   * @param ignoreMessageFromMe Ignora a mensagem se quem enviou foi o próprio bot
+   * @param stopRead Para de ler a mensagem no evento
+   * @param ignoreMessages Não resolve a promessa se a mensagem recebida é a mesma escolhida
    * @returns
    */
-  public awaitMessage(chat: Chat, stopRead: boolean = true, ignoreBot: boolean = true): Promise<any> {
-    return new Promise((resolve, reject) => {
-      try {
-        if (!this._awaitMessages[chat.id]) {
-          this._awaitMessages[chat.id] = [{ ignoreBot, stopRead, callback: resolve }];
-        } else {
-          this._awaitMessages[chat.id].push({ ignoreBot, stopRead, callback: resolve });
-        }
-      } catch (e: any) {
-        this.emit("error", e);
-        reject(e);
-      }
-    });
-  }
+  public awaitMessage(
+    chat: Chat | string,
+    ignoreMessageFromMe: boolean = true,
+    stopRead: boolean = true,
+    ...ignoreMessages: Message[]
+  ): Promise<any> {
+    if (chat instanceof Chat) return this.awaitMessage(chat.id, ignoreMessageFromMe, stopRead, ...ignoreMessages);
 
-  /**
-   * * Responde as mensagens que estão em aguarde
-   * @param message mensagem do chat que aguarda as mensagens
-   * @returns
-   */
-  protected sendAwaitMessages(message: Message) {
-    var stop: boolean = false;
-
-    if (this._awaitMessages[message.chat.id]) {
-      this._awaitMessages[message.chat.id].forEach((value, index) => {
-        if (!message.fromMe || (message.fromMe && !value.ignoreBot)) {
-          value?.callback(message);
-          this._awaitMessages[message.chat.id].splice(index, 1);
-
-          if (value.stopRead) stop = true;
-        }
-      });
-    }
-
-    return stop;
-  }
-
-  /**
-   * * Cria um tempo de espera
-   * @param timeout
-   * @returns
-   */
-  public sleep(timeout: number = 1000): Promise<any> {
-    return new Promise((resolve) => setTimeout(resolve, timeout));
+    return this._promiseMessages.addPromiseMessage(chat, ignoreMessageFromMe, stopRead, ...ignoreMessages);
   }
 
   /**
@@ -181,7 +164,7 @@ export class Bot extends Emmiter {
     this._autoMessages[id] = { id, chats: chats || (await this.getChats()), updatedAt: now, message };
 
     // Aguarda o tempo definido
-    await this.sleep(timeout - now);
+    await sleep(timeout - now);
 
     // Cancelar se estiver desatualizado
     if (this._autoMessages[id].updatedAt !== now) return;
@@ -245,84 +228,3 @@ export class Bot extends Emmiter {
   public async setProfile(image: Buffer, id?: Chat | string): Promise<any> {}
   public async getProfile(id?: Chat | User | string): Promise<any> {}
 }
-
-export interface BotBase {
-  //? ************ CONNECTION ************
-
-  connect(config: ConnectionConfig): Promise<void>;
-  reconnect(config: ConnectionConfig): Promise<void>;
-  stop(reason: any): Promise<void>;
-
-  //? ************** MESSAGE *************
-
-  sendMessage(message: Message): Promise<Message>;
-  removeMessage(message: Message): Promise<void>;
-  deleteMessage(message: Message): Promise<void>;
-
-  //? ************** STATUS **************
-
-  sendStatus(status: Status): Promise<Status>;
-
-  //? *************** BOT ***************
-
-  getBotProfile(): Promise<Buffer | null>;
-  setBotProfile(image: Buffer): Promise<void>;
-
-  getBotName(): Promise<string>;
-  setBotName(name: string): Promise<void>;
-
-  getBotDescription(): Promise<string>;
-  setBotDescription(description: string): Promise<string>;
-
-  getChatProfile(chatId: string): Promise<Buffer | null>;
-  setChatProfile(chatId: string, image: Buffer): Promise<void>;
-
-  //? *************** CHAT **************
-
-  addChat(chat: Chat): Promise<void>;
-  removeChat(chatId: string): Promise<void>;
-
-  createChat(chat: Chat): Promise<void>;
-  leaveChat(chatId: string): Promise<void>;
-
-  getChat(chatId: string): Promise<Chat | null>;
-  setChat(chat: Chat): Promise<void>;
-
-  getChats(): Promise<{ [chatId: string]: Chat }>;
-  setChats(chats: { [chatId: string]: Chat }): Promise<void>;
-
-  getChatName(chatId: string): Promise<string>;
-  setChatName(chatId: string, name: string): Promise<void>;
-
-  getChatDescription(chatId: string): Promise<string>;
-  setChatDescription(chatId: string, description: string): Promise<string>;
-
-  getUserProfile(userId: string): Promise<Buffer | null>;
-  setUserProfile(userId: string, image: Buffer): Promise<void>;
-
-  //? *************** USER **************
-
-  addUser(user: User): Promise<void>;
-  removeUser(userId: string): Promise<void>;
-
-  unblockUser(userId: string): Promise<void>;
-  blockUser(userId: string): Promise<void>;
-
-  getUser(userId: string): Promise<User | null>;
-  setUser(user: User): Promise<void>;
-
-  getUsers(): Promise<{ [userId: string]: User }>;
-  setUsers(users: { [userId: string]: User }): Promise<void>;
-
-  getUserName(userId: string): Promise<string>;
-  setUserName(userId: string, name: string): Promise<void>;
-
-  getUserDescription(userId: string): Promise<string>;
-  setUserDescription(userId: string, description: string): Promise<string>;
-}
-
-export class BotModule {
-  constructor(bot: Bot) {}
-}
-
-export interface BotModule {}
