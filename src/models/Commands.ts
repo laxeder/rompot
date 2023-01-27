@@ -1,20 +1,20 @@
 import { Command } from "@models/Command";
-import { Bot } from "@models/Bot";
+import BotModule from "@models/Bot";
 
 export class Commands {
-  private _bot: Bot;
+  private _bot: BotModule;
   private prefix?: string;
   private maxCommandLength: number = 0;
   private commands: { [key: string]: Command } = {};
 
-  constructor(commands?: { [key: string]: Command }, prefix?: string) {
+  constructor(botModule: BotModule, commands?: { [key: string]: Command }, prefix?: string) {
     this.prefix = prefix;
 
     if (commands) {
       this.setCommands(commands);
     }
 
-    this._bot = new Bot();
+    this._bot = botModule;
   }
 
   /**
@@ -46,7 +46,7 @@ export class Commands {
    * * Define o bot que executa os comandos
    * @param bot
    */
-  public setBot(bot: Bot) {
+  public setBot(bot: BotModule) {
     this._bot = bot;
   }
 
@@ -54,7 +54,7 @@ export class Commands {
    * * Retorna o bot que executa os comandos
    * @returns
    */
-  public getBot(): Bot {
+  public getBot(): BotModule {
     return this._bot;
   }
 
