@@ -1,10 +1,23 @@
 import { ConnectionConfig } from "@config/ConnectionConfig";
+import WaitCallBack from "@utils/WaitCallBack";
+import { StatusTypes } from "../types/Status";
 import { Message } from "@messages/Message";
+import { Emmiter } from "@utils/Emmiter";
 import { Status } from "@models/Status";
+import { Commands } from "./Commands";
 import { Chat } from "@models/Chat";
 import { User } from "@models/User";
 
 export interface BotInterface {
+  //? ************** CONFIG **************
+
+  ev: Emmiter;
+  wcb: WaitCallBack;
+  commands: Commands;
+  config: ConnectionConfig;
+  status: StatusTypes;
+  id: string;
+
   //? ************ CONNECTION ************
 
   connect(config: ConnectionConfig): Promise<void>;
@@ -23,17 +36,14 @@ export interface BotInterface {
 
   //? *************** BOT ***************
 
-  getBotProfile(): Promise<Buffer | null>;
-  setBotProfile(image: Buffer): Promise<void>;
-
   getBotName(): Promise<string>;
   setBotName(name: string): Promise<void>;
 
   getBotDescription(): Promise<string>;
   setBotDescription(description: string): Promise<string>;
 
-  getChatProfile(chatId: string): Promise<Buffer | null>;
-  setChatProfile(chatId: string, image: Buffer): Promise<void>;
+  getBotProfile(): Promise<Buffer | null>;
+  setBotProfile(image: Buffer): Promise<void>;
 
   //? *************** CHAT **************
 
@@ -49,15 +59,6 @@ export interface BotInterface {
   getChats(): Promise<{ [chatId: string]: Chat }>;
   setChats(chats: { [chatId: string]: Chat }): Promise<void>;
 
-  getChatName(chatId: string): Promise<string>;
-  setChatName(chatId: string, name: string): Promise<void>;
-
-  getChatDescription(chatId: string): Promise<string>;
-  setChatDescription(chatId: string, description: string): Promise<string>;
-
-  getUserProfile(userId: string): Promise<Buffer | null>;
-  setUserProfile(userId: string, image: Buffer): Promise<void>;
-
   //? *************** USER **************
 
   addUser(user: User): Promise<void>;
@@ -71,10 +72,4 @@ export interface BotInterface {
 
   getUsers(): Promise<{ [userId: string]: User }>;
   setUsers(users: { [userId: string]: User }): Promise<void>;
-
-  getUserName(userId: string): Promise<string>;
-  setUserName(userId: string, name: string): Promise<void>;
-
-  getUserDescription(userId: string): Promise<string>;
-  setUserDescription(userId: string, description: string): Promise<string>;
 }
