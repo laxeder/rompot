@@ -1,247 +1,185 @@
-import { ConnectionConfig } from "@config/ConnectionConfig";
 import PromiseMessages from "@utils/PromiseMessages";
 import { BotInterface } from "@models/BotInterface";
-import { StatusTypes } from "../types/Status";
-import { Commands } from "@models/Commands";
 import { Message } from "@messages/Message";
-import { Emmiter } from "@utils/Emmiter";
+import { BotControl } from "../types/Bot";
 import { getError } from "@utils/error";
 import { Status } from "@models/Status";
-import { PubSub } from "@utils/PubSub";
 import { Chat } from "@models/Chat";
-import { User } from "@models/User";
+import { Command } from "./Command";
 import sleep from "@utils/sleep";
+import { User } from "./User";
 
-export default class BotModule extends Emmiter {
-  public promiseMessages: PromiseMessages;
-  public pb: PubSub;
+export function BuildBot<Bot extends BotInterface>(bot: Bot) {
+  const autoMessages: any = {};
+  const promiseMessages: PromiseMessages = new PromiseMessages();
 
-  public autoMessages: any = {};
+  const botModule: Bot & BotControl = {
+    ...bot,
+    autoMessages,
+    promiseMessages,
 
-  public bot: BotInterface;
-  public config: ConnectionConfig;
-  public status: StatusTypes;
-  public commands: Commands;
-  public id: string;
+    //? ****** ***** CONFIG ***** ******
 
-  constructor(bot: BotInterface) {
-    super();
+    configurate() {
+      this.commands.setBot(this);
 
-    this.promiseMessages = new PromiseMessages();
-    this.pb = new PubSub();
+      this.configEvents();
+    },
 
-    this.bot = bot;
-    this.config = { auth: "./session" };
-    this.status = "offline";
-    this.id = "";
-
-    this.commands = new Commands(this);
-    this.commands.setBot(this);
-  }
-
-  /**
-   * * Constrói um novo bot
-   * @param bot Instância do bot que será construído
-   * @returns Bot construído
-   */
-
-  public static Build<Bot extends BotInterface>(bot: Bot) {
-    class BotBuild extends BotModule {
-      public bot: Bot;
-
-      constructor(bot: Bot) {
-        super(bot);
-        this.bot = bot;
-      }
-    }
-
-    const botBuild = new BotBuild(bot);
-    botBuild.configEvents();
-
-    return { ...bot, ...botBuild };
-  }
-
-  public configEvents() {
-    this.on("message", (message: Message) => {
-      if (this.config.disableAutoCommand) return;
-      if (message.fromMe && !this.config.autoRunBotCommand) return;
-
-      const command = this.getCommand(message.text);
-
-      if (command) command.execute(message);
-    });
-
-    this.on("me", (message: Message) => {
-      if (!this.config.autoRunBotCommand || this.config.receiveAllMessages) return;
-
-      const command = this.getCommand(message.text);
-
-      if (command) command.execute(message);
-    });
-  }
-
-  /**
-   * * Define a lista de comandos
-   * @param commands
-   */
-  public setCommands(commands: Commands) {
-    this.commands = commands;
-    this.commands.setBot(this);
-  }
-
-  /**
-   * * Retorna um comando
-   * @param cmd
-   * @param commands
-   * @returns
-   */
-  public getCommand(cmd: string | string[], commands: Commands = this.getCommands()) {
-    return commands.getCommand(cmd);
-  }
-
-  /**
-   * * Retorna os comandos do bot
-   * @returns
-   */
-  public getCommands(): Commands {
-    return this.commands;
-  }
-
-  /**
-   * * Envia um conteúdo
-   * @param content
-   * @returns
-   */
-  public async send(content: Message | Status): Promise<any | Message> {
-    //TODO: Fazer mapa dos valores que são retornados como o do emmiter
-
-    if (content instanceof Message) {
-      return await this.sendMessage(content);
-    }
-
-    if (content instanceof Status) {
-      return this.sendStatus(content);
-    }
-  }
-
-  /**
-   * * Adiciona uma chamada há uma lista de chamadas para serem chamadas
-   * @param fn
-   * @returns
-   */
-  public add(fn: Function): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.pb.sub(async () => {
+    configEvents() {
+      this.ev.on("message", (message: Message) => {
         try {
-          resolve(await fn());
+          if (this.promiseMessages.resolvePromiseMessages(message)) return;
+
+          if (this.config.disableAutoCommand) return;
+          if (message.fromMe && !this.config.autoRunBotCommand) return;
+
+          this.commands.getCommand(message.text)?.execute(message);
         } catch (err) {
-          this.emit("error", getError(err));
-          reject(err);
+          this.ev.emit("error", getError(err));
         }
       });
-    });
-  }
 
-  /**
-   * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
-   * @param chatId Sala de bate-papo que irá receber a mensagem
-   * @param ignoreMessageFromMe Ignora a mensagem se quem enviou foi o próprio bot
-   * @param stopRead Para de ler a mensagem no evento
-   * @param ignoreMessages Não resolve a promessa se a mensagem recebida é a mesma escolhida
-   * @returns
-   */
-  public awaitMessage(
-    chat: Chat | string,
-    ignoreMessageFromMe: boolean = true,
-    stopRead: boolean = true,
-    ...ignoreMessages: Message[]
-  ): Promise<any> {
-    if (chat instanceof Chat) return this.awaitMessage(chat.id, ignoreMessageFromMe, stopRead, ...ignoreMessages);
+      this.ev.on("me", (message: Message) => {
+        try {
+          if (this.promiseMessages.resolvePromiseMessages(message)) return;
 
-    return this.promiseMessages.addPromiseMessage(chat, ignoreMessageFromMe, stopRead, ...ignoreMessages);
-  }
+          if (!this.config.autoRunBotCommand || this.config.receiveAllMessages) return;
 
-  /**
-   * * Automotiza uma mensagem
-   * @param message
-   * @param timeout
-   * @param chats
-   * @param id
-   * @returns
-   */
-  public async addAutomate(
-    message: Message,
-    timeout: number,
-    chats?: { [key: string]: Chat },
-    id: string = String(Date.now())
-  ): Promise<any> {
-    const now = Date.now();
+          this.commands.getCommand(message.text)?.execute(message);
+        } catch (err) {
+          this.ev.emit("error", getError(err));
+        }
+      });
+    },
 
-    // Criar e atualizar dados da mensagem automatizada
-    this.autoMessages[id] = { id, chats: chats || (await this.getChats()), updatedAt: now, message };
+    //? ******* **** MESSAGE **** *******
 
-    // Aguarda o tempo definido
-    await sleep(timeout - now);
+    async send<Content extends Message | Status>(content: Content): Promise<Content> {
+      try {
+        if (content instanceof Message) {
+          //@ts-ignore
+          return await this.sendMessage(content);
+        }
 
-    // Cancelar se estiver desatualizado
-    if (this.autoMessages[id].updatedAt !== now) return;
+        if (content instanceof Status) {
+          //@ts-ignore
+          return await this.sendStatus(content);
+        }
+      } catch (err) {
+        this.ev.emit("error", getError(err));
+      }
 
-    await Promise.all(
-      this.autoMessages[id].chats.map(async (chat: Chat) => {
-        const automated: any = this.autoMessages[id];
+      return content;
+    },
 
-        if (automated.updatedAt !== now) return;
+    awaitMessage(chat: Chat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
+      if (chat instanceof Chat) return this.awaitMessage(chat.id, ignoreMessageFromMe, stopRead, ...ignoreMessages);
 
-        automated.message?.setChat(chat);
+      return this.promiseMessages.addPromiseMessage(chat, ignoreMessageFromMe, stopRead, ...ignoreMessages);
+    },
 
-        // Enviar mensagem
-        await this.send(automated.message);
+    async addAutomate(message: Message, timeout: number, chats?: { [key: string]: Chat }, id: string = String(Date.now())): Promise<any> {
+      try {
+        const now = Date.now();
 
-        // Remover sala de bate-papo da mensagem
-        const nowChats = automated.chats;
-        const index = nowChats.indexOf(automated.chats[chat.id]);
-        this.autoMessages[id].chats = nowChats.splice(index + 1, nowChats.length);
-      })
-    );
-  }
+        // Criar e atualizar dados da mensagem automatizada
+        this.autoMessages[id] = { id, chats: chats || (await this.getChats()), updatedAt: now, message };
 
-  //! ****************** Bot functions ******************
+        // Aguarda o tempo definido
+        await sleep(timeout - now);
 
-  public async sendMessage(message: Message): Promise<Message> {
-    return message;
-  }
-  public async sendStatus(status: Status): Promise<any> {}
+        // Cancelar se estiver desatualizado
+        if (this.autoMessages[id].updatedAt !== now) return;
 
-  public async connect(auth: any, config?: any): Promise<any> {}
-  public async reconnect(config?: any): Promise<any> {}
-  public async stop(reason?: any): Promise<any> {}
+        await Promise.all(
+          this.autoMessages[id].chats.map(async (chat: Chat) => {
+            const automated: any = this.autoMessages[id];
 
-  public async getChat(id: string): Promise<any> {}
-  public async setChat(chat: Chat) {}
+            if (automated.updatedAt !== now) return;
 
-  public async getChats(): Promise<any> {}
-  public async setChats(chat: { [key: string]: Chat }) {}
+            automated.message?.setChat(chat);
 
-  public async removeChat(id: Chat | string) {}
-  public async addMember(chat: Chat, user: User) {}
-  public async removeMember(chat: Chat, user: User) {}
+            // Enviar mensagem
+            await this.send(automated.message);
 
-  public async deleteMessage(message: Message): Promise<any> {}
-  public async removeMessage(message: Message): Promise<any> {}
-  public async deleteChat(message: Message): Promise<any> {}
+            // Remover sala de bate-papo da mensagem
+            const nowChats = automated.chats;
+            const index = nowChats.indexOf(automated.chats[chat.id]);
+            this.autoMessages[id].chats = nowChats.splice(index + 1, nowChats.length);
+          })
+        );
+      } catch (err) {
+        this.ev.emit("error", getError(err));
+      }
+    },
 
-  public async setDescription(desc: string, id?: Chat | string): Promise<any> {}
-  public async getDescription(id?: User | string): Promise<any> {}
+    //? ****** **** COMMANDS **** ******
 
-  public async setChatName(id: Chat | string, name: string): Promise<any> {}
-  public async createChat(name: string): Promise<any> {}
-  public async leaveChat(chat: Chat | string): Promise<any> {}
+    setCommands(commands: Bot["commands"]) {
+      this.commands = commands;
+      this.commands.setBot(this);
+    },
 
-  public async unblockUser(user: User): Promise<any> {}
-  public async blockUser(user: User): Promise<any> {}
+    getCommands(): Bot["commands"] {
+      return this.commands;
+    },
 
-  public async setBotName(name: string): Promise<any> {}
+    setCommand(command: Command) {
+      this.commands.addCommand(command);
+    },
 
-  public async setProfile(image: Buffer, id?: Chat | string): Promise<any> {}
-  public async getProfile(id?: Chat | User | string): Promise<any> {}
+    getCommand(command: Command | string | string[]) {
+      //TODO: Criar função search command
+      return this.commands.getCommand(command);
+    },
+
+    //? ******* ***** USER ***** *******
+
+    async getUserName(user: User | string): Promise<string> {
+      if (user instanceof User) return this.getUserName(user.id);
+
+      if (user == this.id) return this.getBotName();
+
+      return (await this.getUser(user))?.name || "";
+    },
+
+    async getUserDescription(user: User | string): Promise<string> {
+      if (user instanceof User) return this.getUserDescription(user.id);
+
+      if (user == this.id) return this.getBotDescription();
+
+      return (await (await this.getUser(user))?.getDescription()) || "";
+    },
+
+    async getUserProfile(user: User | string): Promise<Buffer | null> {
+      if (user instanceof User) return this.getUserProfile(user.id);
+
+      if (user == this.id) return this.getBotProfile();
+
+      return (await (await this.getUser(user))?.getProfile()) || null;
+    },
+
+    //? ******* ***** CHAT ***** *******
+
+    async getChatName(chat: Chat | string): Promise<string> {
+      if (chat instanceof Chat) return this.getChatName(chat.id);
+
+      return (await this.getChat(chat))?.name || "";
+    },
+
+    async getChatDescription(chat: Chat | string): Promise<string> {
+      if (chat instanceof Chat) return this.getChatDescription(chat.id);
+
+      return (await this.getChat(chat))?.description || "";
+    },
+
+    async getChatProfile(chat: Chat | string): Promise<Buffer | null> {
+      if (chat instanceof Chat) return this.getChatProfile(chat.id);
+
+      return (await (await this.getChat(chat))?.getProfile()) || null;
+    },
+  };
+
+  return botModule;
 }
