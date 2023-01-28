@@ -5,7 +5,7 @@ export class Commands {
   private _bot: BotModule;
   private prefix?: string;
   private maxCommandLength: number = 0;
-  private commands: { [key: string]: Command } = {};
+  public commands: { [key: string]: Command } = {};
 
   constructor(botModule: BotModule, commands?: { [key: string]: Command }, prefix?: string) {
     this.prefix = prefix;
@@ -115,7 +115,11 @@ export class Commands {
    * @param names
    * @returns
    */
-  public getCommand(names: string | string[]): Command | undefined {
+  public getCommand(names: string | string[] | Command): Command | undefined {
+    if (names instanceof Command) {
+      return this.commands[names.names[0]];
+    }
+
     if (!Array.isArray(names)) {
       names = [names];
     }
