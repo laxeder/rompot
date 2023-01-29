@@ -20,8 +20,8 @@ import { ListMessage } from "@messages/ListMessage";
 
 import { WhatsAppBot } from "@wa/WhatsAppBot";
 import { Message } from "@messages/Message";
-import { Chat } from "@models/Chat";
-import { User } from "@models/User";
+import { Chat } from "@modules/Chat";
+import { User } from "@modules/User";
 import { replaceID } from "@wa/ID";
 
 export class WhatsAppConvertMessage {

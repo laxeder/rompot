@@ -23,10 +23,10 @@ import { StatusOptions } from "../types/Status";
 import getImageURL from "@utils/getImageURL";
 import { Message } from "@messages/Message";
 import { getID, replaceID } from "@wa/ID";
-import { Status } from "@models/Status";
-import { Chat } from "@models/Chat";
-import { User } from "@models/User";
-import { Bot } from "@models/Bot";
+import { Status } from "@modules/Status";
+import { Chat } from "@modules/Chat";
+import { User } from "@modules/User";
+import { Bot } from "@modules/Bot";
 import pino from "pino";
 
 export class WhatsAppBot extends Bot {
