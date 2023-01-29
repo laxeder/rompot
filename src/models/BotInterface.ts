@@ -1,4 +1,12 @@
 import { ConnectionConfig } from "@config/ConnectionConfig";
+import { ReactionMessage } from "@messages/ReactionMessage";
+import { LocationMessage } from "@messages/LocationMessage";
+import { ContactMessage } from "@messages/ContactMessage";
+import { ButtonMessage } from "@messages/ButtonMessage";
+import { MediaMessage } from "@messages/MediaMessage";
+import { VideoMessage } from "@messages/VideoMessage";
+import { ImageMessage } from "@messages/ImageMessage";
+import { ListMessage } from "@messages/ListMessage";
 import WaitCallBack from "@utils/WaitCallBack";
 import { StatusTypes } from "../types/Status";
 import { Message } from "@messages/Message";
@@ -6,7 +14,8 @@ import { Emmiter } from "@utils/Emmiter";
 import { Status } from "@models/Status";
 import { Commands } from "./Commands";
 import { Chat } from "@models/Chat";
-import { User } from "@models/User";
+import { User, UserInterface } from "@models/User";
+import { Command } from "./Command";
 
 export interface BotInterface {
   //? ************** CONFIG **************
@@ -17,6 +26,26 @@ export interface BotInterface {
   config: ConnectionConfig;
   status: StatusTypes;
   id: string;
+
+  //? ************** MODELS **************
+
+  Chat: typeof Chat;
+  User: typeof User;
+  Status: typeof Status;
+  Command: typeof Command;
+  Commands: typeof Commands;
+
+  //? ************** MESSAGE *************
+
+  Message: typeof Message;
+  ButtonMessage: typeof ButtonMessage;
+  ContactMessage: typeof ContactMessage;
+  ImageMessage: typeof ImageMessage;
+  ListMessage: typeof ListMessage;
+  LocationMessage: typeof LocationMessage;
+  MediaMessage: typeof MediaMessage;
+  ReactionMessage: typeof ReactionMessage;
+  VideoMessage: typeof VideoMessage;
 
   //? ************ CONNECTION ************
 
