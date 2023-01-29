@@ -2,8 +2,8 @@ import EventEmitter from "events";
 
 import { ChatAction, ConnectionStatus, ConnectionTypes, MemberAction } from "../types/index";
 import { Message } from "@messages/Message";
-import { Chat } from "@models/Chat";
-import { User } from "@models/User";
+import { Chat } from "@modules/Chat";
+import { User } from "@modules/User";
 
 export type EventsMap = {
   conn: { action: ConnectionTypes; status: ConnectionStatus; isNewLogin?: boolean; qr?: string };
