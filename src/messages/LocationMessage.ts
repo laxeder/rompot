@@ -1,5 +1,5 @@
 import { Message } from "@messages/Message";
-import { Chat } from "@models/Chat";
+import { Chat } from "@modules/Chat";
 
 export class LocationMessage extends Message {
   public latitude: number;

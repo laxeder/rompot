@@ -1,15 +1,19 @@
-import { Status } from "@models/Status";
-import { Chat } from "@models/Chat";
-import { User } from "@models/User";
-import { Bot } from "@models/Bot";
+import { BotModule } from "../types/BotModule";
+import { Status } from "@modules/Status";
+import BotBase from "@modules/BotBase";
+import { Chat } from "@modules/Chat";
+import { User } from "@modules/User";
+
+interface MessageInterface {
+  chatId: Chat;
+  text: string;
+}
 
 export class Message {
-  private _bot: Bot = new Bot();
-  private _originalMention: any;
-  private _originalMessage: any;
+  private _bot: BotModule = new BotBase();
 
   public timestamp: number | Long = Date.now();
-  public user: User = new User("");
+  public user: User = { id: "" };
   public mentions: string[] = [];
   public chat: Chat;
 

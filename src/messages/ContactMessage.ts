@@ -1,6 +1,6 @@
 import { Message } from "@messages/Message";
-import { Chat } from "@models/Chat";
-import { User } from "@models/User";
+import { Chat } from "@modules/Chat";
+import { User } from "@modules/User";
 
 export class ContactMessage extends Message {
   public contacts: User[] = [];
