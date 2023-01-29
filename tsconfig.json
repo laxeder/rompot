@@ -12,9 +12,10 @@
     "moduleResolution": "node",
     "paths": {
       "@controllers/*": ["./src/controllers/*"],
+      "@interfaces/*": ["./src/interfaces/*"],
       "@services/*": ["./src/services/*"],
       "@messages/*": ["./src/messages/*"],
-      "@models/*": ["./src/models/*"],
+      "@modules/*": ["./src/modules/*"],
       "@config/*": ["./src/config/*"],
       "@utils/*": ["./src/utils/*"],
       "@types/*": ["./src/types/*"],
