@@ -1,5 +1,13 @@
 import { ConnectionConfig } from "@config/ConnectionConfig";
+import { LocationMessage } from "@messages/LocationMessage";
+import { ReactionMessage } from "@messages/ReactionMessage";
+import { ContactMessage } from "@messages/ContactMessage";
+import { ButtonMessage } from "@messages/ButtonMessage";
+import { ImageMessage } from "@messages/ImageMessage";
+import { MediaMessage } from "@messages/MediaMessage";
+import { VideoMessage } from "@messages/VideoMessage";
 import PromiseMessages from "@utils/PromiseMessages";
+import { ListMessage } from "@messages/ListMessage";
 import WaitCallBack from "@utils/WaitCallBack";
 import { StatusTypes } from "../types/Status";
 import { Message } from "@messages/Message";
@@ -22,6 +30,21 @@ export default class BotBase implements BotModule {
   public config: ConnectionConfig = { auth: "./session" };
   public status: StatusTypes = "offline";
   public id: string = "";
+
+  public Chat = Chat;
+  public User = User;
+  public Status = Status;
+  public Command = Command;
+  public Commands = Commands;
+  public Message = Message;
+  public ButtonMessage = ButtonMessage;
+  public ContactMessage = ContactMessage;
+  public ImageMessage = ImageMessage;
+  public ListMessage = ListMessage;
+  public LocationMessage = LocationMessage;
+  public MediaMessage = MediaMessage;
+  public ReactionMessage = ReactionMessage;
+  public VideoMessage = VideoMessage;
 
   public configurate() {}
   public configEvents() {}
@@ -141,8 +164,8 @@ export default class BotBase implements BotModule {
     return "";
   }
 
-  public async getUserProfile(user: User | string): Promise<Buffer | null> {
-    return Buffer.from("", "base64");
+  public async getUserProfile(user: User | string): Promise<Buffer> {
+    return Buffer.from("");
   }
 
   //? ******* ***** CHAT ***** *******
@@ -155,7 +178,7 @@ export default class BotBase implements BotModule {
     return "";
   }
 
-  public async getChatProfile(chat: Chat | string): Promise<Buffer | null> {
-    return Buffer.from("", "base64");
+  public async getChatProfile(chat: Chat | string): Promise<Buffer> {
+    return Buffer.from("");
   }
 }
