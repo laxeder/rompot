@@ -1,81 +1,113 @@
-import { Bot } from "@models/Bot";
+import { getChatId } from "@utils/getChat";
+import { BotModule } from "../types/Bot";
+import { Chat } from "@models/Chat";
 
-var bot: Bot;
-
-export class User {
-  public id: string = "";
-  public name: string;
-  public isAdmin: boolean = false;
-  public isLeader: boolean = false;
-
-  constructor(id: string, name: string = "", isAdmin: boolean = false, isLeader: boolean = false) {
-    this.id = id;
-    this.name = name;
-    this.isAdmin = isAdmin;
-    this.isLeader = isLeader;
-  }
-
+export interface UserInterface {
   /**
-   * * Define o bot do usuário
-   * @param bot
+   * * ID do usuário
    */
-  public setBot(bot: Bot) {
-    bot = bot;
-  }
-
-  /**
-   * * Retorna o bot do usuário
-   * @returns
-   */
-  public getBot(): Bot {
-    return bot;
-  }
+  id: string;
 
   /**
    * * Bloqueia o usuário
    */
-  public async blockUser(): Promise<any> {
-    return await bot?.blockUser(this);
-  }
+  blockUser(): Promise<void>;
 
   /**
    * * Desbloqueia o usuário
    */
-  public async unblockUser(): Promise<any> {
-    return await bot?.unblockUser(this);
-  }
+  unblockUser(): Promise<void>;
 
   /**
-   * * Retorna a imagem do usuário
-   * @returns
+   * @returns Retorna o nome do usuário
    */
-  public async getProfile(): Promise<any> {
-    return await bot?.getProfile(this);
-  }
+  getName(): Promise<string>;
 
   /**
-   * * Retorna a descrição do usuário
-   * @returns
+   * @returns Retorna a descrição do usuário
    */
-  public async getDescription(): Promise<any> {
-    return await bot?.getDescription(this);
-  }
+  getDescription(): Promise<string>;
 
   /**
-   * * Verifica se o usuário tem permissão
-   * @param userPermissions
-   * @param commandPermissions
-   * @param ignore
-   * @returns
+   * @returns Retorna a imagem de perfil do usuário
    */
-  public checkPermissions(userPermissions: string[], commandPermissions: string[], ignore: string[] = []): boolean {
-    if (commandPermissions.length <= 0) return true;
+  getProfile(): Promise<Buffer>;
 
-    commandPermissions = commandPermissions.filter((p: string) => {
-      if (ignore.includes(p)) return true;
-      return userPermissions.indexOf(p) > -1;
-    });
+  /**
+   * @param chat Sala de bate-papo que está o usuário
+   * @returns Retorna se o usuário é administrador daquela sala de bate-papo
+   */
+  IsAdmin(chat: Chat | string): Promise<boolean>;
 
-    return commandPermissions.length <= 0;
+  /**
+   * @param chat Sala de bate-papo que está o usuário
+   * @returns Retorna se o usuário é lider daquela sala de bate-papo
+   */
+  IsLeader(chat: Chat | string): Promise<boolean>;
+}
+
+export class User implements UserInterface {
+  public id: string;
+
+  constructor(bot: BotModule, id: string) {
+    this.id = id;
+
+    this.blockUser = () => {
+      return bot.blockUser(this.id);
+    };
+
+    this.unblockUser = () => {
+      return bot.unblockUser(this.id);
+    };
+
+    this.getName = () => {
+      return bot.getUserName(this.id);
+    };
+
+    this.getDescription = () => {
+      return bot.getUserDescription(this.id);
+    };
+
+    this.getProfile = () => {
+      return bot.getUserProfile(this.id);
+    };
+
+    //TODO: implementar check admin/leader
+
+    this.IsAdmin = async (chat: Chat | string) => {
+      const chatId = getChatId(chat);
+
+      return false;
+    };
+
+    this.IsLeader = async (chat: Chat | string) => {
+      const chatId = getChatId(chat);
+
+      return false;
+    };
+  }
+
+  public async blockUser(): Promise<void> {}
+
+  public async unblockUser(): Promise<void> {}
+
+  public async getName(): Promise<string> {
+    return "";
+  }
+
+  public async getDescription(): Promise<string> {
+    return "";
+  }
+
+  public async getProfile(): Promise<Buffer> {
+    return Buffer.from("");
+  }
+
+  public async IsAdmin(chat: Chat | string): Promise<boolean> {
+    return false;
+  }
+
+  public async IsLeader(chat: Chat | string): Promise<boolean> {
+    return false;
   }
 }
