@@ -1,4 +1,8 @@
 import { ConnectionConfig } from "@config/ConnectionConfig";
+
+import UserInterface from "@interfaces/UserInterface";
+import ChatInterface from "@interfaces/ChatInterface";
+
 import { ReactionMessage } from "@messages/ReactionMessage";
 import { LocationMessage } from "@messages/LocationMessage";
 import { ContactMessage } from "@messages/ContactMessage";
@@ -6,16 +10,19 @@ import { ButtonMessage } from "@messages/ButtonMessage";
 import { MediaMessage } from "@messages/MediaMessage";
 import { VideoMessage } from "@messages/VideoMessage";
 import { ImageMessage } from "@messages/ImageMessage";
-import UserInterface from "@interfaces/UserInterface";
 import { ListMessage } from "@messages/ListMessage";
-import WaitCallBack from "@utils/WaitCallBack";
-import { StatusTypes } from "../types/Status";
-import { Commands } from "@modules/Commands";
 import { Message } from "@messages/Message";
+
+import { Commands } from "@modules/Commands";
 import { Command } from "@modules/Command";
-import { Emmiter } from "@utils/Emmiter";
 import { Status } from "@modules/Status";
-import { Chat } from "@modules/Chat";
+
+import WaitCallBack from "@utils/WaitCallBack";
+import { Emmiter } from "@utils/Emmiter";
+
+import { ChatInterfaces } from "../types/Chat";
+import { UserInterfaces } from "../types/User";
+import { StatusTypes } from "../types/Status";
 
 export default interface BotInterface {
   //? ************** CONFIG **************
@@ -56,7 +63,7 @@ export default interface BotInterface {
    * * Sala de bate-papo
    * @param id Sala de bate-papo
    */
-  Chat(id: string): Chat;
+  Chat(id: string): ChatInterface;
 
   /**
    * * Usuário
@@ -87,7 +94,7 @@ export default interface BotInterface {
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  Message(chat: Chat | string, text: string): Message;
+  Message(chat: ChatInterface | string, text: string): Message;
 
   /**
    * * Mensagem com imagem
@@ -95,7 +102,7 @@ export default interface BotInterface {
    * @param text Texto da mensagem
    * @param image Imagem
    */
-  ImageMessage(chat: Chat | string, text: string, image: Buffer): ImageMessage;
+  ImageMessage(chat: ChatInterface | string, text: string, image: Buffer): ImageMessage;
 
   /**
    * * Mensagem com vídeo
@@ -103,7 +110,7 @@ export default interface BotInterface {
    * @param text Texto da mensagem
    * @param video Video
    */
-  VideoMessage(chat: Chat | string, text: string, video: Buffer): VideoMessage;
+  VideoMessage(chat: ChatInterface | string, text: string, video: Buffer): VideoMessage;
 
   /**
    * * Mensagem com contatos
@@ -111,7 +118,7 @@ export default interface BotInterface {
    * @param text Texto da mensagem
    * @param contact Contato
    */
-  ContactMessage(chat: Chat | string, text: string, contact: UserInterface | string): ContactMessage;
+  ContactMessage(chat: ChatInterface | string, text: string, contact: UserInterface | string): ContactMessage;
 
   /**
    * * Mensagem com localização
@@ -119,28 +126,28 @@ export default interface BotInterface {
    * @param longitude Longitude
    * @param latitude Latitude
    */
-  LocationMessage(chat: Chat | string, longitude: string, latitude: string): LocationMessage;
+  LocationMessage(chat: ChatInterface | string, longitude: string, latitude: string): LocationMessage;
 
   /**
    * * Mensagem com lista
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  ListMessage(chat: Chat | string, text: string): ListMessage;
+  ListMessage(chat: ChatInterface | string, text: string): ListMessage;
 
   /**
    * * Mensagem com botões
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  ButtonMessage(chat: Chat | string, text: string): ButtonMessage;
+  ButtonMessage(chat: ChatInterface | string, text: string): ButtonMessage;
 
   /**
    * * Mensagem contendo uma mídia
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  MediaMessage(chat: Chat | string, text: string): MediaMessage;
+  MediaMessage(chat: ChatInterface | string, text: string): MediaMessage;
 
   /**
    * * Mensagem de reação a uma mensagem
@@ -238,7 +245,7 @@ export default interface BotInterface {
    * * Adiciona uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  addChat(chat: Chat): Promise<void>;
+  addChat(chat: ChatInterface): Promise<void>;
 
   /**
    * * Remove uma sala de bate-papo
@@ -251,20 +258,34 @@ export default interface BotInterface {
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  addUserInChat(chat: string, user: UserInterface | string): Promise<void>;
+  addUserInChat(chat: string, user: UserInterface): Promise<void>;
 
   /**
    * * Adiciona um novo usuário a uma sala de bate-papo
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  removerUserInChat(chat: string, user: UserInterface | string): Promise<void>;
+  removerUserInChat(chat: string, user: string): Promise<void>;
+
+  /**
+   * * Promove há administrador um usuário da sala de bate-papo
+   * @param chat Sala de bate-papo
+   * @param user Usuário
+   */
+  promoteUserInChat(chat: string, user: string): Promise<void>;
+
+  /**
+   * * Remove a administração um usuário da sala de bate-papo
+   * @param chat Sala de bate-papo
+   * @param user Usuário
+   */
+  demoteUserInChat(chat: string, user: string): Promise<void>;
 
   /**
    * * Cria uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  createChat(chat: Chat): Promise<void>;
+  createChat(chat: ChatInterface): Promise<void>;
 
   /**
    * * Sai de uma sala de bate-papo
@@ -276,13 +297,13 @@ export default interface BotInterface {
    * @param chat Sala de bate-papo
    * @returns Retorna uma sala de bate-papo
    */
-  getChat(chat: string): Promise<Chat | null>;
+  getChat(chat: string): Promise<ChatInterface | null>;
 
   /**
    * * Define uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  setChat(chat: Chat): Promise<void>;
+  setChat(chat: ChatInterface): Promise<void>;
 
   /**
    * @param chat Sala de bate-papo
@@ -324,7 +345,7 @@ export default interface BotInterface {
    * @param chat Sala de bate-papo
    * @returns Retorna os administradores de uma sala de bate-papo
    */
-  getChatAdmins(chat: string): Promise<UserInterface[]>;
+  getChatAdmins(chat: string): Promise<UserInterfaces>;
 
   /**
    * @param chat Sala de bate-papo
@@ -335,13 +356,13 @@ export default interface BotInterface {
   /**
    * @returns Retorna as sala de bate-papo que o bot está
    */
-  getChats(): Promise<{ [chat: string]: Chat }>;
+  getChats(): Promise<ChatInterfaces>;
 
   /**
    * * Define as salas de bate-papo que o bot está
    * @param chats Salas de bate-papo
    */
-  setChats(chats: { [chat: string]: Chat }): Promise<void>;
+  setChats(chats: ChatInterfaces): Promise<void>;
 
   //? *************** USER **************
 
@@ -379,7 +400,7 @@ export default interface BotInterface {
    * @param user Usuário
    * @param name Nome do usuário
    */
-  setUserName(user: string, name: string): Promise<string>;
+  setUserName(user: string, name: string): Promise<void>;
 
   /**
    * @param user Usuário
@@ -420,11 +441,11 @@ export default interface BotInterface {
   /**
    * @returns Retorna a lista de usuários do bot
    */
-  getUsers(): Promise<{ [user: string]: UserInterface }>;
+  getUsers(): Promise<UserInterfaces>;
 
   /**
    * * Define a lista de usuários do bot
    * @param users Usuários
    */
-  setUsers(users: { [user: string]: UserInterface }): Promise<void>;
+  setUsers(users: UserInterfaces): Promise<void>;
 }
