@@ -1,10 +1,15 @@
 import UserInterface from "@interfaces/UserInterface";
-import { BotModule } from "../types/BotModule";
-import { getChatId } from "@utils/getChat";
-import { Chat } from "@modules/Chat";
-import BotBase from "./BotBase";
 
-export default class UserModule implements UserInterface {
+import BotBase from "@modules/BotBase";
+import { Chat } from "@modules/Chat";
+
+import { setBotProperty } from "@utils/bot";
+import { getChatId } from "@utils/Marshal";
+
+import { BotModule } from "../types/BotModule";
+import { UserModule } from "../types/User";
+
+export default class User implements UserModule {
   public id: string;
   public name: string;
   public description: string;
@@ -21,71 +26,64 @@ export default class UserModule implements UserInterface {
     this.profile = profile || Buffer.from("");
   }
 
-  /**
-   * * Bloqueia o usuário
-   */
   public async blockUser(): Promise<void> {
-    return this.bot.blockUser(this.id);
+    return this.bot.blockUser(this);
   }
 
-  /**
-   * * Desbloqueia o usuário
-   */
   public async unblockUser(): Promise<void> {
-    return this.bot.unblockUser(this.id);
+    return this.bot.unblockUser(this);
   }
 
-  /**
-   * @returns Retorna o nome do usuário
-   */
   public async getName(): Promise<string> {
-    return this.bot.getUserName(this.id);
+    return this.bot.getUserName(this);
   }
 
-  /**
-   * @returns Retorna a descrição do usuário
-   */
+  public async setName(name: string): Promise<void> {
+    return this.bot.setUserName(this, name);
+  }
+
   public async getDescription(): Promise<string> {
-    return this.bot.getUserDescription(this.id);
+    return this.bot.getUserDescription(this);
   }
 
-  /**
-   * @returns Retorna a imagem de perfil do usuário
-   */
+  public async setDescription(description: string): Promise<void> {
+    return this.bot.setUserDescription(this, description);
+  }
+
   public async getProfile(): Promise<Buffer> {
-    return this.bot.getUserProfile(this.id);
+    return this.bot.getUserProfile(this);
   }
 
-  /**
-   * @param chat Sala de bate-papo que está o usuário
-   * @returns Retorna se o usuário é administrador daquela sala de bate-papo
-   */
+  public async setProfile(image: Buffer): Promise<void> {
+    return this.bot.setUserProfile(this, image);
+  }
+
   public async IsAdmin(chat: Chat | string): Promise<boolean> {
     const chatId = getChatId(chat);
 
     const admins = await this.bot.getChatAdmins(chatId);
 
-    let isAdmin = false;
-
-    for (const admin of admins) {
-      if (admin.id == this.id) {
-        isAdmin = true;
-        break;
-      }
-    }
-
-    return isAdmin;
+    return admins.hasOwnProperty(this.id);
   }
 
-  /**
-   * @param chat Sala de bate-papo que está o usuário
-   * @returns Retorna se o usuário é lider daquela sala de bate-papo
-   */
   public async IsLeader(chat: Chat | string): Promise<boolean> {
     const chatId = getChatId(chat);
 
     const leader = await this.bot.getChatLeader(chatId);
 
     return leader.id == this.id;
+  }
+
+  /**
+   * * Injeta a interface no modulo
+   * @param bot Bot que irá executar os métodos
+   * @param user Interface do usuário
+   */
+  public static Inject<UserIn extends UserInterface>(bot: BotModule, user: UserIn): UserIn & UserModule {
+    const userModule = new User(user.id, user.name, user.description, user.profile);
+
+    setBotProperty(bot, userModule);
+
+    return { ...user, ...userModule };
   }
 }
