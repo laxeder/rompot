@@ -1,6 +1,6 @@
 import { Message } from "@messages/Message";
-import { Chat } from "@modules/Chat";
-import { Bot } from "@modules/Bot";
+import Chat from "@modules/Chat";
+import Bot from "@modules/Bot";
 
 export class Command {
   private _bot: Bot = new Bot();
@@ -17,14 +17,7 @@ export class Command {
   public names: string[] = [];
   public prefix?: string;
 
-  constructor(
-    name: string | string[],
-    description?: string,
-    permissions?: Array<string> | string,
-    category?: Array<string> | string,
-    executeCallback?: Function,
-    replyCallback?: Function
-  ) {
+  constructor(name: string | string[], description?: string, permissions?: Array<string> | string, category?: Array<string> | string, executeCallback?: Function, replyCallback?: Function) {
     this.setName(name);
     this.setDescription(description || "");
 
