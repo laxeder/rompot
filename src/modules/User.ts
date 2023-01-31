@@ -1,7 +1,7 @@
 import UserInterface from "@interfaces/UserInterface";
 
 import BotBase from "@modules/BotBase";
-import { Chat } from "@modules/Chat";
+import Chat from "@modules/Chat";
 
 import { setBotProperty } from "@utils/bot";
 import { getChatId } from "@utils/Marshal";

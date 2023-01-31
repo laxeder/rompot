@@ -2,17 +2,19 @@ import UserInterface from "@interfaces/UserInterface";
 import ChatInterface from "@interfaces/ChatInterface";
 
 import BotBase from "@modules/BotBase";
+import User from "@modules/User";
 
 import { setBotProperty } from "@utils/bot";
 import { getUserId } from "@utils/Marshal";
 
-import { ChatModule, ChatTypes } from "../types/Chat";
+import { ChatModule, ChatStatus, ChatType } from "../types/Chat";
 import { BotModule } from "../types/BotModule";
 import { Users } from "../types/User";
 
 export default class Chat implements ChatModule {
   public id: string;
-  public type: ChatTypes;
+  public type: ChatType;
+  public status: ChatStatus;
   public name: string;
   public description: string;
   public profile: Buffer;
@@ -22,13 +24,14 @@ export default class Chat implements ChatModule {
     return new BotBase();
   }
 
-  constructor(id: string, type?: ChatTypes, name?: string, description?: string, profile?: Buffer, users?: Users) {
+  constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: Users, status?: ChatStatus) {
     this.id = id;
     this.type = type || "pv";
     this.name = name || "";
     this.description = description || "";
-    this.profile = Buffer.from("") || "";
+    this.profile = profile || Buffer.from("") || "";
     this.users = users || {};
+    this.status = status || "offline";
   }
 
   public async setName(name: string): Promise<void> {
@@ -102,8 +105,18 @@ export default class Chat implements ChatModule {
    * @param bot Bot que irá executar os métodos
    * @param chat Interface da sala de bate-papo
    */
-  public static Inject<ChatIn extends ChatInterface>(bot: BotModule, chat: ChatIn): ChatIn & ChatModule {
-    const module = new Chat(chat.id, chat.type, chat.name, chat.description, chat.profile, chat.users);
+  public static Inject<ChatIn extends ChatInterface>(bot: BotModule, chat: ChatIn): ChatIn & Chat {
+    const module: Chat = new Chat(chat.id, chat.type, chat.name, chat.description, chat.profile);
+
+    for (const id in chat.users) {
+      const user = chat.users[id];
+
+      if (!(user instanceof User)) {
+        module.users[id] = User.Inject(bot, chat.users[id]);
+      } else {
+        module.users[id] = user;
+      }
+    }
 
     setBotProperty(bot, module);
 

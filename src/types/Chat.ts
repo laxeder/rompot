@@ -1,9 +1,12 @@
 import ChatInterface from "@interfaces/ChatInterface";
 import UserInterface from "@interfaces/UserInterface";
+
 import { BotModule } from "./BotModule";
 import { Users } from "./User";
 
-export type ChatTypes = "community" | "chanel" | "group" | "chat" | "pv";
+export type ChatType = "community" | "chanel" | "group" | "chat" | "pv";
+
+export type ChatStatus = "recording" | "reading" | "offline" | "typing" | "online";
 
 export type ChatInterfaces = { [id: string]: ChatInterface };
 

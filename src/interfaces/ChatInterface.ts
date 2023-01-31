@@ -1,10 +1,21 @@
-import { ChatTypes, ChatUsers } from "../types/Chat";
+import { ChatStatus, ChatType } from "../types/Chat";
+import { UserInterfaces } from "../types/User";
 
 export default interface ChatInterface {
   /**
    * * ID da sala de bate-papo
    */
   id: string;
+
+  /**
+   * * Tipo da sala de bate-papo
+   */
+  type: ChatType;
+
+  /**
+   * * Status da sala de bate-papo
+   */
+  status: ChatStatus;
 
   /**
    * * Nome da sala de bate-papo
@@ -22,12 +33,7 @@ export default interface ChatInterface {
   profile: Buffer;
 
   /**
-   * * Tipo da sala de bate-papo
-   */
-  type: ChatTypes;
-
-  /**
    * * Usuários que estão naquela sala de bate-papo
    */
-  users: ChatUsers;
+  users: UserInterfaces;
 }

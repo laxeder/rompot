@@ -19,7 +19,7 @@ import { ConnectionConfig } from "@config/ConnectionConfig";
 import { ReactionMessage } from "@messages/ReactionMessage";
 import { MediaMessage } from "@messages/MediaMessage";
 import { WhatsAppMessage } from "@wa/WAMessage";
-import { StatusOptions } from "../types/Status";
+import { StatusType } from "../types/Status";
 import getImageURL from "@utils/getImageURL";
 import { Message } from "@messages/Message";
 import { getID, replaceID } from "@wa/ID";
@@ -33,7 +33,7 @@ export class WhatsAppBot extends Bot {
   //@ts-ignore
   private _bot: WASocket;
 
-  public statusOpts: keyof StatusOptions | any = {
+  public statusOpts: keyof StatusType | any = {
     typing: "composing",
     reading: "reading",
     recording: "recording",

@@ -16,13 +16,11 @@ import { Message } from "@messages/Message";
 
 import { Commands } from "@modules/Commands";
 import { Command } from "@modules/Command";
-import { Status } from "@modules/Status";
 
 import PromiseMessages from "@utils/PromiseMessages";
 
 import { ChatInterfaces, ChatModule, Chats } from "../types/Chat";
 import { UserInterfaces, UserModule, Users } from "../types/User";
-import { StatusTypes } from "../types/Status";
 
 export default interface BotControl {
   promiseMessages: PromiseMessages;
@@ -45,7 +43,7 @@ export default interface BotControl {
    * @param content
    * @returns Retorna o conteudo enviado
    */
-  send<Content extends Message | Status>(content: Content): Promise<Content>;
+  send<Content extends Message>(content: Content): Promise<Content>;
 
   /**
    * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
@@ -105,12 +103,6 @@ export default interface BotControl {
    * @param user Usuário
    */
   User(id: string): UserModule;
-
-  /**
-   * * Status
-   * @param status Status
-   */
-  Status(status: StatusTypes): Status;
 
   /**
    * * Comando
@@ -230,14 +222,6 @@ export default interface BotControl {
    * @param message Mensagem que será deletada da sala de bate-papos
    */
   deleteMessage(message: Message): Promise<void>;
-
-  //? ************** STATUS **************
-
-  /**
-   * * Enviar status
-   * @param status Status que será atualizado
-   */
-  sendStatus(status: Status): Promise<Status>;
 
   //? *************** BOT ***************
 
