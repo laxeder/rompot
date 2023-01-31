@@ -1,3 +1,4 @@
+import ChatInterface from "@interfaces/ChatInterface";
 import UserInterface from "@interfaces/UserInterface";
 import BotInterface from "@interfaces/BotInterface";
 import BotControl from "@interfaces/BotControl";
@@ -14,26 +15,24 @@ import { Message } from "@messages/Message";
 
 import { Commands } from "@modules/Commands";
 import { Command } from "@modules/Command";
-import { Status } from "@modules/Status";
 import UserModule from "@modules/User";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 
-import { getChat, getChatId, getUser, getUserId } from "@utils/Marshal";
+import { getChatId, getUser, getUserId } from "@utils/Marshal";
 import PromiseMessages from "@utils/PromiseMessages";
 import { setBotProperty } from "@utils/bot";
 import { getError } from "@utils/error";
 import sleep from "@utils/sleep";
 
-import { StatusTypes } from "../types/Status";
 import { Users } from "../types/User";
-import ChatInterface from "@interfaces/ChatInterface";
+import { Chats } from "../types/Chat";
 
 export function BuildBot<Bot extends BotInterface>(bot: Bot) {
   const autoMessages: any = {};
   const promiseMessages: PromiseMessages = new PromiseMessages();
 
-  const botModule: BotControl & BotInterface = {
+  const botModule: BotControl & Bot = {
     ...bot,
     autoMessages,
     promiseMessages,
@@ -75,16 +74,11 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
 
     //? ******* **** MESSAGE **** *******
 
-    async send<Content extends Message | Status>(content: Content): Promise<Content> {
+    async send<Content extends Message>(content: Content): Promise<Content> {
       try {
         if (content instanceof Message) {
           //@ts-ignore
           return await this.sendMessage(content);
-        }
-
-        if (content instanceof Status) {
-          //@ts-ignore
-          return await this.sendStatus(content);
         }
       } catch (err) {
         this.ev.emit("error", getError(err));
@@ -226,6 +220,18 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
       return User.Inject(this, leader);
     },
 
+    async getChats(): Promise<Chats> {
+      const modules: Chats = {};
+
+      const chats = await bot.getChats();
+
+      for (const id in chats) {
+        modules[id] = Chat.Inject(this, chats[id]);
+      }
+
+      return modules;
+    },
+
     //? *************** USER **************
 
     async getUser(user: string): Promise<UserModule | null> {
@@ -296,20 +302,26 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
       return bot.blockUser(getUserId(user));
     },
 
+    async getUsers(): Promise<Users> {
+      const modules: Users = {};
+
+      const users = await bot.getUsers();
+
+      for (const id in users) {
+        modules[id] = User.Inject(this, users[id]);
+      }
+
+      return modules;
+    },
+
     //? ************** MODELS **************
 
     Chat(chat: ChatInterface | string) {
       return Chat.Inject(this, bot.Chat(getChatId(chat)));
     },
 
-    User(user: UserInterface | string): User {
+    User(user: UserInterface | string) {
       return User.Inject(this, bot.User(getUserId(user)));
-    },
-
-    Status(status: StatusTypes): Status {
-      const stt = new Status(status);
-      setBotProperty(stt, this);
-      return stt;
     },
 
     Command(...names: string[]): Command {

@@ -1,6 +1,8 @@
 import ChatInterface from "@interfaces/ChatInterface";
 import UserInterface from "@interfaces/UserInterface";
 
+import { Message } from "@messages/Message";
+
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 
@@ -36,10 +38,30 @@ export function getUserId(user: UserInterface | string) {
   return String(user || "");
 }
 
-export function getUser(user: UserInterface | string): UserInterface {
+export function getUser<UserIn extends UserInterface>(user: UserIn | string): UserIn | UserInterface {
   if (typeof user == "string") {
     return new User(user);
   }
 
   return user;
+}
+
+export function getMessage<MessageIn extends Message>(message: MessageIn | string): MessageIn | Message {
+  if (typeof message == "string") {
+    return new Message(new Chat(""), message);
+  }
+
+  return message;
+}
+
+export function getMessageId(message: Message | string): string {
+  if (typeof message == "string") {
+    return String(message || "");
+  }
+
+  if (typeof message == "object" && !Array.isArray(message) && message?.id) {
+    return String(message.id);
+  }
+
+  return String(message || "");
 }
