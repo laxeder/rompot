@@ -4,16 +4,6 @@ import ChatInterface from "@interfaces/ChatInterface";
 import UserInterface from "@interfaces/UserInterface";
 import BotInterface from "@interfaces/BotInterface";
 
-import { ReactionMessage } from "@messages/ReactionMessage";
-import { LocationMessage } from "@messages/LocationMessage";
-import { ContactMessage } from "@messages/ContactMessage";
-import { ButtonMessage } from "@messages/ButtonMessage";
-import { MediaMessage } from "@messages/MediaMessage";
-import { ImageMessage } from "@messages/ImageMessage";
-import { VideoMessage } from "@messages/VideoMessage";
-import { ListMessage } from "@messages/ListMessage";
-import { Message } from "@messages/Message";
-
 import { Commands } from "@modules/Commands";
 import { Command } from "@modules/Command";
 
@@ -21,6 +11,16 @@ import PromiseMessages from "@utils/PromiseMessages";
 
 import { ChatInterfaces, ChatModule, Chats } from "../types/Chat";
 import { UserInterfaces, UserModule, Users } from "../types/User";
+import {
+  ButtonMessageInterface,
+  ContactMessageInterface,
+  ImageMessageInterface,
+  ListMessageInterface,
+  LocationMessageInterface,
+  MediaMessageInterface,
+  MessageInterface,
+  VideoMessageInterface,
+} from "./MessagesInterfaces";
 
 export default interface BotControl {
   promiseMessages: PromiseMessages;
@@ -43,7 +43,7 @@ export default interface BotControl {
    * @param content
    * @returns Retorna o conteudo enviado
    */
-  send<Content extends Message>(content: Content): Promise<Content>;
+  send<Content extends MessageInterface>(content: Content): Promise<Content>;
 
   /**
    * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
@@ -53,7 +53,7 @@ export default interface BotControl {
    * @param ignoreMessages Não resolve a promessa se a mensagem recebida é a mesma escolhida
    * @returns
    */
-  awaitMessage(chat: ChatInterface | string, ignoreMessageFromMe: boolean, stopRead: boolean, ...ignoreMessages: Message[]): Promise<Message>;
+  awaitMessage(chat: ChatInterface | string, ignoreMessageFromMe: boolean, stopRead: boolean, ...ignoreMessages: MessageInterface[]): Promise<MessageInterface>;
 
   /**
    * * Automotiza uma mensagem
@@ -63,7 +63,7 @@ export default interface BotControl {
    * @param id
    * @returns
    */
-  addAutomate(message: Message, timeout: number, chats?: { [key: string]: ChatInterface }, id?: string): Promise<any>;
+  addAutomate(message: MessageInterface, timeout: number, chats?: { [key: string]: ChatInterface }, id?: string): Promise<any>;
 
   //? ****** **** COMMANDS **** ******
 
@@ -89,99 +89,6 @@ export default interface BotControl {
    * @returns Retorna um comando do bot
    */
   getCommand(command: Command | string | string[]): Command | undefined;
-
-  //? ************** MODELS **************
-
-  /**
-   * * Sala de bate-papo
-   * @param id Sala de bate-papo
-   */
-  Chat(id: string): ChatModule;
-
-  /**
-   * * Usuário
-   * @param user Usuário
-   */
-  User(id: string): UserModule;
-
-  /**
-   * * Comando
-   */
-  Command(): Command;
-
-  /**
-   * * Gerenciador de comandos
-   */
-  Commands(): Commands;
-
-  //? ************** MESSAGE *************
-
-  /**
-   * * Mensagem
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   */
-  Message(chat: ChatInterface | string, text: string): Message;
-
-  /**
-   * * Mensagem com imagem
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   * @param image Imagem
-   */
-  ImageMessage(chat: ChatInterface | string, text: string, image: Buffer): ImageMessage;
-
-  /**
-   * * Mensagem com vídeo
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   * @param video Video
-   */
-  VideoMessage(chat: ChatInterface | string, text: string, video: Buffer): VideoMessage;
-
-  /**
-   * * Mensagem com contatos
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   * @param contact Contato
-   */
-  ContactMessage(chat: ChatInterface | string, text: string, contact: UserModule | string): ContactMessage;
-
-  /**
-   * * Mensagem com localização
-   * @param chat Sala de bate-papo
-   * @param longitude Longitude
-   * @param latitude Latitude
-   */
-  LocationMessage(chat: ChatInterface | string, longitude: string, latitude: string): LocationMessage;
-
-  /**
-   * * Mensagem com lista
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   */
-  ListMessage(chat: ChatInterface | string, text: string): ListMessage;
-
-  /**
-   * * Mensagem com botões
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   */
-  ButtonMessage(chat: ChatInterface | string, text: string): ButtonMessage;
-
-  /**
-   * * Mensagem contendo uma mídia
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   */
-  MediaMessage(chat: ChatInterface | string, text: string): MediaMessage;
-
-  /**
-   * * Mensagem de reação a uma mensagem
-   * @param message
-   * @param text
-   */
-  ReactionMessage(message: Message, text: string): ReactionMessage;
 
   //? ************ CONNECTION ************
 
@@ -209,19 +116,19 @@ export default interface BotControl {
    * * Enviar mensagem
    * @param message Mensagem que será enviada
    */
-  sendMessage(message: Message): Promise<Message>;
+  sendMessage(message: MessageInterface): Promise<MessageInterface>;
 
   /**
    * * Remover mensagem
    * @param message Mensagem que será removida da sala de bate-papo
    */
-  removeMessage(message: Message): Promise<void>;
+  removeMessage(message: MessageInterface): Promise<void>;
 
   /**
    * * Deletar mensagem
    * @param message Mensagem que será deletada da sala de bate-papos
    */
-  deleteMessage(message: Message): Promise<void>;
+  deleteMessage(message: MessageInterface): Promise<void>;
 
   //? *************** BOT ***************
 
@@ -467,4 +374,103 @@ export default interface BotControl {
    * @param users Usuários
    */
   setUsers(users: UserInterfaces): Promise<void>;
+
+  //? ************** MODELS **************
+
+  /**
+   * * Sala de bate-papo
+   * @param id Sala de bate-papo
+   */
+  Chat(id: string): ChatModule;
+
+  /**
+   * * Usuário
+   * @param user Usuário
+   */
+  User(id: string): UserModule;
+
+  /**
+   * * Comando
+   */
+  Command(): Command;
+
+  /**
+   * * Gerenciador de comandos
+   */
+  Commands(): Commands;
+
+  //? ************** MESSAGE *************
+
+  /**
+   * * Adiciona uma reação na mensagem
+   * @param message Mensagem que será reagida
+   * @param reaction Reação
+   */
+  addReaction(message: MessageInterface, reaction: string): Promise<void>;
+
+  /**
+   * * Remove a reação da mensagem
+   * @param message Mensagem que terá sua reação removida
+   */
+  removeReaction(message: MessageInterface): Promise<void>;
+
+  /**
+   * * Mensagem
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   */
+  Message(chat: ChatInterface | string, text: string): MessageInterface;
+
+  /**
+   * * Mensagem contendo uma mídia
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   */
+  MediaMessage(chat: ChatInterface | string, text: string): MediaMessageInterface;
+
+  /**
+   * * Mensagem com imagem
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   * @param image Imagem
+   */
+  ImageMessage(chat: ChatInterface | string, text: string, image: Buffer): ImageMessageInterface;
+
+  /**
+   * * Mensagem com vídeo
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   * @param video Video
+   */
+  VideoMessage(chat: ChatInterface | string, text: string, video: Buffer): VideoMessageInterface;
+
+  /**
+   * * Mensagem com contatos
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   * @param contact Contato
+   */
+  ContactMessage(chat: ChatInterface | string, text: string, contact: UserModule | string): ContactMessageInterface;
+
+  /**
+   * * Mensagem com localização
+   * @param chat Sala de bate-papo
+   * @param longitude Longitude
+   * @param latitude Latitude
+   */
+  LocationMessage(chat: ChatInterface | string, longitude: string, latitude: string): LocationMessageInterface;
+
+  /**
+   * * Mensagem com lista
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   */
+  ListMessage(chat: ChatInterface | string, text: string): ListMessageInterface;
+
+  /**
+   * * Mensagem com botões
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   */
+  ButtonMessage(chat: ChatInterface | string, text: string): ButtonMessageInterface;
 }

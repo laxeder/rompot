@@ -3,26 +3,24 @@ import { ConnectionConfig } from "@config/ConnectionConfig";
 import UserInterface from "@interfaces/UserInterface";
 import ChatInterface from "@interfaces/ChatInterface";
 
-import { ReactionMessage } from "@messages/ReactionMessage";
-import { LocationMessage } from "@messages/LocationMessage";
-import { ContactMessage } from "@messages/ContactMessage";
-import { ButtonMessage } from "@messages/ButtonMessage";
-import { MediaMessage } from "@messages/MediaMessage";
-import { VideoMessage } from "@messages/VideoMessage";
-import { ImageMessage } from "@messages/ImageMessage";
-import { ListMessage } from "@messages/ListMessage";
-import { Message } from "@messages/Message";
-
 import { Commands } from "@modules/Commands";
 import { Command } from "@modules/Command";
-import { Status } from "@modules/Status";
 
 import WaitCallBack from "@utils/WaitCallBack";
 import { Emmiter } from "@utils/Emmiter";
 
 import { ChatInterfaces } from "../types/Chat";
 import { UserInterfaces } from "../types/User";
-import { StatusTypes } from "../types/Status";
+import {
+  ButtonMessageInterface,
+  ContactMessageInterface,
+  ImageMessageInterface,
+  ListMessageInterface,
+  LocationMessageInterface,
+  MediaMessageInterface,
+  MessageInterface,
+  VideoMessageInterface,
+} from "./MessagesInterfaces";
 
 export default interface BotInterface {
   //? ************** CONFIG **************
@@ -48,113 +46,9 @@ export default interface BotInterface {
   config: ConnectionConfig;
 
   /**
-   * * Status do bot
-   */
-  status: StatusTypes;
-
-  /**
    * * ID do bot
    */
   id: string;
-
-  //? ************** MODELS **************
-
-  /**
-   * * Sala de bate-papo
-   * @param id Sala de bate-papo
-   */
-  Chat(id: string): ChatInterface;
-
-  /**
-   * * Usuário
-   * @param user Usuário
-   */
-  User(id: string): UserInterface;
-
-  /**
-   * * Status
-   * @param status Status
-   */
-  Status(status: StatusTypes): Status;
-
-  /**
-   * * Comando
-   */
-  Command(): Command;
-
-  /**
-   * * Gerenciador de comandos
-   */
-  Commands(): Commands;
-
-  //? ************** MESSAGE *************
-
-  /**
-   * * Mensagem
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   */
-  Message(chat: ChatInterface | string, text: string): Message;
-
-  /**
-   * * Mensagem com imagem
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   * @param image Imagem
-   */
-  ImageMessage(chat: ChatInterface | string, text: string, image: Buffer): ImageMessage;
-
-  /**
-   * * Mensagem com vídeo
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   * @param video Video
-   */
-  VideoMessage(chat: ChatInterface | string, text: string, video: Buffer): VideoMessage;
-
-  /**
-   * * Mensagem com contatos
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   * @param contact Contato
-   */
-  ContactMessage(chat: ChatInterface | string, text: string, contact: UserInterface | string): ContactMessage;
-
-  /**
-   * * Mensagem com localização
-   * @param chat Sala de bate-papo
-   * @param longitude Longitude
-   * @param latitude Latitude
-   */
-  LocationMessage(chat: ChatInterface | string, longitude: string, latitude: string): LocationMessage;
-
-  /**
-   * * Mensagem com lista
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   */
-  ListMessage(chat: ChatInterface | string, text: string): ListMessage;
-
-  /**
-   * * Mensagem com botões
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   */
-  ButtonMessage(chat: ChatInterface | string, text: string): ButtonMessage;
-
-  /**
-   * * Mensagem contendo uma mídia
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   */
-  MediaMessage(chat: ChatInterface | string, text: string): MediaMessage;
-
-  /**
-   * * Mensagem de reação a uma mensagem
-   * @param message
-   * @param text
-   */
-  ReactionMessage(message: Message, text: string): ReactionMessage;
 
   //? ************ CONNECTION ************
 
@@ -182,27 +76,19 @@ export default interface BotInterface {
    * * Enviar mensagem
    * @param message Mensagem que será enviada
    */
-  sendMessage(message: Message): Promise<Message>;
+  sendMessage(message: MessageInterface): Promise<MessageInterface>;
 
   /**
    * * Remover mensagem
    * @param message Mensagem que será removida da sala de bate-papo
    */
-  removeMessage(message: Message): Promise<void>;
+  removeMessage(message: MessageInterface): Promise<void>;
 
   /**
    * * Deletar mensagem
    * @param message Mensagem que será deletada da sala de bate-papos
    */
-  deleteMessage(message: Message): Promise<void>;
-
-  //? ************** STATUS **************
-
-  /**
-   * * Enviar status
-   * @param status Status que será atualizado
-   */
-  sendStatus(status: Status): Promise<Status>;
+  deleteMessage(message: MessageInterface): Promise<void>;
 
   //? *************** BOT ***************
 
@@ -448,4 +334,103 @@ export default interface BotInterface {
    * @param users Usuários
    */
   setUsers(users: UserInterfaces): Promise<void>;
+
+  //? ************** MODELS **************
+
+  /**
+   * * Sala de bate-papo
+   * @param id Sala de bate-papo
+   */
+  Chat(id: string): ChatInterface;
+
+  /**
+   * * Usuário
+   * @param user Usuário
+   */
+  User(id: string): UserInterface;
+
+  /**
+   * * Comando
+   */
+  Command(): Command;
+
+  /**
+   * * Gerenciador de comandos
+   */
+  Commands(): Commands;
+
+  //? ************** MESSAGE *************
+
+  /**
+   * * Adiciona uma reação na mensagem
+   * @param message Mensagem que será reagida
+   * @param reaction Reação
+   */
+  addReaction(message: MessageInterface, reaction: string): Promise<void>;
+
+  /**
+   * * Remove a reação da mensagem
+   * @param Mensagem que terá sua reação removida
+   */
+  removeReaction(message: MessageInterface): Promise<void>;
+
+  /**
+   * * Mensagem
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   */
+  Message(chat: string, text: string): MessageInterface;
+
+  /**
+   * * Mensagem contendo uma mídia
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   */
+  MediaMessage(chat: string, text: string): MediaMessageInterface;
+
+  /**
+   * * Mensagem com imagem
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   * @param image Imagem
+   */
+  ImageMessage(chat: string, text: string, image: Buffer): ImageMessageInterface;
+
+  /**
+   * * Mensagem com vídeo
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   * @param video Video
+   */
+  VideoMessage(chat: string, text: string, video: Buffer): VideoMessageInterface;
+
+  /**
+   * * Mensagem com contatos
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   * @param contact Contato
+   */
+  ContactMessage(chat: string, text: string, contact: string): ContactMessageInterface;
+
+  /**
+   * * Mensagem com localização
+   * @param chat Sala de bate-papo
+   * @param longitude Longitude
+   * @param latitude Latitude
+   */
+  LocationMessage(chat: string, longitude: string, latitude: string): LocationMessageInterface;
+
+  /**
+   * * Mensagem com lista
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   */
+  ListMessage(chat: string, text: string): ListMessageInterface;
+
+  /**
+   * * Mensagem com botões
+   * @param chat Sala de bate-papo
+   * @param text Texto da mensagem
+   */
+  ButtonMessage(chat: string, text: string): ButtonMessageInterface;
 }
