@@ -1,90 +1,52 @@
-import { Message } from "@messages/Message";
-import { Button } from "../types/Button";
-import { Chat } from "@modules/Chat";
+import { ButtonMessageInterface } from "@interfaces/MessagesInterfaces";
+import ChatInterface from "@interfaces/ChatInterface";
 
-export class ButtonMessage extends Message {
-  public buttons: Array<Button> = [];
+import Message from "@messages/Message";
+
+import { Button, ButtonMessageModule } from "../types/Messages";
+import { BotModule } from "../types/BotModule";
+
+//@ts-ignore
+export default class ButtonMessage extends Message implements ButtonMessageModule {
+  public buttons: Button[] = [];
   public footer: string;
-  public type: number;
 
-  constructor(chat: Chat, text: string, footer: string = "", type: number = 4) {
+  constructor(chat: ChatInterface | string, text: string, footer: string = "") {
     super(chat, text);
 
     this.footer = footer;
-    this.type = type;
   }
 
-  /**
-   * * Define o rodapé da mensagem
-   * @param footer
-   */
-  public setFooter(footer: string) {
-    this.footer = footer;
+  public addUrl(text: string, url: string, index: number = this.buttons.length + 1) {
+    this.buttons.push({ index, type: "url", text, content: url });
   }
 
-  /**
-   * * Define o tipo da mensagem
-   * @param type
-   */
-  public setType(type: number) {
-    this.type = type;
+  public addCall(text: string, phone: string, index: number = this.buttons.length + 1) {
+    this.buttons.push({ index, type: "call", text, content: phone });
   }
 
-  /**
-   * * Adiciona um botão com uma url
-   * @param text
-   * @param url
-   * @param index
-   * @returns
-   */
-  public addUrl(text: string, url: string, index: number = this.buttons.length + 1): ButtonMessage {
-    this.buttons.push({ index, url: { text, url } });
-    return this;
+  public addReply(text: string, id: string = this.generateID(), index: number = this.buttons.length + 1) {
+    this.buttons.push({ index, type: "reply", text, content: id });
   }
 
-  /**
-   * * Adiciona um botão com um telefone
-   * @param text
-   * @param phone
-   * @param index
-   * @returns
-   */
-  public addCall(text: string, phone: number, index: number = this.buttons.length + 1): ButtonMessage {
-    this.buttons.push({ index, call: { text, phone } });
-    return this;
-  }
-
-  /**
-   * * Adiciona um botão respondivel
-   * @param text
-   * @param id
-   * @param index
-   * @returns
-   */
-  public addReply(
-    text: string,
-    id: string = this.generateID(),
-    index: number = this.buttons.length + 1
-  ): ButtonMessage {
-    this.buttons.push({ index, reply: { text, id } });
-    return this;
-  }
-
-  /**
-   * * Remove um botão
-   * @param index
-   */
   public remove(index: number) {
-    this.buttons = this.buttons.filter((button: Button) => {
-      if (button.index !== index) return button;
-    });
+    this.buttons.splice(index);
   }
 
-  /**
-   * * Gera um novo ID
-   * @returns
-   */
   public generateID(): string {
     return String(this.buttons.length + 1);
+  }
+
+  /**
+   * * Injeta a interface no modulo
+   * @param bot Bot que irá executar os métodos
+   * @param message Interface da mensagem
+   */
+  public static Inject<MessageIn extends ButtonMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & ButtonMessage {
+    const module: ButtonMessage = new ButtonMessage(msg.chat, msg.text);
+
+    module.inject(bot, msg);
+
+    return { ...msg, ...module };
   }
 }

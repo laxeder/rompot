@@ -1,56 +1,37 @@
-import { Message } from "@messages/Message";
-import { Chat } from "@modules/Chat";
+import { LocationMessageInterface } from "@interfaces/MessagesInterfaces";
+import ChatInterface from "@interfaces/ChatInterface";
 
-export class LocationMessage extends Message {
+import Message from "@messages/Message";
+
+import { BotModule } from "../types/BotModule";
+
+//@ts-ignore
+export default class LocationMessage extends Message implements LocationMessageInterface {
   public latitude: number;
   public longitude: number;
 
-  constructor(chat: Chat, latitude: number, longitude: number, mention?: Message, id?: string) {
+  constructor(chat: ChatInterface | string, latitude: number, longitude: number, mention?: Message, id?: string) {
     super(chat, "", mention, id);
 
     this.latitude = latitude;
     this.longitude = longitude;
   }
 
-  /**
-   * * Define a latitude e longitude da localização
-   * @param latitude
-   * @param longitude
-   */
   public setLocation(latitude: number, longitude: number) {
     this.latitude = latitude;
     this.longitude = longitude;
   }
 
   /**
-   * * Define a latitude
-   * @param longitude
+   * * Injeta a interface no modulo
+   * @param bot Bot que irá executar os métodos
+   * @param message Interface da mensagem
    */
-  public setLongitude(longitude: number) {
-    this.longitude = longitude;
-  }
+  public static Inject<MessageIn extends LocationMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & LocationMessage {
+    const module: LocationMessage = new LocationMessage(msg.chat, msg.latitude, msg.longitude);
 
-  /**
-   * * Define a longitude
-   * @param latitude
-   */
-  public setLatitude(latitude: number) {
-    this.latitude = latitude;
-  }
+    module.inject(bot, msg);
 
-  /**
-   * * Retorna a longitude
-   * @returns
-   */
-  public getLongitude(): number {
-    return this.longitude;
-  }
-
-  /**
-   * * retorna a latitude
-   * @returns
-   */
-  public getLatitude(): number {
-    return this.latitude;
+    return { ...msg, ...module };
   }
 }

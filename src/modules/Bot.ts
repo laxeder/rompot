@@ -3,15 +3,14 @@ import UserInterface from "@interfaces/UserInterface";
 import BotInterface from "@interfaces/BotInterface";
 import BotControl from "@interfaces/BotControl";
 
-import { LocationMessage } from "@messages/LocationMessage";
-import { ReactionMessage } from "@messages/ReactionMessage";
-import { ContactMessage } from "@messages/ContactMessage";
-import { ButtonMessage } from "@messages/ButtonMessage";
-import { MediaMessage } from "@messages/MediaMessage";
-import { VideoMessage } from "@messages/VideoMessage";
-import { ImageMessage } from "@messages/ImageMessage";
-import { ListMessage } from "@messages/ListMessage";
-import { Message } from "@messages/Message";
+import LocationMessage from "@messages/LocationMessage";
+import ContactMessage from "@messages/ContactMessage";
+import ButtonMessage from "@messages/ButtonMessage";
+import MediaMessage from "@messages/MediaMessage";
+import VideoMessage from "@messages/VideoMessage";
+import ImageMessage from "@messages/ImageMessage";
+import ListMessage from "@messages/ListMessage";
+import Message from "@messages/Message";
 
 import { Commands } from "@modules/Commands";
 import { Command } from "@modules/Command";
@@ -19,7 +18,7 @@ import UserModule from "@modules/User";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 
-import { getChatId, getUser, getUserId } from "@utils/Marshal";
+import { getChat, getChatId, getUser, getUserId } from "@utils/Marshal";
 import PromiseMessages from "@utils/PromiseMessages";
 import { setBotProperty } from "@utils/bot";
 import { getError } from "@utils/error";
@@ -27,6 +26,7 @@ import sleep from "@utils/sleep";
 
 import { Users } from "../types/User";
 import { Chats } from "../types/Chat";
+import { MessageInterface } from "@interfaces/MessagesInterfaces";
 
 export function BuildBot<Bot extends BotInterface>(bot: Bot) {
   const autoMessages: any = {};
@@ -74,23 +74,32 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
 
     //? ******* **** MESSAGE **** *******
 
-    async send<Content extends Message>(content: Content): Promise<Content> {
+    async readMessage(message: MessageInterface): Promise<void> {
+      return bot.readMessage(message);
+    },
+
+    async send(message: MessageInterface): Promise<Message> {
       try {
-        if (content instanceof Message) {
-          //@ts-ignore
-          return await this.sendMessage(content);
-        }
+        return Message.Inject(this, await this.sendMessage(message));
       } catch (err) {
         this.ev.emit("error", getError(err));
       }
 
-      return content;
+      return Message.Inject(this, message);
     },
 
-    awaitMessage(chat: Chat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
-      if (chat instanceof Chat) return this.awaitMessage(chat.id, ignoreMessageFromMe, stopRead, ...ignoreMessages);
+    async sendMessage(message: MessageInterface): Promise<Message> {
+      try {
+        return Message.Inject(this, await bot.sendMessage(message));
+      } catch (err) {
+        this.ev.emit("error", getError(err));
+      }
 
-      return this.promiseMessages.addPromiseMessage(chat, ignoreMessageFromMe, stopRead, ...ignoreMessages);
+      return Message.Inject(this, message);
+    },
+
+    awaitMessage(chat: ChatInterface | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
+      return this.promiseMessages.addPromiseMessage(getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages);
     },
 
     async addAutomate(message: Message, timeout: number, chats?: { [key: string]: Chat }, id: string = String(Date.now())): Promise<any> {
@@ -338,57 +347,67 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
 
     //? ************** MESSAGE *************
 
-    Message(chat: Chat | string, text: string): Message {
-      const message = new Message(chat, text);
-      setBotProperty(message, this);
+    Message(chat: ChatInterface | string, text: string): Message {
+      const message = Message.Inject(this, bot.Message(getChatId(chat), text));
+
+      message.chat = Chat.Inject(this, getChat(chat));
+
       return message;
     },
 
-    ImageMessage(chat: Chat | string, text: string, image: Buffer): ImageMessage {
-      const message = new ImageMessage(chat, text, image);
-      setBotProperty(message, this);
+    MediaMessage(chat: ChatInterface | string, text: string, file: any): MediaMessage {
+      const message = MediaMessage.Inject(this, bot.MediaMessage(getChatId(chat), text, file));
+
+      message.chat = Chat.Inject(this, getChat(chat));
+
       return message;
     },
 
-    VideoMessage(chat: Chat | string, text: string, video: Buffer): VideoMessage {
-      const message = new VideoMessage(chat, text, video);
-      setBotProperty(message, this);
+    ImageMessage(chat: ChatInterface | string, text: string, image: Buffer): ImageMessage {
+      const message = ImageMessage.Inject(this, bot.ImageMessage(getChatId(chat), text, image));
+
+      message.chat = Chat.Inject(this, getChat(chat));
+
       return message;
     },
 
-    ContactMessage(chat: Chat | string, text: string, contact: UserInterface | string): ContactMessage {
-      const message = new ContactMessage(chat, text, contact);
-      setBotProperty(message, this);
+    VideoMessage(chat: ChatInterface | string, text: string, video: Buffer): VideoMessage {
+      const message = VideoMessage.Inject(this, bot.VideoMessage(getChatId(chat), text, video));
+
+      message.chat = Chat.Inject(this, getChat(chat));
+
       return message;
     },
 
-    LocationMessage(chat: Chat | string, longitude: string, latitude: string): LocationMessage {
-      const message = new LocationMessage(chat, text, longitude, latitude);
-      setBotProperty(message, this);
+    ContactMessage(chat: ChatInterface | string, text: string, contact: string | string[]): ContactMessage {
+      const message = ContactMessage.Inject(this, bot.ContactMessage(getChatId(chat), text, contact));
+
+      message.chat = Chat.Inject(this, getChat(chat));
+
       return message;
     },
 
-    ListMessage(chat: Chat | string, text: string): ListMessage {
-      const message = new ListMessage(chat, text);
-      setBotProperty(message, this);
+    LocationMessage(chat: ChatInterface | string, longitude: string, latitude: string): LocationMessage {
+      const message = LocationMessage.Inject(this, bot.LocationMessage(getChatId(chat), longitude, latitude));
+
+      message.chat = Chat.Inject(this, getChat(chat));
+
       return message;
     },
 
-    ButtonMessage(chat: Chat | string, text: string): ButtonMessage {
-      const message = new ButtonMessage(chat, text);
-      setBotProperty(message, this);
+    ListMessage(chat: ChatInterface | string, text: string, button: string): ListMessage {
+      const message = ListMessage.Inject(this, bot.ListMessage(getChatId(chat), text, button));
+
+      message.chat = Chat.Inject(this, getChat(chat));
+
       return message;
     },
 
-    MediaMessage(chat: Chat | string, text: string): MediaMessage {
-      const message = new MediaMessage(chat, text);
-      setBotProperty(message, this);
-      return message;
-    },
+    ButtonMessage(chat: ChatInterface | string, text: string): ButtonMessage {
+      const message = ButtonMessage.Inject(this, bot.ButtonMessage(getChatId(chat), text));
 
-    ReactionMessage(msg: Message, text: string): ReactionMessage {
-      const message = new ReactionMessage(new Chat(""), text, msg);
-      setBotProperty(message, this);
+      message.chat = Chat.Inject(this, getChat(chat));
+
       return message;
     },
   };

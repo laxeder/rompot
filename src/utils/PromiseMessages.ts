@@ -1,4 +1,4 @@
-import { Message } from "@messages/Message";
+import Message from "@messages/Message";
 
 export type PromiseMessage = {
   [chatId: string]: {
@@ -24,12 +24,7 @@ export default class PromiseMessages {
    * @param ignoreMessages Não resolve a promessa se a mensagem recebida é a mesma escolhida
    * @returns
    */
-  public addPromiseMessage(
-    chatId: string,
-    ignoreMessageFromMe: boolean = true,
-    stopRead: boolean = true,
-    ...ignoreMessages: Message[]
-  ): Promise<Message> {
+  public addPromiseMessage(chatId: string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
     if (!this.promisses.hasOwnProperty(chatId)) {
       this.promisses[chatId] = [];
     }

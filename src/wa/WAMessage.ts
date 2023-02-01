@@ -7,7 +7,7 @@ import { MediaMessage } from "@messages/MediaMessage";
 import { ListMessage } from "@messages/ListMessage";
 import { List, ListItem } from "../types/List";
 import { WhatsAppBot } from "@wa/WhatsAppBot";
-import { Message } from "@messages/Message";
+import Message from "@messages/Message";
 import { getID } from "@wa/ID";
 
 export class WhatsAppMessage {

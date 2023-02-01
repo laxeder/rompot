@@ -1,4 +1,4 @@
-import { Message } from "@messages/Message";
+import Message from "@messages/Message";
 import Chat from "@modules/Chat";
 import Bot from "@modules/Bot";
 

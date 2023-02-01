@@ -11,7 +11,7 @@ import { ListMessage } from "@messages/ListMessage";
 import WaitCallBack from "@utils/WaitCallBack";
 import { BotModule } from "../types/BotModule";
 import { StatusTypes } from "../types/Status";
-import { Message } from "@messages/Message";
+import Message from "@messages/Message";
 import { Emmiter } from "@utils/Emmiter";
 import { Commands } from "./Commands";
 import { Command } from "./Command";
@@ -32,8 +32,12 @@ export default class BotBase implements BotModule {
   public status: StatusTypes = "offline";
   public id: string = "";
 
-  public  Chat(id: string) { return new Chat(id) };
-  public User(id: string) { return new UserModule(id) };
+  public Chat(id: string) {
+    return new Chat(id);
+  }
+  public User(id: string) {
+    return new UserModule(id);
+  }
   public Status = Status;
   public Command = Command;
   public Commands = Commands;

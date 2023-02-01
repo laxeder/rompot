@@ -1,11 +1,7 @@
 import UserInterface from "@interfaces/UserInterface";
+import ChatInterface from "@interfaces/ChatInterface";
 
-import { Message } from "@messages/Message";
-
-import Chat from "@modules/Chat";
-import User from "@modules/User";
-
-import { Button, List } from "../types/Message";
+import { Button, List } from "../types/Messages";
 
 export interface MessageInterface {
   /**
@@ -16,12 +12,12 @@ export interface MessageInterface {
   /**
    * * Sala de bate-papo que foi enviada a mensagem
    */
-  chat: Chat;
+  chat: ChatInterface;
 
   /**
    * * Usuário que mandou a mensagem
    */
-  user: User;
+  user: UserInterface;
 
   /**
    * * Texto da mensagem
@@ -41,7 +37,7 @@ export interface MessageInterface {
   /**
    * * Mensagem mencionada na mensagem
    */
-  mention: Message;
+  mention?: MessageInterface;
 
   /**
    * * Tempo em que a mensagem foi enviada
@@ -67,7 +63,7 @@ export interface MediaMessageInterface extends MessageInterface {
    * @param stream Conteúdo que será obtido
    * @return Conteúdo da mensagem
    */
-  getStream(stream: any): Buffer;
+  getStream(stream: any): Promise<Buffer>;
 }
 
 export interface ImageMessageInterface extends MediaMessageInterface {
@@ -100,7 +96,7 @@ export interface ContactMessageInterface extends MessageInterface {
   /**
    * * Contatos da mensagem
    */
-  contacts: UserInterface[];
+  contacts: string[];
 }
 
 export interface ListMessageInterface extends MessageInterface {

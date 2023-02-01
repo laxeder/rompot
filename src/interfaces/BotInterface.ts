@@ -73,6 +73,12 @@ export default interface BotInterface {
   //? ************** MESSAGE *************
 
   /**
+   * * Marca uma mensagem como visualizada
+   * @param message Mensagem que será visualizada
+   */
+  readMessage(message: MessageInterface): Promise<void>;
+
+  /**
    * * Enviar mensagem
    * @param message Mensagem que será enviada
    */
@@ -386,7 +392,7 @@ export default interface BotInterface {
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  MediaMessage(chat: string, text: string): MediaMessageInterface;
+  MediaMessage(chat: string, text: string, file: any): MediaMessageInterface;
 
   /**
    * * Mensagem com imagem
@@ -410,7 +416,7 @@ export default interface BotInterface {
    * @param text Texto da mensagem
    * @param contact Contato
    */
-  ContactMessage(chat: string, text: string, contact: string): ContactMessageInterface;
+  ContactMessage(chat: string, text: string, contact: string | string[]): ContactMessageInterface;
 
   /**
    * * Mensagem com localização
@@ -425,7 +431,7 @@ export default interface BotInterface {
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  ListMessage(chat: string, text: string): ListMessageInterface;
+  ListMessage(chat: string, text: string, button: string): ListMessageInterface;
 
   /**
    * * Mensagem com botões

@@ -21,7 +21,7 @@ import { MediaMessage } from "@messages/MediaMessage";
 import { WhatsAppMessage } from "@wa/WAMessage";
 import { StatusType } from "../types/Status";
 import getImageURL from "@utils/getImageURL";
-import { Message } from "@messages/Message";
+import Message from "@messages/Message";
 import { getID, replaceID } from "@wa/ID";
 import { Status } from "@modules/Status";
 import { Chat } from "@modules/Chat";
@@ -113,12 +113,7 @@ export class WhatsAppBot extends Bot {
 
                     if (!!!member) return;
 
-                    this.chats[key].members[mKey] = new User(
-                      replaceID(member.id),
-                      member.name,
-                      member.isAdmin,
-                      member.isLeader
-                    );
+                    this.chats[key].members[mKey] = new User(replaceID(member.id), member.name, member.isAdmin, member.isLeader);
                   });
                 }
               });
@@ -133,8 +128,7 @@ export class WhatsAppBot extends Bot {
 
           if (update.connection == "close") {
             // Bot desligado
-            const status =
-              (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
+            const status = (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
 
             if (this.status.status == "online") {
               this.status.status = "offline";
@@ -146,16 +140,7 @@ export class WhatsAppBot extends Bot {
               return this.emit("closed", { status: "offline" });
             }
 
-            setTimeout(
-              async () =>
-                resolve(
-                  await this.reconnect(
-                    this.config,
-                    status != DisconnectReason.restartRequired || this.status.status == "offline"
-                  )
-                ),
-              2000
-            );
+            setTimeout(async () => resolve(await this.reconnect(this.config, status != DisconnectReason.restartRequired || this.status.status == "offline")), 2000);
           }
         });
 
@@ -528,8 +513,7 @@ export class WhatsAppBot extends Bot {
     let url: any;
 
     if (typeof id == "string") url = await this.add(() => this._bot.profilePictureUrl(getID(id), "image"));
-    if (id instanceof Chat || id instanceof User)
-      url = await this.add(() => this._bot.profilePictureUrl(getID(id.id), "image"));
+    if (id instanceof Chat || id instanceof User) url = await this.add(() => this._bot.profilePictureUrl(getID(id.id), "image"));
 
     if (!!url) return await getImageURL(url);
 

@@ -1,31 +1,36 @@
-import { Message } from "@messages/Message";
-import { Chat } from "@modules/Chat";
-import { User } from "@modules/User";
+import { ContactMessageInterface } from "@interfaces/MessagesInterfaces";
+import ChatInterface from "@interfaces/ChatInterface";
 
-export class ContactMessage extends Message {
-  public contacts: User[] = [];
+import Message from "@messages/Message";
 
-  constructor(chat: Chat, text: string, contacts: User | User[], mention?: Message, id?: string) {
+import { BotModule } from "../types/BotModule";
+
+//@ts-ignore
+export default class ContactMessage extends Message implements ContactMessageInterface {
+  public contacts: string[] = [];
+
+  constructor(chat: ChatInterface | string, text: string, contacts: string | string[], mention?: Message, id?: string) {
     super(chat, text, mention, id);
 
-    if (contacts instanceof User) {
-      this.contacts = [contacts];
-    } else this.contacts = contacts;
+    if (Array.isArray(contacts)) {
+      contacts.forEach((contact) => {
+        this.contacts.push(contact);
+      });
+    } else {
+      this.contacts.push(contacts || "");
+    }
   }
 
   /**
-   * * Define o usuário do contato
-   * @param user
+   * * Injeta a interface no modulo
+   * @param bot Bot que irá executar os métodos
+   * @param message Interface da mensagem
    */
-  public setContacts(user: User[]) {
-    this.contacts = user;
-  }
+  public static Inject<MessageIn extends ContactMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & ContactMessage {
+    const module: ContactMessage = new ContactMessage(msg.chat, msg.text, msg.contacts);
 
-  /**
-   * * retorna os contatos da mensagem
-   * @returns
-   */
-  public getContacts(): User[] {
-    return this.contacts;
+    module.inject(bot, msg);
+
+    return { ...msg, ...module };
   }
 }

@@ -1,29 +1,26 @@
-import { List, ListItem } from "../types/List";
-import { Message } from "@messages/Message";
-import { Chat } from "@modules/Chat";
+import { ListMessageInterface } from "@interfaces/MessagesInterfaces";
+import ChatInterface from "@interfaces/ChatInterface";
 
-export class ListMessage extends Message {
-  public list: Array<List> = [];
-  public buttonText: string;
-  public footer: string;
+import Message from "@messages/Message";
+
+import { List, ListItem } from "../types/Messages";
+import { BotModule } from "../types/BotModule";
+
+//@ts-ignore
+export default class ListMessage extends Message implements ListMessageInterface {
+  public list: List[] = [];
+  public button: string;
   public title: string;
-  public add?: Function;
+  public footer: string;
 
-  constructor(chat: Chat, title: string, text: string, footer: string, buttonText: string) {
+  constructor(chat: ChatInterface | string, text: string, buttonText: string, title?: string, footer?: string) {
     super(chat, text);
 
-    this.title = title;
-    this.text = text;
-    this.footer = footer;
-    this.buttonText = buttonText;
+    this.button = buttonText;
+    this.title = title || "";
+    this.footer = footer || "";
   }
 
-  /**
-   * * Adiciona uma seção
-   * @param title
-   * @param items
-   * @returns
-   */
   addCategory(title: string, items: Array<ListItem> = []): number {
     const index = this.list.length;
 
@@ -32,23 +29,27 @@ export class ListMessage extends Message {
     return index;
   }
 
-  /**
-   * * Adiciona um item a lista
-   * @param index
-   * @param title
-   * @param description
-   * @param id
-   * @returns
-   */
   addItem(index: number, title: string, description: string = "", id: string = this.generateID()) {
     return this.list[index].items.push({ title, description, id });
   }
 
   /**
-   * * Gera um novo ID
-   * @returns
+   * @returns Retorna um ID
    */
   public generateID(): string {
     return String(Date.now());
+  }
+
+  /**
+   * * Injeta a interface no modulo
+   * @param bot Bot que irá executar os métodos
+   * @param message Interface da mensagem
+   */
+  public static Inject<MessageIn extends ListMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & ListMessage {
+    const module: ListMessage = new ListMessage(msg.chat, msg.text, msg.text);
+
+    module.inject(bot, msg);
+
+    return { ...msg, ...module };
   }
 }
