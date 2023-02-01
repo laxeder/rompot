@@ -1,4 +1,4 @@
-import { ConnectionConfig } from "@config/ConnectionConfig";
+import ConnectionConfig from "@config/ConnectionConfig";
 
 import UserInterface from "@interfaces/UserInterface";
 import ChatInterface from "@interfaces/ChatInterface";
@@ -7,7 +7,7 @@ import { Commands } from "@modules/Commands";
 import { Command } from "@modules/Command";
 
 import WaitCallBack from "@utils/WaitCallBack";
-import { Emmiter } from "@utils/Emmiter";
+import Emmiter from "@utils/Emmiter";
 
 import { ChatInterfaces } from "../types/Chat";
 import { UserInterfaces } from "../types/User";

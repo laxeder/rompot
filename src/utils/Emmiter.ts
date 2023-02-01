@@ -1,11 +1,13 @@
 import EventEmitter from "events";
 
-import { ChatAction, ConnectionStatus, ConnectionTypes, MemberAction } from "../types/index";
-import { Message } from "@messages/Message";
-import { Chat } from "@modules/Chat";
-import { User } from "@modules/User";
+import Message from "@messages/Message";
 
-export type EventsMap = {
+import Chat from "@modules/Chat";
+import User from "@modules/User";
+
+import { ChatAction, ConnectionStatus, ConnectionTypes, MemberAction } from "../types/index";
+
+export type EventsEmitter = {
   conn: { action: ConnectionTypes; status: ConnectionStatus; isNewLogin?: boolean; qr?: string };
   open: { status: ConnectionStatus; isNewLogin: boolean };
   reconnecting: { status: ConnectionStatus };
@@ -20,9 +22,7 @@ export type EventsMap = {
   error: Error;
 };
 
-export type Event = keyof EventsMap;
-
-export class Emmiter {
+export default class Emmiter {
   public events = new EventEmitter();
 
   constructor() {
@@ -51,19 +51,19 @@ export class Emmiter {
     });
   }
 
-  on<T extends keyof EventsMap>(eventName: T, listener: (arg: EventsMap[T]) => void) {
+  on<T extends keyof EventsEmitter>(eventName: T, listener: (arg: EventsEmitter[T]) => void) {
     this.events.on(eventName, listener);
   }
 
-  off<T extends keyof EventsMap>(eventName: T, listener: (arg: EventsMap[T]) => void): void {
+  off<T extends keyof EventsEmitter>(eventName: T, listener: (arg: EventsEmitter[T]) => void): void {
     this.events.off(eventName, listener);
   }
 
-  removeAllListeners<T extends keyof EventsMap>(event: T): void {
+  removeAllListeners<T extends keyof EventsEmitter>(event: T): void {
     this.events.removeAllListeners(event);
   }
 
-  emit<T extends keyof EventsMap>(eventName: T, arg: EventsMap[T]): boolean {
+  emit<T extends keyof EventsEmitter>(eventName: T, arg: EventsEmitter[T]): boolean {
     return this.events.emit(eventName, arg);
   }
 }

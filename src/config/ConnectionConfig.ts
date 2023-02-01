@@ -1,6 +1,6 @@
 import { Auth } from "@wa/Auth";
 
-export interface ConnectionConfig {
+export default interface ConnectionConfig {
   disableAutoCommand?: boolean;
   autoRunBotCommand?: boolean;
   receiveAllMessages?: boolean;

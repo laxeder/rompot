@@ -1,4 +1,4 @@
-import { ConnectionConfig } from "@config/ConnectionConfig";
+import ConnectionConfig from "@config/ConnectionConfig";
 
 import { MessageInterface } from "@interfaces/MessagesInterfaces";
 import ChatInterface from "@interfaces/ChatInterface";
