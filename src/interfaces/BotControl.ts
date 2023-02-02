@@ -11,7 +11,7 @@ import { Command } from "@modules/Command";
 import PromiseMessages from "@utils/PromiseMessages";
 
 import { ButtonMessageModule, ContactMessageModule, ImageMessageModule, ListMessageModule, LocationMessageModule, MediaMessageModule, MessageModule, VideoMessageModule } from "../types/Messages";
-import { ChatInterfaces, ChatModule, Chats } from "../types/Chat";
+import { ChatInterfaces, ChatModule, Chats, ChatStatus } from "../types/Chat";
 import { UserInterfaces, UserModule, Users } from "../types/User";
 
 export default interface BotControl {
@@ -202,6 +202,13 @@ export default interface BotControl {
    * @param user Usuário
    */
   demoteUserInChat(chat: ChatInterface | string, user: UserInterface | string): Promise<void>;
+
+  /**
+   * * Altera o status da sala de bate-papo
+   * @param chat Sala de bate-papo
+   * @param status Status da sala de bate-papo
+   */
+  changeChatStatus(chat: ChatInterface | string, status: ChatStatus): Promise<void>;
 
   /**
    * * Cria uma sala de bate-papo
