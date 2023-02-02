@@ -18,7 +18,7 @@ export type ChatAction = "add" | "remove";
 
 export type ChatModule = ChatInterface & {
   /**
-   * * Bot que será executado os métodos
+   * * Bot irá executar os métodos
    */
   bot: BotModule;
 
