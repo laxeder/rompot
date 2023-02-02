@@ -1,11 +1,13 @@
+import { MessageInterface } from "@interfaces/MessagesInterfaces";
 import UserInterface from "@interfaces/UserInterface";
 import ChatInterface from "@interfaces/ChatInterface";
+
+import Message from "@messages/Message";
 
 import BotBase from "@modules/BotBase";
 import User from "@modules/User";
 
 import { setBotProperty } from "@utils/bot";
-import { getUserId } from "@utils/Marshal";
 
 import { ChatModule, ChatStatus, ChatType } from "../types/Chat";
 import { BotModule } from "../types/BotModule";
@@ -67,13 +69,13 @@ export default class Chat implements ChatModule {
   public async IsAdmin(user: UserInterface | string): Promise<boolean> {
     const admins = await this.bot.getChatAdmins(this);
 
-    return admins.hasOwnProperty(getUserId(user));
+    return admins.hasOwnProperty(User.getUserId(user));
   }
 
   public async IsLeader(user: UserInterface | string): Promise<boolean> {
     const leader = await this.bot.getChatLeader(this);
 
-    return leader.id == getUserId(user);
+    return leader.id == User.getUserId(user);
   }
 
   public async getAdmins(): Promise<Users> {
@@ -98,6 +100,42 @@ export default class Chat implements ChatModule {
 
   public async leave(): Promise<void> {
     return this.bot.leaveChat(this);
+  }
+
+  public async send(message: MessageInterface | string): Promise<Message> {
+    return this.bot.send(Message.getMessage(message));
+  }
+
+  public changeStatus(status: ChatStatus): Promise<void> {
+    return this.bot.changeChatStatus(this, status);
+  }
+
+  /**
+   * @param chat Sala de bate-papo que será obtida
+   * @returns Retorna a sala de bate-papo
+   */
+  public static getChat<ChatIn extends ChatInterface>(chat: ChatIn | string): ChatIn | ChatInterface {
+    if (typeof chat == "string") {
+      return new Chat(chat);
+    }
+
+    return chat;
+  }
+
+  /**
+   * @param chat Sala de bate-papo
+   * @returns Retorna o ID da sala de bate-papo
+   */
+  public static getChatId(chat: ChatInterface | string): string {
+    if (typeof chat == "string") {
+      return String(chat || "");
+    }
+
+    if (typeof chat == "object" && !Array.isArray(chat) && chat?.id) {
+      return String(chat.id);
+    }
+
+    return String(chat || "");
   }
 
   /**

@@ -5,7 +5,6 @@ import BotBase from "@modules/BotBase";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 
-import { getChat, getMessage } from "@utils/Marshal";
 import { setBotProperty } from "@utils/bot";
 
 import { MessageModule } from "../types/Messages";
@@ -27,7 +26,7 @@ export default class Message implements MessageModule {
   }
 
   constructor(chat: ChatInterface | string, text: string, mention?: MessageInterface, id?: string) {
-    this.chat = Chat.Inject(this.bot, getChat(chat));
+    this.chat = Chat.Inject(this.bot, Chat.getChat(chat));
 
     this.id = id || String(Date.now());
     this.user = new User(this.bot.id);
@@ -48,12 +47,8 @@ export default class Message implements MessageModule {
     return this.bot.addReaction(this, reaction);
   }
 
-  public async send(message: MessageInterface | string): Promise<Message> {
-    return this.bot.send(getMessage(message));
-  }
-
   public async reply(message: MessageInterface | string, mention: boolean = true): Promise<Message> {
-    const msg = getMessage(message);
+    const msg = Message.getMessage(message);
 
     if (mention) msg.mention = this;
 
@@ -85,6 +80,34 @@ export default class Message implements MessageModule {
     setBotProperty(bot, this);
     setBotProperty(bot, this.chat);
     setBotProperty(bot, this.user);
+  }
+
+  /**
+   * @param message Mensagem que será obtida
+   * @returns Retorna a mensagem
+   */
+  public static getMessage<MessageIn extends MessageInterface>(message: MessageIn | string): MessageIn | MessageInterface {
+    if (typeof message == "string") {
+      return new Message(new Chat(""), message);
+    }
+
+    return message;
+  }
+
+  /**
+   * @param message Mensagem
+   * @returns Retorna o ID da mensagem
+   */
+  public static getMessageId(message: MessageInterface | string): string {
+    if (typeof message == "string") {
+      return String(message || "");
+    }
+
+    if (typeof message == "object" && !Array.isArray(message) && message?.id) {
+      return String(message.id);
+    }
+
+    return String(message || "");
   }
 
   /**
