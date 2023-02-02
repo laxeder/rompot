@@ -1,6 +1,8 @@
+import { MessageInterface } from "@interfaces/MessagesInterfaces";
 import ChatInterface from "@interfaces/ChatInterface";
 import UserInterface from "@interfaces/UserInterface";
 
+import { MessageModule } from "./Messages";
 import { BotModule } from "./BotModule";
 import { Users } from "./User";
 
@@ -98,4 +100,16 @@ export type ChatModule = ChatInterface & {
    * * Sai da sala de bate-papo
    */
   leave(): Promise<void>;
+
+  /**
+   * * Envia uma mensagem na sala de bate-papo que a mensagem foi enviada
+   * @param message Mensagem que será enviada
+   */
+  send(message: MessageInterface | string): Promise<MessageModule>;
+
+  /**
+   * * Altera o status da sala de bate-pappo
+   * @param status Status da sala de bate-papo
+   */
+  changeStatus(status: ChatStatus): Promise<void>;
 };

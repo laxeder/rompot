@@ -77,12 +77,6 @@ export type MessageModule = MessageInterface & {
   addReaction(reaction: string): Promise<void>;
 
   /**
-   * * Envia uma mensagem na sala de bate-papo que a mensagem foi enviada
-   * @param message Mensagem que será enviada
-   */
-  send(message: MessageInterface | string): Promise<MessageModule>;
-
-  /**
    * * Envia uma mensagem mencionando a mensagem atual
    * @param message Mensagem que terá enviada
    */
