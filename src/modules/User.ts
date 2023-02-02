@@ -4,7 +4,6 @@ import BotBase from "@modules/BotBase";
 import Chat from "@modules/Chat";
 
 import { setBotProperty } from "@utils/bot";
-import { getChatId } from "@utils/Marshal";
 
 import { BotModule } from "../types/BotModule";
 import { UserModule } from "../types/User";
@@ -59,7 +58,7 @@ export default class User implements UserModule {
   }
 
   public async IsAdmin(chat: Chat | string): Promise<boolean> {
-    const chatId = getChatId(chat);
+    const chatId = Chat.getChatId(chat);
 
     const admins = await this.bot.getChatAdmins(chatId);
 
@@ -67,11 +66,39 @@ export default class User implements UserModule {
   }
 
   public async IsLeader(chat: Chat | string): Promise<boolean> {
-    const chatId = getChatId(chat);
+    const chatId = Chat.getChatId(chat);
 
     const leader = await this.bot.getChatLeader(chatId);
 
     return leader.id == this.id;
+  }
+
+  /**
+   * @param user Usuário que será obtido
+   * @returns Retorna o usuário
+   */
+  public static getUser<UserIn extends UserInterface>(user: UserIn | string): UserIn | UserInterface {
+    if (typeof user == "string") {
+      return new User(user);
+    }
+
+    return user;
+  }
+
+  /**
+   * @param user Usuário
+   * @returns Retorna o ID do usuário
+   */
+  public static getUserId(user: UserInterface | string) {
+    if (typeof user == "string") {
+      return String(user || "");
+    }
+
+    if (typeof user == "object" && !Array.isArray(user) && user?.id) {
+      return String(user.id);
+    }
+
+    return String(user || "");
   }
 
   /**

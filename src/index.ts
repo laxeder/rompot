@@ -45,6 +45,5 @@ export { BuildBot, Chat, User, Command, Commands };
 export default BuildBot;
 
 export { Emmiter, EventsEmitter, PromiseMessages, PromiseMessage, WaitCallBack, sleep, getImageURL };
-export * from "@utils/Marshal";
 export * from "@utils/error";
 export * from "@utils/bot";

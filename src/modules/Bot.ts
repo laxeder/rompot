@@ -18,7 +18,6 @@ import UserModule from "@modules/User";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 
-import { getChat, getChatId, getUser, getUserId } from "@utils/Marshal";
 import PromiseMessages from "@utils/PromiseMessages";
 import { setBotProperty } from "@utils/bot";
 import { getError } from "@utils/error";
@@ -99,7 +98,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
     },
 
     awaitMessage(chat: ChatInterface | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
-      return this.promiseMessages.addPromiseMessage(getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages);
+      return this.promiseMessages.addPromiseMessage(Chat.getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages);
     },
 
     async addAutomate(message: Message, timeout: number, chats?: { [key: string]: Chat }, id: string = String(Date.now())): Promise<any> {
@@ -160,51 +159,51 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
     //? *************** CHAT **************
 
     getChatName(chat: ChatInterface | string) {
-      return bot.getChatName(getChatId(chat));
+      return bot.getChatName(Chat.getChat(chat));
     },
 
     getChatDescription(chat: ChatInterface | string) {
-      return bot.getChatDescription(getChatId(chat));
+      return bot.getChatDescription(Chat.getChat(chat));
     },
 
     getChatProfile(chat: ChatInterface | string) {
-      return bot.getChatProfile(getChatId(chat));
+      return bot.getChatProfile(Chat.getChat(chat));
     },
 
     setChatName(chat: ChatInterface | string, name: string) {
-      return bot.setChatName(getChatId(chat), name);
+      return bot.setChatName(Chat.getChat(chat), name);
     },
 
     setChatDescription(chat: ChatInterface | string, description: string) {
-      return bot.setChatDescription(getChatId(chat), description);
+      return bot.setChatDescription(Chat.getChat(chat), description);
     },
 
     setChatProfile(chat: ChatInterface | string, profile: Buffer) {
-      return bot.setChatProfile(getChatId(chat), profile);
+      return bot.setChatProfile(Chat.getChat(chat), profile);
     },
 
     addUserInChat(chat: ChatInterface | string, user: UserInterface | string) {
-      return bot.addUserInChat(getChatId(chat), getUser(user));
+      return bot.addUserInChat(Chat.getChat(chat), User.getUser(user));
     },
 
     removerUserInChat(chat: ChatInterface | string, user: UserInterface | string) {
-      return bot.removerUserInChat(getChatId(chat), getUserId(user));
+      return bot.removerUserInChat(Chat.getChat(chat), User.getUser(user));
     },
 
     promoteUserInChat(chat: ChatInterface | string, user: UserInterface | string): Promise<void> {
-      return bot.promoteUserInChat(getChatId(chat), getUserId(user));
+      return bot.promoteUserInChat(Chat.getChat(chat), User.getUser(user));
     },
 
     demoteUserInChat(chat: ChatInterface | string, user: UserInterface): Promise<void> {
-      return bot.demoteUserInChat(getChatId(chat), getUserId(user));
+      return bot.demoteUserInChat(Chat.getChat(chat), User.getUser(user));
     },
 
     leaveChat(chat: ChatInterface | string) {
-      return bot.leaveChat(getChatId(chat));
+      return bot.leaveChat(Chat.getChat(chat));
     },
 
     async getChat(chat: ChatInterface | string) {
-      const chatInterface = await bot.getChat(getChatId(chat));
+      const chatInterface = await bot.getChat(Chat.getChat(chat));
 
       if (!chatInterface) return null;
 
@@ -212,7 +211,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
     },
 
     async getChatAdmins(chat: ChatInterface | string) {
-      const admins = await bot.getChatAdmins(getChatId(chat));
+      const admins = await bot.getChatAdmins(Chat.getChat(chat));
 
       const adminModules: Users = {};
 
@@ -224,7 +223,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
     },
 
     async getChatLeader(chat: Chat | string) {
-      const leader = await bot.getChatLeader(getChatId(chat));
+      const leader = await bot.getChatLeader(Chat.getChat(chat));
 
       return User.Inject(this, leader);
     },
@@ -244,7 +243,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
     //? *************** USER **************
 
     async getUser(user: string): Promise<UserModule | null> {
-      const usr = await bot.getUser(getUserId(user));
+      const usr = await bot.getUser(User.getUser(user));
 
       if (usr) return UserModule.Inject(this, usr);
 
@@ -252,63 +251,63 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
     },
 
     removeUser(user: UserInterface | string) {
-      return bot.removeUser(getUserId(user));
+      return bot.removeUser(User.getUser(user));
     },
 
     getUserName(user: UserInterface | string) {
-      const userId = getUserId(user);
+      const userId = User.getUserId(user);
 
       if (userId == this.id) return this.getBotName();
 
-      return bot.getUserName(userId);
+      return bot.getUserName(User.getUser(user));
     },
 
     setUserName(user: UserInterface | string, name: string) {
-      const userId = getUserId(user);
+      const userId = User.getUserId(user);
 
       if (userId == this.id) return this.setBotName(name);
 
-      return bot.setUserName(userId, name);
+      return bot.setUserName(User.getUser(user), name);
     },
 
     getUserDescription(user: UserInterface | string) {
-      const userId = getUserId(user);
+      const userId = User.getUserId(user);
 
       if (userId == this.id) return this.getBotDescription();
 
-      return bot.getUserDescription(getUserId(user));
+      return bot.getUserDescription(User.getUser(user));
     },
 
     setUserDescription(user: UserInterface | string, description: string) {
-      const userId = getUserId(user);
+      const userId = User.getUserId(user);
 
       if (userId == this.id) return this.setBotDescription(description);
 
-      return bot.setUserDescription(userId, description);
+      return bot.setUserDescription(User.getUser(user), description);
     },
 
     getUserProfile(user: UserInterface | string) {
-      const userId = getUserId(user);
+      const userId = User.getUserId(user);
 
       if (userId == this.id) return this.getBotProfile();
 
-      return bot.getUserProfile(getUserId(user));
+      return bot.getUserProfile(User.getUser(user));
     },
 
     setUserProfile(user: UserInterface | string, profile: Buffer) {
-      const userId = getUserId(user);
+      const userId = User.getUserId(user);
 
       if (userId == this.id) return this.setBotProfile(profile);
 
-      return bot.setUserProfile(userId, profile);
+      return bot.setUserProfile(User.getUser(user), profile);
     },
 
     unblockUser(user: UserInterface | string) {
-      return bot.unblockUser(getUserId(user));
+      return bot.unblockUser(User.getUser(user));
     },
 
     blockUser(user: UserInterface | string) {
-      return bot.blockUser(getUserId(user));
+      return bot.blockUser(User.getUser(user));
     },
 
     async getUsers(): Promise<Users> {
@@ -326,11 +325,11 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
     //? ************** MODELS **************
 
     Chat(chat: ChatInterface | string) {
-      return Chat.Inject(this, bot.Chat(getChatId(chat)));
+      return Chat.Inject(this, bot.Chat(Chat.getChatId(chat)));
     },
 
     User(user: UserInterface | string) {
-      return User.Inject(this, bot.User(getUserId(user)));
+      return User.Inject(this, bot.User(User.getUserId(user)));
     },
 
     Command(...names: string[]): Command {
@@ -348,65 +347,65 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
     //? ************** MESSAGE *************
 
     Message(chat: ChatInterface | string, text: string): Message {
-      const message = Message.Inject(this, bot.Message(getChatId(chat), text));
+      const message = Message.Inject(this, bot.Message(Chat.getChat(chat), text));
 
-      message.chat = Chat.Inject(this, getChat(chat));
+      message.chat = Chat.Inject(this, Chat.getChat(chat));
 
       return message;
     },
 
     MediaMessage(chat: ChatInterface | string, text: string, file: any): MediaMessage {
-      const message = MediaMessage.Inject(this, bot.MediaMessage(getChatId(chat), text, file));
+      const message = MediaMessage.Inject(this, bot.MediaMessage(Chat.getChat(chat), text, file));
 
-      message.chat = Chat.Inject(this, getChat(chat));
+      message.chat = Chat.Inject(this, Chat.getChat(chat));
 
       return message;
     },
 
     ImageMessage(chat: ChatInterface | string, text: string, image: Buffer): ImageMessage {
-      const message = ImageMessage.Inject(this, bot.ImageMessage(getChatId(chat), text, image));
+      const message = ImageMessage.Inject(this, bot.ImageMessage(Chat.getChat(chat), text, image));
 
-      message.chat = Chat.Inject(this, getChat(chat));
+      message.chat = Chat.Inject(this, Chat.getChat(chat));
 
       return message;
     },
 
     VideoMessage(chat: ChatInterface | string, text: string, video: Buffer): VideoMessage {
-      const message = VideoMessage.Inject(this, bot.VideoMessage(getChatId(chat), text, video));
+      const message = VideoMessage.Inject(this, bot.VideoMessage(Chat.getChat(chat), text, video));
 
-      message.chat = Chat.Inject(this, getChat(chat));
+      message.chat = Chat.Inject(this, Chat.getChat(chat));
 
       return message;
     },
 
     ContactMessage(chat: ChatInterface | string, text: string, contact: string | string[]): ContactMessage {
-      const message = ContactMessage.Inject(this, bot.ContactMessage(getChatId(chat), text, contact));
+      const message = ContactMessage.Inject(this, bot.ContactMessage(Chat.getChat(chat), text, contact));
 
-      message.chat = Chat.Inject(this, getChat(chat));
+      message.chat = Chat.Inject(this, Chat.getChat(chat));
 
       return message;
     },
 
     LocationMessage(chat: ChatInterface | string, longitude: string, latitude: string): LocationMessage {
-      const message = LocationMessage.Inject(this, bot.LocationMessage(getChatId(chat), longitude, latitude));
+      const message = LocationMessage.Inject(this, bot.LocationMessage(Chat.getChat(chat), longitude, latitude));
 
-      message.chat = Chat.Inject(this, getChat(chat));
+      message.chat = Chat.Inject(this, Chat.getChat(chat));
 
       return message;
     },
 
     ListMessage(chat: ChatInterface | string, text: string, button: string): ListMessage {
-      const message = ListMessage.Inject(this, bot.ListMessage(getChatId(chat), text, button));
+      const message = ListMessage.Inject(this, bot.ListMessage(Chat.getChat(chat), text, button));
 
-      message.chat = Chat.Inject(this, getChat(chat));
+      message.chat = Chat.Inject(this, Chat.getChat(chat));
 
       return message;
     },
 
     ButtonMessage(chat: ChatInterface | string, text: string): ButtonMessage {
-      const message = ButtonMessage.Inject(this, bot.ButtonMessage(getChatId(chat), text));
+      const message = ButtonMessage.Inject(this, bot.ButtonMessage(Chat.getChat(chat), text));
 
-      message.chat = Chat.Inject(this, getChat(chat));
+      message.chat = Chat.Inject(this, Chat.getChat(chat));
 
       return message;
     },
