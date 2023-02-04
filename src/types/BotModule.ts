@@ -1,6 +1,4 @@
 import BotInterface from "@interfaces/BotInterface";
 import BotControl from "@interfaces/BotControl";
 
-type BotModule = BotControl & BotInterface;
-
-export { BotModule };
+export type BotModule = BotControl & BotInterface;

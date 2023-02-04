@@ -3,11 +3,11 @@ import ChatInterface from "@interfaces/ChatInterface";
 
 import Message from "@messages/Message";
 
-import { Button, ButtonMessageModule } from "../types/Messages";
 import { BotModule } from "../types/BotModule";
+import { Button } from "../types/Message";
 
 //@ts-ignore
-export default class ButtonMessage extends Message implements ButtonMessageModule {
+export default class ButtonMessage extends Message implements ButtonMessageInterface {
   public buttons: Button[] = [];
   public footer: string;
 

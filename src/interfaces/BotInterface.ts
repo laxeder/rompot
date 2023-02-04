@@ -9,8 +9,6 @@ import { Command } from "@modules/Command";
 import WaitCallBack from "@utils/WaitCallBack";
 import Emmiter from "@utils/Emmiter";
 
-import { ChatInterfaces, ChatStatus } from "../types/Chat";
-import { UserInterfaces } from "../types/User";
 import {
   ButtonMessageInterface,
   ContactMessageInterface,
@@ -21,6 +19,9 @@ import {
   MessageInterface,
   VideoMessageInterface,
 } from "./MessagesInterfaces";
+
+import { Chats, ChatStatus } from "../types/Chat";
+import { Users } from "../types/User";
 
 export default interface BotInterface {
   //? ************** CONFIG **************
@@ -244,7 +245,7 @@ export default interface BotInterface {
    * @param chat Sala de bate-papo
    * @returns Retorna os administradores de uma sala de bate-papo
    */
-  getChatAdmins(chat: ChatInterface): Promise<UserInterfaces>;
+  getChatAdmins(chat: ChatInterface): Promise<Users>;
 
   /**
    * @param chat Sala de bate-papo
@@ -255,13 +256,13 @@ export default interface BotInterface {
   /**
    * @returns Retorna as sala de bate-papo que o bot está
    */
-  getChats(): Promise<ChatInterfaces>;
+  getChats(): Promise<Chats>;
 
   /**
    * * Define as salas de bate-papo que o bot está
    * @param chats Salas de bate-papo
    */
-  setChats(chats: ChatInterfaces): Promise<void>;
+  setChats(chats: Chats): Promise<void>;
 
   //? *************** USER **************
 
@@ -340,13 +341,13 @@ export default interface BotInterface {
   /**
    * @returns Retorna a lista de usuários do bot
    */
-  getUsers(): Promise<UserInterfaces>;
+  getUsers(): Promise<Users>;
 
   /**
    * * Define a lista de usuários do bot
    * @param users Usuários
    */
-  setUsers(users: UserInterfaces): Promise<void>;
+  setUsers(users: Users): Promise<void>;
 
   //? ************** MODELS **************
 

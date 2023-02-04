@@ -9,11 +9,11 @@ import User from "@modules/User";
 
 import { setBotProperty } from "@utils/bot";
 
-import { ChatModule, ChatStatus, ChatType } from "../types/Chat";
+import { ChatStatus, ChatType } from "../types/Chat";
 import { BotModule } from "../types/BotModule";
 import { Users } from "../types/User";
 
-export default class Chat implements ChatModule {
+export default class Chat implements ChatInterface {
   public id: string;
   public type: ChatType;
   public status: ChatStatus;
@@ -31,7 +31,7 @@ export default class Chat implements ChatModule {
     this.type = type || "pv";
     this.name = name || "";
     this.description = description || "";
-    this.profile = profile || Buffer.from("") || "";
+    this.profile = profile || Buffer.from("");
     this.users = users || {};
     this.status = status || "offline";
   }

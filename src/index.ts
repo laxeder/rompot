@@ -20,11 +20,11 @@ import { BuildBot } from "@modules/Bot";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 
-import Emmiter, { EventsEmitter } from "@utils/Emmiter";
-import getImageURL from "@utils/getImageURL";
 import PromiseMessages, { PromiseMessage } from "@utils/PromiseMessages";
-import sleep from "@utils/sleep";
+import Emmiter, { EventsEmitter } from "@utils/Emmiter";
 import WaitCallBack from "@utils/WaitCallBack";
+import getImageURL from "@utils/getImageURL";
+import sleep from "@utils/sleep";
 
 export { ConnectionConfig };
 
@@ -33,7 +33,7 @@ export * from "@interfaces/MessagesInterfaces";
 
 export * from "./types/Connection";
 export * from "./types/BotModule";
-export * from "./types/Messages";
+export * from "./types/Message";
 export * from "./types/Member";
 export * from "./types/Chat";
 export * from "./types/User";

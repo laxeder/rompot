@@ -7,11 +7,10 @@ import User from "@modules/User";
 
 import { setBotProperty } from "@utils/bot";
 
-import { MessageModule } from "../types/Messages";
 import { BotModule } from "../types/BotModule";
 import MediaMessage from "./MediaMessage";
 
-export default class Message implements MessageModule {
+export default class Message implements MessageInterface {
   public id: string;
   public chat: Chat;
   public user: User;

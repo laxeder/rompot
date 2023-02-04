@@ -1,6 +1,16 @@
 import ConnectionConfig from "@config/ConnectionConfig";
 
-import { MessageInterface } from "@interfaces/MessagesInterfaces";
+import {
+  ButtonMessageInterface,
+  ContactMessageInterface,
+  ImageMessageInterface,
+  ListMessageInterface,
+  LocationMessageInterface,
+  MediaMessageInterface,
+  MessageInterface,
+  VideoMessageInterface,
+} from "@interfaces/MessagesInterfaces";
+
 import ChatInterface from "@interfaces/ChatInterface";
 import UserInterface from "@interfaces/UserInterface";
 import BotInterface from "@interfaces/BotInterface";
@@ -10,9 +20,8 @@ import { Command } from "@modules/Command";
 
 import PromiseMessages from "@utils/PromiseMessages";
 
-import { ButtonMessageModule, ContactMessageModule, ImageMessageModule, ListMessageModule, LocationMessageModule, MediaMessageModule, MessageModule, VideoMessageModule } from "../types/Messages";
-import { ChatInterfaces, ChatModule, Chats, ChatStatus } from "../types/Chat";
-import { UserInterfaces, UserModule, Users } from "../types/User";
+import { Chats, ChatStatus } from "../types/Chat";
+import { Users } from "../types/User";
 
 export default interface BotControl {
   promiseMessages: PromiseMessages;
@@ -86,13 +95,13 @@ export default interface BotControl {
    * @param content
    * @returns Retorna o conteudo enviado
    */
-  send(message: MessageInterface): Promise<MessageModule>;
+  send(message: MessageInterface): Promise<MessageInterface>;
 
   /**
    * * Enviar mensagem
    * @param message Mensagem que será enviada
    */
-  sendMessage(message: MessageInterface): Promise<MessageModule>;
+  sendMessage(message: MessageInterface): Promise<MessageInterface>;
 
   /**
    * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
@@ -226,7 +235,7 @@ export default interface BotControl {
    * @param chat Sala de bate-papo
    * @returns Retorna uma sala de bate-papo
    */
-  getChat(chat: ChatInterface | string): Promise<ChatModule | null>;
+  getChat(chat: ChatInterface | string): Promise<ChatInterface | null>;
 
   /**
    * * Define uma sala de bate-papo
@@ -280,7 +289,7 @@ export default interface BotControl {
    * @param chat Sala de bate-papo
    * @returns Retorna o lider da sala de bate-papo
    */
-  getChatLeader(chat: ChatInterface | string): Promise<UserModule>;
+  getChatLeader(chat: ChatInterface | string): Promise<UserInterface>;
 
   /**
    * @returns Retorna as sala de bate-papo que o bot está
@@ -291,7 +300,7 @@ export default interface BotControl {
    * * Define as salas de bate-papo que o bot está
    * @param chats Salas de bate-papo
    */
-  setChats(chats: ChatInterfaces): Promise<void>;
+  setChats(chats: Chats): Promise<void>;
 
   //? *************** USER **************
 
@@ -311,7 +320,7 @@ export default interface BotControl {
    * @param user Usuário
    * @returns Retorna um usuário
    */
-  getUser(user: UserInterface | string): Promise<UserModule | null>;
+  getUser(user: UserInterface | string): Promise<UserInterface | null>;
 
   /**
    * * Define um usuário
@@ -376,7 +385,7 @@ export default interface BotControl {
    * * Define a lista de usuários do bot
    * @param users Usuários
    */
-  setUsers(users: UserInterfaces): Promise<void>;
+  setUsers(users: Users): Promise<void>;
 
   //? ************** MODELS **************
 
@@ -384,13 +393,13 @@ export default interface BotControl {
    * * Sala de bate-papo
    * @param id Sala de bate-papo
    */
-  Chat(id: string): ChatModule;
+  Chat(id: string): ChatInterface;
 
   /**
    * * Usuário
    * @param user Usuário
    */
-  User(id: string): UserModule;
+  User(id: string): UserInterface;
 
   /**
    * * Comando
@@ -422,14 +431,14 @@ export default interface BotControl {
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  Message(chat: ChatInterface | string, text: string): MessageModule;
+  Message(chat: ChatInterface | string, text: string): MessageInterface;
 
   /**
    * * Mensagem contendo uma mídia
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  MediaMessage(chat: ChatInterface | string, text: string, file: any): MediaMessageModule;
+  MediaMessage(chat: ChatInterface | string, text: string, file: any): MediaMessageInterface;
 
   /**
    * * Mensagem com imagem
@@ -437,7 +446,7 @@ export default interface BotControl {
    * @param text Texto da mensagem
    * @param image Imagem
    */
-  ImageMessage(chat: ChatInterface | string, text: string, image: Buffer): ImageMessageModule;
+  ImageMessage(chat: ChatInterface | string, text: string, image: Buffer): ImageMessageInterface;
 
   /**
    * * Mensagem com vídeo
@@ -445,7 +454,7 @@ export default interface BotControl {
    * @param text Texto da mensagem
    * @param video Video
    */
-  VideoMessage(chat: ChatInterface | string, text: string, video: Buffer): VideoMessageModule;
+  VideoMessage(chat: ChatInterface | string, text: string, video: Buffer): VideoMessageInterface;
 
   /**
    * * Mensagem com contatos
@@ -453,7 +462,7 @@ export default interface BotControl {
    * @param text Texto da mensagem
    * @param contact Contato
    */
-  ContactMessage(chat: ChatInterface | string, text: string, contact: string | string[]): ContactMessageModule;
+  ContactMessage(chat: ChatInterface | string, text: string, contact: string | string[]): ContactMessageInterface;
 
   /**
    * * Mensagem com localização
@@ -461,19 +470,19 @@ export default interface BotControl {
    * @param longitude Longitude
    * @param latitude Latitude
    */
-  LocationMessage(chat: ChatInterface | string, longitude: string, latitude: string): LocationMessageModule;
+  LocationMessage(chat: ChatInterface | string, longitude: string, latitude: string): LocationMessageInterface;
 
   /**
    * * Mensagem com lista
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  ListMessage(chat: ChatInterface | string, text: string, button: string): ListMessageModule;
+  ListMessage(chat: ChatInterface | string, text: string, button: string): ListMessageInterface;
 
   /**
    * * Mensagem com botões
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  ButtonMessage(chat: ChatInterface | string, text: string): ButtonMessageModule;
+  ButtonMessage(chat: ChatInterface | string, text: string): ButtonMessageInterface;
 }

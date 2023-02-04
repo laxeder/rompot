@@ -3,7 +3,7 @@ import ChatInterface from "@interfaces/ChatInterface";
 
 import Message from "@messages/Message";
 
-import { List, ListItem } from "../types/Messages";
+import { List, ListItem } from "../types/Message";
 import { BotModule } from "../types/BotModule";
 
 //@ts-ignore
