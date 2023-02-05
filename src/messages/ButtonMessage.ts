@@ -3,7 +3,7 @@ import ChatInterface from "@interfaces/ChatInterface";
 
 import Message from "@messages/Message";
 
-import { BotModule } from "../types/BotModule";
+import { BotModule } from "../types/Bot";
 import { Button } from "../types/Message";
 
 //@ts-ignore

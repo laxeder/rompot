@@ -1,5 +1,5 @@
 import Command from "@modules/Command";
 
-export type Commands = Command[];
+export type CommandsInject = Command[];
 
-export type CommandsSystem = { [tags: string]: Command };
+export type Commands = { [tags: string]: Command };

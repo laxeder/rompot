@@ -1,197 +1,257 @@
-import { ConnectionConfig } from "@config/ConnectionConfig";
-import { LocationMessage } from "@messages/LocationMessage";
-import { ReactionMessage } from "@messages/ReactionMessage";
-import { ContactMessage } from "@messages/ContactMessage";
-import { ButtonMessage } from "@messages/ButtonMessage";
-import { ImageMessage } from "@messages/ImageMessage";
-import { MediaMessage } from "@messages/MediaMessage";
-import { VideoMessage } from "@messages/VideoMessage";
-import PromiseMessages from "@utils/PromiseMessages";
-import { ListMessage } from "@messages/ListMessage";
-import WaitCallBack from "@utils/WaitCallBack";
-import { BotModule } from "../types/BotModule";
-import { StatusTypes } from "../types/Status";
-import Message from "@messages/Message";
-import { Emmiter } from "@utils/Emmiter";
-import { Commands } from "./Commands";
-import { Command } from "./Command";
-import { Status } from "./Status";
-import { Chat } from "./Chat";
+import { DefaultCommandConfig } from "@config/CommandConfig";
+import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
+
+import { MessageInterface } from "@interfaces/MessagesInterfaces";
 import UserInterface from "@interfaces/UserInterface";
-import UserModule from "./User";
+import ChatInterface from "@interfaces/ChatInterface";
+
+import LocationMessage from "@messages/LocationMessage";
+import ContactMessage from "@messages/ContactMessage";
+import ButtonMessage from "@messages/ButtonMessage";
+import VideoMessage from "@messages/VideoMessage";
+import ImageMessage from "@messages/ImageMessage";
+import MediaMessage from "@messages/MediaMessage";
+import ListMessage from "@messages/ListMessage";
+import Message from "@messages/Message";
+
+import Command from "@modules/Command";
+import Chat from "@modules/Chat";
+import User from "@modules/User";
+
+import PromiseMessages from "@utils/PromiseMessages";
+import Emmiter from "@utils/Emmiter";
+
+import { Commands, CommandsInject } from "../types/Command";
+import { BotModule, BotStatus } from "../types/Bot";
+import { Chats, ChatStatus } from "../types/Chat";
+import { Users } from "../types/User";
 
 export default class BotBase implements BotModule {
+  public async connect(config: ConnectionConfig) {}
+
+  public async reconnect(config: ConnectionConfig) {}
+
+  public async stop(reason: any) {}
+
   //? ************** CONFIG **************
 
   public autoMessages: any = {};
   public promiseMessages: PromiseMessages = new PromiseMessages();
-  public ev: Emmiter = new Emmiter();
-  public wcb: WaitCallBack = new WaitCallBack();
-  public commands: Commands = new Commands(this);
-  public config: ConnectionConfig = { auth: "./session" };
-  public status: StatusTypes = "offline";
+
   public id: string = "";
+  public status: BotStatus = "offline";
+  public ev: Emmiter = new Emmiter();
+  public config: ConnectionConfig = { auth: "./session", commandConfig: DefaultCommandConfig };
+  public commands: Commands = {};
 
-  public Chat(id: string) {
-    return new Chat(id);
-  }
-  public User(id: string) {
-    return new UserModule(id);
-  }
-  public Status = Status;
-  public Command = Command;
-  public Commands = Commands;
-  public Message = Message;
-  public ButtonMessage = ButtonMessage;
-  public ContactMessage = ContactMessage;
-  public ImageMessage = ImageMessage;
-  public ListMessage = ListMessage;
-  public LocationMessage = LocationMessage;
-  public MediaMessage = MediaMessage;
-  public ReactionMessage = ReactionMessage;
-  public VideoMessage = VideoMessage;
+  //? ****** ***** CONFIG ***** ******
 
-  public configurate() {}
+  public configurate(config: ConnectionConfig = DefaultConnectionConfig) {
+    this.config = this.config || config;
+
+    this.configEvents();
+  }
+
   public configEvents() {}
 
-  public static Build() {
-    return new BotBase();
+  //? ******* **** MESSAGE **** *******
+
+  public async readMessage(message: MessageInterface) {}
+
+  public async send(message: MessageInterface): Promise<Message> {
+    return Message.Inject(this, message);
   }
 
-  //? ************ CONNECTION ************
-
-  public async connect(config: ConnectionConfig): Promise<void> {}
-  public async reconnect(config: ConnectionConfig): Promise<void> {}
-  public async stop(reason: any): Promise<void> {}
-
-  //? ************** MESSAGE *************
-
-  public async sendMessage(message: Message): Promise<Message> {
-    return message;
-  }
-  public async removeMessage(message: Message): Promise<void> {}
-  public async deleteMessage(message: Message): Promise<void> {}
-
-  //? ************** STATUS **************
-
-  public async sendStatus(status: Status): Promise<Status> {
-    return status;
+  public async awaitMessage(chat: ChatInterface | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]) {
+    return this.promiseMessages.addPromiseMessage(Chat.getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages);
   }
 
-  //? *************** BOT ***************
+  public async addAutomate(message: Message, timeout: number, chats?: Chats, id: string = String(Date.now())): Promise<any> {}
+
+  //? ****** **** COMMANDS **** ******
+
+  setCommands(commands: CommandsInject) {}
+
+  getCommands() {
+    return {};
+  }
+
+  setCommand(command: Command) {}
+
+  getCommand(command: string, ...args: any[]) {
+    return null;
+  }
+
+  //? *************** CHAT **************
+
+  public async addChat(chat: string | ChatInterface): Promise<void> {}
+
+  public async removeChat(chat: string | ChatInterface): Promise<void> {}
+
+  public async getChatName(chat: ChatInterface | string) {
+    return "";
+  }
+
+  public async getChatDescription(chat: ChatInterface | string) {
+    return "";
+  }
+
+  public async getChatProfile(chat: ChatInterface | string) {
+    return Buffer.from("");
+  }
+
+  public async setChat(chat: ChatInterface): Promise<void> {}
+
+  public async setChatName(chat: ChatInterface | string, name: string) {}
+
+  public async setChatDescription(chat: ChatInterface | string, description: string) {}
+
+  public async setChatProfile(chat: ChatInterface | string, profile: Buffer) {}
+
+  public async addUserInChat(chat: ChatInterface | string, user: UserInterface | string) {}
+
+  public async removerUserInChat(chat: ChatInterface | string, user: UserInterface | string) {}
+
+  public async promoteUserInChat(chat: ChatInterface | string, user: UserInterface | string) {}
+
+  public async demoteUserInChat(chat: ChatInterface | string, user: UserInterface) {}
+
+  //TODO: Retornar chat module
+  public async createChat(chat: ChatInterface): Promise<void> {}
+
+  public async leaveChat(chat: ChatInterface | string) {}
+
+  public async changeChatStatus(chat: string | ChatInterface, status: ChatStatus): Promise<void> {}
+
+  public async getChat(chat: ChatInterface | string) {
+    return null;
+  }
+
+  public async setChats(chats: Chats): Promise<void> {}
+
+  public async getChatAdmins(chat: ChatInterface | string) {
+    return {};
+  }
+
+  public async getChatLeader(chat: Chat | string): Promise<User> {
+    return User.Inject(this, User.getUser(""));
+  }
+
+  public async getChats(): Promise<Chats> {
+    return {};
+  }
+
+  //? *************** USER **************
 
   public async getBotName(): Promise<string> {
     return "";
   }
+
   public async setBotName(name: string): Promise<void> {}
 
   public async getBotDescription(): Promise<string> {
     return "";
   }
-  public async setBotDescription(description: string): Promise<string> {
-    return "";
+
+  public async setBotDescription(description: string): Promise<void> {}
+
+  public async getBotProfile(): Promise<Buffer> {
+    return Buffer.from("");
   }
 
-  public async getBotProfile(): Promise<Buffer | null> {
-    return Buffer.from("", "base64");
-  }
   public async setBotProfile(image: Buffer): Promise<void> {}
 
-  //? *************** CHAT **************
+  public async addUser(user: string | UserInterface): Promise<void> {}
 
-  public async addChat(chat: Chat): Promise<void> {}
-  public async removeChat(chatId: string): Promise<void> {}
-
-  public async createChat(chat: Chat): Promise<void> {}
-  public async leaveChat(chatId: string): Promise<void> {}
-
-  public async getChat(chatId: string): Promise<Chat | null> {
+  public async getUser(user: UserInterface | string) {
     return null;
   }
-  public async setChat(chat: Chat): Promise<void> {}
 
-  public async getChats(): Promise<{ [chatId: string]: Chat }> {
-    return {};
-  }
-  public async setChats(chats: { [chatId: string]: Chat }): Promise<void> {}
+  public async setUser(user: string | UserInterface) {}
 
-  //? *************** USER **************
+  public async removeUser(user: UserInterface | string) {}
 
-  public async addUser(user: User): Promise<void> {}
-  public async removeUser(userId: string): Promise<void> {}
-
-  public async unblockUser(userId: string): Promise<void> {}
-  public async blockUser(userId: string): Promise<void> {}
-
-  public async getUser(userId: string): Promise<User | null> {
-    return null;
-  }
-  public async setUser(user: User): Promise<void> {}
-
-  public async getUsers(): Promise<{ [userId: string]: User }> {
-    return {};
-  }
-  public async setUsers(users: { [userId: string]: User }): Promise<void> {}
-
-  //? ******* **** MESSAGE **** *******
-
-  public async send<Content extends Message | Status>(content: Content): Promise<Content> {
-    return content;
-  }
-
-  public async awaitMessage(chat: Chat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
-    return new Message(new Chat(""), "");
-  }
-
-  async addAutomate(message: Message, timeout: number, chats?: { [key: string]: Chat }, id: string = String(Date.now())): Promise<any> {}
-
-  //? ****** **** COMMANDS **** ******
-
-  public setCommands(commands: Commands) {}
-
-  public getCommands(): Commands {
-    return this.commands;
-  }
-
-  public setCommand(command: Command) {}
-
-  public getCommand(command: Command | string | string[]) {
-    return undefined;
-  }
-
-  //? ******* ***** USER ***** *******
-
-  public async getUserName(user: User | string): Promise<string> {
+  public async getUserName(user: UserInterface | string) {
     return "";
   }
 
-  public async getUserDescription(user: User | string): Promise<string> {
+  public async setUserName(user: UserInterface | string, name: string) {}
+
+  public async getUserDescription(user: UserInterface | string) {
     return "";
   }
 
-  public async getUserProfile(user: User | string): Promise<Buffer> {
+  public async setUserDescription(user: UserInterface | string, description: string) {}
+
+  public async getUserProfile(user: UserInterface | string) {
     return Buffer.from("");
   }
 
-  //? ******* ***** CHAT ***** *******
+  public async setUserProfile(user: UserInterface | string, profile: Buffer) {}
 
-  public async getChatName(chat: Chat | string): Promise<string> {
-    return "";
+  public async unblockUser(user: UserInterface | string) {}
+
+  public async blockUser(user: UserInterface | string) {}
+
+  public async getUsers() {
+    return {};
   }
 
-  public async getChatDescription(chat: Chat | string): Promise<string> {
-    return "";
+  public async setUsers(users: Users) {}
+
+  //? ************** MODELS **************
+
+  Chat(chat: ChatInterface | string) {
+    return new Chat(Chat.getChatId(chat));
   }
 
-  public async getChatProfile(chat: Chat | string): Promise<Buffer> {
-    return Buffer.from("");
+  User(user: UserInterface | string) {
+    return new User(User.getUserId(user));
   }
 
-  public async getChatAdmins(chatId: string): Promise<User[]> {
-    return [];
+  Command(): Command {
+    return new Command();
   }
 
-  public async getChatLeader(chatId: string): Promise<User> {
-    return new User(this, "");
+  //? ************** MESSAGE *************
+
+  public async deleteMessage(message: MessageInterface): Promise<void> {}
+
+  public async removeMessage(message: MessageInterface): Promise<void> {}
+
+  public async addReaction(message: MessageInterface, reaction: string): Promise<void> {}
+
+  public async removeReaction(message: MessageInterface): Promise<void> {}
+
+  Message(chat: ChatInterface | string, text: string): Message {
+    return new Message(Chat.getChat(chat), text);
+  }
+
+  MediaMessage(chat: ChatInterface | string, text: string, file: any): MediaMessage {
+    return new MediaMessage(Chat.getChat(chat), text, file);
+  }
+
+  ImageMessage(chat: ChatInterface | string, text: string, image: Buffer): ImageMessage {
+    return new ImageMessage(Chat.getChat(chat), text, image);
+  }
+
+  VideoMessage(chat: ChatInterface | string, text: string, video: Buffer): VideoMessage {
+    return new VideoMessage(Chat.getChat(chat), text, video);
+  }
+
+  ContactMessage(chat: ChatInterface | string, text: string, contact: string | string[]): ContactMessage {
+    return new ContactMessage(Chat.getChat(chat), text, contact);
+  }
+
+  LocationMessage(chat: ChatInterface | string, latitude: number, longitude: number): LocationMessage {
+    return new LocationMessage(Chat.getChat(chat), latitude, longitude);
+  }
+
+  ListMessage(chat: ChatInterface | string, text: string, button: string): ListMessage {
+    return new ListMessage(Chat.getChat(chat), text, button);
+  }
+
+  ButtonMessage(chat: ChatInterface | string, text: string): ButtonMessage {
+    return new ButtonMessage(Chat.getChat(chat), text);
   }
 }

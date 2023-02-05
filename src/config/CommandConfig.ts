@@ -1,10 +1,10 @@
 import Command from "@modules/Command";
 
-import { Commands, CommandsSystem } from "../types/Command";
+import { Commands } from "../types/Command";
 
-export const defaultCommandConfig: CommandConfig = {
+export const DefaultCommandConfig: CommandConfig = {
   prefix: "",
-  get(command: string, commands: CommandsSystem): Command | null {
+  get(command: string, commands: Commands): Command | null {
     const cmds = command.split(/\s+/g);
 
     const cmd = commands[cmds.shift() || ""];
@@ -27,5 +27,5 @@ export default interface CommandConfig {
    * @param commands Lista de comandos
    * @returns Retorna o comando
    */
-  get(command: string, commands: CommandsSystem): Command | null;
+  get(command: string, commands: Commands): Command | null;
 }

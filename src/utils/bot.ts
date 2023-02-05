@@ -1,4 +1,4 @@
-import { BotModule } from "../types/BotModule";
+import { BotModule } from "../types/Bot";
 
 export function setBotProperty(bot: BotModule, obj: { bot: BotModule }) {
   Object.defineProperty(obj, "bot", {

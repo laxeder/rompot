@@ -1,4 +1,4 @@
-import ConnectionConfig from "@config/ConnectionConfig";
+import { ConnectionConfig } from "@config/ConnectionConfig";
 
 import {
   ButtonMessageInterface,
@@ -15,12 +15,14 @@ import ChatInterface from "@interfaces/ChatInterface";
 import UserInterface from "@interfaces/UserInterface";
 import BotInterface from "@interfaces/BotInterface";
 
+import Message from "@messages/Message";
+
 import Command from "@modules/Command";
 
 import PromiseMessages from "@utils/PromiseMessages";
 
 import { Chats, ChatStatus } from "../types/Chat";
-import { Commands } from "../types/Command";
+import { CommandsInject } from "../types/Command";
 import { Users } from "../types/User";
 
 export default interface BotControl {
@@ -43,7 +45,7 @@ export default interface BotControl {
    * * Define os comandos do bot
    * @param commands Comandos que será injetado
    */
-  setCommands(commands: Commands): void;
+  setCommands(commands: CommandsInject): void;
 
   /**
    * @returns Retorna os comandos do bot
@@ -96,13 +98,7 @@ export default interface BotControl {
    * @param content
    * @returns Retorna o conteudo enviado
    */
-  send(message: MessageInterface): Promise<MessageInterface>;
-
-  /**
-   * * Enviar mensagem
-   * @param message Mensagem que será enviada
-   */
-  sendMessage(message: MessageInterface): Promise<MessageInterface>;
+  send(message: MessageInterface): Promise<Message>;
 
   /**
    * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
@@ -158,7 +154,7 @@ export default interface BotControl {
    * * Define a descrição do bot
    * @param description Descrição do bot
    */
-  setBotDescription(description: string): Promise<string>;
+  setBotDescription(description: string): Promise<void>;
 
   /**
    * @returns Retorna foto de perfil do bot
@@ -254,7 +250,7 @@ export default interface BotControl {
    * @param chat Sala de bate-papo
    * @param name Nome da sala de bate-papo
    */
-  setChatName(chat: ChatInterface | string, name: string): Promise<string>;
+  setChatName(chat: ChatInterface | string, name: string): Promise<void>;
 
   /**
    * @param chat Sala de bate-papo
@@ -466,7 +462,7 @@ export default interface BotControl {
    * @param longitude Longitude
    * @param latitude Latitude
    */
-  LocationMessage(chat: ChatInterface | string, longitude: string, latitude: string): LocationMessageInterface;
+  LocationMessage(chat: ChatInterface | string, longitude: number, latitude: number): LocationMessageInterface;
 
   /**
    * * Mensagem com lista

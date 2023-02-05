@@ -5,7 +5,7 @@ import Chat from "@modules/Chat";
 
 import { setBotProperty } from "@utils/bot";
 
-import { BotModule } from "../types/BotModule";
+import { BotModule } from "../types/Bot";
 import { UserModule } from "../types/User";
 
 export default class User implements UserModule {

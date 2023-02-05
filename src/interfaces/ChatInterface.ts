@@ -2,7 +2,7 @@ import { MessageInterface } from "@interfaces/MessagesInterfaces";
 import UserInterface from "@interfaces/UserInterface";
 
 import { ChatStatus, ChatType } from "../types/Chat";
-import { BotModule } from "../types/BotModule";
+import { BotModule } from "../types/Bot";
 import { Users } from "../types/User";
 
 export default interface ChatInterface {

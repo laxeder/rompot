@@ -1,4 +1,4 @@
-import ConnectionConfig from "@config/ConnectionConfig";
+import { ConnectionConfig } from "@config/ConnectionConfig";
 
 import UserInterface from "@interfaces/UserInterface";
 import ChatInterface from "@interfaces/ChatInterface";
@@ -7,7 +7,7 @@ import Command from "@modules/Command";
 
 import Emmiter from "@utils/Emmiter";
 
-import { Commands, CommandsSystem } from "../types/Command";
+import { Commands } from "../types/Command";
 
 import {
   ButtonMessageInterface,
@@ -21,6 +21,7 @@ import {
 } from "./MessagesInterfaces";
 
 import { Chats, ChatStatus } from "../types/Chat";
+import { BotStatus } from "../types/Bot";
 import { Users } from "../types/User";
 
 export default interface BotInterface {
@@ -29,6 +30,9 @@ export default interface BotInterface {
   /** ID do bot */
   id: string;
 
+  /* Status do Bot */
+  status: BotStatus;
+
   /** Gerenciador de eventos */
   ev: Emmiter;
 
@@ -36,7 +40,7 @@ export default interface BotInterface {
   config: ConnectionConfig;
 
   /** Comandos do bot */
-  commands: CommandsSystem;
+  commands: Commands;
 
   //? ************ CONNECTION ************
 
@@ -70,7 +74,7 @@ export default interface BotInterface {
    * * Enviar mensagem
    * @param message Mensagem que será enviada
    */
-  sendMessage(message: MessageInterface): Promise<MessageInterface>;
+  send(message: MessageInterface): Promise<MessageInterface>;
 
   /**
    * * Remover mensagem
@@ -106,7 +110,7 @@ export default interface BotInterface {
    * * Define a descrição do bot
    * @param description Descrição do bot
    */
-  setBotDescription(description: string): Promise<string>;
+  setBotDescription(description: string): Promise<void>;
 
   /**
    * @returns Retorna foto de perfil do bot
@@ -202,7 +206,7 @@ export default interface BotInterface {
    * @param chat Sala de bate-papo
    * @param name Nome da sala de bate-papo
    */
-  setChatName(chat: ChatInterface, name: string): Promise<string>;
+  setChatName(chat: ChatInterface, name: string): Promise<void>;
 
   /**
    * @param chat Sala de bate-papo
@@ -414,7 +418,7 @@ export default interface BotInterface {
    * @param longitude Longitude
    * @param latitude Latitude
    */
-  LocationMessage(chat: ChatInterface, longitude: string, latitude: string): LocationMessageInterface;
+  LocationMessage(chat: ChatInterface, latitude: number, longitude: number): LocationMessageInterface;
 
   /**
    * * Mensagem com lista

@@ -40,7 +40,7 @@ export * from "@utils/error";
 export * from "@utils/bot";
 
 export * from "./types/Connection";
-export * from "./types/BotModule";
+export * from "./types/Bot";
 export * from "./types/Message";
 export * from "./types/Member";
 export * from "./types/Chat";

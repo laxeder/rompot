@@ -1,4 +1,4 @@
-import ConnectionConfig, { defaultConfig } from "@config/ConnectionConfig";
+import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
 import { MessageInterface } from "@interfaces/MessagesInterfaces";
 import ChatInterface from "@interfaces/ChatInterface";
@@ -25,7 +25,7 @@ import { setBotProperty } from "@utils/bot";
 import { getError } from "@utils/error";
 import sleep from "@utils/sleep";
 
-import { Commands, CommandsSystem } from "../types/Command";
+import { CommandsInject } from "../types/Command";
 import { Users } from "../types/User";
 import { Chats } from "../types/Chat";
 
@@ -41,7 +41,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
     //? ****** ***** CONFIG ***** ******
 
     configurate() {
-      this.config = config || defaultConfig;
+      this.config = config || DefaultConnectionConfig;
 
       this.configEvents();
     },
@@ -54,7 +54,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
           if (message.fromMe && this.config.disableAutoCommand) return;
           if (this.config.disableAutoCommand) return;
 
-          this.config.commandConfig.get(message.text, this.commands)?.execute(message);
+          this.config.commandConfig?.get(message.text, this.commands)?.execute(message);
         } catch (err) {
           this.ev.emit("error", getError(err));
         }
@@ -81,17 +81,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
 
     async send(message: MessageInterface): Promise<Message> {
       try {
-        return Message.Inject(this, await this.sendMessage(message));
-      } catch (err) {
-        this.ev.emit("error", getError(err));
-      }
-
-      return Message.Inject(this, message);
-    },
-
-    async sendMessage(message: MessageInterface): Promise<Message> {
-      try {
-        return Message.Inject(this, await bot.sendMessage(message));
+        return Message.Inject(this, await bot.send(message));
       } catch (err) {
         this.ev.emit("error", getError(err));
       }
@@ -140,7 +130,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
 
     //? ****** **** COMMANDS **** ******
 
-    setCommands(commands: Commands) {
+    setCommands(commands: CommandsInject) {
       for (const cmd of commands) {
         this.commands[cmd.tags.join(" ")] = cmd;
       }
@@ -155,7 +145,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
     },
 
     getCommand(command: string, ...args: any[]): Command | null {
-      const cmd = this.config.commandConfig.get(command, this.commands);
+      const cmd = this.config.commandConfig?.get(command, this.commands);
 
       if (!cmd) return null;
 
@@ -388,7 +378,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
       return message;
     },
 
-    LocationMessage(chat: ChatInterface | string, longitude: string, latitude: string): LocationMessage {
+    LocationMessage(chat: ChatInterface | string, latitude: number, longitude: number): LocationMessage {
       const message = LocationMessage.Inject(this, bot.LocationMessage(Chat.getChat(chat), longitude, latitude));
 
       message.chat = Chat.Inject(this, Chat.getChat(chat));

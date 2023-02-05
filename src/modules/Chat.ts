@@ -10,7 +10,7 @@ import User from "@modules/User";
 import { setBotProperty } from "@utils/bot";
 
 import { ChatStatus, ChatType } from "../types/Chat";
-import { BotModule } from "../types/BotModule";
+import { BotModule } from "../types/Bot";
 import { Users } from "../types/User";
 
 export default class Chat implements ChatInterface {

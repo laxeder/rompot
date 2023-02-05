@@ -2,7 +2,7 @@ import UserInterface from "@interfaces/UserInterface";
 import ChatInterface from "@interfaces/ChatInterface";
 
 import { Button, List, ListItem } from "../types/Message";
-import { BotModule } from "../types/BotModule";
+import { BotModule } from "../types/Bot";
 
 export interface MessageInterface {
   /**

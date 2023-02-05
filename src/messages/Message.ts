@@ -7,7 +7,7 @@ import User from "@modules/User";
 
 import { setBotProperty } from "@utils/bot";
 
-import { BotModule } from "../types/BotModule";
+import { BotModule } from "../types/Bot";
 import MediaMessage from "./MediaMessage";
 
 export default class Message implements MessageInterface {

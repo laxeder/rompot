@@ -4,7 +4,7 @@ import ChatInterface from "@interfaces/ChatInterface";
 import MediaMessage from "@messages/MediaMessage";
 import Message from "@messages/Message";
 
-import { BotModule } from "../types/BotModule";
+import { BotModule } from "../types/Bot";
 
 //@ts-ignore
 export default class VideoMessage extends MediaMessage implements VideoMessageInterface {

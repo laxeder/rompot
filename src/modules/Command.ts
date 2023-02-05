@@ -4,7 +4,7 @@ import Message from "@messages/Message";
 
 import BotBase from "@modules/BotBase";
 
-import { BotModule } from "../types/BotModule";
+import { BotModule } from "../types/Bot";
 
 export default class Command implements CommandInterfaces {
   public tags: string[] = [];

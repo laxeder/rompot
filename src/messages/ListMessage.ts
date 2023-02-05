@@ -4,7 +4,7 @@ import ChatInterface from "@interfaces/ChatInterface";
 import Message from "@messages/Message";
 
 import { List, ListItem } from "../types/Message";
-import { BotModule } from "../types/BotModule";
+import { BotModule } from "../types/Bot";
 
 //@ts-ignore
 export default class ListMessage extends Message implements ListMessageInterface {

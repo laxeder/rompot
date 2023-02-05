@@ -1,6 +1,6 @@
 import ChatInterface from "@interfaces/ChatInterface";
 
-import { BotModule } from "../types/BotModule";
+import { BotModule } from "../types/Bot";
 
 export default interface UserInterface {
   /**

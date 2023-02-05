@@ -3,7 +3,7 @@ import ChatInterface from "@interfaces/ChatInterface";
 
 import Message from "@messages/Message";
 
-import { BotModule } from "../types/BotModule";
+import { BotModule } from "../types/Bot";
 
 //@ts-ignore
 export default class LocationMessage extends Message implements LocationMessageInterface {
