@@ -1,4 +1,6 @@
-import { MessageInterface } from "./MessagesInterfaces";
+import { MessageInterface } from "@interfaces/MessagesInterfaces";
+
+import { BotModule } from "../types/BotModule";
 
 export default interface CommandInterfaces {
   /**
@@ -30,6 +32,11 @@ export default interface CommandInterfaces {
    * * Permissões do comando
    */
   permissions: string[];
+
+  /**
+   * * Bot que irá executar os métodos
+   */
+  bot: BotModule;
 
   /**
    * * Método chamado quando a função é executada

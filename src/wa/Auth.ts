@@ -2,10 +2,7 @@ import { SignalDataTypeMap, initAuthCreds, BufferJSON, proto } from "@adiwajshin
 import { mkdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "fs";
 import { join } from "path";
 
-export interface Auth {
-  get: (key: string) => Promise<any>;
-  set: (key: string, data: any) => Promise<void>;
-}
+import Auth from "@interfaces/Auth";
 
 export class MultiFileAuthState implements Auth {
   public folder: string;
@@ -17,9 +14,7 @@ export class MultiFileAuthState implements Auth {
 
     if (folderInfo) {
       if (!folderInfo.isDirectory()) {
-        throw new Error(
-          `found something that is not a directory at ${folder}, either delete it or specify a different location`
-        );
+        throw new Error(`found something that is not a directory at ${folder}, either delete it or specify a different location`);
       }
     } else {
       mkdirSync(folder, { recursive: true });

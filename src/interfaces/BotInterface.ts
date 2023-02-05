@@ -3,11 +3,11 @@ import ConnectionConfig from "@config/ConnectionConfig";
 import UserInterface from "@interfaces/UserInterface";
 import ChatInterface from "@interfaces/ChatInterface";
 
-import { Commands } from "@modules/Commands";
-import { Command } from "@modules/Command";
+import Command from "@modules/Command";
 
-import WaitCallBack from "@utils/WaitCallBack";
 import Emmiter from "@utils/Emmiter";
+
+import { Commands, CommandsSystem } from "../types/Command";
 
 import {
   ButtonMessageInterface,
@@ -26,30 +26,17 @@ import { Users } from "../types/User";
 export default interface BotInterface {
   //? ************** CONFIG **************
 
-  /**
-   * * Gerenciador de eventos
-   */
+  /** ID do bot */
+  id: string;
+
+  /** Gerenciador de eventos */
   ev: Emmiter;
 
-  /**
-   * * Gerenciador de mensagens em promessas
-   */
-  wcb: WaitCallBack;
-
-  /**
-   * * Gerenciador de comandos
-   */
-  commands: Commands;
-
-  /**
-   * * Configurações do bot
-   */
+  /** Configurações do bot */
   config: ConnectionConfig;
 
-  /**
-   * * ID do bot
-   */
-  id: string;
+  /** Comandos do bot */
+  commands: CommandsSystem;
 
   //? ************ CONNECTION ************
 
@@ -367,11 +354,6 @@ export default interface BotInterface {
    * * Comando
    */
   Command(): Command;
-
-  /**
-   * * Gerenciador de comandos
-   */
-  Commands(): Commands;
 
   //? ************** MESSAGE *************
 

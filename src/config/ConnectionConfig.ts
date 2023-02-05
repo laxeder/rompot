@@ -1,11 +1,19 @@
-import { Auth } from "@wa/Auth";
+import CommandConfig, { defaultCommandConfig } from "@config/CommandConfig";
+
+export const defaultConfig: ConnectionConfig = {
+  commandConfig: defaultCommandConfig,
+  receiveAllMessages: false,
+  printQRInTerminal: true,
+  disableAutoCommand: false,
+  disableAutoTyping: false,
+  disableAutoRead: false,
+};
 
 export default interface ConnectionConfig {
-  disableAutoCommand?: boolean;
-  autoRunBotCommand?: boolean;
+  commandConfig: CommandConfig;
   receiveAllMessages?: boolean;
+  disableAutoCommand?: boolean;
   printQRInTerminal?: boolean;
-  disableAutoRead?: boolean;
   disableAutoTyping?: boolean;
-  auth: string | Auth;
+  disableAutoRead?: boolean;
 }

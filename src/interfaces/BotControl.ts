@@ -15,12 +15,12 @@ import ChatInterface from "@interfaces/ChatInterface";
 import UserInterface from "@interfaces/UserInterface";
 import BotInterface from "@interfaces/BotInterface";
 
-import { Commands } from "@modules/Commands";
-import { Command } from "@modules/Command";
+import Command from "@modules/Command";
 
 import PromiseMessages from "@utils/PromiseMessages";
 
 import { Chats, ChatStatus } from "../types/Chat";
+import { Commands } from "../types/Command";
 import { Users } from "../types/User";
 
 export default interface BotControl {
@@ -43,7 +43,7 @@ export default interface BotControl {
    * * Define os comandos do bot
    * @param commands Comandos que será injetado
    */
-  setCommands(commands: BotInterface["commands"]): void;
+  setCommands(commands: Commands): void;
 
   /**
    * @returns Retorna os comandos do bot
@@ -52,15 +52,16 @@ export default interface BotControl {
 
   /**
    * * Define um comando na lista de comandos
-   * @param command
+   * @param command Comando que será definido
    */
   setCommand(command: Command): void;
 
   /**
    * @param command Comando que será procurado
+   * @param args Argumentos que serão usados na construção do comando
    * @returns Retorna um comando do bot
    */
-  getCommand(command: Command | string | string[]): Command | undefined;
+  getCommand(command: Command | string | string[], ...args: any[]): Command | null;
 
   //? ************ CONNECTION ************
 
@@ -405,11 +406,6 @@ export default interface BotControl {
    * * Comando
    */
   Command(): Command;
-
-  /**
-   * * Gerenciador de comandos
-   */
-  Commands(): Commands;
 
   //? ************** MESSAGE *************
 

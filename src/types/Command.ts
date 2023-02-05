@@ -1,8 +1,5 @@
-import { BotModule } from "./BotModule";
+import Command from "@modules/Command";
 
-export type CommandModule = {
-  /**
-   * * Bot que irá executar os métodos
-   */
-  bot: BotModule;
-};
+export type Commands = Command[];
+
+export type CommandsSystem = { [tags: string]: Command };

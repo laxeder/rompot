@@ -1,3 +1,6 @@
+import ConnectionConfig, { defaultConfig } from "@config/ConnectionConfig";
+
+import { MessageInterface } from "@interfaces/MessagesInterfaces";
 import ChatInterface from "@interfaces/ChatInterface";
 import UserInterface from "@interfaces/UserInterface";
 import BotInterface from "@interfaces/BotInterface";
@@ -12,8 +15,7 @@ import ImageMessage from "@messages/ImageMessage";
 import ListMessage from "@messages/ListMessage";
 import Message from "@messages/Message";
 
-import { Commands } from "@modules/Commands";
-import { Command } from "@modules/Command";
+import Command from "@modules/Command";
 import UserModule from "@modules/User";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
@@ -23,11 +25,11 @@ import { setBotProperty } from "@utils/bot";
 import { getError } from "@utils/error";
 import sleep from "@utils/sleep";
 
+import { Commands, CommandsSystem } from "../types/Command";
 import { Users } from "../types/User";
 import { Chats } from "../types/Chat";
-import { MessageInterface } from "@interfaces/MessagesInterfaces";
 
-export function BuildBot<Bot extends BotInterface>(bot: Bot) {
+export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: ConnectionConfig) {
   const autoMessages: any = {};
   const promiseMessages: PromiseMessages = new PromiseMessages();
 
@@ -39,7 +41,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
     //? ****** ***** CONFIG ***** ******
 
     configurate() {
-      this.commands.setBot(this);
+      this.config = config || defaultConfig;
 
       this.configEvents();
     },
@@ -49,10 +51,10 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
         try {
           if (this.promiseMessages.resolvePromiseMessages(message)) return;
 
+          if (message.fromMe && this.config.disableAutoCommand) return;
           if (this.config.disableAutoCommand) return;
-          if (message.fromMe && !this.config.autoRunBotCommand) return;
 
-          this.commands.getCommand(message.text)?.execute(message);
+          this.config.commandConfig.get(message.text, this.commands)?.execute(message);
         } catch (err) {
           this.ev.emit("error", getError(err));
         }
@@ -62,9 +64,9 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
         try {
           if (this.promiseMessages.resolvePromiseMessages(message)) return;
 
-          if (!this.config.autoRunBotCommand || this.config.receiveAllMessages) return;
+          if (this.config.disableAutoCommand || this.config.receiveAllMessages) return;
 
-          this.commands.getCommand(message.text)?.execute(message);
+          this.getCommand(message.text)?.execute(message);
         } catch (err) {
           this.ev.emit("error", getError(err));
         }
@@ -138,9 +140,10 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
 
     //? ****** **** COMMANDS **** ******
 
-    setCommands(commands: Bot["commands"]) {
-      this.commands = commands;
-      this.commands.setBot(this);
+    setCommands(commands: Commands) {
+      for (const cmd of commands) {
+        this.commands[cmd.tags.join(" ")] = cmd;
+      }
     },
 
     getCommands(): Bot["commands"] {
@@ -148,12 +151,17 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
     },
 
     setCommand(command: Command) {
-      this.commands.addCommand(command);
+      this.commands[command.tags.join(" ")] = command;
     },
 
-    getCommand(command: Command | string | string[]) {
-      //TODO: Criar função search command
-      return this.commands.getCommand(command);
+    getCommand(command: string, ...args: any[]): Command | null {
+      const cmd = this.config.commandConfig.get(command, this.commands);
+
+      if (!cmd) return null;
+
+      setBotProperty(this, cmd);
+
+      return cmd;
     },
 
     //? *************** CHAT **************
@@ -332,16 +340,10 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot) {
       return User.Inject(this, bot.User(User.getUserId(user)));
     },
 
-    Command(...names: string[]): Command {
-      const command = new Command(names);
-      setBotProperty(command, this);
+    Command(): Command {
+      const command = new Command();
+      setBotProperty(this, command);
       return command;
-    },
-
-    Commands(): Commands {
-      const commands = new Commands();
-      setBotProperty(commands, this);
-      return commands;
     },
 
     //? ************** MESSAGE *************
