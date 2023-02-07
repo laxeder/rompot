@@ -6,9 +6,8 @@ import Chat from "@modules/Chat";
 import { setBotProperty } from "@utils/bot";
 
 import { BotModule } from "../types/Bot";
-import { UserModule } from "../types/User";
 
-export default class User implements UserModule {
+export default class User implements UserInterface {
   public id: string;
   public name: string;
   public description: string;
@@ -106,7 +105,7 @@ export default class User implements UserModule {
    * @param bot Bot que irá executar os métodos
    * @param user Interface do usuário
    */
-  public static Inject<UserIn extends UserInterface>(bot: BotModule, user: UserIn): UserIn & UserModule {
+  public static Inject<UserIn extends UserInterface>(bot: BotModule, user: UserIn): UserIn & UserInterface {
     const userModule = new User(user.id, user.name, user.description, user.profile);
 
     setBotProperty(bot, userModule);

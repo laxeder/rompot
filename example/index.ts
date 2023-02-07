@@ -94,11 +94,11 @@ ban.setExecute((message: Message) => {
     return message.reply("Apenas é possível banir membros em grupos");
   }
 
-  if (!message.chat.getMember(message.user)?.isAdmin) {
+  if (!message.chat.getMember(message.user)?.IsAdmin) {
     return message.reply("Vocẽ não tem permissão para executar esse comando");
   }
 
-  if (!message.chat.getMember(bot.id)?.isAdmin) {
+  if (!message.chat.getMember(bot.id)?.IsAdmin) {
     return message.reply("Eu não tenho permissão para executar esse comando");
   }
 
@@ -115,11 +115,11 @@ add.setExecute((message: Message) => {
     return message.reply("Apenas é possível adicionar membros em grupos");
   }
 
-  if (!message.chat.getMember(message.user)?.isAdmin) {
+  if (!message.chat.getMember(message.user)?.IsAdmin) {
     return message.reply("Vocẽ não tem permissão para executar esse comando");
   }
 
-  if (!message.chat.getMember(bot.id)?.isAdmin) {
+  if (!message.chat.getMember(bot.id)?.IsAdmin) {
     return message.reply("Eu não tenho permissão para executar esse comando");
   }
 

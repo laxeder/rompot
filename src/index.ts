@@ -1,4 +1,4 @@
-import ConnectionConfig from "@config/ConnectionConfig";
+import { ConnectionConfig } from "@config/ConnectionConfig";
 
 import UserInterface from "@interfaces/UserInterface";
 import ChatInterface from "@interfaces/ChatInterface";
@@ -14,8 +14,6 @@ import MediaMessage from "@messages/MediaMessage";
 import ListMessage from "@messages/ListMessage";
 import Message from "@messages/Message";
 
-import { Commands } from "@modules/Commands";
-import { Command } from "@modules/Command";
 import { BuildBot } from "@modules/Bot";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
@@ -33,7 +31,7 @@ export * from "@interfaces/MessagesInterfaces";
 
 export { ButtonMessage, ContactMessage, ImageMessage, VideoMessage, MediaMessage, Message, ListMessage, LocationMessage };
 
-export { BuildBot, Chat, User, Command, Commands };
+export { BuildBot, Chat, User };
 
 export { Emmiter, EventsEmitter, PromiseMessages, PromiseMessage, WaitCallBack, sleep, getImageURL };
 export * from "@utils/error";

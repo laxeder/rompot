@@ -1,7 +1,9 @@
 import { Transform } from "stream";
 import https from "https";
 
-export default (uri: string) => {
+export default async (uri: string): Promise<Buffer> => {
+  if (!!!uri) return Buffer.from("");
+
   return new Promise((res, rej) => {
     try {
       https
@@ -13,7 +15,7 @@ export default (uri: string) => {
         })
         .end();
     } catch (e) {
-      rej(e);
+      res(Buffer.from(""));
     }
   });
 };
