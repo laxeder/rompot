@@ -1,17 +1,5 @@
 import { Boom } from "@hapi/boom";
-import makeWASocket, {
-  DisconnectReason,
-  downloadMediaMessage,
-  proto,
-  MediaDownloadOptions,
-  UserFacingSocketConfig,
-  ConnectionState,
-  WAMessage,
-  MessageUpsertType,
-  WASocket,
-  WAPresence,
-  generateWAMessage,
-} from "@adiwajshing/baileys";
+import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, ConnectionState, WAMessage, MessageUpsertType, WASocket, generateWAMessage } from "@adiwajshing/baileys";
 
 import { WhatsAppConvertMessage } from "@wa/WAConvertMessage";
 import { getBaileysAuth, MultiFileAuthState } from "@wa/Auth";
@@ -34,10 +22,12 @@ import WaitCallBack from "@utils/WaitCallBack";
 import { getError } from "@utils/error";
 import Chat from "@modules/Chat";
 import ChatInterface from "@interfaces/ChatInterface";
+import pino from "pino";
+import MediaMessage from "@messages/MediaMessage";
 
 export class WhatsAppBot implements BotInterface {
   //@ts-ignore
-  private _bot: WASocket;
+  private _bot: WASocket = {};
   public DisconnectReason = DisconnectReason;
   public chats: WAChats = {};
   public ev: Emmiter = new Emmiter();
@@ -167,7 +157,7 @@ export class WhatsAppBot implements BotInterface {
         });
 
         this._bot.ev.on("chats.delete", (deletions: any) => {
-          for (const id of deletions) this.removeChat(replaceID(id));
+          for (const id of deletions) this.removeChat(new WAChat(id));
         });
 
         this._bot.ev.on("groups.update", (updates: any) => {
@@ -344,7 +334,7 @@ export class WhatsAppBot implements BotInterface {
     this.ev.emit("chat", { action: "remove", chat });
   }
 
-  public async getChat(chat: ChatInterface): Promise<WAChat | null> {
+  public async getChat(chat: WAChat): Promise<WAChat | null> {
     try {
       if (!this.chats[replaceID(chat.id)]) {
         if (chat.id.includes("@s") || !chat.id.includes("@")) {
@@ -454,7 +444,7 @@ export class WhatsAppBot implements BotInterface {
   //! ******************************** NOME ********************************
 
   public async getBotName() {
-    return (await this.getChat(this.id))?.name || "";
+    return (await this.getChat(new WAChat(this.id)))?.name || "";
   }
 
   public async setBotName(name: string) {
@@ -462,7 +452,7 @@ export class WhatsAppBot implements BotInterface {
   }
 
   public async getUserName(user: WAUser) {
-    return (await this.getChat(user.id))?.name || "";
+    return (await this.getChat(new WAChat(user.id)))?.name || "";
   }
 
   public async setUserName(user: WAUser, name: string) {
@@ -472,7 +462,7 @@ export class WhatsAppBot implements BotInterface {
   }
 
   public async getChatName(chat: WAChat) {
-    return (await this.getChat(chat.id))?.name || "";
+    return (await this.getChat(chat))?.name || "";
   }
 
   public async setChatName(chat: WAChat, name: string) {
@@ -536,7 +526,7 @@ export class WhatsAppBot implements BotInterface {
   }
 
   public async getChatDescription(chat: WAChat) {
-    return (await this.getChat(chat.id))?.description || "";
+    return (await this.getChat(chat))?.description || "";
   }
 
   public async setDescription(chat: WAChat, description: string): Promise<any> {
@@ -544,9 +534,7 @@ export class WhatsAppBot implements BotInterface {
   }
 
   public async sendMessage(content: Message): Promise<Message> {
-    if (!this.config.disableAutoTyping && !(content instanceof ReactionMessage)) {
-      await this.sendStatus(new Status("typing", content.chat, content));
-    }
+    //TODO: Colocar auto escrevendo
 
     const waMSG = new WhatsAppMessage(this, content);
     await waMSG.refactory(content);
@@ -559,7 +547,6 @@ export class WhatsAppBot implements BotInterface {
       const fullMsg = await this.wcb.waitCall(() =>
         generateWAMessage(chat, message, {
           userJid: getID(this.id),
-          logger: this.config.logger,
           ...context,
         })
       );
@@ -576,24 +563,6 @@ export class WhatsAppBot implements BotInterface {
     }
 
     return sendedMessage ? await new WhatsAppConvertMessage(this, sendedMessage).get() : content;
-  }
-
-  /**
-   * * Envia um conteúdo
-   * @param content
-   * @returns
-   */
-  public async sendStatus(content: Status): Promise<any> {
-    if (content.status === "reading") {
-      const key: any = { remoteJid: getID(content.chat?.id || ""), id: content.message?.id };
-
-      if (key.remoteJid?.includes("@g")) key.participant = getID(content.message?.user.id || "");
-
-      return await this.wcb.waitCall(() => this._bot?.readMessages([key]));
-    }
-
-    const status: WAPresence = this.statusOpts[content.status];
-    return await this.wcb.waitCall(() => this._bot?.sendPresenceUpdate(status, getID(content.chat?.id || "")));
   }
 
   /**

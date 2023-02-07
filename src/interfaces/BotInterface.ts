@@ -18,7 +18,8 @@ import {
   MediaMessageInterface,
   MessageInterface,
   VideoMessageInterface,
-} from "./MessagesInterfaces";
+} from "@interfaces/MessagesInterfaces";
+import Auth from "@interfaces/Auth";
 
 import { Chats, ChatStatus } from "../types/Chat";
 import { BotStatus } from "../types/Bot";
@@ -46,15 +47,15 @@ export default interface BotInterface {
 
   /**
    * * Conectar bot
-   * @param config Configuração do bot
+   * @param auth Autenticação do bot
    */
-  connect(config: ConnectionConfig): Promise<void>;
+  connect(auth: Auth | string): Promise<void>;
 
   /**
    * * Reconectar bot
-   * @param config Configuração do bot
+   * @param alert Alerta que está reconectando (default: true)
    */
-  reconnect(config: ConnectionConfig): Promise<void>;
+  reconnect(alert?: boolean): Promise<void>;
 
   /**
    * * Parar bot
