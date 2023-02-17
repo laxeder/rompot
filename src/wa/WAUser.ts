@@ -15,10 +15,11 @@ export default class WAUser extends User {
   /** * É líder da sala de bate-papo */
   public isLeader: boolean = false;
 
-  constructor(id: string, name?: string, description?: string) {
+  constructor(id: string, name?: string, description?: string, profile?: Buffer) {
     super(id);
 
     this.name = name || "";
     this.description = description || "";
+    this.profile = profile || Buffer.from("");
   }
 }
