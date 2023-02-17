@@ -1,14 +1,12 @@
 import CommandConfig, { DefaultCommandConfig } from "@config/CommandConfig";
-import Auth from "@interfaces/Auth";
 
 export interface ConnectionConfig {
-  commandConfig?: CommandConfig;
+  commandConfig: CommandConfig;
   receiveAllMessages?: boolean;
   disableAutoCommand?: boolean;
   printQRInTerminal?: boolean;
   disableAutoTyping?: boolean;
   disableAutoRead?: boolean;
-  auth: Auth | string;
 }
 
 export const DefaultConnectionConfig = {
@@ -18,5 +16,4 @@ export const DefaultConnectionConfig = {
   disableAutoCommand: false,
   disableAutoTyping: false,
   disableAutoRead: false,
-  auth: "./session",
 };
