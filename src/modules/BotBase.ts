@@ -1,4 +1,3 @@
-import { DefaultCommandConfig } from "@config/CommandConfig";
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
 import { MessageInterface } from "@interfaces/MessagesInterfaces";
@@ -42,7 +41,7 @@ export default class BotBase implements BotModule {
   public id: string = "";
   public status: BotStatus = "offline";
   public ev: Emmiter = new Emmiter();
-  public config: ConnectionConfig = { auth: "./session", commandConfig: DefaultCommandConfig };
+  public config: ConnectionConfig = DefaultConnectionConfig;
   public commands: Commands = {};
 
   //? ****** ***** CONFIG ***** ******
