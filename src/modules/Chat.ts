@@ -87,7 +87,7 @@ export default class Chat implements ChatInterface {
   }
 
   public async removeUser(user: UserInterface | string): Promise<void> {
-    return this.bot.removerUserInChat(this, user);
+    return this.bot.removeUserInChat(this, user);
   }
 
   public async promote(user: UserInterface | string): Promise<void> {

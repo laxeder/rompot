@@ -184,8 +184,8 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
       return bot.addUserInChat(Chat.getChat(chat), User.getUser(user));
     },
 
-    removerUserInChat(chat: ChatInterface | string, user: UserInterface | string) {
-      return bot.removerUserInChat(Chat.getChat(chat), User.getUser(user));
+    removeUserInChat(chat: ChatInterface | string, user: UserInterface | string) {
+      return bot.removeUserInChat(Chat.getChat(chat), User.getUser(user));
     },
 
     promoteUserInChat(chat: ChatInterface | string, user: UserInterface | string): Promise<void> {
@@ -332,13 +332,15 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
 
     Command(): Command {
       const command = new Command();
+
       setBotProperty(this, command);
+      
       return command;
     },
 
     //? ************** MESSAGE *************
 
-    Message(chat: ChatInterface | string, text: string): Message {
+    Message(chat: ChatInterface | string, text: string) {
       const message = Message.Inject(this, bot.Message(Chat.getChat(chat), text));
 
       message.chat = Chat.Inject(this, Chat.getChat(chat));
@@ -346,7 +348,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
       return message;
     },
 
-    MediaMessage(chat: ChatInterface | string, text: string, file: any): MediaMessage {
+    MediaMessage(chat: ChatInterface | string, text: string, file: any) {
       const message = MediaMessage.Inject(this, bot.MediaMessage(Chat.getChat(chat), text, file));
 
       message.chat = Chat.Inject(this, Chat.getChat(chat));
@@ -354,7 +356,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
       return message;
     },
 
-    ImageMessage(chat: ChatInterface | string, text: string, image: Buffer): ImageMessage {
+    ImageMessage(chat: ChatInterface | string, text: string, image: Buffer) {
       const message = ImageMessage.Inject(this, bot.ImageMessage(Chat.getChat(chat), text, image));
 
       message.chat = Chat.Inject(this, Chat.getChat(chat));
@@ -362,7 +364,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
       return message;
     },
 
-    VideoMessage(chat: ChatInterface | string, text: string, video: Buffer): VideoMessage {
+    VideoMessage(chat: ChatInterface | string, text: string, video: Buffer) {
       const message = VideoMessage.Inject(this, bot.VideoMessage(Chat.getChat(chat), text, video));
 
       message.chat = Chat.Inject(this, Chat.getChat(chat));
@@ -370,7 +372,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
       return message;
     },
 
-    ContactMessage(chat: ChatInterface | string, text: string, contact: string | string[]): ContactMessage {
+    ContactMessage(chat: ChatInterface | string, text: string, contact: string | string[]) {
       const message = ContactMessage.Inject(this, bot.ContactMessage(Chat.getChat(chat), text, contact));
 
       message.chat = Chat.Inject(this, Chat.getChat(chat));
@@ -378,7 +380,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
       return message;
     },
 
-    LocationMessage(chat: ChatInterface | string, latitude: number, longitude: number): LocationMessage {
+    LocationMessage(chat: ChatInterface | string, latitude: number, longitude: number) {
       const message = LocationMessage.Inject(this, bot.LocationMessage(Chat.getChat(chat), longitude, latitude));
 
       message.chat = Chat.Inject(this, Chat.getChat(chat));
@@ -386,7 +388,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
       return message;
     },
 
-    ListMessage(chat: ChatInterface | string, text: string, button: string): ListMessage {
+    ListMessage(chat: ChatInterface | string, text: string, button: string) {
       const message = ListMessage.Inject(this, bot.ListMessage(Chat.getChat(chat), text, button));
 
       message.chat = Chat.Inject(this, Chat.getChat(chat));
@@ -394,7 +396,7 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
       return message;
     },
 
-    ButtonMessage(chat: ChatInterface | string, text: string): ButtonMessage {
+    ButtonMessage(chat: ChatInterface | string, text: string) {
       const message = ButtonMessage.Inject(this, bot.ButtonMessage(Chat.getChat(chat), text));
 
       message.chat = Chat.Inject(this, Chat.getChat(chat));

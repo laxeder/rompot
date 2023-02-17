@@ -4,6 +4,7 @@ import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionCon
 import { MessageInterface } from "@interfaces/MessagesInterfaces";
 import UserInterface from "@interfaces/UserInterface";
 import ChatInterface from "@interfaces/ChatInterface";
+import Auth from "@interfaces/Auth";
 
 import LocationMessage from "@messages/LocationMessage";
 import ContactMessage from "@messages/ContactMessage";
@@ -27,9 +28,9 @@ import { Chats, ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
 
 export default class BotBase implements BotModule {
-  public async connect(config: ConnectionConfig) {}
+  public async connect(auth: Auth | string) {}
 
-  public async reconnect(config: ConnectionConfig) {}
+  public async reconnect(alert?: boolean) {}
 
   public async stop(reason: any) {}
 
@@ -110,7 +111,7 @@ export default class BotBase implements BotModule {
 
   public async addUserInChat(chat: ChatInterface | string, user: UserInterface | string) {}
 
-  public async removerUserInChat(chat: ChatInterface | string, user: UserInterface | string) {}
+  public async removeUserInChat(chat: ChatInterface | string, user: UserInterface | string) {}
 
   public async promoteUserInChat(chat: ChatInterface | string, user: UserInterface | string) {}
 
