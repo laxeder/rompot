@@ -59,6 +59,7 @@ export interface MessageInterface {
   /**
    * * Envia uma mensagem mencionando a mensagem atual
    * @param message Mensagem que terá enviada
+   * @param mention Se verdadeiro a mensagem é mencionada
    */
   reply(message: MessageInterface | string, mention: boolean): Promise<MessageInterface>;
 

@@ -1,5 +1,3 @@
-import { ConnectionConfig } from "@config/ConnectionConfig";
-
 import {
   ButtonMessageInterface,
   ContactMessageInterface,
@@ -24,6 +22,7 @@ import PromiseMessages from "@utils/PromiseMessages";
 import { Chats, ChatStatus } from "../types/Chat";
 import { CommandsInject } from "../types/Command";
 import { Users } from "../types/User";
+import Auth from "./Auth";
 
 export default interface BotControl {
   promiseMessages: PromiseMessages;
@@ -69,15 +68,15 @@ export default interface BotControl {
 
   /**
    * * Conectar bot
-   * @param config Configuração do bot
+   * @param auth Autenticação do bot
    */
-  connect(config: ConnectionConfig): Promise<void>;
+  connect(auth: Auth | string): Promise<void>;
 
   /**
    * * Reconectar bot
-   * @param config Configuração do bot
+   * @param alert Alerta que está reconectando
    */
-  reconnect(config: ConnectionConfig): Promise<void>;
+  reconnect(alert?: boolean): Promise<void>;
 
   /**
    * * Parar bot
@@ -193,7 +192,7 @@ export default interface BotControl {
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  removerUserInChat(chat: ChatInterface | string, user: UserInterface | string): Promise<void>;
+  removeUserInChat(chat: ChatInterface | string, user: UserInterface | string): Promise<void>;
 
   /**
    * * Promove há administrador um usuário da sala de bate-papo

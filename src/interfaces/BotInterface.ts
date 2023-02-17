@@ -53,7 +53,7 @@ export default interface BotInterface {
 
   /**
    * * Reconectar bot
-   * @param alert Alerta que está reconectando (default: true)
+   * @param alert Alerta que está reconectando
    */
   reconnect(alert?: boolean): Promise<void>;
 
@@ -150,7 +150,7 @@ export default interface BotInterface {
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  removerUserInChat(chat: ChatInterface, user: UserInterface): Promise<void>;
+  removeUserInChat(chat: ChatInterface, user: UserInterface): Promise<void>;
 
   /**
    * * Promove há administrador um usuário da sala de bate-papo
