@@ -47,6 +47,9 @@ export default class ButtonMessage extends Message implements ButtonMessageInter
 
     module.inject(bot, msg);
 
+    module.footer = msg.footer;
+    module.buttons = msg.buttons;
+
     return { ...msg, ...module };
   }
 }
