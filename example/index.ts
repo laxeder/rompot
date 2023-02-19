@@ -1,4 +1,4 @@
-import BuildBot, { WhatsAppBot, Message, Command, User, WAModule, DefaultCommandConfig } from "../lib/index";
+import BuildBot, { WhatsAppBot, Message, Command, WAModule, DefaultCommandConfig } from "../lib/index";
 
 const bot: WAModule = BuildBot(new WhatsAppBot(), {
   disableAutoCommand: false,
