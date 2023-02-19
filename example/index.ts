@@ -1,13 +1,15 @@
-import { WhatsAppBot, Message, Commands, Command, User } from "../src/index";
+import BuildBot, { WhatsAppBot, Message, Command, User, WAModule, Commands } from "../lib/index";
 
-const bot = new WhatsAppBot({
-  disableAutoCommand: false,
-  autoRunBotCommand: true,
-  disableAutoRead: true,
-  receiveAllMessages: false,
-  disableAutoTyping: false,
-  auth: "./example/auth",
-});
+const bot: WAModule = BuildBot(
+  new WhatsAppBot({
+    disableAutoCommand: false,
+    autoRunBotCommand: true,
+    disableAutoRead: true,
+    receiveAllMessages: false,
+    disableAutoTyping: false,
+    auth: "./example/auth",
+  })
+);
 
 bot.on("open", (open: { status: string; isNewLogin: boolean }) => {
   if (open.isNewLogin) {
@@ -130,8 +132,7 @@ add.setExecute((message: Message) => {
   bot.addMember(message.chat, new User(message.mentions[0] || ""));
 });
 
-const commands = new Commands({ hello, date, ban, add });
-commands.setPrefix("/");
+const commands = [hello, date, ban, add];
 
 bot.setCommands(commands);
 bot.connect();
