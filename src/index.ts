@@ -23,6 +23,8 @@ import Emmiter, { EventsEmitter } from "@utils/Emmiter";
 import WaitCallBack from "@utils/WaitCallBack";
 import getImageURL from "@utils/getImageURL";
 import sleep from "@utils/sleep";
+import WhatsAppBot from "@wa/WhatsAppBot";
+import Command from "@modules/Command";
 
 export { ConnectionConfig };
 
@@ -38,10 +40,15 @@ export * from "@utils/error";
 export * from "@utils/bot";
 
 export * from "./types/Connection";
-export * from "./types/Bot";
+export * from "./types/Command";
 export * from "./types/Message";
-export * from "./types/Member";
 export * from "./types/Chat";
 export * from "./types/User";
+export * from "./types/Bot";
+export * from "./wa/WAModule";
+
+export { Command };
+
+export { WhatsAppBot };
 
 export default BuildBot;
