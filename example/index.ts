@@ -1,15 +1,12 @@
-import BuildBot, { WhatsAppBot, Message, Command, User, WAModule, Commands } from "../lib/index";
+import BuildBot, { WhatsAppBot, Message, Command, User, WAModule, DefaultCommandConfig } from "../lib/index";
 
-const bot: WAModule = BuildBot(
-  new WhatsAppBot({
-    disableAutoCommand: false,
-    autoRunBotCommand: true,
-    disableAutoRead: true,
-    receiveAllMessages: false,
-    disableAutoTyping: false,
-    auth: "./example/auth",
-  })
-);
+const bot: WAModule = BuildBot(new WhatsAppBot(), {
+  disableAutoCommand: false,
+  disableAutoTyping: false,
+  disableAutoRead: true,
+  receiveAllMessages: false,
+  commandConfig: DefaultCommandConfig,
+});
 
 bot.on("open", (open: { status: string; isNewLogin: boolean }) => {
   if (open.isNewLogin) {
@@ -81,58 +78,101 @@ bot.on("error", (err: any) => {
   console.log("Um erro ocorreu:", err);
 });
 
-const hello = new Command("hello", "Manda um simples Hello");
-hello.setSend("Hello There!");
+class HelloCommand extends Command {
+  tags: string[] = ["hello"];
+  prefix: string = "/";
+  name: string = "Olá!";
+  description: string = "Reply hello";
+  categories: string[] = ["dev"];
 
-const date = new Command(["date", "dt", "data"]);
-date.setExecute((message: Message) => {
-  const bot = message.getBot();
-  bot?.send(new Message(message.chat, `Data: ${new Date()}`));
-});
-
-const ban = new Command(["ban", "expulse"]);
-ban.setExecute((message: Message) => {
-  if (message.chat.type !== "group") {
-    return message.reply("Apenas é possível banir membros em grupos");
+  public async execute(message: Message): Promise<void> {
+    await message.reply(`Hello World`);
   }
+}
 
-  if (!message.chat.getMember(message.user)?.IsAdmin) {
-    return message.reply("Vocẽ não tem permissão para executar esse comando");
+class DateCommand extends Command {
+  tags: string[] = ["date"];
+  prefix: string = "/";
+  name: string = "Data";
+  description: string = "Send now date";
+  categories: string[] = ["info"];
+
+  public async execute(message: Message): Promise<void> {
+    await message.reply(`Data: ${new Date()}`);
   }
+}
 
-  if (!message.chat.getMember(bot.id)?.IsAdmin) {
-    return message.reply("Eu não tenho permissão para executar esse comando");
+class BanCommand extends Command {
+  tags: string[] = ["ban"];
+  prefix: string = "/";
+  name: string = "Ban User";
+  description: string = "Ban user in chat";
+  categories: string[] = ["admin", "group"];
+  permissions: string[] = ["chat-admin"];
+
+  public async execute(message: Message): Promise<void> {
+    if (message.chat.type !== "group") {
+      await message.reply("Apenas é possível banir membros em grupos");
+      return;
+    }
+
+    if (!(await message.chat.IsAdmin(message.user))) {
+      await message.reply("Vocẽ não tem permissão para executar esse comando");
+      return;
+    }
+
+    if (!(await message.chat.IsAdmin(bot.id))) {
+      await message.reply("Eu não tenho permissão para executar esse comando");
+      return;
+    }
+
+    if (message.mentions.length < 1) {
+      await message.reply("Vocẽ precisa mencionar alguem para que ela possa ser banida");
+      return;
+    }
+
+    await bot.removeUserInChat(message.chat, message.mentions[0]);
+
+    await message.chat.send("Usuário removido com sucesso!!");
   }
+}
 
-  if (message.mentions.length < 1) {
-    return message.reply("Vocẽ precisa mencionar alguem para que ela possa ser banida");
+class AddCommand extends Command {
+  tags: string[] = ["add"];
+  prefix: string = "/";
+  name: string = "Add User";
+  description: string = "Add user in chat";
+  categories: string[] = ["admin", "group"];
+  permissions: string[] = ["chat-admin"];
+
+  public async execute(message: Message): Promise<void> {
+    if (message.chat.type !== "group") {
+      message.reply("Apenas é possível adicionar membros em grupos");
+      return;
+    }
+
+    if (!(await message.chat.IsAdmin(message.user))) {
+      message.reply("Vocẽ não tem permissão para executar esse comando");
+      return;
+    }
+
+    if (!(await message.chat.IsAdmin(bot.id))) {
+      message.reply("Eu não tenho permissão para executar esse comando");
+      return;
+    }
+
+    if (message.mentions.length < 1) {
+      message.reply("Vocẽ precisa mencionar alguem para que ela possa ser adicionada");
+      return;
+    }
+
+    await bot.addUserInChat(message.chat, message.mentions[0]);
+
+    await message.chat.send("Usuário adicionado com sucesso!!");
   }
+}
 
-  bot.removeMember(message.chat, new User(message.mentions[0] || ""));
-});
-
-const add = new Command(["add"]);
-add.setExecute((message: Message) => {
-  if (message.chat.type !== "group") {
-    return message.reply("Apenas é possível adicionar membros em grupos");
-  }
-
-  if (!message.chat.getMember(message.user)?.IsAdmin) {
-    return message.reply("Vocẽ não tem permissão para executar esse comando");
-  }
-
-  if (!message.chat.getMember(bot.id)?.IsAdmin) {
-    return message.reply("Eu não tenho permissão para executar esse comando");
-  }
-
-  if (message.mentions.length < 1) {
-    return message.reply("Vocẽ precisa mencionar alguem para que ela possa ser adicionada");
-  }
-
-  bot.addMember(message.chat, new User(message.mentions[0] || ""));
-});
-
-const commands = [hello, date, ban, add];
+const commands = [new HelloCommand(), new DateCommand(), new BanCommand(), new AddCommand()];
 
 bot.setCommands(commands);
 bot.connect();
