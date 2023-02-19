@@ -1,4 +1,4 @@
-import { ConnectionConfig } from "@config/ConnectionConfig";
+import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
 import UserInterface from "@interfaces/UserInterface";
 import ChatInterface from "@interfaces/ChatInterface";
@@ -25,6 +25,7 @@ import getImageURL from "@utils/getImageURL";
 import sleep from "@utils/sleep";
 import WhatsAppBot from "@wa/WhatsAppBot";
 import Command from "@modules/Command";
+import { DefaultCommandConfig } from "@config/CommandConfig";
 
 export { ConnectionConfig };
 
@@ -46,6 +47,8 @@ export * from "./types/Chat";
 export * from "./types/User";
 export * from "./types/Bot";
 export * from "./wa/WAModule";
+
+export { DefaultCommandConfig, DefaultConnectionConfig };
 
 export { Command };
 
