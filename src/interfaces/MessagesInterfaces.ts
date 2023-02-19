@@ -30,6 +30,9 @@ export interface MessageInterface {
    */
   fromMe: boolean;
 
+  /** * Opção selecionada */
+  selected: string;
+
   /**
    * * Usuários que foram mencionados na mensagem
    */
@@ -109,6 +112,13 @@ export interface VideoMessageInterface extends MediaMessageInterface {
    * @returns Retorna o video da mensagem
    */
   getVideo(): Promise<Buffer>;
+}
+
+export interface AudioMessageInterface extends MediaMessageInterface {
+  /**
+   * @return Retorna o audio da mensagem
+   */
+  getAudio(): Promise<Buffer>;
 }
 
 export interface LocationMessageInterface extends MessageInterface {

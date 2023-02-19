@@ -14,7 +14,7 @@ import MediaMessage from "@messages/MediaMessage";
 import ListMessage from "@messages/ListMessage";
 import Message from "@messages/Message";
 
-import { BuildBot } from "@modules/Bot";
+import { BuildBot } from "@modules/BuildBot";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 

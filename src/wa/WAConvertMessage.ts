@@ -1,28 +1,22 @@
-import {
-  downloadMediaMessage,
-  getContentType,
-  MessageUpsertType,
-  proto,
-  WAMessage,
-  WAMessageContent,
-} from "@adiwajshing/baileys";
+import { downloadMediaMessage, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
 import pino from "pino";
 
-import { LocationMessage } from "@messages/LocationMessage";
-import { ReactionMessage } from "@messages/ReactionMessage";
-import { ContactMessage } from "@messages/ContactMessage";
-import { ButtonMessage } from "@messages/ButtonMessage";
-import { ImageMessage } from "@messages/ImageMessage";
-import { MediaMessage } from "@messages/MediaMessage";
-import { VideoMessage } from "@messages/VideoMessage";
-import { AudioMessage } from "@messages/AudioMessage";
-import { ListMessage } from "@messages/ListMessage";
+import LocationMessage from "@messages/LocationMessage";
+import ContactMessage from "@messages/ContactMessage";
+import ButtonMessage from "@messages/ButtonMessage";
+import ImageMessage from "@messages/ImageMessage";
+import MediaMessage from "@messages/MediaMessage";
+import VideoMessage from "@messages/VideoMessage";
+// import AudioMessage from "@messages/AudioMessage";
+import ListMessage from "@messages/ListMessage";
 
-import { WhatsAppBot } from "@wa/WhatsAppBot";
-import { Message } from "@messages/Message";
-import { Chat } from "@modules/Chat";
-import { User } from "@modules/User";
+import WhatsAppBot from "@wa/WhatsAppBot";
+import Message from "@messages/Message";
 import { replaceID } from "@wa/ID";
+import Chat from "@modules/Chat";
+import User from "@modules/User";
+import WAUser from "./WAUser";
+import AudioMessage from "@messages/AudioMessage";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
@@ -55,10 +49,10 @@ export class WhatsAppConvertMessage {
   public async get() {
     await this.convertMessage(this._message, this._type);
 
-    if (this._mention) this._convertedMessage.setMention(this._mention);
+    if (this._mention) this._convertedMessage.mention = this._mention;
 
-    this._convertedMessage.setChat(this._chat);
-    this._convertedMessage.setUser(this._user);
+    this._convertedMessage.chat = this._chat;
+    this._convertedMessage.user = this._user;
 
     return this._convertedMessage;
   }
@@ -85,7 +79,7 @@ export class WhatsAppConvertMessage {
     if (message.pushName) this._chat.name = message.pushName;
 
     const userID = replaceID(message.key.participant || message.participant || message.key.remoteJid || "");
-    this._user = chat?.members && chat?.members[userID] ? chat?.members[userID] : new User(userID);
+    this._user = chat?.users && chat?.users[userID] ? chat?.users[userID] : new User(userID);
     this._user.name = message.pushName || "";
 
     await this.convertContentMessage(message.message);
@@ -97,9 +91,7 @@ export class WhatsAppConvertMessage {
 
     if (message.messageTimestamp) this._convertedMessage.timestamp = message.messageTimestamp;
     if (message.key.id) this._convertedMessage.id = message.key.id;
-    if (type) this._convertedMessage.isOld = type !== "notify";
-
-    this._convertedMessage.setOriginalMessage(message);
+    // if (type) this._convertedMessage.isOld = type !== "notify";
   }
 
   /**
@@ -114,8 +106,7 @@ export class WhatsAppConvertMessage {
 
     if (!contentType) return;
 
-    let content: any =
-      contentType === "conversation" ? { text: messageContent[contentType] } : messageContent[contentType];
+    let content: any = contentType === "conversation" ? { text: messageContent[contentType] } : messageContent[contentType];
 
     if (content.message) {
       await this.convertContentMessage(content.message);
@@ -142,20 +133,8 @@ export class WhatsAppConvertMessage {
       this.convertContactMessage(content);
     }
 
-    if (contentType === "reactionMessage") {
-      this.convertReactionMessage(content);
-    }
-
     if (!!!this._convertedMessage.text) {
-      this._convertedMessage.setText(
-        content.text ||
-          content.caption ||
-          content.buttonText ||
-          content.contentText ||
-          content.hydratedTemplate?.hydratedContentText ||
-          content.displayName ||
-          ""
-      );
+      this._convertedMessage.text = content.text || content.caption || content.buttonText || content.contentText || content.hydratedTemplate?.hydratedContentText || content.displayName || "";
     }
 
     if (content.contextInfo) {
@@ -178,9 +157,9 @@ export class WhatsAppConvertMessage {
    */
   public async convertContextMessage(context: proto.ContextInfo) {
     if (context.mentionedJid) {
-      context.mentionedJid.forEach((jid) => {
-        this._convertedMessage.addMentions(replaceID(jid));
-      });
+      for (const jid of context.mentionedJid) {
+        this._convertedMessage.mentions.push(replaceID(jid));
+      }
     }
 
     if (context.quotedMessage) {
@@ -196,8 +175,6 @@ export class WhatsAppConvertMessage {
       const wa = new WhatsAppConvertMessage(this._wa, message);
 
       this._mention = await wa.get();
-
-      this._convertedMessage.setOriginalMention(message);
     }
   }
 
@@ -216,8 +193,10 @@ export class WhatsAppConvertMessage {
   public convertContactMessage(content: any) {
     this._convertedMessage = new ContactMessage(this._chat, content.displayName, []);
 
-    const getContact = (vcard: string | any): User => {
-      const user = new User("");
+    const getContact = (vcard: string | any): string => {
+      //TODO: obter diretamente contato
+
+      const user = new WAUser("");
 
       if (typeof vcard == "object") {
         vcard = vcard.vcard;
@@ -229,10 +208,10 @@ export class WhatsAppConvertMessage {
       const id = vcard.slice(vcard.indexOf("waid=") + 5);
       user.id = replaceID(id.slice(0, id.indexOf(":")) + "@s.whatsapp.net");
 
-      return user;
+      return user.id;
     };
 
-    const contacts: User[] = [];
+    const contacts: string[] = [];
 
     if (content.contacts) {
       content.contacts.forEach((vcard: string) => {
@@ -268,14 +247,14 @@ export class WhatsAppConvertMessage {
     }
 
     if (content.gifPlayback && this._convertedMessage instanceof MediaMessage) {
-      this._convertedMessage.setIsGIF(true);
+      this._convertedMessage.isGIF = true;
     }
 
     const logger: any = pino({ level: "silent" });
 
     if (this._convertedMessage instanceof MediaMessage) {
-      const download = () =>
-        downloadMediaMessage(
+      const download = () => {
+        return downloadMediaMessage(
           this._message,
           "buffer",
           {},
@@ -284,8 +263,11 @@ export class WhatsAppConvertMessage {
             reuploadRequest: (msg: proto.IWebMessageInfo) => new Promise((resolve) => resolve(msg)),
           }
         );
+      };
 
-      this._convertedMessage.setSream(download);
+      Object.defineProperty(this._convertedMessage, "getStream", {
+        get: () => download,
+      });
     }
   }
 
@@ -300,9 +282,9 @@ export class WhatsAppConvertMessage {
 
     if (buttonMessage.hydratedTemplate) buttonMessage = buttonMessage.hydratedTemplate;
 
-    buttonMSG.setText(buttonMessage.contentText || buttonMessage.hydratedContentText || "");
-    buttonMSG.setFooter(buttonMessage.footerText || buttonMessage.hydratedFooterText || "");
-    buttonMSG.setType(buttonMessage.headerType || buttonMessage.hydratedHeaderType || 1);
+    buttonMSG.text = buttonMessage.contentText || buttonMessage.hydratedContentText || "";
+    buttonMSG.footer = buttonMessage.footerText || buttonMessage.hydratedFooterText || "";
+    // buttonMSG.setType(buttonMessage.headerType || buttonMessage.hydratedHeaderType || 1)
 
     buttonMessage.buttons?.map((button: proto.Message.ButtonsMessage.IButton) => {
       buttonMSG.addReply(button?.buttonText?.displayText || "", button.buttonId || buttonMSG.generateID());
@@ -310,10 +292,7 @@ export class WhatsAppConvertMessage {
 
     buttonMessage.hydratedButtons?.map((button: any) => {
       if (button.callButton) {
-        buttonMSG.addCall(
-          button.callButton.displayText || "",
-          button.callButton.phoneNumber || buttonMSG.buttons.length
-        );
+        buttonMSG.addCall(button.callButton.displayText || "", button.callButton.phoneNumber || buttonMSG.buttons.length);
       }
 
       if (button.urlButton) {
@@ -340,10 +319,10 @@ export class WhatsAppConvertMessage {
 
     const listMSG = new ListMessage(this._chat, "", "", "", "");
 
-    listMSG.setText(listMessage.description || "");
+    listMSG.text = listMessage.description || "";
     listMSG.title = listMessage.title || "";
     listMSG.footer = listMessage.footerText || "";
-    listMSG.buttonText = listMessage.buttonText || "";
+    listMSG.button = listMessage.buttonText || "";
 
     listMessage?.sections?.map((list) => {
       const index = listMSG.list.length;
@@ -355,9 +334,5 @@ export class WhatsAppConvertMessage {
     });
 
     this._convertedMessage = listMSG;
-  }
-
-  public convertReactionMessage(content: any) {
-    this._convertedMessage = new ReactionMessage(this._chat, content.text, content.key.id);
   }
 }

@@ -1,5 +1,5 @@
-import { WhatsAppBot } from "./WhatsAppBot";
-import BotModule from "@modules/Bot";
+import BotControl from "@interfaces/BotControl";
 
-export type WAModule = WhatsAppBot & BotModule;
+import WhatsAppBot from "@wa/WhatsAppBot";
 
+export type WAModule = WhatsAppBot & BotControl;

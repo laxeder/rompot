@@ -16,6 +16,7 @@ export default class Message implements MessageInterface {
   public user: User;
   public text: string;
   public fromMe: boolean;
+  public selected: string;
   public mentions: string[];
   public mention?: Message;
   public timestamp: Number | Long;
@@ -31,6 +32,7 @@ export default class Message implements MessageInterface {
     this.user = new User(this.bot.id);
     this.text = text;
     this.fromMe = true;
+    this.selected = "";
     this.mentions = [];
 
     if (mention) {

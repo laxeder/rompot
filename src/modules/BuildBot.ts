@@ -323,18 +323,18 @@ export function BuildBot<Bot extends BotInterface>(bot: Bot, config?: Connection
     //? ************** MODELS **************
 
     Chat(chat: ChatInterface | string) {
-      return Chat.Inject(this, bot.Chat(Chat.getChatId(chat)));
+      return Chat.Inject(this, bot.Chat(Chat.getChat(chat)));
     },
 
     User(user: UserInterface | string) {
-      return User.Inject(this, bot.User(User.getUserId(user)));
+      return User.Inject(this, bot.User(User.getUser(user)));
     },
 
     Command(): Command {
       const command = new Command();
 
       setBotProperty(this, command);
-      
+
       return command;
     },
 

@@ -16,7 +16,7 @@ export default class MediaMessage extends Message implements MediaMessageInterfa
     this.file = file || Buffer.from(String(file || ""));
   }
 
-  public async getStream(stream: any): Promise<Buffer> {
+  public async getStream(stream: any = this.file): Promise<Buffer> {
     if (Buffer.isBuffer(stream)) return stream;
 
     return Buffer.from(String(stream || ""));

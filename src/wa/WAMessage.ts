@@ -1,14 +1,19 @@
-import { LocationMessage } from "@messages/LocationMessage";
-import { ReactionMessage } from "@messages/ReactionMessage";
-import { ContactMessage } from "@messages/ContactMessage";
-import { generateWAMessage } from "@adiwajshing/baileys";
-import { ButtonMessage } from "@messages/ButtonMessage";
-import { MediaMessage } from "@messages/MediaMessage";
-import { ListMessage } from "@messages/ListMessage";
-import { List, ListItem } from "../types/List";
-import { WhatsAppBot } from "@wa/WhatsAppBot";
+import { generateWAMessage, MiscMessageGenerationOptions } from "@adiwajshing/baileys";
+
+import LocationMessage from "@messages/LocationMessage";
+import ContactMessage from "@messages/ContactMessage";
+import ButtonMessage from "@messages/ButtonMessage";
+import ImageMessage from "@messages/ImageMessage";
+import MediaMessage from "@messages/MediaMessage";
+import VideoMessage from "@messages/VideoMessage";
+import AudioMessage from "@messages/AudioMessage";
+import ListMessage from "@messages/ListMessage";
 import Message from "@messages/Message";
+
+import WhatsAppBot from "@wa/WhatsAppBot";
 import { getID } from "@wa/ID";
+
+import { List, ListItem } from "../types/Message";
 
 export class WhatsAppMessage {
   private _message: Message;
@@ -16,7 +21,7 @@ export class WhatsAppMessage {
 
   public chat: string = "";
   public message: any = {};
-  public context: any = {};
+  public options: MiscMessageGenerationOptions = {};
 
   constructor(wa: WhatsAppBot, message: Message) {
     this._message = message;
@@ -32,17 +37,12 @@ export class WhatsAppMessage {
     this.message = await this.refactoryMessage(message);
 
     if (message.mention) {
-      const original = message.getOriginalMention();
+      const waMSG = new WhatsAppMessage(this._wa, message.mention);
+      await waMSG.refactory(message.mention);
+
       const ctx: any = {};
 
-      this.context.quoted =
-        original ||
-        message.mention.getOriginalMessage() ||
-        (await generateWAMessage(this.chat, this.message, {
-          userJid: getID(this._wa.id),
-          logger: this._wa.config.logger,
-          ...ctx,
-        }));
+      this.options.quoted = await generateWAMessage(this.chat, waMSG.message, { userJid: getID(this._wa.id), ...ctx });
     }
 
     if (message instanceof ButtonMessage) await this.refactoryButtonMessage(message);
@@ -50,7 +50,6 @@ export class WhatsAppMessage {
     if (message instanceof LocationMessage) this.refactoryLocationMessage(message);
     if (message instanceof ContactMessage) this.refactoryContactMessage(message);
     if (message instanceof ListMessage) this.refactoryListMessage(message);
-    if (message instanceof ReactionMessage) this.refactoryReactionMessage(message);
   }
 
   /**
@@ -86,19 +85,16 @@ export class WhatsAppMessage {
     this.message.caption = this.message.text;
     delete this.message.text;
 
-    const image = await message.getImage();
-    if (image) {
-      this.message.image = image;
+    if (message instanceof ImageMessage) {
+      this.message.image = message.getImage();
     }
 
-    const video = await message.getVideo();
-    if (video) {
-      this.message.video = video;
+    if (message instanceof VideoMessage) {
+      this.message.video = message.getVideo();
     }
 
-    const audio = await message.getAudio();
-    if (audio) {
-      this.message.audio = audio;
+    if (message instanceof AudioMessage) {
+      this.message.audio = message.getAudio();
       this.message.mimetype = "audio/mp4";
     }
 
@@ -108,7 +104,7 @@ export class WhatsAppMessage {
   }
 
   public refactoryLocationMessage(message: LocationMessage) {
-    this.message.location = { degreesLatitude: message.getLatitude(), degreesLongitude: message.getLongitude() };
+    this.message.location = { degreesLatitude: message.latitude, degreesLongitude: message.longitude };
 
     delete this.message.text;
   }
@@ -123,9 +119,9 @@ export class WhatsAppMessage {
       const vcard =
         "BEGIN:VCARD\n" +
         "VERSION:3.0\n" +
-        `FN:${user.name || ""}\n` +
+        `FN:${""}\n` +
         // `ORG:${user.description};\n` +
-        `TEL;type=CELL;type=VOICE;waid=${user.id}: ${getID(user.id)}\n` +
+        `TEL;type=CELL;type=VOICE;waid=${user}: ${getID(user)}\n` +
         "END:VCARD";
 
       if (message.contacts.length < 2) {
@@ -134,7 +130,7 @@ export class WhatsAppMessage {
       }
 
       this.message.contacts.contacts.push({
-        displayName: user.name,
+        displayName: "",
         vcard,
       });
     });
@@ -155,9 +151,9 @@ export class WhatsAppMessage {
       const btn: any = {};
       btn.index = button.index;
 
-      if (button.reply) btn.quickReplyButton = { displayText: button.reply.text, id: button.reply.id };
-      if (button.call) btn.callButton = { displayText: button.call.text, phoneNumber: button.call.phone };
-      if (button.url) btn.urlButton = { displayText: button.url.text, url: button.url.url };
+      if (button.type == "reply") btn.quickReplyButton = { displayText: button.text, id: button.content };
+      if (button.type == "call") btn.callButton = { displayText: button.text, phoneNumber: button.content };
+      if (button.type == "reply") btn.urlButton = { displayText: button.text, url: button.content };
 
       this.message.templateButtons.push(btn);
     });
@@ -168,7 +164,7 @@ export class WhatsAppMessage {
    * @param message
    */
   public refactoryListMessage(message: ListMessage) {
-    this.message.buttonText = message.buttonText;
+    this.message.buttonText = message.button;
     this.message.description = message.text;
     this.message.footer = message.footer;
     this.message.title = message.title;
@@ -183,24 +179,5 @@ export class WhatsAppMessage {
 
       this.message.sections.push({ title: list.title, rows });
     });
-  }
-
-  /**
-   * * Refatora uma mensagem de reação
-   * @param message
-   */
-  public refactoryReactionMessage(message: ReactionMessage) {
-    const fromMe = message.fromMe || this._wa.id == message.user.id;
-
-    this.message = {
-      react: {
-        text: message.text[0],
-        key: { remoteJid: getID(message.chat.id), id: message.id, fromMe },
-      },
-    };
-
-    if (message.chat.id.includes("@g")) {
-      this.message.react.key.participant = getID(message.user.id || this._wa.id);
-    }
   }
 }

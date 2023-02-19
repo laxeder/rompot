@@ -347,13 +347,13 @@ export default interface BotInterface {
    * * Sala de bate-papo
    * @param id Sala de bate-papo
    */
-  Chat(id: string): ChatInterface;
+  Chat(id: ChatInterface): ChatInterface;
 
   /**
    * * Usuário
    * @param user Usuário
    */
-  User(id: string): UserInterface;
+  User(id: UserInterface): UserInterface;
 
   /**
    * * Comando

@@ -4,22 +4,29 @@ import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownl
 import { WhatsAppConvertMessage } from "@wa/WAConvertMessage";
 import { getBaileysAuth, MultiFileAuthState } from "@wa/Auth";
 import { WhatsAppMessage } from "@wa/WAMessage";
+import WAUser, { WAUsers } from "@wa/WAUser";
 import WAChat, { WAChats } from "@wa/WAChat";
 import { getID, replaceID } from "@wa/ID";
 import { WAStatus } from "@wa/WAStatus";
-import WAUser, { WAUsers } from "@wa/WAUser";
 
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
+import { MessageInterface } from "@interfaces/MessagesInterfaces";
 import ChatInterface from "@interfaces/ChatInterface";
 import UserInterface from "@interfaces/UserInterface";
 import BotInterface from "@interfaces/BotInterface";
 import Auth from "@interfaces/Auth";
 
-import { MessageInterface } from "@interfaces/MessagesInterfaces";
+import LocationMessage from "@messages/LocationMessage";
+import ContactMessage from "@messages/ContactMessage";
+import ButtonMessage from "@messages/ButtonMessage";
 import MediaMessage from "@messages/MediaMessage";
+import VideoMessage from "@messages/VideoMessage";
+import ImageMessage from "@messages/ImageMessage";
+import ListMessage from "@messages/ListMessage";
 import Message from "@messages/Message";
 
+import Command from "@modules/Command";
 import Chat from "@modules/Chat";
 
 import getImageURL from "@utils/getImageURL";
@@ -33,7 +40,7 @@ import { Commands } from "../types/Command";
 import { ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
 
-export class WhatsAppBot implements BotInterface {
+export default class WhatsAppBot implements BotInterface {
   //@ts-ignore
   private _bot: WASocket = {};
   public DisconnectReason = DisconnectReason;
@@ -243,8 +250,6 @@ export class WhatsAppBot implements BotInterface {
           if (!message.message) return;
 
           const msg = await new WhatsAppConvertMessage(this, message, m.type).get();
-
-          msg.setBot(this);
 
           this.ev.emit("message", msg);
         });
@@ -659,21 +664,40 @@ export class WhatsAppBot implements BotInterface {
     await this.wcb.waitCall(() => this._bot?.sendMessage(getID(message.chat.id), { delete: key }));
   }
 
+  public async addReaction(message: MessageInterface, reaction: string): Promise<void> {
+    const waMSG = new WhatsAppMessage(this, message);
+    await waMSG.refactory(message);
+
+    await this.wcb.waitCall(() => this._bot?.sendMessage(getID(message.chat.id), { react: { key: waMSG.message.key, text: reaction } }));
+  }
+
+  public async removeReaction(message: MessageInterface): Promise<void> {
+    const waMSG = new WhatsAppMessage(this, message);
+    await waMSG.refactory(message);
+
+    await this.wcb.waitCall(() => this._bot?.sendMessage(getID(message.chat.id), { react: { key: waMSG.message.key, text: "" } }));
+  }
+
   public async send(content: Message): Promise<Message> {
-    //TODO: Colocar auto escrevendo
+    if (content instanceof MediaMessage) {
+      await this.changeChatStatus(content.chat, "recording");
+    } else {
+      await this.changeChatStatus(content.chat, "typing");
+    }
 
     const waMSG = new WhatsAppMessage(this, content);
     await waMSG.refactory(content);
 
-    const { chat, message, context } = waMSG;
+    const { chat, message, options } = waMSG;
 
     var sendedMessage: proto.WebMessageInfo | undefined;
 
     if (message.hasOwnProperty("templateButtons")) {
+      const ctx: any = {};
       const fullMsg = await this.wcb.waitCall(() =>
         generateWAMessage(chat, message, {
           userJid: getID(this.id),
-          ...context,
+          ...ctx,
         })
       );
 
@@ -683,7 +707,7 @@ export class WhatsAppBot implements BotInterface {
 
       sendedMessage = fullMsg;
     } else {
-      sendedMessage = await this.wcb.waitCall(() => this._bot?.sendMessage(chat, message, context));
+      sendedMessage = await this.wcb.waitCall(() => this._bot?.sendMessage(chat, message, options));
     }
 
     return sendedMessage ? await new WhatsAppConvertMessage(this, sendedMessage).get() : content;
@@ -731,5 +755,66 @@ export class WhatsAppBot implements BotInterface {
    */
   public groupAcceptInvite(code: string): Promise<string | undefined> | undefined {
     return this._bot?.groupAcceptInvite(code);
+  }
+
+  //? ************** MODELS **************
+
+  public Chat(chat: ChatInterface) {
+    if (this.chats.hasOwnProperty(chat.id)) {
+      return this.chats[chat.id];
+    }
+
+    const users: WAUsers = {};
+
+    for (const id in chat.users) {
+      users[id] = this.User(chat.users[id]);
+    }
+
+    return new WAChat(chat.id, chat.type, chat.name, chat.description, chat.profile, users);
+  }
+
+  public User(user: UserInterface) {
+    if (this.chats.hasOwnProperty(user.id)) {
+      const chat = this.chats[user.id];
+      return new WAUser(user.id, chat.name, chat.description, chat.profile);
+    }
+
+    return new WAUser(user.id, user.name, user.description, user.profile);
+  }
+
+  public Command(): Command {
+    return new Command();
+  }
+
+  public Message(chat: ChatInterface, text: string) {
+    return new Message(this.Chat(chat), text);
+  }
+
+  public MediaMessage(chat: ChatInterface, text: string, file: any) {
+    return new MediaMessage(this.Chat(chat), text, file);
+  }
+
+  public ImageMessage(chat: ChatInterface, text: string, image: Buffer) {
+    return new ImageMessage(this.Chat(chat), text, image);
+  }
+
+  public VideoMessage(chat: ChatInterface, text: string, video: Buffer) {
+    return new VideoMessage(this.Chat(chat), text, video);
+  }
+
+  public ContactMessage(chat: ChatInterface, text: string, contact: string | string[]) {
+    return new ContactMessage(this.Chat(chat), text, contact);
+  }
+
+  public LocationMessage(chat: ChatInterface, latitude: number, longitude: number) {
+    return new LocationMessage(this.Chat(chat), latitude, longitude);
+  }
+
+  public ListMessage(chat: ChatInterface, text: string, button: string) {
+    return new ListMessage(this.Chat(chat), text, button);
+  }
+
+  public ButtonMessage(chat: ChatInterface, text: string) {
+    return new ButtonMessage(this.Chat(chat), text);
   }
 }
