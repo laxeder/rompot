@@ -31,13 +31,13 @@ import { Users } from "../types/User";
 import AudioMessage from "@messages/AudioMessage";
 
 export default class BotModule<Bot extends BotInterface, Command extends CommandInterface> extends Emmiter {
-  private bot: Bot;
+  #promiseMessages: PromiseMessages = new PromiseMessages();
+  #autoMessages: any = {};
 
-  private autoMessages: any = {};
-  private promiseMessages: PromiseMessages = new PromiseMessages();
-
-  public config: ConnectionConfig;
   public commands: { [tag: string]: Command } = {};
+
+  public bot: Bot;
+  public config: ConnectionConfig;
 
   get id() {
     return this.bot.id;
@@ -57,7 +57,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
   public configEvents() {
     this.bot?.ev.on("message", (message: Message) => {
       try {
-        if (this.promiseMessages.resolvePromiseMessages(message)) return;
+        if (this.#promiseMessages.resolvePromiseMessages(message)) return;
 
         if (message.fromMe && this.config.disableAutoCommand) return;
         if (this.config.disableAutoCommand) return;
@@ -70,7 +70,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
 
     this.bot?.ev.on("me", (message: Message) => {
       try {
-        if (this.promiseMessages.resolvePromiseMessages(message)) return;
+        if (this.#promiseMessages.resolvePromiseMessages(message)) return;
 
         if (this.config.disableAutoCommand || this.config.receiveAllMessages) return;
 
@@ -171,7 +171,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param ignoreMessages Não resolve a promessa se a mensagem recebida é a mesma escolhida
    */
   awaitMessage(chat: ChatInterface | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
-    return this.promiseMessages.addPromiseMessage(Chat.getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages);
+    return this.#promiseMessages.addPromiseMessage(Chat.getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages);
   }
 
   /**
@@ -187,17 +187,17 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
       const now = Date.now();
 
       // Criar e atualizar dados da mensagem automatizada
-      this.autoMessages[id] = { id, chats: chats || (await this.getChats()), updatedAt: now, message };
+      this.#autoMessages[id] = { id, chats: chats || (await this.getChats()), updatedAt: now, message };
 
       // Aguarda o tempo definido
       await sleep(timeout - now);
 
       // Cancelar se estiver desatualizado
-      if (this.autoMessages[id].updatedAt !== now) return;
+      if (this.#autoMessages[id].updatedAt !== now) return;
 
       await Promise.all(
-        this.autoMessages[id].chats.map(async (chat: Chat) => {
-          const automated: any = this.autoMessages[id];
+        this.#autoMessages[id].chats.map(async (chat: Chat) => {
+          const automated: any = this.#autoMessages[id];
 
           if (automated.updatedAt !== now) return;
 
@@ -209,7 +209,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
           // Remover sala de bate-papo da mensagem
           const nowChats = automated.chats;
           const index = nowChats.indexOf(automated.chats[chat.id]);
-          this.autoMessages[id].chats = nowChats.splice(index + 1, nowChats.length);
+          this.#autoMessages[id].chats = nowChats.splice(index + 1, nowChats.length);
         })
       );
     } catch (err) {
