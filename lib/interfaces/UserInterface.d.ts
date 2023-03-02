@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import ChatInterface from "./ChatInterface";
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
 export default interface UserInterface {
     /**
      * * ID do usuário
@@ -21,7 +21,7 @@ export default interface UserInterface {
     /**
      * * Bot que irá executar os métodos
      */
-    bot: BotModule;
+    bot: Bot;
     /**
      * * Bloqueia o usuário
      */

@@ -2,7 +2,7 @@
 import { MediaMessageInterface } from "../interfaces/MessagesInterfaces";
 import ChatInterface from "../interfaces/ChatInterface";
 import Message from "./Message";
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
 export default class MediaMessage extends Message implements MediaMessageInterface {
     isGIF: boolean;
     file: any;
@@ -13,5 +13,5 @@ export default class MediaMessage extends Message implements MediaMessageInterfa
      * @param bot Bot que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends MediaMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & MediaMessage;
+    static Inject<MessageIn extends MediaMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & MediaMessage;
 }

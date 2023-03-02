@@ -1,13 +1,13 @@
 /// <reference types="node" />
 import UserInterface from "../interfaces/UserInterface";
 import Chat from "./Chat";
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
 export default class User implements UserInterface {
     id: string;
     name: string;
     description: string;
     profile: Buffer;
-    get bot(): BotModule;
+    get bot(): Bot;
     constructor(id: string, name?: string, description?: string, profile?: Buffer);
     blockUser(): Promise<void>;
     unblockUser(): Promise<void>;
@@ -34,5 +34,5 @@ export default class User implements UserInterface {
      * @param bot Bot que irá executar os métodos
      * @param user Interface do usuário
      */
-    static Inject<UserIn extends UserInterface>(bot: BotModule, user: UserIn): UserIn & UserInterface;
+    static Inject<UserIn extends UserInterface>(bot: Bot, user: UserIn): UserIn & UserInterface;
 }

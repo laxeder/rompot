@@ -1,7 +1,7 @@
 import { ButtonMessageInterface } from "../interfaces/MessagesInterfaces";
 import ChatInterface from "../interfaces/ChatInterface";
 import Message from "./Message";
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
 import { Button } from "../types/Message";
 export default class ButtonMessage extends Message implements ButtonMessageInterface {
     buttons: Button[];
@@ -17,5 +17,5 @@ export default class ButtonMessage extends Message implements ButtonMessageInter
      * @param bot Bot que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends ButtonMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & ButtonMessage;
+    static Inject<MessageIn extends ButtonMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & ButtonMessage;
 }

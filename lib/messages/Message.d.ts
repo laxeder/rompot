@@ -3,7 +3,7 @@ import { MessageInterface } from "../interfaces/MessagesInterfaces";
 import ChatInterface from "../interfaces/ChatInterface";
 import Chat from "../modules/Chat";
 import User from "../modules/User";
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
 export default class Message implements MessageInterface {
     id: string;
     chat: Chat;
@@ -14,12 +14,12 @@ export default class Message implements MessageInterface {
     mentions: string[];
     mention?: Message;
     timestamp: Number | Long;
-    get bot(): BotModule;
+    get bot(): Bot;
     constructor(chat: ChatInterface | string, text: string, mention?: MessageInterface, id?: string);
     addReaction(reaction: string): Promise<void>;
     reply(message: MessageInterface | string, mention?: boolean): Promise<Message>;
     read(): Promise<void>;
-    inject<MessageIn extends MessageInterface>(bot: BotModule, msg: MessageIn): void;
+    inject<MessageIn extends MessageInterface>(bot: Bot, msg: MessageIn): void;
     /**
      * @param message Mensagem que será obtida
      * @returns Retorna a mensagem
@@ -35,5 +35,5 @@ export default class Message implements MessageInterface {
      * @param bot Bot que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends MessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & Message;
+    static Inject<MessageIn extends MessageInterface>(bot: Bot, msg: MessageIn): MessageIn & Message;
 }

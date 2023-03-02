@@ -14,6 +14,7 @@ import ButtonMessage from "../messages/ButtonMessage";
 import MediaMessage from "../messages/MediaMessage";
 import VideoMessage from "../messages/VideoMessage";
 import ImageMessage from "../messages/ImageMessage";
+import AudioMessage from "../messages/AudioMessage";
 import ListMessage from "../messages/ListMessage";
 import Message from "../messages/Message";
 import Command from "../modules/Command";
@@ -141,6 +142,7 @@ export default class WhatsAppBot implements BotInterface {
     MediaMessage(chat: ChatInterface, text: string, file: any): MediaMessage;
     ImageMessage(chat: ChatInterface, text: string, image: Buffer): ImageMessage;
     VideoMessage(chat: ChatInterface, text: string, video: Buffer): VideoMessage;
+    AudioMessage(chat: ChatInterface, audio: Buffer): AudioMessage;
     ContactMessage(chat: ChatInterface, text: string, contact: string | string[]): ContactMessage;
     LocationMessage(chat: ChatInterface, latitude: number, longitude: number): LocationMessage;
     ListMessage(chat: ChatInterface, text: string, button: string): ListMessage;

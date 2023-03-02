@@ -3,14 +3,14 @@ import { AudioMessageInterface, ImageMessageInterface } from "../interfaces/Mess
 import ChatInterface from "../interfaces/ChatInterface";
 import MediaMessage from "./MediaMessage";
 import Message from "./Message";
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
 export default class AudioMessage extends MediaMessage implements ImageMessageInterface {
-    constructor(chat: ChatInterface, text: string, audio: Buffer, mention?: Message, id?: string);
+    constructor(chat: ChatInterface, audio: Buffer, mention?: Message, id?: string);
     getAudio(): Promise<Buffer>;
     /**
      * * Injeta a interface no modulo
      * @param bot Bot que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends AudioMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & AudioMessage;
+    static Inject<MessageIn extends AudioMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & AudioMessage;
 }

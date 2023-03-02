@@ -5,7 +5,7 @@ import ChatInterface from "./ChatInterface";
 import Command from "../modules/Command";
 import Emmiter from "../utils/Emmiter";
 import { Commands } from "../types/Command";
-import { ButtonMessageInterface, ContactMessageInterface, ImageMessageInterface, ListMessageInterface, LocationMessageInterface, MediaMessageInterface, MessageInterface, VideoMessageInterface } from "./MessagesInterfaces";
+import { AudioMessageInterface, ButtonMessageInterface, ContactMessageInterface, ImageMessageInterface, ListMessageInterface, LocationMessageInterface, MediaMessageInterface, MessageInterface, VideoMessageInterface } from "./MessagesInterfaces";
 import Auth from "./Auth";
 import { Chats, ChatStatus } from "../types/Chat";
 import { BotStatus } from "../types/Bot";
@@ -311,6 +311,12 @@ export default interface BotInterface {
      * @param video Video
      */
     VideoMessage(chat: ChatInterface, text: string, video: Buffer): VideoMessageInterface;
+    /**
+     * * Mensagem com audio
+     * @param chat Sala de bate-papo
+     * @param audio Audio
+     */
+    AudioMessage(chat: ChatInterface, audio: Buffer): AudioMessageInterface;
     /**
      * * Mensagem com contatos
      * @param chat Sala de bate-papo

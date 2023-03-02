@@ -2,7 +2,7 @@ import { ListMessageInterface } from "../interfaces/MessagesInterfaces";
 import ChatInterface from "../interfaces/ChatInterface";
 import Message from "./Message";
 import { List, ListItem } from "../types/Message";
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
 export default class ListMessage extends Message implements ListMessageInterface {
     list: List[];
     button: string;
@@ -20,5 +20,5 @@ export default class ListMessage extends Message implements ListMessageInterface
      * @param bot Bot que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends ListMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & ListMessage;
+    static Inject<MessageIn extends ListMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & ListMessage;
 }

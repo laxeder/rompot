@@ -3,7 +3,7 @@ import { VideoMessageInterface } from "../interfaces/MessagesInterfaces";
 import ChatInterface from "../interfaces/ChatInterface";
 import MediaMessage from "./MediaMessage";
 import Message from "./Message";
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
 export default class VideoMessage extends MediaMessage implements VideoMessageInterface {
     constructor(chat: ChatInterface, text: string, video: Buffer, mention?: Message, id?: string);
     getVideo(): Promise<Buffer>;
@@ -12,5 +12,5 @@ export default class VideoMessage extends MediaMessage implements VideoMessageIn
      * @param bot Bot que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends VideoMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & VideoMessage;
+    static Inject<MessageIn extends VideoMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & VideoMessage;
 }

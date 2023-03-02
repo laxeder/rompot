@@ -4,8 +4,8 @@ import UserInterface from "../interfaces/UserInterface";
 import ChatInterface from "../interfaces/ChatInterface";
 import Message from "../messages/Message";
 import { ChatStatus, ChatType } from "../types/Chat";
-import { BotModule } from "../types/Bot";
 import { Users } from "../types/User";
+import { Bot } from "../types/Bot";
 export default class Chat implements ChatInterface {
     id: string;
     type: ChatType;
@@ -14,7 +14,7 @@ export default class Chat implements ChatInterface {
     description: string;
     profile: Buffer;
     users: Users;
-    get bot(): BotModule;
+    get bot(): Bot;
     constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: Users, status?: ChatStatus);
     setName(name: string): Promise<void>;
     getName(): Promise<string>;
@@ -47,5 +47,5 @@ export default class Chat implements ChatInterface {
      * @param bot Bot que irá executar os métodos
      * @param chat Interface da sala de bate-papo
      */
-    static Inject<ChatIn extends ChatInterface>(bot: BotModule, chat: ChatIn): ChatIn & Chat;
+    static Inject<ChatIn extends ChatInterface>(bot: Bot, chat: ChatIn): ChatIn & Chat;
 }
