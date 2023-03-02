@@ -4,12 +4,12 @@ import ChatInterface from "@interfaces/ChatInterface";
 import MediaMessage from "@messages/MediaMessage";
 import Message from "@messages/Message";
 
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
 
 //@ts-ignore
 export default class AudioMessage extends MediaMessage implements ImageMessageInterface {
-  constructor(chat: ChatInterface, text: string, audio: Buffer, mention?: Message, id?: string) {
-    super(chat, text, audio, mention, id);
+  constructor(chat: ChatInterface, audio: Buffer, mention?: Message, id?: string) {
+    super(chat, "", audio, mention, id);
   }
 
   public async getAudio(): Promise<Buffer> {
@@ -21,8 +21,8 @@ export default class AudioMessage extends MediaMessage implements ImageMessageIn
    * @param bot Bot que irá executar os métodos
    * @param message Interface da mensagem
    */
-  public static Inject<MessageIn extends AudioMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & AudioMessage {
-    const module: AudioMessage = new AudioMessage(msg.chat, msg.text, msg.file);
+  public static Inject<MessageIn extends AudioMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & AudioMessage {
+    const module: AudioMessage = new AudioMessage(msg.chat, msg.file);
 
     module.inject(bot, msg);
 

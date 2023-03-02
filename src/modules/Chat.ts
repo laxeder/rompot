@@ -10,8 +10,8 @@ import User from "@modules/User";
 import { setBotProperty } from "@utils/bot";
 
 import { ChatStatus, ChatType } from "../types/Chat";
-import { BotModule } from "../types/Bot";
 import { Users } from "../types/User";
+import { Bot } from "../types/Bot";
 
 export default class Chat implements ChatInterface {
   public id: string;
@@ -22,7 +22,7 @@ export default class Chat implements ChatInterface {
   public profile: Buffer;
   public users: Users;
 
-  get bot(): BotModule {
+  get bot(): Bot {
     return new BotBase();
   }
 
@@ -95,7 +95,7 @@ export default class Chat implements ChatInterface {
   }
 
   public async demote(user: UserInterface | string): Promise<void> {
-    return this.bot.demoteUserInChat(this, user);
+    return this.bot.demoteUserInChat(this, User.getUser(user));
   }
 
   public async leave(): Promise<void> {
@@ -143,7 +143,7 @@ export default class Chat implements ChatInterface {
    * @param bot Bot que irá executar os métodos
    * @param chat Interface da sala de bate-papo
    */
-  public static Inject<ChatIn extends ChatInterface>(bot: BotModule, chat: ChatIn): ChatIn & Chat {
+  public static Inject<ChatIn extends ChatInterface>(bot: Bot, chat: ChatIn): ChatIn & Chat {
     const module: Chat = new Chat(chat.id, chat.type, chat.name, chat.description, chat.profile);
 
     for (const id in chat.users) {

@@ -17,34 +17,19 @@ import Message from "@messages/Message";
 
 import Command from "@modules/Command";
 
-import PromiseMessages from "@utils/PromiseMessages";
-
 import { Chats, ChatStatus } from "../types/Chat";
-import { CommandsInject } from "../types/Command";
+import { Commands } from "../types/Command";
 import { Users } from "../types/User";
 import Auth from "./Auth";
 
 export default interface BotControl {
-  promiseMessages: PromiseMessages;
-  autoMessages: any;
-
-  /**
-   * * Configura o bot
-   */
-  configurate(): void;
-
-  /**
-   * * Configura os eventos do bot
-   */
-  configEvents(): void;
-
   //? ****** **** COMMANDS **** ******
 
   /**
    * * Define os comandos do bot
    * @param commands Comandos que será injetado
    */
-  setCommands(commands: CommandsInject): void;
+  setCommands(commands: Commands | Command[]): void;
 
   /**
    * @returns Retorna os comandos do bot
@@ -396,11 +381,6 @@ export default interface BotControl {
    * @param user Usuário
    */
   User(id: string): UserInterface;
-
-  /**
-   * * Comando
-   */
-  Command(): Command;
 
   //? ************** MESSAGE *************
 

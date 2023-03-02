@@ -7,7 +7,8 @@ import User from "@modules/User";
 
 import { setBotProperty } from "@utils/bot";
 
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
+
 import MediaMessage from "./MediaMessage";
 
 export default class Message implements MessageInterface {
@@ -21,7 +22,7 @@ export default class Message implements MessageInterface {
   public mention?: Message;
   public timestamp: Number | Long;
 
-  get bot(): BotModule {
+  get bot(): Bot {
     return new BotBase();
   }
 
@@ -60,7 +61,7 @@ export default class Message implements MessageInterface {
     return this.bot.readMessage(this);
   }
 
-  public inject<MessageIn extends MessageInterface>(bot: BotModule, msg: MessageIn): void {
+  public inject<MessageIn extends MessageInterface>(bot: Bot, msg: MessageIn): void {
     this.id = msg.id;
     this.text = msg.text;
     this.fromMe = msg.fromMe;
@@ -116,7 +117,7 @@ export default class Message implements MessageInterface {
    * @param bot Bot que irá executar os métodos
    * @param message Interface da mensagem
    */
-  public static Inject<MessageIn extends MessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & Message {
+  public static Inject<MessageIn extends MessageInterface>(bot: Bot, msg: MessageIn): MessageIn & Message {
     const module: Message = new Message(msg.chat, msg.text);
 
     module.inject(bot, msg);

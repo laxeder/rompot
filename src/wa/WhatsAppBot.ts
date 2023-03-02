@@ -23,6 +23,7 @@ import ButtonMessage from "@messages/ButtonMessage";
 import MediaMessage from "@messages/MediaMessage";
 import VideoMessage from "@messages/VideoMessage";
 import ImageMessage from "@messages/ImageMessage";
+import AudioMessage from "@messages/AudioMessage";
 import ListMessage from "@messages/ListMessage";
 import Message from "@messages/Message";
 
@@ -800,6 +801,10 @@ export default class WhatsAppBot implements BotInterface {
 
   public VideoMessage(chat: ChatInterface, text: string, video: Buffer) {
     return new VideoMessage(this.Chat(chat), text, video);
+  }
+
+  public AudioMessage(chat: ChatInterface, audio: Buffer) {
+    return new AudioMessage(this.Chat(chat), audio);
   }
 
   public ContactMessage(chat: ChatInterface, text: string, contact: string | string[]) {

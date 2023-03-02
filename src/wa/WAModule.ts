@@ -1,5 +1,7 @@
-import BotControl from "@interfaces/BotControl";
+import CommandInterface from "@interfaces/CommandInterface";
+
+import BotModule from "@modules/BotModule";
 
 import WhatsAppBot from "@wa/WhatsAppBot";
 
-export type WAModule = WhatsAppBot & BotControl;
+export type WAModule = BotModule<WhatsAppBot, CommandInterface>;

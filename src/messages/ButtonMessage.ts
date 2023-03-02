@@ -3,7 +3,8 @@ import ChatInterface from "@interfaces/ChatInterface";
 
 import Message from "@messages/Message";
 
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
+
 import { Button } from "../types/Message";
 
 //@ts-ignore
@@ -42,7 +43,7 @@ export default class ButtonMessage extends Message implements ButtonMessageInter
    * @param bot Bot que irá executar os métodos
    * @param message Interface da mensagem
    */
-  public static Inject<MessageIn extends ButtonMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & ButtonMessage {
+  public static Inject<MessageIn extends ButtonMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & ButtonMessage {
     const module: ButtonMessage = new ButtonMessage(msg.chat, msg.text);
 
     module.inject(bot, msg);

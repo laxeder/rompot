@@ -2,7 +2,8 @@ import { MessageInterface } from "@interfaces/MessagesInterfaces";
 import UserInterface from "@interfaces/UserInterface";
 
 import { ChatStatus, ChatType } from "../types/Chat";
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
+
 import { Users } from "../types/User";
 
 export default interface ChatInterface {
@@ -44,7 +45,7 @@ export default interface ChatInterface {
   /**
    * * Bot irá executar os métodos
    */
-  bot: BotModule;
+  bot: Bot;
 
   /**
    * @returns Retorna o nome da sala de bate-papo

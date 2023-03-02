@@ -243,7 +243,7 @@ export class WhatsAppConvertMessage {
     }
 
     if (contentType == "audioMessage") {
-      this._convertedMessage = new AudioMessage(this._chat, this._convertedMessage.text, content.url);
+      this._convertedMessage = new AudioMessage(this._chat, content.url);
     }
 
     if (content.gifPlayback && this._convertedMessage instanceof MediaMessage) {

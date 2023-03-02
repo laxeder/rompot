@@ -3,7 +3,8 @@ import ChatInterface from "@interfaces/ChatInterface";
 
 import Message from "@messages/Message";
 
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
+
 
 //@ts-ignore
 export default class MediaMessage extends Message implements MediaMessageInterface {
@@ -27,7 +28,7 @@ export default class MediaMessage extends Message implements MediaMessageInterfa
    * @param bot Bot que irá executar os métodos
    * @param message Interface da mensagem
    */
-  public static Inject<MessageIn extends MediaMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & MediaMessage {
+  public static Inject<MessageIn extends MediaMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & MediaMessage {
     const module: MediaMessage = new MediaMessage(msg.chat, msg.text, msg.file);
 
     module.inject(bot, msg);

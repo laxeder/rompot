@@ -4,7 +4,8 @@ import ChatInterface from "@interfaces/ChatInterface";
 import Message from "@messages/Message";
 
 import { List, ListItem } from "../types/Message";
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
+
 
 //@ts-ignore
 export default class ListMessage extends Message implements ListMessageInterface {
@@ -45,7 +46,7 @@ export default class ListMessage extends Message implements ListMessageInterface
    * @param bot Bot que irá executar os métodos
    * @param message Interface da mensagem
    */
-  public static Inject<MessageIn extends ListMessageInterface>(bot: BotModule, msg: MessageIn): MessageIn & ListMessage {
+  public static Inject<MessageIn extends ListMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & ListMessage {
     const module: ListMessage = new ListMessage(msg.chat, msg.text, msg.text);
 
     module.inject(bot, msg);

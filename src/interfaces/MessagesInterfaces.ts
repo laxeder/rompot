@@ -2,7 +2,8 @@ import UserInterface from "@interfaces/UserInterface";
 import ChatInterface from "@interfaces/ChatInterface";
 
 import { Button, List, ListItem } from "../types/Message";
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
+
 
 export interface MessageInterface {
   /**
@@ -51,7 +52,7 @@ export interface MessageInterface {
   /**
    * * Bot que irá executar os métodos
    */
-  bot: BotModule;
+  bot: Bot;
 
   /**
    * * Adiciona uma reação a mensagem
@@ -76,7 +77,7 @@ export interface MessageInterface {
    * @param bot Bot que irá executar os métodos
    * @param message Interface da mensagem
    */
-  inject(bot: BotModule, message: MessageInterface): void;
+  inject(bot: Bot, message: MessageInterface): void;
 }
 
 export interface MediaMessageInterface extends MessageInterface {

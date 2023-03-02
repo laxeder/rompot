@@ -1,12 +1,13 @@
-import CommandInterfaces from "@interfaces/CommandInterface";
+import CommandInterface from "@interfaces/CommandInterface";
 
 import Message from "@messages/Message";
 
 import BotBase from "@modules/BotBase";
 
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
 
-export default class Command implements CommandInterfaces {
+
+export default class Command implements CommandInterface {
   public tags: string[] = [];
   public prefix: string = "";
   public name: string = "";
@@ -14,7 +15,7 @@ export default class Command implements CommandInterfaces {
   public categories: string[] = [];
   public permissions: string[] = [];
 
-  get bot(): BotModule {
+  get bot(): Bot {
     return new BotBase();
   }
 

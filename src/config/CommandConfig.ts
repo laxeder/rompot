@@ -1,10 +1,11 @@
+import CommandInterface from "@interfaces/CommandInterface";
 import Command from "@modules/Command";
 
 import { Commands } from "../types/Command";
 
 export const DefaultCommandConfig: CommandConfig = {
   prefix: "",
-  get(command: string, commands: Commands): Command | null {
+  get(command: string, commands: Commands): CommandInterface | null {
     const cmds = command.split(/\s+/g);
 
     const cmd = commands[cmds.shift() || ""];

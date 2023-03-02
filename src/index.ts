@@ -14,7 +14,7 @@ import MediaMessage from "@messages/MediaMessage";
 import ListMessage from "@messages/ListMessage";
 import Message from "@messages/Message";
 
-import { BuildBot } from "@modules/BuildBot";
+import BotModule from "@modules/BotModule";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 
@@ -34,7 +34,7 @@ export * from "@interfaces/MessagesInterfaces";
 
 export { ButtonMessage, ContactMessage, ImageMessage, VideoMessage, MediaMessage, Message, ListMessage, LocationMessage };
 
-export { BuildBot, Chat, User };
+export { BotModule, Chat, User };
 
 export { Emmiter, EventsEmitter, PromiseMessages, PromiseMessage, WaitCallBack, sleep, getImageURL };
 export * from "@utils/error";
@@ -54,4 +54,4 @@ export { Command };
 
 export { WhatsAppBot };
 
-export default BuildBot;
+export default BotModule;

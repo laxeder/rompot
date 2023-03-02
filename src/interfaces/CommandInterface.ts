@@ -1,8 +1,9 @@
 import { MessageInterface } from "@interfaces/MessagesInterfaces";
 
-import { BotModule } from "../types/Bot";
+import { Bot } from "../types/Bot";
 
-export default interface CommandInterfaces {
+
+export default interface CommandInterface {
   /**
    * * Tags do comando
    */
@@ -36,7 +37,7 @@ export default interface CommandInterfaces {
   /**
    * * Bot que irá executar os métodos
    */
-  bot: BotModule;
+  bot: Bot;
 
   /**
    * * Método chamado quando a função é executada
