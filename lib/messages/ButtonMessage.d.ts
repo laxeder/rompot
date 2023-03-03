@@ -1,12 +1,12 @@
-import { ButtonMessageInterface } from "../interfaces/MessagesInterfaces";
-import ChatInterface from "../interfaces/ChatInterface";
-import Message from "./Message";
+import { IButtonMessage } from "@interfaces/IMessage";
+import IChat from "@interfaces/IChat";
+import Message from "@messages/Message";
 import { Bot } from "../types/Bot";
 import { Button } from "../types/Message";
-export default class ButtonMessage extends Message implements ButtonMessageInterface {
+export default class ButtonMessage extends Message implements IButtonMessage {
     buttons: Button[];
     footer: string;
-    constructor(chat: ChatInterface | string, text: string, footer?: string);
+    constructor(chat: IChat | string, text: string, footer?: string);
     addUrl(text: string, url: string, index?: number): void;
     addCall(text: string, phone: string, index?: number): void;
     addReply(text: string, id?: string, index?: number): void;
@@ -17,5 +17,5 @@ export default class ButtonMessage extends Message implements ButtonMessageInter
      * @param bot Bot que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends ButtonMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & ButtonMessage;
+    static Inject<MessageIn extends IButtonMessage>(bot: Bot, msg: MessageIn): MessageIn & ButtonMessage;
 }

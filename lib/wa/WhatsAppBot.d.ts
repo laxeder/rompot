@@ -1,31 +1,31 @@
 /// <reference types="node" />
 import { DisconnectReason, proto, MediaDownloadOptions } from "@adiwajshing/baileys";
-import WAUser, { WAUsers } from "./WAUser";
-import WAChat, { WAChats } from "./WAChat";
-import { ConnectionConfig } from "../config/ConnectionConfig";
-import { MessageInterface } from "../interfaces/MessagesInterfaces";
-import ChatInterface from "../interfaces/ChatInterface";
-import UserInterface from "../interfaces/UserInterface";
-import BotInterface from "../interfaces/BotInterface";
-import Auth from "../interfaces/Auth";
-import LocationMessage from "../messages/LocationMessage";
-import ContactMessage from "../messages/ContactMessage";
-import ButtonMessage from "../messages/ButtonMessage";
-import MediaMessage from "../messages/MediaMessage";
-import VideoMessage from "../messages/VideoMessage";
-import ImageMessage from "../messages/ImageMessage";
-import AudioMessage from "../messages/AudioMessage";
-import ListMessage from "../messages/ListMessage";
-import Message from "../messages/Message";
-import Command from "../modules/Command";
-import Chat from "../modules/Chat";
-import Emmiter from "../utils/Emmiter";
-import WaitCallBack from "../utils/WaitCallBack";
+import WAUser, { WAUsers } from "@wa/WAUser";
+import WAChat, { WAChats } from "@wa/WAChat";
+import { ConnectionConfig } from "@config/ConnectionConfig";
+import { IMessage } from "@interfaces/IMessage";
+import IChat from "@interfaces/IChat";
+import IUser from "@interfaces/IUser";
+import IBot from "@interfaces/IBot";
+import Auth from "@interfaces/Auth";
+import LocationMessage from "@messages/LocationMessage";
+import ContactMessage from "@messages/ContactMessage";
+import ButtonMessage from "@messages/ButtonMessage";
+import MediaMessage from "@messages/MediaMessage";
+import VideoMessage from "@messages/VideoMessage";
+import ImageMessage from "@messages/ImageMessage";
+import AudioMessage from "@messages/AudioMessage";
+import ListMessage from "@messages/ListMessage";
+import Message from "@messages/Message";
+import Command from "@modules/Command";
+import Chat from "@modules/Chat";
+import Emmiter from "@utils/Emmiter";
+import WaitCallBack from "@utils/WaitCallBack";
 import { ConnectionStatus } from "../types/Connection";
 import { Commands } from "../types/Command";
 import { ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
-export default class WhatsAppBot implements BotInterface {
+export default class WhatsAppBot implements IBot {
     private _bot;
     DisconnectReason: typeof DisconnectReason;
     chats: WAChats;
@@ -65,13 +65,13 @@ export default class WhatsAppBot implements BotInterface {
     setChat(chat: WAChat): Promise<void>;
     getChats(): Promise<WAChats>;
     setChats(chats: WAChats): Promise<void>;
-    getChatAdmins(chat: ChatInterface): Promise<WAUsers>;
+    getChatAdmins(chat: IChat): Promise<WAUsers>;
     getChatLeader(chat: WAChat): Promise<WAUser>;
     addUserInChat(chat: WAChat, user: WAUser): Promise<void>;
     removeUserInChat(chat: WAChat, user: WAUser): Promise<void>;
-    promoteUserInChat(chat: ChatInterface, user: UserInterface): Promise<void>;
-    demoteUserInChat(chat: ChatInterface, user: UserInterface): Promise<void>;
-    changeChatStatus(chat: ChatInterface, status: ChatStatus): Promise<void>;
+    promoteUserInChat(chat: IChat, user: IUser): Promise<void>;
+    demoteUserInChat(chat: IChat, user: IUser): Promise<void>;
+    changeChatStatus(chat: IChat, status: ChatStatus): Promise<void>;
     createChat(chat: WAChat): Promise<any>;
     leaveChat(chat: WAChat): Promise<any>;
     getUser(user: WAUser): Promise<WAUser>;
@@ -100,11 +100,11 @@ export default class WhatsAppBot implements BotInterface {
     setUserDescription(user: WAUser, description: string): Promise<any>;
     getChatDescription(chat: WAChat): Promise<string>;
     setChatDescription(chat: WAChat, description: string): Promise<any>;
-    readMessage(message: MessageInterface): Promise<void>;
+    readMessage(message: IMessage): Promise<void>;
     removeMessage(message: Message): Promise<any>;
     deleteMessage(message: Message): Promise<void>;
-    addReaction(message: MessageInterface, reaction: string): Promise<void>;
-    removeReaction(message: MessageInterface): Promise<void>;
+    addReaction(message: IMessage, reaction: string): Promise<void>;
+    removeReaction(message: IMessage): Promise<void>;
     send(content: Message): Promise<Message>;
     /**
      * * Faz o download de arquivos do WhatsApp
@@ -135,16 +135,16 @@ export default class WhatsAppBot implements BotInterface {
      * @returns
      */
     groupAcceptInvite(code: string): Promise<string | undefined> | undefined;
-    Chat(chat: ChatInterface): WAChat;
-    User(user: UserInterface): WAUser;
+    Chat(chat: IChat): WAChat;
+    User(user: IUser): WAUser;
     Command(): Command;
-    Message(chat: ChatInterface, text: string): Message;
-    MediaMessage(chat: ChatInterface, text: string, file: any): MediaMessage;
-    ImageMessage(chat: ChatInterface, text: string, image: Buffer): ImageMessage;
-    VideoMessage(chat: ChatInterface, text: string, video: Buffer): VideoMessage;
-    AudioMessage(chat: ChatInterface, audio: Buffer): AudioMessage;
-    ContactMessage(chat: ChatInterface, text: string, contact: string | string[]): ContactMessage;
-    LocationMessage(chat: ChatInterface, latitude: number, longitude: number): LocationMessage;
-    ListMessage(chat: ChatInterface, text: string, button: string): ListMessage;
-    ButtonMessage(chat: ChatInterface, text: string): ButtonMessage;
+    Message(chat: IChat, text: string): Message;
+    MediaMessage(chat: IChat, text: string, file: any): MediaMessage;
+    ImageMessage(chat: IChat, text: string, image: Buffer): ImageMessage;
+    VideoMessage(chat: IChat, text: string, video: Buffer): VideoMessage;
+    AudioMessage(chat: IChat, audio: Buffer): AudioMessage;
+    ContactMessage(chat: IChat, text: string, contact: string | string[]): ContactMessage;
+    LocationMessage(chat: IChat, latitude: number, longitude: number): LocationMessage;
+    ListMessage(chat: IChat, text: string, button: string): ListMessage;
+    ButtonMessage(chat: IChat, text: string): ButtonMessage;
 }

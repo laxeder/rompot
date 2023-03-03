@@ -1,8 +1,8 @@
 /// <reference types="node" />
 import EventEmitter from "events";
-import Message from "../messages/Message";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
+import Message from "@messages/Message";
+import Chat from "@modules/Chat";
+import User from "@modules/User";
 import { ConnectionType } from "../types/Connection";
 import { UserAction } from "../types/User";
 import { ChatAction } from "../types/Chat";

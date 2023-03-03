@@ -1,5 +1,5 @@
-import { ListMessageInterface } from "@interfaces/MessagesInterfaces";
-import ChatInterface from "@interfaces/ChatInterface";
+import { IListMessage } from "@interfaces/IMessage";
+import IChat from "@interfaces/IChat";
 
 import Message from "@messages/Message";
 
@@ -8,13 +8,13 @@ import { Bot } from "../types/Bot";
 
 
 //@ts-ignore
-export default class ListMessage extends Message implements ListMessageInterface {
+export default class ListMessage extends Message implements IListMessage {
   public list: List[] = [];
   public button: string;
   public title: string;
   public footer: string;
 
-  constructor(chat: ChatInterface | string, text: string, buttonText: string, title?: string, footer?: string) {
+  constructor(chat: IChat | string, text: string, buttonText: string, title?: string, footer?: string) {
     super(chat, text);
 
     this.button = buttonText;
@@ -46,7 +46,7 @@ export default class ListMessage extends Message implements ListMessageInterface
    * @param bot Bot que irá executar os métodos
    * @param message Interface da mensagem
    */
-  public static Inject<MessageIn extends ListMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & ListMessage {
+  public static Inject<MessageIn extends IListMessage>(bot: Bot, msg: MessageIn): MessageIn & ListMessage {
     const module: ListMessage = new ListMessage(msg.chat, msg.text, msg.text);
 
     module.inject(bot, msg);

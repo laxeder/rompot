@@ -1,4 +1,4 @@
-import CommandInterface from "@interfaces/CommandInterface";
+import ICommand from "@interfaces/ICommand";
 
 import Message from "@messages/Message";
 
@@ -7,7 +7,7 @@ import BotBase from "@modules/BotBase";
 import { Bot } from "../types/Bot";
 
 
-export default class Command implements CommandInterface {
+export default class Command implements ICommand {
   public tags: string[] = [];
   public prefix: string = "";
   public name: string = "";

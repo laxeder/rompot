@@ -1,10 +1,10 @@
 /// <reference types="node" />
-import { MessageInterface } from "./MessagesInterfaces";
-import UserInterface from "./UserInterface";
+import { IMessage } from "@interfaces/IMessage";
+import IUser from "@interfaces/IUser";
 import { ChatStatus, ChatType } from "../types/Chat";
 import { Bot } from "../types/Bot";
 import { Users } from "../types/User";
-export default interface ChatInterface {
+export default interface IChat {
     /**
      * * ID da sala de bate-papo
      */
@@ -68,12 +68,12 @@ export default interface ChatInterface {
      * @param user Usuário que será verificado
      * @returns Retorna se o usuário é administrador da sala de bate-papo
      */
-    IsAdmin(user: UserInterface | string): Promise<boolean>;
+    IsAdmin(user: IUser | string): Promise<boolean>;
     /**
      * @param user Usuário que será verificado
      * @returns Retorna se o usuário é lider da sala de bate-papo
      */
-    IsLeader(user: UserInterface | string): Promise<boolean>;
+    IsLeader(user: IUser | string): Promise<boolean>;
     /**
      * @returns Retorna os administradores daquela sala de bate-papo
      */
@@ -82,22 +82,22 @@ export default interface ChatInterface {
      * * Adiciona um usuário a sala de bate-papo
      * @param user Usuário que será adicionado
      */
-    addUser(user: UserInterface | string): Promise<void>;
+    addUser(user: IUser | string): Promise<void>;
     /**
      * * Remove um usuário da sala de bate-papo
      * @param user
      */
-    removeUser(user: UserInterface | string): Promise<void>;
+    removeUser(user: IUser | string): Promise<void>;
     /**
      * * Promove a administrador um usuário da sala de bate-papo
      * @param user Usuário que será promovido
      */
-    promote(user: UserInterface | string): Promise<void>;
+    promote(user: IUser | string): Promise<void>;
     /**
      * * Remove o administrador de um usuário da sala de bate-papo
      * @param user Usuário que terá sua administração removida
      */
-    demote(user: UserInterface | string): Promise<void>;
+    demote(user: IUser | string): Promise<void>;
     /**
      * * Sai da sala de bate-papo
      */
@@ -106,7 +106,7 @@ export default interface ChatInterface {
      * * Envia uma mensagem na sala de bate-papo que a mensagem foi enviada
      * @param message Mensagem que será enviada
      */
-    send(message: MessageInterface | string): Promise<MessageInterface>;
+    send(message: IMessage | string): Promise<IMessage>;
     /**
      * * Altera o status da sala de bate-pappo
      * @param status Status da sala de bate-papo

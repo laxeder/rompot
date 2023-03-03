@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import User from "../modules/User";
+import User from "@modules/User";
 export declare type WAUsers = {
     [id: string]: WAUser;
 };

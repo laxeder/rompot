@@ -1,1 +1,1 @@
-{"version":3,"file":"BotBase.js","sourceRoot":"","sources":["../../src/modules/BotBase.ts"],"names":[],"mappings":";;;;;AAGA,mEAA2C;AAE3C,kEAA0C;AAE1C,MAAqB,OAAQ,SAAQ,mBAAyC;IAC5E;QACE,KAAK,CAAC,IAAI,qBAAW,EAAE,CAAC,CAAC;IAC3B,CAAC;CACF;AAJD,0BAIC"}
+{"version":3,"file":"BotBase.js","sourceRoot":"","sources":["../../src/modules/BotBase.ts"],"names":[],"mappings":";;;;;AAGA,mEAA2C;AAE3C,kEAA0C;AAE1C,MAAqB,OAAQ,SAAQ,mBAAyB;IAC5D;QACE,KAAK,CAAC,IAAI,qBAAW,EAAE,CAAC,CAAC;IAC3B,CAAC;CACF;AAJD,0BAIC"}

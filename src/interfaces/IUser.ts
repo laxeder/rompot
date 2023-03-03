@@ -1,9 +1,9 @@
-import ChatInterface from "@interfaces/ChatInterface";
+import IChat from "@interfaces/IChat";
 
 import { Bot } from "../types/Bot";
 
 
-export default interface UserInterface {
+export default interface IUser {
   /**
    * * ID do usuário
    */
@@ -76,11 +76,11 @@ export default interface UserInterface {
    * @param chat Sala de bate-papo que está o usuário
    * @returns Retorna se o usuário é administrador daquela sala de bate-papo
    */
-  IsAdmin(chat: ChatInterface | string): Promise<boolean>;
+  IsAdmin(chat: IChat | string): Promise<boolean>;
 
   /**
    * @param chat Sala de bate-papo que está o usuário
    * @returns Retorna se o usuário é lider daquela sala de bate-papo
    */
-  IsLeader(chat: ChatInterface | string): Promise<boolean>;
+  IsLeader(chat: IChat | string): Promise<boolean>;
 }

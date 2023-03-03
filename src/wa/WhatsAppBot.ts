@@ -11,10 +11,10 @@ import { WAStatus } from "@wa/WAStatus";
 
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
-import { MessageInterface } from "@interfaces/MessagesInterfaces";
-import ChatInterface from "@interfaces/ChatInterface";
-import UserInterface from "@interfaces/UserInterface";
-import BotInterface from "@interfaces/BotInterface";
+import { IMessage } from "@interfaces/IMessage";
+import IChat from "@interfaces/IChat";
+import IUser from "@interfaces/IUser";
+import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
 import LocationMessage from "@messages/LocationMessage";
@@ -41,7 +41,7 @@ import { Commands } from "../types/Command";
 import { ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
 
-export default class WhatsAppBot implements BotInterface {
+export default class WhatsAppBot implements IBot {
   //@ts-ignore
   private _bot: WASocket = {};
   public DisconnectReason = DisconnectReason;
@@ -390,7 +390,7 @@ export default class WhatsAppBot implements BotInterface {
     this.chats = chats;
   }
 
-  public async getChatAdmins(chat: ChatInterface): Promise<WAUsers> {
+  public async getChatAdmins(chat: IChat): Promise<WAUsers> {
     const users: WAUsers = {};
 
     if (!this.chats.hasOwnProperty(chat.id)) return users;
@@ -438,7 +438,7 @@ export default class WhatsAppBot implements BotInterface {
     await this.wcb.waitCall(() => this._bot?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "remove"));
   }
 
-  public async promoteUserInChat(chat: ChatInterface, user: UserInterface): Promise<void> {
+  public async promoteUserInChat(chat: IChat, user: IUser): Promise<void> {
     if (!chat.id.includes("@g")) return;
 
     if (!(await chat.IsAdmin(this.id))) return;
@@ -446,7 +446,7 @@ export default class WhatsAppBot implements BotInterface {
     await this.wcb.waitCall(() => this._bot?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "promote"));
   }
 
-  public async demoteUserInChat(chat: ChatInterface, user: UserInterface): Promise<void> {
+  public async demoteUserInChat(chat: IChat, user: IUser): Promise<void> {
     if (!chat.id.includes("@g")) return;
 
     if (!(await chat.IsAdmin(this.id))) return;
@@ -454,7 +454,7 @@ export default class WhatsAppBot implements BotInterface {
     await this.wcb.waitCall(() => this._bot?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "demote"));
   }
 
-  public async changeChatStatus(chat: ChatInterface, status: ChatStatus): Promise<void> {
+  public async changeChatStatus(chat: IChat, status: ChatStatus): Promise<void> {
     return await this.wcb.waitCall(() => this._bot.sendPresenceUpdate(WAStatus[status] || "available", getID(Chat.getChatId(chat))));
   }
 
@@ -632,7 +632,7 @@ export default class WhatsAppBot implements BotInterface {
 
   //! ******************************* MESSAGE *******************************
 
-  public async readMessage(message: MessageInterface): Promise<void> {
+  public async readMessage(message: IMessage): Promise<void> {
     const key: proto.IMessageKey = { remoteJid: getID(message.chat.id), id: message.id || "", fromMe: message.user.id == this.id };
 
     if (message.chat.id.includes("@g")) {
@@ -665,14 +665,14 @@ export default class WhatsAppBot implements BotInterface {
     await this.wcb.waitCall(() => this._bot?.sendMessage(getID(message.chat.id), { delete: key }));
   }
 
-  public async addReaction(message: MessageInterface, reaction: string): Promise<void> {
+  public async addReaction(message: IMessage, reaction: string): Promise<void> {
     const waMSG = new WhatsAppMessage(this, message);
     await waMSG.refactory(message);
 
     await this.wcb.waitCall(() => this._bot?.sendMessage(getID(message.chat.id), { react: { key: waMSG.message.key, text: reaction } }));
   }
 
-  public async removeReaction(message: MessageInterface): Promise<void> {
+  public async removeReaction(message: IMessage): Promise<void> {
     const waMSG = new WhatsAppMessage(this, message);
     await waMSG.refactory(message);
 
@@ -760,7 +760,7 @@ export default class WhatsAppBot implements BotInterface {
 
   //? ************** MODELS **************
 
-  public Chat(chat: ChatInterface) {
+  public Chat(chat: IChat) {
     if (this.chats.hasOwnProperty(chat.id)) {
       return this.chats[chat.id];
     }
@@ -774,7 +774,7 @@ export default class WhatsAppBot implements BotInterface {
     return new WAChat(chat.id, chat.type, chat.name, chat.description, chat.profile, users);
   }
 
-  public User(user: UserInterface) {
+  public User(user: IUser) {
     if (this.chats.hasOwnProperty(user.id)) {
       const chat = this.chats[user.id];
       return new WAUser(user.id, chat.name, chat.description, chat.profile);
@@ -787,39 +787,39 @@ export default class WhatsAppBot implements BotInterface {
     return new Command();
   }
 
-  public Message(chat: ChatInterface, text: string) {
+  public Message(chat: IChat, text: string) {
     return new Message(this.Chat(chat), text);
   }
 
-  public MediaMessage(chat: ChatInterface, text: string, file: any) {
+  public MediaMessage(chat: IChat, text: string, file: any) {
     return new MediaMessage(this.Chat(chat), text, file);
   }
 
-  public ImageMessage(chat: ChatInterface, text: string, image: Buffer) {
+  public ImageMessage(chat: IChat, text: string, image: Buffer) {
     return new ImageMessage(this.Chat(chat), text, image);
   }
 
-  public VideoMessage(chat: ChatInterface, text: string, video: Buffer) {
+  public VideoMessage(chat: IChat, text: string, video: Buffer) {
     return new VideoMessage(this.Chat(chat), text, video);
   }
 
-  public AudioMessage(chat: ChatInterface, audio: Buffer) {
+  public AudioMessage(chat: IChat, audio: Buffer) {
     return new AudioMessage(this.Chat(chat), audio);
   }
 
-  public ContactMessage(chat: ChatInterface, text: string, contact: string | string[]) {
+  public ContactMessage(chat: IChat, text: string, contact: string | string[]) {
     return new ContactMessage(this.Chat(chat), text, contact);
   }
 
-  public LocationMessage(chat: ChatInterface, latitude: number, longitude: number) {
+  public LocationMessage(chat: IChat, latitude: number, longitude: number) {
     return new LocationMessage(this.Chat(chat), latitude, longitude);
   }
 
-  public ListMessage(chat: ChatInterface, text: string, button: string) {
+  public ListMessage(chat: IChat, text: string, button: string) {
     return new ListMessage(this.Chat(chat), text, button);
   }
 
-  public ButtonMessage(chat: ChatInterface, text: string) {
+  public ButtonMessage(chat: IChat, text: string) {
     return new ButtonMessage(this.Chat(chat), text);
   }
 }

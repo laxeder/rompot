@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import UserInterface from "../interfaces/UserInterface";
-import Chat from "./Chat";
+import IUser from "@interfaces/IUser";
+import Chat from "@modules/Chat";
 import { Bot } from "../types/Bot";
-export default class User implements UserInterface {
+export default class User implements IUser {
     id: string;
     name: string;
     description: string;
@@ -23,16 +23,16 @@ export default class User implements UserInterface {
      * @param user Usuário que será obtido
      * @returns Retorna o usuário
      */
-    static getUser<UserIn extends UserInterface>(user: UserIn | string): UserIn | UserInterface;
+    static getUser<UserIn extends IUser>(user: UserIn | string): UserIn | IUser;
     /**
      * @param user Usuário
      * @returns Retorna o ID do usuário
      */
-    static getUserId(user: UserInterface | string): string;
+    static getUserId(user: IUser | string): string;
     /**
      * * Injeta a interface no modulo
      * @param bot Bot que irá executar os métodos
      * @param user Interface do usuário
      */
-    static Inject<UserIn extends UserInterface>(bot: Bot, user: UserIn): UserIn & UserInterface;
+    static Inject<UserIn extends IUser>(bot: Bot, user: UserIn): UserIn & IUser;
 }

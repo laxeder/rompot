@@ -1,4 +1,4 @@
-import UserInterface from "@interfaces/UserInterface";
+import IUser from "@interfaces/IUser";
 
 import BotBase from "@modules/BotBase";
 import Chat from "@modules/Chat";
@@ -8,7 +8,7 @@ import { setBotProperty } from "@utils/bot";
 import { Bot } from "../types/Bot";
 
 
-export default class User implements UserInterface {
+export default class User implements IUser {
   public id: string;
   public name: string;
   public description: string;
@@ -77,7 +77,7 @@ export default class User implements UserInterface {
    * @param user Usuário que será obtido
    * @returns Retorna o usuário
    */
-  public static getUser<UserIn extends UserInterface>(user: UserIn | string): UserIn | UserInterface {
+  public static getUser<UserIn extends IUser>(user: UserIn | string): UserIn | IUser {
     if (typeof user == "string") {
       return new User(user);
     }
@@ -89,7 +89,7 @@ export default class User implements UserInterface {
    * @param user Usuário
    * @returns Retorna o ID do usuário
    */
-  public static getUserId(user: UserInterface | string) {
+  public static getUserId(user: IUser | string) {
     if (typeof user == "string") {
       return String(user || "");
     }
@@ -106,7 +106,7 @@ export default class User implements UserInterface {
    * @param bot Bot que irá executar os métodos
    * @param user Interface do usuário
    */
-  public static Inject<UserIn extends UserInterface>(bot: Bot, user: UserIn): UserIn & UserInterface {
+  public static Inject<UserIn extends IUser>(bot: Bot, user: UserIn): UserIn & IUser {
     const userModule = new User(user.id, user.name, user.description, user.profile);
 
     setBotProperty(bot, userModule);

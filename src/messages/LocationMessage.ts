@@ -1,5 +1,5 @@
-import { LocationMessageInterface } from "@interfaces/MessagesInterfaces";
-import ChatInterface from "@interfaces/ChatInterface";
+import { ILocationMessage } from "@interfaces/IMessage";
+import IChat from "@interfaces/IChat";
 
 import Message from "@messages/Message";
 
@@ -7,11 +7,11 @@ import { Bot } from "../types/Bot";
 
 
 //@ts-ignore
-export default class LocationMessage extends Message implements LocationMessageInterface {
+export default class LocationMessage extends Message implements ILocationMessage {
   public latitude: number;
   public longitude: number;
 
-  constructor(chat: ChatInterface | string, latitude: number, longitude: number, mention?: Message, id?: string) {
+  constructor(chat: IChat | string, latitude: number, longitude: number, mention?: Message, id?: string) {
     super(chat, "", mention, id);
 
     this.latitude = latitude;
@@ -28,7 +28,7 @@ export default class LocationMessage extends Message implements LocationMessageI
    * @param bot Bot que irá executar os métodos
    * @param message Interface da mensagem
    */
-  public static Inject<MessageIn extends LocationMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & LocationMessage {
+  public static Inject<MessageIn extends ILocationMessage>(bot: Bot, msg: MessageIn): MessageIn & LocationMessage {
     const module: LocationMessage = new LocationMessage(msg.chat, msg.latitude, msg.longitude);
 
     module.inject(bot, msg);

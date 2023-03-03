@@ -1,6 +1,6 @@
-import { MessageInterface } from "@interfaces/MessagesInterfaces";
-import UserInterface from "@interfaces/UserInterface";
-import ChatInterface from "@interfaces/ChatInterface";
+import { IMessage } from "@interfaces/IMessage";
+import IUser from "@interfaces/IUser";
+import IChat from "@interfaces/IChat";
 
 import Message from "@messages/Message";
 
@@ -13,7 +13,7 @@ import { ChatStatus, ChatType } from "../types/Chat";
 import { Users } from "../types/User";
 import { Bot } from "../types/Bot";
 
-export default class Chat implements ChatInterface {
+export default class Chat implements IChat {
   public id: string;
   public type: ChatType;
   public status: ChatStatus;
@@ -66,13 +66,13 @@ export default class Chat implements ChatInterface {
     return this.bot.setChatProfile(this, image);
   }
 
-  public async IsAdmin(user: UserInterface | string): Promise<boolean> {
+  public async IsAdmin(user: IUser | string): Promise<boolean> {
     const admins = await this.bot.getChatAdmins(this);
 
     return admins.hasOwnProperty(User.getUserId(user));
   }
 
-  public async IsLeader(user: UserInterface | string): Promise<boolean> {
+  public async IsLeader(user: IUser | string): Promise<boolean> {
     const leader = await this.bot.getChatLeader(this);
 
     return leader.id == User.getUserId(user);
@@ -82,19 +82,19 @@ export default class Chat implements ChatInterface {
     return this.bot.getChatAdmins(this);
   }
 
-  public async addUser(user: UserInterface | string): Promise<void> {
+  public async addUser(user: IUser | string): Promise<void> {
     return this.bot.addUserInChat(this, user);
   }
 
-  public async removeUser(user: UserInterface | string): Promise<void> {
+  public async removeUser(user: IUser | string): Promise<void> {
     return this.bot.removeUserInChat(this, user);
   }
 
-  public async promote(user: UserInterface | string): Promise<void> {
+  public async promote(user: IUser | string): Promise<void> {
     return this.bot.promoteUserInChat(this, user);
   }
 
-  public async demote(user: UserInterface | string): Promise<void> {
+  public async demote(user: IUser | string): Promise<void> {
     return this.bot.demoteUserInChat(this, User.getUser(user));
   }
 
@@ -102,7 +102,7 @@ export default class Chat implements ChatInterface {
     return this.bot.leaveChat(this);
   }
 
-  public async send(message: MessageInterface | string): Promise<Message> {
+  public async send(message: IMessage | string): Promise<Message> {
     return this.bot.send(Message.getMessage(message));
   }
 
@@ -114,7 +114,7 @@ export default class Chat implements ChatInterface {
    * @param chat Sala de bate-papo que será obtida
    * @returns Retorna a sala de bate-papo
    */
-  public static getChat<ChatIn extends ChatInterface>(chat: ChatIn | string): ChatIn | ChatInterface {
+  public static getChat<ChatIn extends IChat>(chat: ChatIn | string): ChatIn | IChat {
     if (typeof chat == "string") {
       return new Chat(chat);
     }
@@ -126,7 +126,7 @@ export default class Chat implements ChatInterface {
    * @param chat Sala de bate-papo
    * @returns Retorna o ID da sala de bate-papo
    */
-  public static getChatId(chat: ChatInterface | string): string {
+  public static getChatId(chat: IChat | string): string {
     if (typeof chat == "string") {
       return String(chat || "");
     }
@@ -143,7 +143,7 @@ export default class Chat implements ChatInterface {
    * @param bot Bot que irá executar os métodos
    * @param chat Interface da sala de bate-papo
    */
-  public static Inject<ChatIn extends ChatInterface>(bot: Bot, chat: ChatIn): ChatIn & Chat {
+  public static Inject<ChatIn extends IChat>(bot: Bot, chat: ChatIn): ChatIn & Chat {
     const module: Chat = new Chat(chat.id, chat.type, chat.name, chat.description, chat.profile);
 
     for (const id in chat.users) {

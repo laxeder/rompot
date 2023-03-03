@@ -1,7 +1,7 @@
-import CommandInterface from "../interfaces/CommandInterface";
-import Message from "../messages/Message";
+import ICommand from "@interfaces/ICommand";
+import Message from "@messages/Message";
 import { Bot } from "../types/Bot";
-export default class Command implements CommandInterface {
+export default class Command implements ICommand {
     tags: string[];
     prefix: string;
     name: string;

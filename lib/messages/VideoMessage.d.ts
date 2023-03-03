@@ -1,16 +1,16 @@
 /// <reference types="node" />
-import { VideoMessageInterface } from "../interfaces/MessagesInterfaces";
-import ChatInterface from "../interfaces/ChatInterface";
-import MediaMessage from "./MediaMessage";
-import Message from "./Message";
+import { IVideoMessage } from "@interfaces/IMessage";
+import IChat from "@interfaces/IChat";
+import MediaMessage from "@messages/MediaMessage";
+import Message from "@messages/Message";
 import { Bot } from "../types/Bot";
-export default class VideoMessage extends MediaMessage implements VideoMessageInterface {
-    constructor(chat: ChatInterface, text: string, video: Buffer, mention?: Message, id?: string);
+export default class VideoMessage extends MediaMessage implements IVideoMessage {
+    constructor(chat: IChat, text: string, video: Buffer, mention?: Message, id?: string);
     getVideo(): Promise<Buffer>;
     /**
      * * Injeta a interface no modulo
      * @param bot Bot que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends VideoMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & VideoMessage;
+    static Inject<MessageIn extends IVideoMessage>(bot: Bot, msg: MessageIn): MessageIn & VideoMessage;
 }

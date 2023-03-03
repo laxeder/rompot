@@ -2,8 +2,8 @@
 export declare type WAChats = {
     [id: string]: WAChat;
 };
-import { WAUsers } from "./WAUser";
-import Chat from "../modules/Chat";
+import { WAUsers } from "@wa/WAUser";
+import Chat from "@modules/Chat";
 import { ChatStatus, ChatType } from "../types/Chat";
 export default class WAChat extends Chat {
     name: string;

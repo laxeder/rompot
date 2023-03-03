@@ -1,8 +1,8 @@
-import CommandInterface from "@interfaces/CommandInterface";
-import BotInterface from "@interfaces/BotInterface";
+import ICommand from "@interfaces/ICommand";
+import IBot from "@interfaces/IBot";
 
 import BotModule from "@modules/BotModule";
 
-export type Bot = BotModule<BotInterface, CommandInterface>;
+export type Bot = BotModule<IBot, ICommand>;
 
 export type BotStatus = "online" | "offline";

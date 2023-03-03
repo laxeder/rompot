@@ -1,9 +1,8 @@
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
-import UserInterface from "@interfaces/UserInterface";
-import ChatInterface from "@interfaces/ChatInterface";
-import BotInterface from "@interfaces/BotInterface";
-import BotControl from "@interfaces/BotControl";
+import IUser from "@interfaces/IUser";
+import IChat from "@interfaces/IChat";
+import IBot from "@interfaces/IBot";
 
 import LocationMessage from "@messages/LocationMessage";
 import ContactMessage from "@messages/ContactMessage";
@@ -29,8 +28,8 @@ import { DefaultCommandConfig } from "@config/CommandConfig";
 
 export { ConnectionConfig };
 
-export { UserInterface, ChatInterface, BotInterface, BotControl };
-export * from "@interfaces/MessagesInterfaces";
+export { IUser, IChat, IBot };
+export * from "@interfaces/IMessage";
 
 export { ButtonMessage, ContactMessage, ImageMessage, VideoMessage, MediaMessage, Message, ListMessage, LocationMessage };
 
@@ -41,11 +40,11 @@ export * from "@utils/error";
 export * from "@utils/bot";
 
 export * from "./types/Connection";
-export * from "./types/Command";
 export * from "./types/Message";
 export * from "./types/Chat";
 export * from "./types/User";
 export * from "./types/Bot";
+
 export * from "./wa/WAModule";
 
 export { DefaultCommandConfig, DefaultConnectionConfig };

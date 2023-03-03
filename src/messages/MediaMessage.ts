@@ -1,5 +1,5 @@
-import { MediaMessageInterface } from "@interfaces/MessagesInterfaces";
-import ChatInterface from "@interfaces/ChatInterface";
+import { IMediaMessage } from "@interfaces/IMessage";
+import IChat from "@interfaces/IChat";
 
 import Message from "@messages/Message";
 
@@ -7,11 +7,11 @@ import { Bot } from "../types/Bot";
 
 
 //@ts-ignore
-export default class MediaMessage extends Message implements MediaMessageInterface {
+export default class MediaMessage extends Message implements IMediaMessage {
   public isGIF: boolean = false;
   public file: any;
 
-  constructor(chat: ChatInterface | string, text: string, file: any, mention?: Message, id?: string) {
+  constructor(chat: IChat | string, text: string, file: any, mention?: Message, id?: string) {
     super(chat, text, mention, id);
 
     this.file = file || Buffer.from(String(file || ""));
@@ -28,7 +28,7 @@ export default class MediaMessage extends Message implements MediaMessageInterfa
    * @param bot Bot que irá executar os métodos
    * @param message Interface da mensagem
    */
-  public static Inject<MessageIn extends MediaMessageInterface>(bot: Bot, msg: MessageIn): MessageIn & MediaMessage {
+  public static Inject<MessageIn extends IMediaMessage>(bot: Bot, msg: MessageIn): MessageIn & MediaMessage {
     const module: MediaMessage = new MediaMessage(msg.chat, msg.text, msg.file);
 
     module.inject(bot, msg);

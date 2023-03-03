@@ -1,4 +1,4 @@
-import Message from "../messages/Message";
+import Message from "@messages/Message";
 export declare type PromiseMessage = {
     [chatId: string]: {
         stopRead: boolean;

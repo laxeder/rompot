@@ -1,5 +1,5 @@
-import { MessageInterface } from "@interfaces/MessagesInterfaces";
-import ChatInterface from "@interfaces/ChatInterface";
+import { IMessage } from "@interfaces/IMessage";
+import IChat from "@interfaces/IChat";
 
 import BotBase from "@modules/BotBase";
 import Chat from "@modules/Chat";
@@ -11,7 +11,7 @@ import { Bot } from "../types/Bot";
 
 import MediaMessage from "./MediaMessage";
 
-export default class Message implements MessageInterface {
+export default class Message implements IMessage {
   public id: string;
   public chat: Chat;
   public user: User;
@@ -26,7 +26,7 @@ export default class Message implements MessageInterface {
     return new BotBase();
   }
 
-  constructor(chat: ChatInterface | string, text: string, mention?: MessageInterface, id?: string) {
+  constructor(chat: IChat | string, text: string, mention?: IMessage, id?: string) {
     this.chat = Chat.Inject(this.bot, Chat.getChat(chat));
 
     this.id = id || String(Date.now());
@@ -49,7 +49,7 @@ export default class Message implements MessageInterface {
     return this.bot.addReaction(this, reaction);
   }
 
-  public async reply(message: MessageInterface | string, mention: boolean = true): Promise<Message> {
+  public async reply(message: IMessage | string, mention: boolean = true): Promise<Message> {
     const msg = Message.getMessage(message);
 
     if (mention) msg.mention = this;
@@ -61,7 +61,7 @@ export default class Message implements MessageInterface {
     return this.bot.readMessage(this);
   }
 
-  public inject<MessageIn extends MessageInterface>(bot: Bot, msg: MessageIn): void {
+  public inject<MessageIn extends IMessage>(bot: Bot, msg: MessageIn): void {
     this.id = msg.id;
     this.text = msg.text;
     this.fromMe = msg.fromMe;
@@ -88,7 +88,7 @@ export default class Message implements MessageInterface {
    * @param message Mensagem que será obtida
    * @returns Retorna a mensagem
    */
-  public static getMessage<MessageIn extends MessageInterface>(message: MessageIn | string): MessageIn | MessageInterface {
+  public static getMessage<MessageIn extends IMessage>(message: MessageIn | string): MessageIn | IMessage {
     if (typeof message == "string") {
       return new Message(new Chat(""), message);
     }
@@ -100,7 +100,7 @@ export default class Message implements MessageInterface {
    * @param message Mensagem
    * @returns Retorna o ID da mensagem
    */
-  public static getMessageId(message: MessageInterface | string): string {
+  public static getMessageId(message: IMessage | string): string {
     if (typeof message == "string") {
       return String(message || "");
     }
@@ -117,7 +117,7 @@ export default class Message implements MessageInterface {
    * @param bot Bot que irá executar os métodos
    * @param message Interface da mensagem
    */
-  public static Inject<MessageIn extends MessageInterface>(bot: Bot, msg: MessageIn): MessageIn & Message {
+  public static Inject<MessageIn extends IMessage>(bot: Bot, msg: MessageIn): MessageIn & Message {
     const module: Message = new Message(msg.chat, msg.text);
 
     module.inject(bot, msg);

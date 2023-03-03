@@ -1,6 +1,6 @@
-import CommandInterface from "../interfaces/CommandInterface";
-import BotInterface from "../interfaces/BotInterface";
-import BotModule from "./BotModule";
-export default class BotBase extends BotModule<BotInterface, CommandInterface> {
+import ICommand from "@interfaces/ICommand";
+import IBot from "@interfaces/IBot";
+import BotModule from "@modules/BotModule";
+export default class BotBase extends BotModule<IBot, ICommand> {
     constructor();
 }

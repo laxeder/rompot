@@ -1,10 +1,10 @@
 /// <reference types="long" />
-import { MessageInterface } from "../interfaces/MessagesInterfaces";
-import ChatInterface from "../interfaces/ChatInterface";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
+import { IMessage } from "@interfaces/IMessage";
+import IChat from "@interfaces/IChat";
+import Chat from "@modules/Chat";
+import User from "@modules/User";
 import { Bot } from "../types/Bot";
-export default class Message implements MessageInterface {
+export default class Message implements IMessage {
     id: string;
     chat: Chat;
     user: User;
@@ -15,25 +15,25 @@ export default class Message implements MessageInterface {
     mention?: Message;
     timestamp: Number | Long;
     get bot(): Bot;
-    constructor(chat: ChatInterface | string, text: string, mention?: MessageInterface, id?: string);
+    constructor(chat: IChat | string, text: string, mention?: IMessage, id?: string);
     addReaction(reaction: string): Promise<void>;
-    reply(message: MessageInterface | string, mention?: boolean): Promise<Message>;
+    reply(message: IMessage | string, mention?: boolean): Promise<Message>;
     read(): Promise<void>;
-    inject<MessageIn extends MessageInterface>(bot: Bot, msg: MessageIn): void;
+    inject<MessageIn extends IMessage>(bot: Bot, msg: MessageIn): void;
     /**
      * @param message Mensagem que será obtida
      * @returns Retorna a mensagem
      */
-    static getMessage<MessageIn extends MessageInterface>(message: MessageIn | string): MessageIn | MessageInterface;
+    static getMessage<MessageIn extends IMessage>(message: MessageIn | string): MessageIn | IMessage;
     /**
      * @param message Mensagem
      * @returns Retorna o ID da mensagem
      */
-    static getMessageId(message: MessageInterface | string): string;
+    static getMessageId(message: IMessage | string): string;
     /**
      * * Injeta a interface no modulo
      * @param bot Bot que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends MessageInterface>(bot: Bot, msg: MessageIn): MessageIn & Message;
+    static Inject<MessageIn extends IMessage>(bot: Bot, msg: MessageIn): MessageIn & Message;
 }

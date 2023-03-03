@@ -1,9 +1,9 @@
-import { MessageInterface } from "@interfaces/MessagesInterfaces";
+import { IMessage } from "@interfaces/IMessage";
 
 import { Bot } from "../types/Bot";
 
 
-export default interface CommandInterface {
+export default interface ICommand {
   /**
    * * Tags do comando
    */
@@ -43,17 +43,17 @@ export default interface CommandInterface {
    * * Método chamado quando a função é executada
    * @param message Mensagem recebida
    */
-  execute(message: MessageInterface): Promise<void>;
+  execute(message: IMessage): Promise<void>;
 
   /**
    * * Método chamado quando é respondido uma mensagem do comando
    * @param message
    */
-  response(message: MessageInterface): Promise<void>;
+  response(message: IMessage): Promise<void>;
 
   /**
    * * Método chamado quando é solicitado a ajuda do comando
    * @param message
    */
-  help(message: MessageInterface): Promise<void>;
+  help(message: IMessage): Promise<void>;
 }

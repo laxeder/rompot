@@ -1,11 +1,11 @@
-import UserInterface from "@interfaces/UserInterface";
-import ChatInterface from "@interfaces/ChatInterface";
+import IUser from "@interfaces/IUser";
+import IChat from "@interfaces/IChat";
 
 import { Button, List, ListItem } from "../types/Message";
 import { Bot } from "../types/Bot";
 
 
-export interface MessageInterface {
+export interface IMessage {
   /**
    * * ID da mensagem
    */
@@ -14,12 +14,12 @@ export interface MessageInterface {
   /**
    * * Sala de bate-papo que foi enviada a mensagem
    */
-  chat: ChatInterface;
+  chat: IChat;
 
   /**
    * * Usuário que mandou a mensagem
    */
-  user: UserInterface;
+  user: IUser;
 
   /**
    * * Texto da mensagem
@@ -42,7 +42,7 @@ export interface MessageInterface {
   /**
    * * Mensagem mencionada na mensagem
    */
-  mention?: MessageInterface;
+  mention?: IMessage;
 
   /**
    * * Tempo em que a mensagem foi enviada
@@ -65,7 +65,7 @@ export interface MessageInterface {
    * @param message Mensagem que terá enviada
    * @param mention Se verdadeiro a mensagem é mencionada
    */
-  reply(message: MessageInterface | string, mention: boolean): Promise<MessageInterface>;
+  reply(message: IMessage | string, mention: boolean): Promise<IMessage>;
 
   /**
    * * Marca mensagem como visualizada
@@ -77,10 +77,10 @@ export interface MessageInterface {
    * @param bot Bot que irá executar os métodos
    * @param message Interface da mensagem
    */
-  inject(bot: Bot, message: MessageInterface): void;
+  inject(bot: Bot, message: IMessage): void;
 }
 
-export interface MediaMessageInterface extends MessageInterface {
+export interface IMediaMessage extends IMessage {
   //TODO: Adicionar mimetype
 
   /**
@@ -101,28 +101,28 @@ export interface MediaMessageInterface extends MessageInterface {
   getStream(stream: any): Promise<Buffer>;
 }
 
-export interface ImageMessageInterface extends MediaMessageInterface {
+export interface IImageMessage extends IMediaMessage {
   /**
    * @return Retorna a imagem da mensagem
    */
   getImage(): Promise<Buffer>;
 }
 
-export interface VideoMessageInterface extends MediaMessageInterface {
+export interface IVideoMessage extends IMediaMessage {
   /**
    * @returns Retorna o video da mensagem
    */
   getVideo(): Promise<Buffer>;
 }
 
-export interface AudioMessageInterface extends MediaMessageInterface {
+export interface IAudioMessage extends IMediaMessage {
   /**
    * @return Retorna o audio da mensagem
    */
   getAudio(): Promise<Buffer>;
 }
 
-export interface LocationMessageInterface extends MessageInterface {
+export interface ILocationMessage extends IMessage {
   /**
    * * Longitude da localização
    */
@@ -141,14 +141,14 @@ export interface LocationMessageInterface extends MessageInterface {
   setLocation(latitude: number, longitude: number): void;
 }
 
-export interface ContactMessageInterface extends MessageInterface {
+export interface IContactMessage extends IMessage {
   /**
    * * Contatos da mensagem
    */
   contacts: string[];
 }
 
-export interface ListMessageInterface extends MessageInterface {
+export interface IListMessage extends IMessage {
   /**
    * * Titulo da mensagem
    */
@@ -187,7 +187,7 @@ export interface ListMessageInterface extends MessageInterface {
   addItem(index: number, title: string, description: string, id: string): void;
 }
 
-export interface ButtonMessageInterface extends MessageInterface {
+export interface IButtonMessage extends IMessage {
   /**
    * * Botões da mensagem
    */

@@ -1,10 +1,10 @@
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
-import { MessageInterface } from "@interfaces/MessagesInterfaces";
-import CommandInterface from "@interfaces/CommandInterface";
-import ChatInterface from "@interfaces/ChatInterface";
-import UserInterface from "@interfaces/UserInterface";
-import BotInterface from "@interfaces/BotInterface";
+import { IMessage } from "@interfaces/IMessage";
+import ICommand from "@interfaces/ICommand";
+import IChat from "@interfaces/IChat";
+import IUser from "@interfaces/IUser";
+import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
 import LocationMessage from "@messages/LocationMessage";
@@ -30,11 +30,11 @@ import { Chats, ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
 import AudioMessage from "@messages/AudioMessage";
 
-export default class BotModule<Bot extends BotInterface, Command extends CommandInterface> extends Emmiter {
+export default class BotModule<Bot extends IBot, Command extends ICommand> extends Emmiter {
   #promiseMessages: PromiseMessages = new PromiseMessages();
   #autoMessages: any = {};
 
-  public commands: { [tag: string]: Command } = {};
+  public commands: Command[] = [];
 
   public bot: Bot;
   public config: ConnectionConfig;
@@ -110,7 +110,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param message Mensagem que será reagida
    * @param reaction Reação
    */
-  public addReaction(message: MessageInterface, reaction: string): Promise<void> {
+  public addReaction(message: IMessage, reaction: string): Promise<void> {
     return this.bot.addReaction(Message.Inject(this, message), reaction);
   }
 
@@ -118,7 +118,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Remove a reação da mensagem
    * @param message Mensagem que terá sua reação removida
    */
-  public removeReaction(message: MessageInterface): Promise<void> {
+  public removeReaction(message: IMessage): Promise<void> {
     return this.bot.removeReaction(Message.Inject(this, message));
   }
 
@@ -126,7 +126,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Deletar mensagem
    * @param message Mensagem que será deletada da sala de bate-papos
    */
-  public deleteMessage(message: MessageInterface): Promise<void> {
+  public deleteMessage(message: IMessage): Promise<void> {
     return this.bot.removeMessage(Message.Inject(this, message));
   }
 
@@ -134,7 +134,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Remover mensagem
    * @param message Mensagem que será removida da sala de bate-papo
    */
-  public removeMessage(message: MessageInterface): Promise<void> {
+  public removeMessage(message: IMessage): Promise<void> {
     return this.bot.removeMessage(Message.Inject(this, message));
   }
 
@@ -142,9 +142,9 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Marca uma mensagem como visualizada
    * @param message Mensagem que será visualizada
    */
-  readMessage(message: MessageInterface): Promise<void>;
+  readMessage(message: IMessage): Promise<void>;
 
-  public async readMessage(message: MessageInterface) {
+  public async readMessage(message: IMessage) {
     return this.bot.readMessage(message);
   }
 
@@ -153,7 +153,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param content
    * @returns Retorna o conteudo enviado
    */
-  public async send(message: MessageInterface): Promise<Message> {
+  public async send(message: IMessage): Promise<Message> {
     try {
       return Message.Inject(this, await this.bot.send(message));
     } catch (err) {
@@ -170,7 +170,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param stopRead Para de ler a mensagem no evento
    * @param ignoreMessages Não resolve a promessa se a mensagem recebida é a mesma escolhida
    */
-  awaitMessage(chat: ChatInterface | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
+  awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
     return this.#promiseMessages.addPromiseMessage(Chat.getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages);
   }
 
@@ -221,15 +221,8 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Define os comandos do bot
    * @param commands Comandos que será injetado
    */
-  public setCommands(commands: { [k: string]: Command } | Command[]) {
-    if (Array.isArray(commands)) {
-    } else {
-      for (const k in commands) {
-        const cmd = commands[k];
-
-        this.commands[cmd.tags.join(" ")] = cmd;
-      }
-    }
+  public setCommands(commands: Command[]) {
+    this.commands = commands;
   }
 
   /**
@@ -240,11 +233,11 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
   }
 
   /**
-   * * Define um comando na lista de comandos
-   * @param command Comando que será definido
+   * * Adiciona um comando na lista de comandos
+   * @param command Comando que será adicionado
    */
-  public setCommand(command: Command) {
-    this.commands[command.tags.join(" ")] = command;
+  public addCommand(command: Command) {
+    this.commands.push(command);
   }
 
   /**
@@ -269,19 +262,19 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @returns Retorna uma sala de bate-papo
    */
-  public async getChat(chat: ChatInterface | string): Promise<Chat | null> {
-    const chatInterface = await this.bot.getChat(Chat.getChat(chat));
+  public async getChat(chat: IChat | string): Promise<Chat | null> {
+    const iChat = await this.bot.getChat(Chat.getChat(chat));
 
-    if (!chatInterface) return null;
+    if (!iChat) return null;
 
-    return Chat.Inject(this, chatInterface);
+    return Chat.Inject(this, iChat);
   }
 
   /**
    * * Define uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  public async setChat(chat: ChatInterface) {
+  public async setChat(chat: IChat) {
     this.bot.setChat(Chat.Inject(this, chat));
   }
 
@@ -312,7 +305,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Adiciona uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  public addChat(chat: string | ChatInterface): Promise<void> {
+  public addChat(chat: string | IChat): Promise<void> {
     return this.bot.addChat(Chat.Inject(this, Chat.getChat(chat)));
   }
 
@@ -320,7 +313,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Remove uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  public removeChat(chat: string | ChatInterface): Promise<void> {
+  public removeChat(chat: string | IChat): Promise<void> {
     return this.bot.removeChat(Chat.Inject(this, Chat.getChat(chat)));
   }
 
@@ -328,7 +321,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @returns Retorna o nome da sala de bate-papo
    */
-  public getChatName(chat: ChatInterface | string) {
+  public getChatName(chat: IChat | string) {
     return this.bot.getChatName(Chat.getChat(chat));
   }
 
@@ -336,7 +329,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @param name Nome da sala de bate-papo
    */
-  public setChatName(chat: ChatInterface | string, name: string) {
+  public setChatName(chat: IChat | string, name: string) {
     return this.bot.setChatName(Chat.getChat(chat), name);
   }
 
@@ -344,7 +337,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @returns Retorna a descrição da sala de bate-papo
    */
-  public getChatDescription(chat: ChatInterface | string) {
+  public getChatDescription(chat: IChat | string) {
     return this.bot.getChatDescription(Chat.getChat(chat));
   }
 
@@ -352,7 +345,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @param description Descrição da sala de bate-papo
    */
-  public setChatDescription(chat: ChatInterface | string, description: string) {
+  public setChatDescription(chat: IChat | string, description: string) {
     return this.bot.setChatDescription(Chat.getChat(chat), description);
   }
 
@@ -360,7 +353,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @returns Retorna a imagem de perfil da sala de bate-papo
    */
-  public getChatProfile(chat: ChatInterface | string) {
+  public getChatProfile(chat: IChat | string) {
     return this.bot.getChatProfile(Chat.getChat(chat));
   }
 
@@ -369,7 +362,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param profile Imagem de perfil da sala de bate-papo
    */
 
-  public setChatProfile(chat: ChatInterface | string, profile: Buffer) {
+  public setChatProfile(chat: IChat | string, profile: Buffer) {
     return this.bot.setChatProfile(Chat.getChat(chat), profile);
   }
 
@@ -378,7 +371,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @param status Status da sala de bate-papo
    */
-  public async changeChatStatus(chat: string | ChatInterface, status: ChatStatus): Promise<void> {
+  public async changeChatStatus(chat: string | IChat, status: ChatStatus): Promise<void> {
     return this.bot.changeChatStatus(Chat.Inject(this, Chat.getChat(chat)), status);
   }
 
@@ -387,7 +380,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  public addUserInChat(chat: ChatInterface | string, user: UserInterface | string) {
+  public addUserInChat(chat: IChat | string, user: IUser | string) {
     return this.bot.addUserInChat(Chat.getChat(chat), User.getUser(user));
   }
 
@@ -396,7 +389,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  public removeUserInChat(chat: ChatInterface | string, user: UserInterface | string) {
+  public removeUserInChat(chat: IChat | string, user: IUser | string) {
     return this.bot.removeUserInChat(Chat.getChat(chat), User.getUser(user));
   }
 
@@ -405,7 +398,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  public promoteUserInChat(chat: ChatInterface | string, user: UserInterface | string) {
+  public promoteUserInChat(chat: IChat | string, user: IUser | string) {
     return this.bot.promoteUserInChat(Chat.getChat(chat), User.getUser(user));
   }
 
@@ -414,7 +407,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  public demoteUserInChat(chat: ChatInterface | string, user: UserInterface) {
+  public demoteUserInChat(chat: IChat | string, user: IUser) {
     return this.bot.demoteUserInChat(Chat.getChat(chat), User.getUser(user));
   }
 
@@ -422,7 +415,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Cria uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  public createChat(chat: ChatInterface) {
+  public createChat(chat: IChat) {
     return this.bot.createChat(Chat.getChat(chat));
   }
 
@@ -430,7 +423,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Sai de uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  public leaveChat(chat: ChatInterface | string) {
+  public leaveChat(chat: IChat | string) {
     return this.bot.leaveChat(Chat.getChat(chat));
   }
 
@@ -438,7 +431,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @returns Retorna os administradores de uma sala de bate-papo
    */
-  public async getChatAdmins(chat: ChatInterface | string) {
+  public async getChatAdmins(chat: IChat | string) {
     const admins = await this.bot.getChatAdmins(Chat.getChat(chat));
 
     const adminModules: Users = {};
@@ -478,7 +471,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Define um usuário
    * @param user Usuário
    */
-  public async setUser(user: string | UserInterface): Promise<void> {
+  public async setUser(user: string | IUser): Promise<void> {
     return this.bot.setUser(User.Inject(this, User.getUser(user)));
   }
 
@@ -509,7 +502,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Adiciona um novo usuário
    * @param user Usuário
    */
-  public async addUser(user: string | UserInterface): Promise<void> {
+  public async addUser(user: string | IUser): Promise<void> {
     return this.bot.addUser(User.Inject(this, User.getUser(user)));
   }
 
@@ -517,7 +510,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Remove um usuário
    * @param user Usuário
    */
-  public removeUser(user: UserInterface | string) {
+  public removeUser(user: IUser | string) {
     return this.bot.removeUser(User.getUser(user));
   }
 
@@ -525,7 +518,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param user Usuário
    * @returns Retorna o nome do usuário
    */
-  public getUserName(user: UserInterface | string) {
+  public getUserName(user: IUser | string) {
     if (User.getUserId(user) == this.id) return this.getBotName();
 
     return this.bot.getUserName(User.getUser(user));
@@ -535,7 +528,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param user Usuário
    * @param name Nome do usuário
    */
-  public setUserName(user: UserInterface | string, name: string) {
+  public setUserName(user: IUser | string, name: string) {
     if (User.getUserId(user) == this.id) return this.setBotName(name);
 
     return this.bot.setUserName(User.getUser(user), name);
@@ -545,7 +538,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param user Usuário
    * @returns Retorna a descrição do usuário
    */
-  public getUserDescription(user: UserInterface | string) {
+  public getUserDescription(user: IUser | string) {
     if (User.getUserId(user) == this.id) return this.getBotDescription();
 
     return this.bot.getUserDescription(User.getUser(user));
@@ -555,7 +548,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param user Usuário
    * @param description Descrição do usuário
    */
-  public setUserDescription(user: UserInterface | string, description: string) {
+  public setUserDescription(user: IUser | string, description: string) {
     if (User.getUserId(user) == this.id) return this.setBotDescription(description);
 
     return this.bot.setUserDescription(User.getUser(user), description);
@@ -565,7 +558,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param user Usuário
    * @returns Retorna a foto de perfil do usuário
    */
-  public getUserProfile(user: UserInterface | string) {
+  public getUserProfile(user: IUser | string) {
     if (User.getUserId(user) == this.id) return this.getBotProfile();
 
     return this.bot.getUserProfile(User.getUser(user));
@@ -575,7 +568,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param user Usuário
    * @param profile Imagem de perfil do usuário
    */
-  public setUserProfile(user: UserInterface | string, profile: Buffer) {
+  public setUserProfile(user: IUser | string, profile: Buffer) {
     if (User.getUserId(user) == this.id) return this.setBotProfile(profile);
 
     return this.bot.setUserProfile(User.getUser(user), profile);
@@ -585,7 +578,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Desbloqueia um usuário
    * @param user Usuário
    */
-  public unblockUser(user: UserInterface | string) {
+  public unblockUser(user: IUser | string) {
     return this.bot.unblockUser(User.getUser(user));
   }
 
@@ -593,7 +586,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Bloqueia um usuário
    * @param user Usuário
    */
-  public blockUser(user: UserInterface | string) {
+  public blockUser(user: IUser | string) {
     return this.bot.blockUser(User.getUser(user));
   }
 
@@ -658,7 +651,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * * Usuário
    * @param user Usuário
    */
-  User(user: UserInterface | string): User {
+  User(user: IUser | string): User {
     return User.Inject(this, this.bot.User(User.getUser(user)));
   }
 
@@ -667,7 +660,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  Message(chat: ChatInterface | string, text: string): Message {
+  Message(chat: IChat | string, text: string): Message {
     return Message.Inject(this, this.bot.Message(this.Chat(chat), text));
   }
 
@@ -676,7 +669,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  MediaMessage(chat: ChatInterface | string, text: string, file: any): MediaMessage {
+  MediaMessage(chat: IChat | string, text: string, file: any): MediaMessage {
     return MediaMessage.Inject(this, this.bot.MediaMessage(this.Chat(chat), text, file));
   }
 
@@ -686,7 +679,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param text Texto da mensagem
    * @param image Imagem
    */
-  ImageMessage(chat: ChatInterface | string, text: string, image: Buffer): ImageMessage {
+  ImageMessage(chat: IChat | string, text: string, image: Buffer): ImageMessage {
     return ImageMessage.Inject(this, this.bot.ImageMessage(this.Chat(chat), text, image));
   }
 
@@ -696,7 +689,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param text Texto da mensagem
    * @param video Video
    */
-  VideoMessage(chat: ChatInterface | string, text: string, video: Buffer): VideoMessage {
+  VideoMessage(chat: IChat | string, text: string, video: Buffer): VideoMessage {
     return VideoMessage.Inject(this, this.bot.VideoMessage(this.Chat(chat), text, video));
   }
 
@@ -705,7 +698,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @param audio Audio
    */
-  AudioMessage(chat: ChatInterface | string, audio: Buffer): AudioMessage {
+  AudioMessage(chat: IChat | string, audio: Buffer): AudioMessage {
     return AudioMessage.Inject(this, this.bot.AudioMessage(this.Chat(chat), audio));
   }
 
@@ -715,7 +708,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param text Texto da mensagem
    * @param contact Contato
    */
-  ContactMessage(chat: ChatInterface | string, text: string, contact: string | string[]): ContactMessage {
+  ContactMessage(chat: IChat | string, text: string, contact: string | string[]): ContactMessage {
     return ContactMessage.Inject(this, this.bot.ContactMessage(this.Chat(chat), text, contact));
   }
 
@@ -725,7 +718,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param longitude Longitude
    * @param latitude Latitude
    */
-  LocationMessage(chat: ChatInterface | string, latitude: number, longitude: number): LocationMessage {
+  LocationMessage(chat: IChat | string, latitude: number, longitude: number): LocationMessage {
     return LocationMessage.Inject(this, this.bot.LocationMessage(this.Chat(chat), longitude, latitude));
   }
 
@@ -734,7 +727,7 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  ListMessage(chat: ChatInterface | string, text: string, button: string): ListMessage {
+  ListMessage(chat: IChat | string, text: string, button: string): ListMessage {
     return ListMessage.Inject(this, this.bot.ListMessage(this.Chat(chat), text, button));
   }
 
@@ -743,11 +736,11 @@ export default class BotModule<Bot extends BotInterface, Command extends Command
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  ButtonMessage(chat: ChatInterface | string, text: string): ButtonMessage {
+  ButtonMessage(chat: IChat | string, text: string): ButtonMessage {
     return ButtonMessage.Inject(this, this.bot.ButtonMessage(this.Chat(chat), text));
   }
 }
 
-export function BuildBot<Bot extends BotInterface, Command extends CommandInterface>(bot: Bot, config?: ConnectionConfig) {
+export function BuildBot<Bot extends IBot, Command extends ICommand>(bot: Bot, config?: ConnectionConfig) {
   return new BotModule<Bot, Command>(bot, config);
 }

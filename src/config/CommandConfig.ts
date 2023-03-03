@@ -1,32 +1,42 @@
-import CommandInterface from "@interfaces/CommandInterface";
-import Command from "@modules/Command";
-
-import { Commands } from "../types/Command";
+import ICommand from "@interfaces/ICommand";
 
 export const DefaultCommandConfig: CommandConfig = {
-  prefix: "",
-  get(command: string, commands: Commands): CommandInterface | null {
-    const cmds = command.split(/\s+/g);
+  get(command: string, commands: ICommand[], ...args: any[]): ICommand | null {
+    var cmdResult: ICommand | null = null;
 
-    const cmd = commands[cmds.shift() || ""];
+    for (const cmd of commands) {
+      let msg: string = command;
+      let isCMD: boolean = true;
 
-    if (!!cmd) {
-      if (typeof cmd == "string") return this.get(cmds.join(" "), commands);
-      if (cmd instanceof Command) return cmd;
+      const tags = cmd.tags;
+
+      if (!!cmd.prefix) tags.unshift(cmd.prefix);
+
+      for (const tag of cmd.tags) {
+        if (!msg.includes(tag)) {
+          isCMD = false;
+          break;
+        }
+
+        msg.slice(msg.indexOf(tag), tag.length);
+      }
+
+      if (isCMD) {
+        cmdResult = cmd;
+        break;
+      }
     }
 
-    return null;
+    return cmdResult;
   },
 };
 
 export default interface CommandConfig {
-  /** Prefixo dos comandos */
-  prefix: string;
-
   /**
    * @param command Comando que será procurado
    * @param commands Lista de comandos
+   * @param args Argumentos para encontrar comando
    * @returns Retorna o comando
    */
-  get(command: string, commands: Commands): Command | null;
+  get(command: string, commands: ICommand[], ...args: any[]): ICommand | null;
 }

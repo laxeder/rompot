@@ -1,32 +1,20 @@
 import { ConnectionConfig } from "@config/ConnectionConfig";
 
-import UserInterface from "@interfaces/UserInterface";
-import ChatInterface from "@interfaces/ChatInterface";
+import IUser from "@interfaces/IUser";
+import IChat from "@interfaces/IChat";
 
 import Command from "@modules/Command";
 
 import Emmiter from "@utils/Emmiter";
 
-import { Commands } from "../types/Command";
-
-import {
-  AudioMessageInterface,
-  ButtonMessageInterface,
-  ContactMessageInterface,
-  ImageMessageInterface,
-  ListMessageInterface,
-  LocationMessageInterface,
-  MediaMessageInterface,
-  MessageInterface,
-  VideoMessageInterface,
-} from "@interfaces/MessagesInterfaces";
+import { IAudioMessage, IButtonMessage, IContactMessage, IImageMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IVideoMessage } from "@interfaces/IMessage";
 import Auth from "@interfaces/Auth";
 
 import { Chats, ChatStatus } from "../types/Chat";
 import { BotStatus } from "../types/Bot";
 import { Users } from "../types/User";
 
-export default interface BotInterface {
+export default interface IBot {
   //? ************** CONFIG **************
 
   /** ID do bot */
@@ -42,7 +30,7 @@ export default interface BotInterface {
   config: ConnectionConfig;
 
   /** Comandos do bot */
-  commands: Commands;
+  commands: Command[];
 
   //? ************ CONNECTION ************
 
@@ -70,25 +58,25 @@ export default interface BotInterface {
    * * Marca uma mensagem como visualizada
    * @param message Mensagem que será visualizada
    */
-  readMessage(message: MessageInterface): Promise<void>;
+  readMessage(message: IMessage): Promise<void>;
 
   /**
    * * Enviar mensagem
    * @param message Mensagem que será enviada
    */
-  send(message: MessageInterface): Promise<MessageInterface>;
+  send(message: IMessage): Promise<IMessage>;
 
   /**
    * * Remover mensagem
    * @param message Mensagem que será removida da sala de bate-papo
    */
-  removeMessage(message: MessageInterface): Promise<void>;
+  removeMessage(message: IMessage): Promise<void>;
 
   /**
    * * Deletar mensagem
    * @param message Mensagem que será deletada da sala de bate-papos
    */
-  deleteMessage(message: MessageInterface): Promise<void>;
+  deleteMessage(message: IMessage): Promise<void>;
 
   //? *************** BOT ***************
 
@@ -131,120 +119,120 @@ export default interface BotInterface {
    * * Adiciona uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  addChat(chat: ChatInterface): Promise<void>;
+  addChat(chat: IChat): Promise<void>;
 
   /**
    * * Remove uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  removeChat(chat: ChatInterface): Promise<void>;
+  removeChat(chat: IChat): Promise<void>;
 
   /**
    * * Adiciona um novo usuário a uma sala de bate-papo
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  addUserInChat(chat: ChatInterface, user: UserInterface): Promise<void>;
+  addUserInChat(chat: IChat, user: IUser): Promise<void>;
 
   /**
    * * Adiciona um novo usuário a uma sala de bate-papo
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  removeUserInChat(chat: ChatInterface, user: UserInterface): Promise<void>;
+  removeUserInChat(chat: IChat, user: IUser): Promise<void>;
 
   /**
    * * Promove há administrador um usuário da sala de bate-papo
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  promoteUserInChat(chat: ChatInterface, user: UserInterface): Promise<void>;
+  promoteUserInChat(chat: IChat, user: IUser): Promise<void>;
 
   /**
    * * Remove a administração um usuário da sala de bate-papo
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  demoteUserInChat(chat: ChatInterface, user: UserInterface): Promise<void>;
+  demoteUserInChat(chat: IChat, user: IUser): Promise<void>;
 
   /**
    * * Altera o status da sala de bate-papo
    * @param chat Sala de bate-papo
    * @param status Status da sala de bate-papo
    */
-  changeChatStatus(chat: ChatInterface, status: ChatStatus): Promise<void>;
+  changeChatStatus(chat: IChat, status: ChatStatus): Promise<void>;
 
   /**
    * * Cria uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  createChat(chat: ChatInterface): Promise<void>;
+  createChat(chat: IChat): Promise<void>;
 
   /**
    * * Sai de uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  leaveChat(chat: ChatInterface): Promise<void>;
+  leaveChat(chat: IChat): Promise<void>;
 
   /**
    * @param chat Sala de bate-papo
    * @returns Retorna uma sala de bate-papo
    */
-  getChat(chat: ChatInterface): Promise<ChatInterface | null>;
+  getChat(chat: IChat): Promise<IChat | null>;
 
   /**
    * * Define uma sala de bate-papo
    * @param chat Sala de bate-papo
    */
-  setChat(chat: ChatInterface): Promise<void>;
+  setChat(chat: IChat): Promise<void>;
 
   /**
    * @param chat Sala de bate-papo
    * @returns Retorna o nome da sala de bate-papo
    */
-  getChatName(chat: ChatInterface): Promise<string>;
+  getChatName(chat: IChat): Promise<string>;
 
   /**
    * @param chat Sala de bate-papo
    * @param name Nome da sala de bate-papo
    */
-  setChatName(chat: ChatInterface, name: string): Promise<void>;
+  setChatName(chat: IChat, name: string): Promise<void>;
 
   /**
    * @param chat Sala de bate-papo
    * @returns Retorna a descrição da sala de bate-papo
    */
-  getChatDescription(chat: ChatInterface): Promise<string>;
+  getChatDescription(chat: IChat): Promise<string>;
 
   /**
    * @param chat Sala de bate-papo
    * @param description Descrição da sala de bate-papo
    */
-  setChatDescription(chat: ChatInterface, description: string): Promise<void>;
+  setChatDescription(chat: IChat, description: string): Promise<void>;
 
   /**
    * @param chat Sala de bate-papo
    * @returns Retorna a imagem de perfil da sala de bate-papo
    */
-  getChatProfile(chat: ChatInterface): Promise<Buffer>;
+  getChatProfile(chat: IChat): Promise<Buffer>;
 
   /**
    * @param chat Sala de bate-papo
    * @param profile Imagem de perfil da sala de bate-papo
    */
-  setChatProfile(chat: ChatInterface, profile: Buffer): Promise<void>;
+  setChatProfile(chat: IChat, profile: Buffer): Promise<void>;
 
   /**
    * @param chat Sala de bate-papo
    * @returns Retorna os administradores de uma sala de bate-papo
    */
-  getChatAdmins(chat: ChatInterface): Promise<Users>;
+  getChatAdmins(chat: IChat): Promise<Users>;
 
   /**
    * @param chat Sala de bate-papo
    * @returns Retorna o lider da sala de bate-papo
    */
-  getChatLeader(chat: ChatInterface): Promise<UserInterface>;
+  getChatLeader(chat: IChat): Promise<IUser>;
 
   /**
    * @returns Retorna as sala de bate-papo que o bot está
@@ -263,73 +251,73 @@ export default interface BotInterface {
    * * Adiciona um novo usuário
    * @param user Usuário
    */
-  addUser(user: UserInterface): Promise<void>;
+  addUser(user: IUser): Promise<void>;
 
   /**
    * * Remove um usuário
    * @param user Usuário
    */
-  removeUser(user: UserInterface): Promise<void>;
+  removeUser(user: IUser): Promise<void>;
 
   /**
    * @param user Usuário
    * @returns Retorna um usuário
    */
-  getUser(user: UserInterface): Promise<UserInterface | null>;
+  getUser(user: IUser): Promise<IUser | null>;
 
   /**
    * * Define um usuário
    * @param user Usuário
    */
-  setUser(user: UserInterface): Promise<void>;
+  setUser(user: IUser): Promise<void>;
 
   /**
    * @param user Usuário
    * @returns Retorna o nome do usuário
    */
-  getUserName(user: UserInterface): Promise<string>;
+  getUserName(user: IUser): Promise<string>;
 
   /**
    * @param user Usuário
    * @param name Nome do usuário
    */
-  setUserName(user: UserInterface, name: string): Promise<void>;
+  setUserName(user: IUser, name: string): Promise<void>;
 
   /**
    * @param user Usuário
    * @returns Retorna a descrição do usuário
    */
-  getUserDescription(user: UserInterface): Promise<string>;
+  getUserDescription(user: IUser): Promise<string>;
 
   /**
    * @param user Usuário
    * @param description Descrição do usuário
    */
-  setUserDescription(user: UserInterface, description: string): Promise<void>;
+  setUserDescription(user: IUser, description: string): Promise<void>;
 
   /**
    * @param user Usuário
    * @returns Retorna a foto de perfil do usuário
    */
-  getUserProfile(user: UserInterface): Promise<Buffer>;
+  getUserProfile(user: IUser): Promise<Buffer>;
 
   /**
    * @param user Usuário
    * @param profile Imagem de perfil do usuário
    */
-  setUserProfile(user: UserInterface, profile: Buffer): Promise<void>;
+  setUserProfile(user: IUser, profile: Buffer): Promise<void>;
 
   /**
    * * Desbloqueia um usuário
    * @param user Usuário
    */
-  unblockUser(user: UserInterface): Promise<void>;
+  unblockUser(user: IUser): Promise<void>;
 
   /**
    * * Bloqueia um usuário
    * @param user Usuário
    */
-  blockUser(user: UserInterface): Promise<void>;
+  blockUser(user: IUser): Promise<void>;
 
   /**
    * @returns Retorna a lista de usuários do bot
@@ -348,13 +336,13 @@ export default interface BotInterface {
    * * Sala de bate-papo
    * @param id Sala de bate-papo
    */
-  Chat(id: ChatInterface): ChatInterface;
+  Chat(id: IChat): IChat;
 
   /**
    * * Usuário
    * @param user Usuário
    */
-  User(id: UserInterface): UserInterface;
+  User(id: IUser): IUser;
 
   /**
    * * Comando
@@ -368,27 +356,27 @@ export default interface BotInterface {
    * @param message Mensagem que será reagida
    * @param reaction Reação
    */
-  addReaction(message: MessageInterface, reaction: string): Promise<void>;
+  addReaction(message: IMessage, reaction: string): Promise<void>;
 
   /**
    * * Remove a reação da mensagem
    * @param Mensagem que terá sua reação removida
    */
-  removeReaction(message: MessageInterface): Promise<void>;
+  removeReaction(message: IMessage): Promise<void>;
 
   /**
    * * Mensagem
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  Message(chat: ChatInterface, text: string): MessageInterface;
+  Message(chat: IChat, text: string): IMessage;
 
   /**
    * * Mensagem contendo uma mídia
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  MediaMessage(chat: ChatInterface, text: string, file: any): MediaMessageInterface;
+  MediaMessage(chat: IChat, text: string, file: any): IMediaMessage;
 
   /**
    * * Mensagem com imagem
@@ -396,7 +384,7 @@ export default interface BotInterface {
    * @param text Texto da mensagem
    * @param image Imagem
    */
-  ImageMessage(chat: ChatInterface, text: string, image: Buffer): ImageMessageInterface;
+  ImageMessage(chat: IChat, text: string, image: Buffer): IImageMessage;
 
   /**
    * * Mensagem com vídeo
@@ -404,14 +392,14 @@ export default interface BotInterface {
    * @param text Texto da mensagem
    * @param video Video
    */
-  VideoMessage(chat: ChatInterface, text: string, video: Buffer): VideoMessageInterface;
+  VideoMessage(chat: IChat, text: string, video: Buffer): IVideoMessage;
 
   /**
    * * Mensagem com audio
    * @param chat Sala de bate-papo
    * @param audio Audio
    */
-  AudioMessage(chat: ChatInterface, audio: Buffer): AudioMessageInterface;
+  AudioMessage(chat: IChat, audio: Buffer): IAudioMessage;
 
   /**
    * * Mensagem com contatos
@@ -419,7 +407,7 @@ export default interface BotInterface {
    * @param text Texto da mensagem
    * @param contact Contato
    */
-  ContactMessage(chat: ChatInterface, text: string, contact: string | string[]): ContactMessageInterface;
+  ContactMessage(chat: IChat, text: string, contact: string | string[]): IContactMessage;
 
   /**
    * * Mensagem com localização
@@ -427,19 +415,19 @@ export default interface BotInterface {
    * @param longitude Longitude
    * @param latitude Latitude
    */
-  LocationMessage(chat: ChatInterface, latitude: number, longitude: number): LocationMessageInterface;
+  LocationMessage(chat: IChat, latitude: number, longitude: number): ILocationMessage;
 
   /**
    * * Mensagem com lista
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  ListMessage(chat: ChatInterface, text: string, button: string): ListMessageInterface;
+  ListMessage(chat: IChat, text: string, button: string): IListMessage;
 
   /**
    * * Mensagem com botões
    * @param chat Sala de bate-papo
    * @param text Texto da mensagem
    */
-  ButtonMessage(chat: ChatInterface, text: string): ButtonMessageInterface;
+  ButtonMessage(chat: IChat, text: string): IButtonMessage;
 }
