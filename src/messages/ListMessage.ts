@@ -1,13 +1,10 @@
-import { IListMessage } from "@interfaces/IMessage";
-import IChat from "@interfaces/IChat";
+import { IListMessage } from "@interfaces/Messages";
+import { IChat } from "@interfaces/Chat";
 
 import Message from "@messages/Message";
 
 import { List, ListItem } from "../types/Message";
-import { Bot } from "../types/Bot";
 
-
-//@ts-ignore
 export default class ListMessage extends Message implements IListMessage {
   public list: List[] = [];
   public button: string;
@@ -39,18 +36,5 @@ export default class ListMessage extends Message implements IListMessage {
    */
   public generateID(): string {
     return String(Date.now());
-  }
-
-  /**
-   * * Injeta a interface no modulo
-   * @param bot Bot que irá executar os métodos
-   * @param message Interface da mensagem
-   */
-  public static Inject<MessageIn extends IListMessage>(bot: Bot, msg: MessageIn): MessageIn & ListMessage {
-    const module: ListMessage = new ListMessage(msg.chat, msg.text, msg.text);
-
-    module.inject(bot, msg);
-
-    return { ...msg, ...module };
   }
 }

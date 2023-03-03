@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { ConnectionConfig } from "@config/ConnectionConfig";
-import { IMessage } from "@interfaces/IMessage";
+import { IMessage } from "@interfaces/Messages";
 import ICommand from "@interfaces/ICommand";
 import IChat from "@interfaces/IChat";
 import IUser from "@interfaces/IUser";

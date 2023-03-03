@@ -1,7 +1,4 @@
-import IChat from "@interfaces/IChat";
-
-import { Bot } from "../types/Bot";
-
+import { IChat } from "@interfaces/Chat";
 
 export default interface IUser {
   /**
@@ -23,12 +20,9 @@ export default interface IUser {
    * * Foto de perfil do usuário
    */
   profile: Buffer;
+}
 
-  /**
-   * * Bot que irá executar os métodos
-   */
-  bot: Bot;
-
+export interface UserModule {
   /**
    * * Bloqueia o usuário
    */

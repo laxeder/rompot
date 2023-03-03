@@ -1,4 +1,4 @@
-import { IListMessage } from "@interfaces/IMessage";
+import { IListMessage } from "@interfaces/Messages";
 import IChat from "@interfaces/IChat";
 import Message from "@messages/Message";
 import { List, ListItem } from "../types/Message";

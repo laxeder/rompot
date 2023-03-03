@@ -4,7 +4,7 @@ import IUser from "@interfaces/IUser";
 import IChat from "@interfaces/IChat";
 import Command from "@modules/Command";
 import Emmiter from "@utils/Emmiter";
-import { IAudioMessage, IButtonMessage, IContactMessage, IImageMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IVideoMessage } from "@interfaces/IMessage";
+import { IAudioMessage, IButtonMessage, IContactMessage, IImageMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IVideoMessage } from "@interfaces/Messages";
 import Auth from "@interfaces/Auth";
 import { Chats, ChatStatus } from "../types/Chat";
 import { BotStatus } from "../types/Bot";

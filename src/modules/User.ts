@@ -1,4 +1,4 @@
-import IUser from "@interfaces/IUser";
+import IUser from "@interfaces/User";
 
 import BotBase from "@modules/BotBase";
 import Chat from "@modules/Chat";
@@ -6,7 +6,6 @@ import Chat from "@modules/Chat";
 import { setBotProperty } from "@utils/bot";
 
 import { Bot } from "../types/Bot";
-
 
 export default class User implements IUser {
   public id: string;
@@ -113,4 +112,10 @@ export default class User implements IUser {
 
     return { ...user, ...userModule };
   }
+}
+
+export function GenerateUser<U extends IUser>(bot: Bot, user: U): U & User {
+  const module = { ...user, ...new User(user.id) };
+
+  return module;
 }

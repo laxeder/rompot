@@ -1,13 +1,9 @@
-import { IImageMessage } from "@interfaces/IMessage";
-import IChat from "@interfaces/IChat";
+import { IImageMessage } from "@interfaces/Messages";
+import { IChat } from "@interfaces/Chat";
 
 import MediaMessage from "@messages/MediaMessage";
 import Message from "@messages/Message";
 
-import { Bot } from "../types/Bot";
-
-
-//@ts-ignore
 export default class ImageMessage extends MediaMessage implements IImageMessage {
   constructor(chat: IChat, text: string, image: Buffer, mention?: Message, id?: string) {
     super(chat, text, image, mention, id);
@@ -15,18 +11,5 @@ export default class ImageMessage extends MediaMessage implements IImageMessage 
 
   public async getImage(): Promise<Buffer> {
     return this.getStream(this.file);
-  }
-
-  /**
-   * * Injeta a interface no modulo
-   * @param bot Bot que irá executar os métodos
-   * @param message Interface da mensagem
-   */
-  public static Inject<MessageIn extends IImageMessage>(bot: Bot, msg: MessageIn): MessageIn & ImageMessage {
-    const module: ImageMessage = new ImageMessage(msg.chat, msg.text, msg.file);
-
-    module.inject(bot, msg);
-
-    return { ...msg, ...module };
   }
 }

@@ -1,13 +1,10 @@
-import { IMessage } from "@interfaces/IMessage";
-import IUser from "@interfaces/IUser";
-import IChat from "@interfaces/IChat";
+import { IChat, ChatModule } from "@interfaces/Chat";
+import { IMessage } from "@interfaces/Messages";
+import IUser from "@interfaces/User";
 
 import Message from "@messages/Message";
 
-import BotBase from "@modules/BotBase";
-import User from "@modules/User";
-
-import { setBotProperty } from "@utils/bot";
+import User, { GenerateUser } from "@modules/User";
 
 import { ChatStatus, ChatType } from "../types/Chat";
 import { Users } from "../types/User";
@@ -22,10 +19,6 @@ export default class Chat implements IChat {
   public profile: Buffer;
   public users: Users;
 
-  get bot(): Bot {
-    return new BotBase();
-  }
-
   constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: Users, status?: ChatStatus) {
     this.id = id;
     this.type = type || "pv";
@@ -34,80 +27,6 @@ export default class Chat implements IChat {
     this.profile = profile || Buffer.from("");
     this.users = users || {};
     this.status = status || "offline";
-  }
-
-  public async setName(name: string): Promise<void> {
-    this.name = name;
-
-    await this.bot.setChatName(this, name);
-  }
-
-  public async getName(): Promise<string> {
-    return this.bot.getChatName(this);
-  }
-
-  public async getDescription(): Promise<string> {
-    return this.bot.getChatDescription(this);
-  }
-
-  public async setDescription(description: string): Promise<void> {
-    this.description = description;
-
-    return this.bot.setChatDescription(this, description);
-  }
-
-  public async getProfile(): Promise<Buffer> {
-    return this.bot.getChatProfile(this);
-  }
-
-  public async setProfile(image: Buffer): Promise<void> {
-    this.profile = image;
-
-    return this.bot.setChatProfile(this, image);
-  }
-
-  public async IsAdmin(user: IUser | string): Promise<boolean> {
-    const admins = await this.bot.getChatAdmins(this);
-
-    return admins.hasOwnProperty(User.getUserId(user));
-  }
-
-  public async IsLeader(user: IUser | string): Promise<boolean> {
-    const leader = await this.bot.getChatLeader(this);
-
-    return leader.id == User.getUserId(user);
-  }
-
-  public async getAdmins(): Promise<Users> {
-    return this.bot.getChatAdmins(this);
-  }
-
-  public async addUser(user: IUser | string): Promise<void> {
-    return this.bot.addUserInChat(this, user);
-  }
-
-  public async removeUser(user: IUser | string): Promise<void> {
-    return this.bot.removeUserInChat(this, user);
-  }
-
-  public async promote(user: IUser | string): Promise<void> {
-    return this.bot.promoteUserInChat(this, user);
-  }
-
-  public async demote(user: IUser | string): Promise<void> {
-    return this.bot.demoteUserInChat(this, User.getUser(user));
-  }
-
-  public async leave(): Promise<void> {
-    return this.bot.leaveChat(this);
-  }
-
-  public async send(message: IMessage | string): Promise<Message> {
-    return this.bot.send(Message.getMessage(message));
-  }
-
-  public changeStatus(status: ChatStatus): Promise<void> {
-    return this.bot.changeChatStatus(this, status);
   }
 
   /**
@@ -137,27 +56,96 @@ export default class Chat implements IChat {
 
     return String(chat || "");
   }
+}
 
-  /**
-   * * Injeta a interface no modulo
-   * @param bot Bot que irá executar os métodos
-   * @param chat Interface da sala de bate-papo
-   */
-  public static Inject<ChatIn extends IChat>(bot: Bot, chat: ChatIn): ChatIn & Chat {
-    const module: Chat = new Chat(chat.id, chat.type, chat.name, chat.description, chat.profile);
+export function GenerateChat<C extends IChat>(bot: Bot, chat: C): C & ChatModule {
+  const module: C & ChatModule = {
+    ...chat,
 
-    for (const id in chat.users) {
-      const user = chat.users[id];
+    async setName(name: string): Promise<void> {
+      this.name = name;
 
-      if (!(user instanceof User)) {
-        module.users[id] = User.Inject(bot, chat.users[id]);
-      } else {
-        module.users[id] = user;
-      }
+      await bot.setChatName(this, name);
+    },
+
+    async getName(): Promise<string> {
+      return bot.getChatName(this);
+    },
+
+    async getDescription(): Promise<string> {
+      return bot.getChatDescription(this);
+    },
+
+    async setDescription(description: string): Promise<void> {
+      this.description = description;
+
+      return bot.setChatDescription(this, description);
+    },
+
+    async getProfile(): Promise<Buffer> {
+      return bot.getChatProfile(this);
+    },
+
+    async setProfile(image: Buffer): Promise<void> {
+      this.profile = image;
+
+      return bot.setChatProfile(this, image);
+    },
+
+    async IsAdmin(user: IUser | string): Promise<boolean> {
+      const admins = await bot.getChatAdmins(this);
+
+      return admins.hasOwnProperty(User.getUserId(user));
+    },
+
+    async IsLeader(user: IUser | string): Promise<boolean> {
+      const leader = await bot.getChatLeader(this);
+
+      return leader.id == User.getUserId(user);
+    },
+
+    async getAdmins(): Promise<Users> {
+      return bot.getChatAdmins(this);
+    },
+
+    async addUser(user: IUser | string): Promise<void> {
+      return bot.addUserInChat(this, user);
+    },
+
+    async removeUser(user: IUser | string): Promise<void> {
+      return bot.removeUserInChat(this, user);
+    },
+
+    async promote(user: IUser | string): Promise<void> {
+      return bot.promoteUserInChat(this, user);
+    },
+
+    async demote(user: IUser | string): Promise<void> {
+      return bot.demoteUserInChat(this, User.getUser(user));
+    },
+
+    async leave(): Promise<void> {
+      return bot.leaveChat(this);
+    },
+
+    async send(message: IMessage | string): Promise<Message> {
+      return bot.send(Message.getMessage(message));
+    },
+
+    async changeStatus(status: ChatStatus): Promise<void> {
+      return bot.changeChatStatus(this, status);
+    },
+  };
+
+  for (const id in chat.users) {
+    const user = chat.users[id];
+
+    if (!(user instanceof User)) {
+      module.users[id] = GenerateUser(bot, chat.users[id]);
+    } else {
+      module.users[id] = user;
     }
-
-    setBotProperty(bot, module);
-
-    return { ...chat, ...module };
   }
+
+  return module;
 }

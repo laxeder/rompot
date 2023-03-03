@@ -1,5 +1,5 @@
 /// <reference types="long" />
-import { IMessage } from "@interfaces/IMessage";
+import { IMessage } from "@interfaces/Messages";
 import IChat from "@interfaces/IChat";
 import Chat from "@modules/Chat";
 import User from "@modules/User";

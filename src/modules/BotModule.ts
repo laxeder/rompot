@@ -1,9 +1,9 @@
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
-import { IMessage } from "@interfaces/IMessage";
+import { IMessage } from "@interfaces/Messages";
 import ICommand from "@interfaces/ICommand";
-import IChat from "@interfaces/IChat";
-import IUser from "@interfaces/IUser";
+import { IChat } from "@interfaces/Chat";
+import IUser from "@interfaces/User";
 import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
@@ -28,7 +28,7 @@ import sleep from "@utils/sleep";
 
 import { Chats, ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
-import AudioMessage from "@messages/AudioMessage";
+import AudioMessage, { GenerateAudio } from "@messages/AudioMessage";
 
 export default class BotModule<Bot extends IBot, Command extends ICommand> extends Emmiter {
   #promiseMessages: PromiseMessages = new PromiseMessages();
@@ -447,7 +447,7 @@ export default class BotModule<Bot extends IBot, Command extends ICommand> exten
    * @param chat Sala de bate-papo
    * @returns Retorna o lider da sala de bate-papo
    */
-  public async getChatLeader(chat: Chat | string): Promise<User> {
+  public async getChatLeader(chat: IChat | string): Promise<User> {
     const leader = await this.bot.getChatLeader(Chat.getChat(chat));
 
     return User.Inject(this, leader);
@@ -698,8 +698,8 @@ export default class BotModule<Bot extends IBot, Command extends ICommand> exten
    * @param chat Sala de bate-papo
    * @param audio Audio
    */
-  AudioMessage(chat: IChat | string, audio: Buffer): AudioMessage {
-    return AudioMessage.Inject(this, this.bot.AudioMessage(this.Chat(chat), audio));
+  AudioMessage(chat: IChat | string, audio: Buffer) {
+    return GenerateAudio(AudioMessage.Inject(this, this.bot.AudioMessage(this.Chat(chat), audio)))
   }
 
   /**

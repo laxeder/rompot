@@ -1,15 +1,11 @@
-import { IMessage } from "@interfaces/IMessage";
-import IChat from "@interfaces/IChat";
+import { IMessage } from "@interfaces/Messages";
+import { IChat } from "@interfaces/Chat";
 
-import BotBase from "@modules/BotBase";
-import Chat from "@modules/Chat";
+import Chat, { GenerateChat } from "@modules/Chat";
 import User from "@modules/User";
-
-import { setBotProperty } from "@utils/bot";
+import BotBase from "@modules/BotBase";
 
 import { Bot } from "../types/Bot";
-
-import MediaMessage from "./MediaMessage";
 
 export default class Message implements IMessage {
   public id: string;
@@ -27,7 +23,7 @@ export default class Message implements IMessage {
   }
 
   constructor(chat: IChat | string, text: string, mention?: IMessage, id?: string) {
-    this.chat = Chat.Inject(this.bot, Chat.getChat(chat));
+    this.chat = GenerateChat(this.bot, Chat.getChat(chat));
 
     this.id = id || String(Date.now());
     this.user = new User(this.bot.id);
@@ -37,7 +33,8 @@ export default class Message implements IMessage {
     this.mentions = [];
 
     if (mention) {
-      this.mention = Message.Inject(this.bot, mention);
+      //@ts-ignore
+      this.mention = GenerateMessage(this.bot, mention);
     } else {
       this.mention = mention;
     }
@@ -59,29 +56,6 @@ export default class Message implements IMessage {
 
   public async read(): Promise<void> {
     return this.bot.readMessage(this);
-  }
-
-  public inject<MessageIn extends IMessage>(bot: Bot, msg: MessageIn): void {
-    this.id = msg.id;
-    this.text = msg.text;
-    this.fromMe = msg.fromMe;
-    this.mentions = msg.mentions;
-    this.timestamp = msg.timestamp;
-
-    this.chat = Chat.Inject(bot, msg.chat);
-    this.user = User.Inject(bot, msg.user);
-
-    if (msg.mention) {
-      this.mention = Message.Inject(bot, msg.mention);
-    }
-
-    if (msg instanceof MediaMessage && this instanceof MediaMessage) {
-      this.getStream = msg.getStream;
-    }
-
-    setBotProperty(bot, this);
-    setBotProperty(bot, this.chat);
-    setBotProperty(bot, this.user);
   }
 
   /**
@@ -110,18 +84,5 @@ export default class Message implements IMessage {
     }
 
     return String(message || "");
-  }
-
-  /**
-   * * Injeta a interface no modulo
-   * @param bot Bot que irá executar os métodos
-   * @param message Interface da mensagem
-   */
-  public static Inject<MessageIn extends IMessage>(bot: Bot, msg: MessageIn): MessageIn & Message {
-    const module: Message = new Message(msg.chat, msg.text);
-
-    module.inject(bot, msg);
-
-    return { ...msg, ...module };
   }
 }

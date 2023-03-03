@@ -1,9 +1,8 @@
-import IUser from "@interfaces/IUser";
-import IChat from "@interfaces/IChat";
+import { IChat } from "@interfaces/Chat";
+import IUser from "@interfaces/User";
 
 import { Button, List, ListItem } from "../types/Message";
 import { Bot } from "../types/Bot";
-
 
 export interface IMessage {
   /**
@@ -53,36 +52,10 @@ export interface IMessage {
    * * Bot que irá executar os métodos
    */
   bot: Bot;
-
-  /**
-   * * Adiciona uma reação a mensagem
-   * @param reaction Reação
-   */
-  addReaction(reaction: string): Promise<void>;
-
-  /**
-   * * Envia uma mensagem mencionando a mensagem atual
-   * @param message Mensagem que terá enviada
-   * @param mention Se verdadeiro a mensagem é mencionada
-   */
-  reply(message: IMessage | string, mention: boolean): Promise<IMessage>;
-
-  /**
-   * * Marca mensagem como visualizada
-   */
-  read(): Promise<void>;
-
-  /**
-   * * Injeta a interface no modulo
-   * @param bot Bot que irá executar os métodos
-   * @param message Interface da mensagem
-   */
-  inject(bot: Bot, message: IMessage): void;
 }
 
+//TODO: Adicionar mimetype
 export interface IMediaMessage extends IMessage {
-  //TODO: Adicionar mimetype
-
   /**
    * * Conteúdo da mensagem
    */
@@ -228,3 +201,39 @@ export interface IButtonMessage extends IMessage {
    */
   remove(index: number): void;
 }
+
+export interface MessageModule {
+  /**
+   * * Adiciona uma reação a mensagem
+   * @param reaction Reação
+   */
+  addReaction(reaction: string): Promise<void>;
+
+  /**
+   * * Envia uma mensagem mencionando a mensagem atual
+   * @param message Mensagem que terá enviada
+   * @param mention Se verdadeiro a mensagem é mencionada
+   */
+  reply(message: IMessage | string, mention: boolean): Promise<MessageModule>;
+
+  /**
+   * * Marca mensagem como visualizada
+   */
+  read(): Promise<void>;
+}
+
+export interface MediaMessageModule extends MessageModule {}
+
+export interface ImageMessageModule extends MediaMessageModule {}
+
+export interface VideoMessageModule extends MediaMessageModule {}
+
+export interface AudioMessageModule extends MediaMessageModule {}
+
+export interface LocationMessageModule extends MessageModule {}
+
+export interface ContactMessageModule extends MessageModule {}
+
+export interface ListMessageModule extends MessageModule {}
+
+export interface ButtonMessageModule extends MessageModule {}

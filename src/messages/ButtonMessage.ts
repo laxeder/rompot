@@ -1,13 +1,10 @@
-import { IButtonMessage } from "@interfaces/IMessage";
-import IChat from "@interfaces/IChat";
+import { IButtonMessage } from "@interfaces/Messages";
+import { IChat } from "@interfaces/Chat";
 
 import Message from "@messages/Message";
 
-import { Bot } from "../types/Bot";
-
 import { Button } from "../types/Message";
 
-//@ts-ignore
 export default class ButtonMessage extends Message implements IButtonMessage {
   public buttons: Button[] = [];
   public footer: string;
@@ -36,21 +33,5 @@ export default class ButtonMessage extends Message implements IButtonMessage {
 
   public generateID(): string {
     return String(this.buttons.length + 1);
-  }
-
-  /**
-   * * Injeta a interface no modulo
-   * @param bot Bot que irá executar os métodos
-   * @param message Interface da mensagem
-   */
-  public static Inject<MessageIn extends IButtonMessage>(bot: Bot, msg: MessageIn): MessageIn & ButtonMessage {
-    const module: ButtonMessage = new ButtonMessage(msg.chat, msg.text);
-
-    module.inject(bot, msg);
-
-    module.footer = msg.footer;
-    module.buttons = msg.buttons;
-
-    return { ...msg, ...module };
   }
 }

@@ -23,7 +23,7 @@ import Command from "@modules/Command";
 import { DefaultCommandConfig } from "@config/CommandConfig";
 export { ConnectionConfig };
 export { IUser, IChat, IBot };
-export * from "@interfaces/IMessage";
+export * from "@interfaces/Messages";
 export { ButtonMessage, ContactMessage, ImageMessage, VideoMessage, MediaMessage, Message, ListMessage, LocationMessage };
 export { BotModule, Chat, User };
 export { Emmiter, EventsEmitter, PromiseMessages, PromiseMessage, WaitCallBack, sleep, getImageURL };

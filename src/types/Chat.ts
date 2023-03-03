@@ -1,4 +1,4 @@
-import IChat from "@interfaces/IChat";
+import { IChat } from "@interfaces/Chat";
 
 export type ChatType = "community" | "chanel" | "group" | "chat" | "pv";
 

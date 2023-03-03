@@ -1,13 +1,13 @@
 import { ConnectionConfig } from "@config/ConnectionConfig";
 
-import IUser from "@interfaces/IUser";
-import IChat from "@interfaces/IChat";
+import IUser from "@interfaces/User";
+import { IChat } from "@interfaces/Chat";
 
 import Command from "@modules/Command";
 
 import Emmiter from "@utils/Emmiter";
 
-import { IAudioMessage, IButtonMessage, IContactMessage, IImageMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IVideoMessage } from "@interfaces/IMessage";
+import { IAudioMessage, IButtonMessage, IContactMessage, IImageMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IVideoMessage } from "@interfaces/Messages";
 import Auth from "@interfaces/Auth";
 
 import { Chats, ChatStatus } from "../types/Chat";
@@ -28,9 +28,6 @@ export default interface IBot {
 
   /** Configurações do bot */
   config: ConnectionConfig;
-
-  /** Comandos do bot */
-  commands: Command[];
 
   //? ************ CONNECTION ************
 

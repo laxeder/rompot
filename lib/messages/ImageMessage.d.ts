@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { IImageMessage } from "@interfaces/IMessage";
+import { IImageMessage } from "@interfaces/Messages";
 import IChat from "@interfaces/IChat";
 import MediaMessage from "@messages/MediaMessage";
 import Message from "@messages/Message";

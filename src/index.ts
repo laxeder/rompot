@@ -1,7 +1,7 @@
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
-import IUser from "@interfaces/IUser";
-import IChat from "@interfaces/IChat";
+import IUser from "@interfaces/User";
+import { IChat } from "@interfaces/Chat";
 import IBot from "@interfaces/IBot";
 
 import LocationMessage from "@messages/LocationMessage";
@@ -29,7 +29,7 @@ import { DefaultCommandConfig } from "@config/CommandConfig";
 export { ConnectionConfig };
 
 export { IUser, IChat, IBot };
-export * from "@interfaces/IMessage";
+export * from "@interfaces/Messages";
 
 export { ButtonMessage, ContactMessage, ImageMessage, VideoMessage, MediaMessage, Message, ListMessage, LocationMessage };
 

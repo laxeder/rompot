@@ -1,4 +1,4 @@
-import IUser from "@interfaces/IUser";
+import IUser from "@interfaces/User";
 
 export type Users = { [id: string]: IUser };
 

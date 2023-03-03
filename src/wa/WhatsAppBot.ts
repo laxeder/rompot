@@ -11,9 +11,9 @@ import { WAStatus } from "@wa/WAStatus";
 
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
-import { IMessage } from "@interfaces/IMessage";
-import IChat from "@interfaces/IChat";
-import IUser from "@interfaces/IUser";
+import { IMessage } from "@interfaces/Messages";
+import { IChat } from "@interfaces/Chat";
+import IUser from "@interfaces/User";
 import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
@@ -37,9 +37,9 @@ import WaitCallBack from "@utils/WaitCallBack";
 import { getError } from "@utils/error";
 
 import { ConnectionStatus } from "../types/Connection";
-import { Commands } from "../types/Command";
 import { ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
+import ICommand from "@interfaces/ICommand";
 
 export default class WhatsAppBot implements IBot {
   //@ts-ignore
@@ -52,7 +52,6 @@ export default class WhatsAppBot implements IBot {
   public auth: Auth = new MultiFileAuthState("./session");
   public wcb: WaitCallBack = new WaitCallBack();
   public config: ConnectionConfig = DefaultConnectionConfig;
-  public commands: Commands = {};
 
   public async connect(auth?: string | Auth): Promise<void> {
     return await new Promise(async (resolve, reject) => {

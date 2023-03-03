@@ -1,4 +1,4 @@
-import { IContactMessage } from "@interfaces/IMessage";
+import { IContactMessage } from "@interfaces/Messages";
 import IChat from "@interfaces/IChat";
 import Message from "@messages/Message";
 import { Bot } from "../types/Bot";

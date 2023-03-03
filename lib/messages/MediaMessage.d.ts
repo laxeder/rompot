@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { IMediaMessage } from "@interfaces/IMessage";
+import { IMediaMessage } from "@interfaces/Messages";
 import IChat from "@interfaces/IChat";
 import Message from "@messages/Message";
 import { Bot } from "../types/Bot";

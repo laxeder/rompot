@@ -3,7 +3,7 @@ import { DisconnectReason, proto, MediaDownloadOptions } from "@adiwajshing/bail
 import WAUser, { WAUsers } from "@wa/WAUser";
 import WAChat, { WAChats } from "@wa/WAChat";
 import { ConnectionConfig } from "@config/ConnectionConfig";
-import { IMessage } from "@interfaces/IMessage";
+import { IMessage } from "@interfaces/Messages";
 import IChat from "@interfaces/IChat";
 import IUser from "@interfaces/IUser";
 import IBot from "@interfaces/IBot";

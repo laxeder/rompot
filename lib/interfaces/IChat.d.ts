@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { IMessage } from "@interfaces/IMessage";
+import { IMessage } from "@interfaces/Messages";
 import IUser from "@interfaces/IUser";
 import { ChatStatus, ChatType } from "../types/Chat";
 import { Bot } from "../types/Bot";

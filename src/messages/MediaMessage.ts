@@ -1,12 +1,8 @@
-import { IMediaMessage } from "@interfaces/IMessage";
-import IChat from "@interfaces/IChat";
+import { IMediaMessage } from "@interfaces/Messages";
+import { IChat } from "@interfaces/Chat";
 
 import Message from "@messages/Message";
 
-import { Bot } from "../types/Bot";
-
-
-//@ts-ignore
 export default class MediaMessage extends Message implements IMediaMessage {
   public isGIF: boolean = false;
   public file: any;
@@ -21,18 +17,5 @@ export default class MediaMessage extends Message implements IMediaMessage {
     if (Buffer.isBuffer(stream)) return stream;
 
     return Buffer.from(String(stream || ""));
-  }
-
-  /**
-   * * Injeta a interface no modulo
-   * @param bot Bot que irá executar os métodos
-   * @param message Interface da mensagem
-   */
-  public static Inject<MessageIn extends IMediaMessage>(bot: Bot, msg: MessageIn): MessageIn & MediaMessage {
-    const module: MediaMessage = new MediaMessage(msg.chat, msg.text, msg.file);
-
-    module.inject(bot, msg);
-
-    return { ...msg, ...module };
   }
 }

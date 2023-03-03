@@ -1,12 +1,10 @@
-import { IMessage } from "@interfaces/IMessage";
-import IUser from "@interfaces/IUser";
+import { IMessage } from "@interfaces/Messages";
+import IUser from "@interfaces/User";
 
 import { ChatStatus, ChatType } from "../types/Chat";
-import { Bot } from "../types/Bot";
-
 import { Users } from "../types/User";
 
-export default interface IChat {
+export interface IChat {
   /**
    * * ID da sala de bate-papo
    */
@@ -41,12 +39,9 @@ export default interface IChat {
    * * Usuários que estão naquela sala de bate-papo
    */
   users: Users;
+}
 
-  /**
-   * * Bot irá executar os métodos
-   */
-  bot: Bot;
-
+export interface ChatModule {
   /**
    * @returns Retorna o nome da sala de bate-papo
    */

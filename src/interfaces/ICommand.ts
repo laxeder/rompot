@@ -1,4 +1,4 @@
-import { IMessage } from "@interfaces/IMessage";
+import { IMessage } from "@interfaces/Messages";
 
 import { Bot } from "../types/Bot";
 
