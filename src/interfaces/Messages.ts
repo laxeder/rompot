@@ -1,5 +1,5 @@
 import { IChat } from "@interfaces/Chat";
-import IUser from "@interfaces/User";
+import { IUser } from "@interfaces/User";
 
 import { Button, List, ListItem } from "../types/Message";
 import { Bot } from "../types/Bot";
@@ -214,7 +214,7 @@ export interface MessageModule {
    * @param message Mensagem que terá enviada
    * @param mention Se verdadeiro a mensagem é mencionada
    */
-  reply(message: IMessage | string, mention: boolean): Promise<MessageModule>;
+  reply(message: IMessage | string, mention?: boolean): Promise<MessageModule>;
 
   /**
    * * Marca mensagem como visualizada

@@ -1,11 +1,13 @@
 import { IMessage } from "@interfaces/Messages";
 import { IChat } from "@interfaces/Chat";
-import IUser from "@interfaces/User";
+import { IUser } from "@interfaces/User";
 
 import Message from "@messages/Message";
 
 import Chat from "@modules/Chat";
 import User from "@modules/User";
+
+export type ArgumentTypes<F extends Function> = F extends (...args: infer A) => any ? A : never;
 
 /**
  * @param message Mensagem que será obtida

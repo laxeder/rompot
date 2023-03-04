@@ -1,6 +1,6 @@
 import { IChat } from "@interfaces/Chat";
 
-export default interface IUser {
+export interface IUser {
   /**
    * * ID do usuário
    */
