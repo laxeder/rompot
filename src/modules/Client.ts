@@ -1,13 +1,12 @@
-import { IMessage, IMessages, MessageModule } from "@interfaces/Messages";
-import { IChatModule, IChat } from "@interfaces/Chat";
-import { IUser, IUserModule } from "@interfaces/User";
+import { IMessage, IMessages } from "@interfaces/Messages";
 import { ClientType } from "@interfaces/Client";
 import ICommand from "@interfaces/ICommand";
+import { IUser } from "@interfaces/User";
+import { IChat } from "@interfaces/Chat";
 import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
-import { GenerateMessage } from "@messages/Messages";
-import Message from "@messages/Message";
+import { MessageModule } from "@messages/Message";
 
 import { ChatModule } from "@modules/Chat";
 import { UserModule } from "@modules/User";
@@ -20,18 +19,17 @@ import { Chats, ChatStatus, IChats } from "../types/Chat";
 import { MessagesGenerate } from "../types/Message";
 import { IUsers, Users } from "../types/User";
 
-export type Client = ClientType<IBot, ICommand, MessagesGenerate<IMessages>>;
+export type Client = ClientType<IBot, ICommand, IMessages>;
 
 export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
   const promiseMessages: PromiseMessages = new PromiseMessages();
   const autoMessages: any = {};
   const emmiter = new ClientEvents();
 
-  type Messages = typeof bot.messages;
+  type BotMessages = typeof bot.messages;
 
-  const client: ClientType<Bot, Command, Messages> = {
+  const client: ClientType<Bot, Command, BotMessages> = {
     ...bot,
-    ...new ClientEvents(),
     commands: [],
 
     events: emmiter.events,
@@ -41,7 +39,7 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
     emit: emmiter.emit,
 
     configEvents() {
-      bot.ev.on("message", (message: Message) => {
+      bot.ev.on("message", (message: MessageModule) => {
         try {
           if (promiseMessages.resolvePromiseMessages(message)) return;
 
@@ -54,7 +52,7 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
         }
       });
 
-      bot.ev.on("me", (message: Message) => {
+      bot.ev.on("me", (message: MessageModule) => {
         try {
           if (promiseMessages.resolvePromiseMessages(message)) return;
 
@@ -99,21 +97,21 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
       return bot.readMessage(message);
     },
 
-    async send(message: IMessage): Promise<IMessage & MessageModule> {
+    async send(message: IMessage) {
       try {
-        return GenerateMessage(this, await bot.send(message));
+        return MessageModule(this, await bot.send(message));
       } catch (err) {
         this.emit("error", getError(err));
       }
 
-      return GenerateMessage(this, message);
+      return MessageModule(this, message);
     },
 
-    awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
-      return promiseMessages.addPromiseMessage(getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages);
+    async awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: IMessage[]): Promise<MessageModule> {
+      return MessageModule(this, await promiseMessages.addPromiseMessage(getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages));
     },
 
-    async addAutomate(message: Message, timeout: number, chats?: { [key: string]: ChatModule }, id: string = String(Date.now())): Promise<any> {
+    async addAutomate(message: MessageModule, timeout: number, chats?: { [key: string]: ChatModule }, id: string = String(Date.now())): Promise<any> {
       try {
         const now = Date.now();
 
@@ -400,7 +398,7 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
     ...(<Messages extends IMessages>(messages: Messages) =>
       (Object.keys(messages) as Array<keyof Messages>).reduce(<Key extends keyof Messages>(result: MessagesGenerate<Messages>, key: Key) => {
         result[key] = (...args: ArgumentTypes<Messages[Key]>[]): ReturnType<Messages[Key]> & MessageModule => {
-          return GenerateMessage(client, messages[key](...args));
+          return MessageModule(client, messages[key](...args));
         };
 
         return result;

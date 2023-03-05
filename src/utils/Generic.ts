@@ -5,7 +5,7 @@ import { IMessage } from "@interfaces/Messages";
 import { IChat } from "@interfaces/Chat";
 import { IUser } from "@interfaces/User";
 
-import Message from "@messages/Message";
+import { Message } from "@messages/Message";
 
 import { Client } from "@modules/Client";
 import { User } from "@modules/User";
@@ -19,7 +19,7 @@ export type ArgumentTypes<F extends Function> = F extends (...args: infer A) => 
  */
 export function getMessage<MSG extends IMessage>(message: MSG | string): MSG | IMessage {
   if (typeof message == "string") {
-    return new Message(Chat(""), message);
+    return Message(Chat(""), message);
   }
 
   return message;

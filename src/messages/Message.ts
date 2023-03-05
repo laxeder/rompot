@@ -1,89 +1,102 @@
-import { IMessage, MessageModule } from "@interfaces/Messages";
+import { IMessage, IMessageModule } from "@interfaces/Messages";
+import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 
-import { Chat, ChatModule } from "@modules/Chat";
+import { UserModule } from "@modules/User";
+import { ChatModule } from "@modules/Chat";
 import { Client } from "@modules/Client";
 import BotBase from "@modules/BotBase";
-import User from "@modules/User";
 
-import { getChat } from "@utils/Generic";
+import { getChat, getMessage, getUser } from "@utils/Generic";
 
-export default class Message implements IMessage {
-  public id: string;
-  public chat: ChatModule;
-  public user: User;
-  public text: string;
-  public fromMe: boolean;
-  public selected: string;
-  public mentions: string[];
-  public mention?: Message;
-  public timestamp: Number | Long;
+export type MessageModule = IMessage & IMessageModule;
 
-  get bot(): Client {
-    return new BotBase();
-  }
+export function CreateMessage(
+  chat: IChat | string,
+  text: string,
+  mention?: IMessage,
+  id?: string,
+  user?: IUser | string,
+  fromMe?: boolean,
+  selected?: string,
+  mentions?: string[],
+  timestamp?: Number | Long
+): IMessage {
+  return {
+    chat: getChat(chat || ""),
+    text: text || "",
+    mention: mention || undefined,
+    id: id || "",
+    user: getUser(user || ""),
+    fromMe: !!fromMe,
+    selected: selected || "",
+    mentions: mentions || [],
+    timestamp: timestamp || Date.now(),
+  };
+}
 
-  constructor(chat: IChat | string, text: string, mention?: IMessage, id?: string) {
-    this.chat = ChatModule(this.bot, getChat(chat));
+export function Message(
+  chat: IChat | string,
+  text: string,
+  mention?: IMessage,
+  id?: string,
+  user?: IUser | string,
+  fromMe?: boolean,
+  selected?: string,
+  mentions?: string[],
+  timestamp?: Number | Long
+): MessageModule {
+  return MessageModule(BotBase(), CreateMessage(chat, text, mention, id, user, fromMe, selected, mentions, timestamp));
+}
 
-    this.id = id || String(Date.now());
-    this.user = new User(this.bot.id);
-    this.text = text;
-    this.fromMe = true;
-    this.selected = "";
-    this.mentions = [];
+export function MessageClient<CLIENT extends Client>(
+  client: CLIENT,
+  chat: IChat | string,
+  text: string,
+  mention?: IMessage,
+  id?: string,
+  user?: IUser | string,
+  fromMe?: boolean,
+  selected?: string,
+  mentions?: string[],
+  timestamp?: Number | Long
+): MessageModule {
+  return MessageModule(client, CreateMessage(chat, text, mention, id, user, fromMe, selected, mentions, timestamp));
+}
 
-    if (mention) {
-      //@ts-ignore
-      this.mention = GenerateMessage(this.bot, mention);
-    } else {
-      this.mention = mention;
-    }
+export function MessageModule<CLIENT extends Client, MSG extends IMessage>(client: CLIENT, message: MSG): MSG & IMessageModule {
+  const module: MSG & IMessageModule = {
+    ...message,
 
-    this.timestamp = Date.now();
-  }
+    get client(): CLIENT {
+      return client;
+    },
 
-  public async addReaction(reaction: string): Promise<void> {
-    return this.bot.addReaction(this, reaction);
-  }
+    set client(c: CLIENT) {
+      client = c;
+    },
 
-  public async reply(message: IMessage | string, mention: boolean = true): Promise<Message> {
-    const msg = Message.getMessage(message);
+    chat: ChatModule(client, message.chat),
+    user: UserModule(client, message.user),
 
-    if (mention) msg.mention = this;
+    async addReaction(reaction: string): Promise<void> {
+      return this.client.addReaction(this, reaction);
+    },
 
-    return this.bot.send(msg);
-  }
+    async reply(message: IMessage | string, mention: boolean = true) {
+      const msg = getMessage(message);
 
-  public async read(): Promise<void> {
-    return this.bot.readMessage(this);
-  }
+      if (mention) msg.mention = this;
 
-  /**
-   * @param message Mensagem que será obtida
-   * @returns Retorna a mensagem
-   */
-  public static getMessage<MessageIn extends IMessage>(message: MessageIn | string): MessageIn | MessageModule {
-    if (typeof message == "string") {
-      return new Message(Chat(""), message);
-    }
+      return MessageModule(client, await client.send(msg));
+    },
 
-    return message;
-  }
+    async read(): Promise<void> {
+      return this.client.readMessage(this);
+    },
+  };
 
-  /**
-   * @param message Mensagem
-   * @returns Retorna o ID da mensagem
-   */
-  public static getMessageId(message: IMessage | string): string {
-    if (typeof message == "string") {
-      return String(message || "");
-    }
+  if (message.mention) module.mention = MessageModule(client, message.mention);
 
-    if (typeof message == "object" && !Array.isArray(message) && message?.id) {
-      return String(message.id);
-    }
-
-    return String(message || "");
-  }
+  return module;
 }

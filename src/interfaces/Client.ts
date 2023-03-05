@@ -1,9 +1,11 @@
-import { IMessage, IMessages, MessageModule } from "@interfaces/Messages";
+import { IMessage, IMessages } from "@interfaces/Messages";
 import ICommand from "@interfaces/ICommand";
 import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
+
+import { MessageModule } from "@messages/Message";
 
 import { UserModule } from "@modules/User";
 import { ChatModule } from "@modules/Chat";
@@ -81,7 +83,7 @@ export interface IClient<Command extends ICommand> extends ClientEvents {
    * @param content
    * @returns Retorna o conteudo enviado
    */
-  send(message: IMessage): Promise<IMessage | MessageModule>;
+  send(message: IMessage): Promise<MessageModule>;
 
   /**
    * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
@@ -91,7 +93,7 @@ export interface IClient<Command extends ICommand> extends ClientEvents {
    * @param ignoreMessages Não resolve a promessa se a mensagem recebida é a mesma escolhida
    * @returns
    */
-  awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean, stopRead: boolean, ...ignoreMessages: IMessage[]): Promise<IMessage>;
+  awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean, stopRead: boolean, ...ignoreMessages: IMessage[]): Promise<MessageModule>;
 
   /**
    * * Automotiza uma mensagem

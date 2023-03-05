@@ -117,11 +117,6 @@ export interface IMessage {
    * * Tempo em que a mensagem foi enviada
    */
   timestamp: Number | Long;
-
-  /**
-   * * Client que irá executar os métodos
-   */
-  bot: Client;
 }
 
 //TODO: Adicionar mimetype
@@ -272,7 +267,12 @@ export interface IButtonMessage extends IMessage {
   remove(index: number): void;
 }
 
-export interface MessageModule {
+export interface IMessageModule {
+  /** * Cliente do modulo */
+  get client(): Client;
+
+  set client(client: Client);
+
   /**
    * * Adiciona uma reação a mensagem
    * @param reaction Reação
@@ -284,26 +284,10 @@ export interface MessageModule {
    * @param message Mensagem que terá enviada
    * @param mention Se verdadeiro a mensagem é mencionada
    */
-  reply(message: IMessage | string, mention?: boolean): Promise<MessageModule>;
+  reply(message: IMessage | string, mention?: boolean): Promise<IMessageModule>;
 
   /**
    * * Marca mensagem como visualizada
    */
   read(): Promise<void>;
 }
-
-export interface MediaMessageModule extends MessageModule {}
-
-export interface ImageMessageModule extends MediaMessageModule {}
-
-export interface VideoMessageModule extends MediaMessageModule {}
-
-export interface AudioMessageModule extends MediaMessageModule {}
-
-export interface LocationMessageModule extends MessageModule {}
-
-export interface ContactMessageModule extends MessageModule {}
-
-export interface ListMessageModule extends MessageModule {}
-
-export interface ButtonMessageModule extends MessageModule {}

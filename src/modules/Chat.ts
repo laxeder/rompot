@@ -2,13 +2,13 @@ import { IChat, IChatModule } from "@interfaces/Chat";
 import { IMessage } from "@interfaces/Messages";
 import { IUser } from "@interfaces/User";
 
-import Message from "@messages/Message";
+import { MessageModule } from "@messages/Message";
 
 import { UserModule } from "@modules/User";
 import { Client } from "@modules/Client";
 import BotBase from "@modules/BotBase";
 
-import { getUser, getUserId } from "@utils/Generic";
+import { getMessage, getUser, getUserId } from "@utils/Generic";
 
 import { ChatStatus, ChatType } from "../types/Chat";
 import { IUsers, Users } from "../types/User";
@@ -28,7 +28,7 @@ export function CreateChat(id: string, type?: ChatType, name?: string, descripti
 }
 
 export function Chat(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: IUsers, status?: ChatStatus): ChatModule {
-  return ChatModule(new BotBase(), CreateChat(id, type, name, description, profile, users, status));
+  return ChatModule(BotBase(), CreateChat(id, type, name, description, profile, users, status));
 }
 
 export function ChatClient<CLIENT extends Client>(client: CLIENT, id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: IUsers, status?: ChatStatus) {
@@ -113,8 +113,8 @@ export function ChatModule<CLIENT extends Client, CHAT extends IChat>(client: CL
       return client.leaveChat(this);
     },
 
-    async send(message: IMessage | string): Promise<Message> {
-      return client.send(Message.getMessage(message));
+    async send(message: IMessage | string): Promise<MessageModule> {
+      return client.send(getMessage(message));
     },
 
     async changeStatus(status: ChatStatus): Promise<void> {

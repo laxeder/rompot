@@ -18,7 +18,7 @@ export function CreateUser(id: string, name?: string, description?: string, prof
 }
 
 export function User(id: string, name?: string, description?: string, profile?: Buffer): UserModule {
-  return UserModule(new BotBase(), CreateUser(id, name, description, profile));
+  return UserModule(BotBase(), CreateUser(id, name, description, profile));
 }
 
 export function UserClient(client: Client, id: string, name?: string, description?: string, profile?: Buffer): UserModule {

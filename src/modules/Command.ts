@@ -16,7 +16,7 @@ export default class Command implements ICommand {
   public permissions: string[] = [];
 
   get bot(): Client {
-    return new BotBase();
+    return BotBase();
   }
 
   public async execute(message: Message): Promise<void> {}
