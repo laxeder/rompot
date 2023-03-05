@@ -31,7 +31,7 @@ const { WhatsAppBot } = require("rompot");
 
 ## WhatsApp
 
-Após iniciar o bot um QR Code será emprimido no terminal, escane-o com seu WhatsApp para gerar uma nova conexão entre seu número e o Bot. Essa conexão será guardada em `./path-to-auth`, para gerar uma nova delete-o ou se conecte com um novo caminho de sessão.
+Após iniciar o bot um QR Code será emprimido no terminal, escane-o com seu WhatsApp para gerar uma nova conexão entre seu número e o Client. Essa conexão será guardada em `./path-to-auth`, para gerar uma nova delete-o ou se conecte com um novo caminho de sessão.
 
 ```ts
 const bot = new WhatsAppBot();
@@ -88,11 +88,11 @@ bot.setCommands(commands);
 
 ```ts
 bot.on("open", (open) => {
-  console.log("Bot conectado!");
+  console.log("Client conectado!");
 });
 
 bot.on("close", (close) => {
-  console.log("Bot desconectado!");
+  console.log("Client desconectado!");
 });
 
 bot.on("closed", (closed) => {
@@ -176,7 +176,7 @@ msg.addMentions("user.id");
 msg.setMention(message);
 
 // Responder mensagem
-//! Message.setBot(Bot) deve ser chamado antes
+//! Message.setBot(Client) deve ser chamado antes
 //? Por padrão mensagens de eventos" já vem configurado
 msg.reply(message);
 
@@ -251,7 +251,7 @@ bot.on("message", async (message: Message) => {
 });
 ```
 
-## Bot
+## Client
 
 - Definir foto de perfil
 

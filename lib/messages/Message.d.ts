@@ -3,7 +3,7 @@ import { IMessage } from "@interfaces/Messages";
 import IChat from "@interfaces/IChat";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
-import { Bot } from "../types/Bot";
+import { Client } from "../types/Client";
 export default class Message implements IMessage {
     id: string;
     chat: Chat;
@@ -14,12 +14,12 @@ export default class Message implements IMessage {
     mentions: string[];
     mention?: Message;
     timestamp: Number | Long;
-    get bot(): Bot;
+    get bot(): Client;
     constructor(chat: IChat | string, text: string, mention?: IMessage, id?: string);
     addReaction(reaction: string): Promise<void>;
     reply(message: IMessage | string, mention?: boolean): Promise<Message>;
     read(): Promise<void>;
-    inject<MessageIn extends IMessage>(bot: Bot, msg: MessageIn): void;
+    inject<MessageIn extends IMessage>(bot: Client, msg: MessageIn): void;
     /**
      * @param message Mensagem que será obtida
      * @returns Retorna a mensagem
@@ -32,8 +32,8 @@ export default class Message implements IMessage {
     static getMessageId(message: IMessage | string): string;
     /**
      * * Injeta a interface no modulo
-     * @param bot Bot que irá executar os métodos
+     * @param bot Client que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends IMessage>(bot: Bot, msg: MessageIn): MessageIn & Message;
+    static Inject<MessageIn extends IMessage>(bot: Client, msg: MessageIn): MessageIn & Message;
 }

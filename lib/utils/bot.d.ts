@@ -1,4 +1,4 @@
-import { Bot } from "../types/Bot";
-export declare function setBotProperty(bot: Bot, obj: {
-    bot: Bot;
+import { Client } from "../types/Client";
+export declare function setBotProperty(bot: Client, obj: {
+    bot: Client;
 }): void;

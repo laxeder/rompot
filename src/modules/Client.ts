@@ -1,6 +1,6 @@
-import { IMessage, MessageModule } from "@interfaces/Messages";
-import { ChatModule, IChat } from "@interfaces/Chat";
-import { IUser, UserModule } from "@interfaces/User";
+import { IMessage, IMessages, MessageModule } from "@interfaces/Messages";
+import { IChatModule, IChat } from "@interfaces/Chat";
+import { IUser, IUserModule } from "@interfaces/User";
 import { ClientType } from "@interfaces/Client";
 import ICommand from "@interfaces/ICommand";
 import IBot from "@interfaces/IBot";
@@ -9,30 +9,29 @@ import Auth from "@interfaces/Auth";
 import { GenerateMessage } from "@messages/Messages";
 import Message from "@messages/Message";
 
-import Chat, { GenerateChat } from "@modules/Chat";
-import { GenerateUser } from "@modules/User";
-import User from "@modules/User";
+import { ChatModule } from "@modules/Chat";
+import { UserModule } from "@modules/User";
 
+import { ArgumentTypes, getChat, getChatId, setClientProperty, getError, sleep, getUser, getUserId } from "@utils/Generic";
 import PromiseMessages from "@utils/PromiseMessages";
-import { setBotProperty } from "@utils/bot";
-import { getError } from "@utils/error";
-import Emmiter from "@utils/Emmiter";
-import sleep from "@utils/sleep";
+import { ClientEvents } from "@utils/Emmiter";
 
+import { Chats, ChatStatus, IChats } from "../types/Chat";
 import { MessagesGenerate } from "../types/Message";
-import { ChatStatus } from "../types/Chat";
-import { ArgumentTypes } from "@utils/Generic";
-import BotBase from "./BotBase";
+import { IUsers, Users } from "../types/User";
+
+export type Client = ClientType<IBot, ICommand, MessagesGenerate<IMessages>>;
 
 export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
   const promiseMessages: PromiseMessages = new PromiseMessages();
   const autoMessages: any = {};
-  const emmiter = new Emmiter();
+  const emmiter = new ClientEvents();
 
   type Messages = typeof bot.messages;
 
   const client: ClientType<Bot, Command, Messages> = {
     ...bot,
+    ...new ClientEvents(),
     commands: [],
 
     events: emmiter.events,
@@ -111,10 +110,10 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
     },
 
     awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
-      return promiseMessages.addPromiseMessage(Chat.getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages);
+      return promiseMessages.addPromiseMessage(getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages);
     },
 
-    async addAutomate(message: Message, timeout: number, chats?: { [key: string]: Chat }, id: string = String(Date.now())): Promise<any> {
+    async addAutomate(message: Message, timeout: number, chats?: { [key: string]: ChatModule }, id: string = String(Date.now())): Promise<any> {
       try {
         const now = Date.now();
 
@@ -128,7 +127,7 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
         if (autoMessages[id].updatedAt !== now) return;
 
         await Promise.all(
-          autoMessages[id].chats.map(async (chat: Chat) => {
+          autoMessages[id].chats.map(async (chat: ChatModule) => {
             const automated: any = autoMessages[id];
 
             if (automated.updatedAt !== now) return;
@@ -166,7 +165,7 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
 
       if (!cmd) return null;
 
-      setBotProperty(this, cmd);
+      setClientProperty(this, cmd);
 
       //@ts-ignore
       return cmd;
@@ -174,192 +173,192 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
 
     //! <==============================> CHAT <==============================>
 
-    async getChat(chat: IChat | string): Promise<(IChat & ChatModule) | null> {
-      const iChat = await bot.getChat(Chat.getChat(chat));
+    async getChat(chat: IChat | string): Promise<ChatModule | null> {
+      const iChat = await bot.getChat(getChat(chat));
 
       if (!iChat) return null;
 
-      return GenerateChat(this, iChat);
+      return ChatModule(this, iChat);
     },
 
     async setChat(chat: IChat) {
-      bot.setChat(GenerateChat(this, chat));
+      bot.setChat(ChatModule(this, chat));
     },
 
-    async getChats(): Promise<{ [id: string]: IChat & ChatModule }> {
-      const modules: { [id: string]: IChat & ChatModule } = {};
+    async getChats(): Promise<Chats> {
+      const modules: Chats = {};
 
       const chats = await bot.getChats();
 
       for (const id in chats) {
-        modules[id] = GenerateChat(this, chats[id]);
+        modules[id] = ChatModule(this, chats[id]);
       }
 
       return modules;
     },
 
-    async setChats(chats: { [id: string]: IChat & ChatModule }): Promise<void> {
+    async setChats(chats: IChats): Promise<void> {
       return bot.setChats(chats);
     },
 
     addChat(chat: string | IChat): Promise<void> {
-      return bot.addChat(GenerateChat(this, Chat.getChat(chat)));
+      return bot.addChat(ChatModule(this, getChat(chat)));
     },
 
     removeChat(chat: string | IChat): Promise<void> {
-      return bot.removeChat(GenerateChat(this, Chat.getChat(chat)));
+      return bot.removeChat(ChatModule(this, getChat(chat)));
     },
 
     getChatName(chat: IChat | string) {
-      return bot.getChatName(Chat.getChat(chat));
+      return bot.getChatName(getChat(chat));
     },
 
     setChatName(chat: IChat | string, name: string) {
-      return bot.setChatName(Chat.getChat(chat), name);
+      return bot.setChatName(getChat(chat), name);
     },
 
     getChatDescription(chat: IChat | string) {
-      return bot.getChatDescription(Chat.getChat(chat));
+      return bot.getChatDescription(getChat(chat));
     },
 
     setChatDescription(chat: IChat | string, description: string) {
-      return bot.setChatDescription(Chat.getChat(chat), description);
+      return bot.setChatDescription(getChat(chat), description);
     },
 
     getChatProfile(chat: IChat | string) {
-      return bot.getChatProfile(Chat.getChat(chat));
+      return bot.getChatProfile(getChat(chat));
     },
 
     setChatProfile(chat: IChat | string, profile: Buffer) {
-      return bot.setChatProfile(Chat.getChat(chat), profile);
+      return bot.setChatProfile(getChat(chat), profile);
     },
 
     async changeChatStatus(chat: string | IChat, status: ChatStatus): Promise<void> {
-      return bot.changeChatStatus(GenerateChat(this, Chat.getChat(chat)), status);
+      return bot.changeChatStatus(ChatModule(this, getChat(chat)), status);
     },
 
     addUserInChat(chat: IChat | string, user: IUser | string) {
-      return bot.addUserInChat(Chat.getChat(chat), User.getUser(user));
+      return bot.addUserInChat(getChat(chat), getUser(user));
     },
 
     removeUserInChat(chat: IChat | string, user: IUser | string) {
-      return bot.removeUserInChat(Chat.getChat(chat), User.getUser(user));
+      return bot.removeUserInChat(getChat(chat), getUser(user));
     },
 
     promoteUserInChat(chat: IChat | string, user: IUser | string) {
-      return bot.promoteUserInChat(Chat.getChat(chat), User.getUser(user));
+      return bot.promoteUserInChat(getChat(chat), getUser(user));
     },
 
     demoteUserInChat(chat: IChat | string, user: IUser) {
-      return bot.demoteUserInChat(Chat.getChat(chat), User.getUser(user));
+      return bot.demoteUserInChat(getChat(chat), getUser(user));
     },
 
     createChat(chat: IChat) {
-      return bot.createChat(Chat.getChat(chat));
+      return bot.createChat(getChat(chat));
     },
 
     leaveChat(chat: IChat | string) {
-      return bot.leaveChat(Chat.getChat(chat));
+      return bot.leaveChat(getChat(chat));
     },
 
     async getChatAdmins(chat: IChat | string) {
-      const admins = await bot.getChatAdmins(Chat.getChat(chat));
+      const admins = await bot.getChatAdmins(getChat(chat));
 
-      const adminModules: { [id: string]: IUser & UserModule } = {};
+      const adminModules: Users = {};
 
       Object.keys(admins).forEach((id) => {
-        adminModules[id] = GenerateUser(this, admins[id]);
+        adminModules[id] = UserModule(this, admins[id]);
       });
 
       return adminModules;
     },
 
     async getChatLeader(chat: IChat | string) {
-      const leader = await bot.getChatLeader(Chat.getChat(chat));
+      const leader = await bot.getChatLeader(getChat(chat));
 
-      return GenerateUser(this, leader);
+      return UserModule(this, leader);
     },
 
     //! <==============================> USER <==============================>
 
     async getUser(user: string) {
-      const usr = await bot.getUser(User.getUser(user));
+      const usr = await bot.getUser(getUser(user));
 
-      if (usr) return GenerateUser(this, usr);
+      if (usr) return UserModule(this, usr);
 
       return null;
     },
 
     async setUser(user: string | IUser) {
-      return bot.setUser(GenerateUser(this, User.getUser(user)));
+      return bot.setUser(UserModule(this, getUser(user)));
     },
 
     async getUsers() {
-      const modules: { [id: string]: IUser & UserModule } = {};
+      const modules: Users = {};
 
       const users = await bot.getUsers();
 
       for (const id in users) {
-        modules[id] = GenerateUser(this, users[id]);
+        modules[id] = UserModule(this, users[id]);
       }
 
       return modules;
     },
 
-    setUsers(users: { [id: string]: IUser & UserModule }) {
+    setUsers(users: IUsers) {
       return bot.setUsers(users);
     },
 
     addUser(user: string | IUser) {
-      return bot.addUser(GenerateUser(this, User.getUser(user)));
+      return bot.addUser(UserModule(this, getUser(user)));
     },
 
     removeUser(user: IUser | string) {
-      return bot.removeUser(User.getUser(user));
+      return bot.removeUser(getUser(user));
     },
 
     getUserName(user: IUser | string) {
-      if (User.getUserId(user) == this.id) return this.getBotName();
+      if (getUserId(user) == this.id) return this.getBotName();
 
-      return bot.getUserName(User.getUser(user));
+      return bot.getUserName(getUser(user));
     },
 
     setUserName(user: IUser | string, name: string) {
-      if (User.getUserId(user) == this.id) return this.setBotName(name);
+      if (getUserId(user) == this.id) return this.setBotName(name);
 
-      return bot.setUserName(User.getUser(user), name);
+      return bot.setUserName(getUser(user), name);
     },
 
     getUserDescription(user: IUser | string) {
-      if (User.getUserId(user) == this.id) return this.getBotDescription();
+      if (getUserId(user) == this.id) return this.getBotDescription();
 
-      return bot.getUserDescription(User.getUser(user));
+      return bot.getUserDescription(getUser(user));
     },
 
     setUserDescription(user: IUser | string, description: string) {
-      if (User.getUserId(user) == this.id) return this.setBotDescription(description);
+      if (getUserId(user) == this.id) return this.setBotDescription(description);
 
-      return bot.setUserDescription(User.getUser(user), description);
+      return bot.setUserDescription(getUser(user), description);
     },
 
     getUserProfile(user: IUser | string) {
-      if (User.getUserId(user) == this.id) return this.getBotProfile();
+      if (getUserId(user) == this.id) return this.getBotProfile();
 
-      return bot.getUserProfile(User.getUser(user));
+      return bot.getUserProfile(getUser(user));
     },
 
     setUserProfile(user: IUser | string, profile: Buffer) {
-      if (User.getUserId(user) == this.id) return this.setBotProfile(profile);
+      if (getUserId(user) == this.id) return this.setBotProfile(profile);
 
-      return bot.setUserProfile(User.getUser(user), profile);
+      return bot.setUserProfile(getUser(user), profile);
     },
 
     unblockUser(user: IUser | string) {
-      return bot.unblockUser(User.getUser(user));
+      return bot.unblockUser(getUser(user));
     },
 
     blockUser(user: IUser | string) {
-      return bot.blockUser(User.getUser(user));
+      return bot.blockUser(getUser(user));
     },
 
     //! <===============================> BOT <==============================>
@@ -390,15 +389,15 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
 
     //! <=============================> MODULES <=============================>
 
-    Chat(chat: Chat | string): IChat & ChatModule {
-      return GenerateChat(this, bot.Chat(Chat.getChat(chat)));
+    Chat(chat: IChat | string): ChatModule {
+      return ChatModule(this, bot.Chat(getChat(chat)));
     },
 
-    User(user: IUser | string): IUser & UserModule {
-      return GenerateUser(this, bot.User(User.getUser(user)));
+    User(user: IUser | string): UserModule {
+      return UserModule(this, bot.User(getUser(user)));
     },
 
-    ...(<Messages extends { [key: string]: (...args: any) => any }>(messages: Messages) =>
+    ...(<Messages extends IMessages>(messages: Messages) =>
       (Object.keys(messages) as Array<keyof Messages>).reduce(<Key extends keyof Messages>(result: MessagesGenerate<Messages>, key: Key) => {
         result[key] = (...args: ArgumentTypes<Messages[Key]>[]): ReturnType<Messages[Key]> & MessageModule => {
           return GenerateMessage(client, messages[key](...args));

@@ -1,7 +1,7 @@
 import { IButtonMessage } from "@interfaces/Messages";
 import IChat from "@interfaces/IChat";
 import Message from "@messages/Message";
-import { Bot } from "../types/Bot";
+import { Client } from "../types/Client";
 import { Button } from "../types/Message";
 export default class ButtonMessage extends Message implements IButtonMessage {
     buttons: Button[];
@@ -14,8 +14,8 @@ export default class ButtonMessage extends Message implements IButtonMessage {
     generateID(): string;
     /**
      * * Injeta a interface no modulo
-     * @param bot Bot que irá executar os métodos
+     * @param bot Client que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends IButtonMessage>(bot: Bot, msg: MessageIn): MessageIn & ButtonMessage;
+    static Inject<MessageIn extends IButtonMessage>(bot: Client, msg: MessageIn): MessageIn & ButtonMessage;
 }

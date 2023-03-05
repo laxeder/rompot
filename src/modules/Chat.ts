@@ -1,150 +1,129 @@
-import { IChat, ChatModule } from "@interfaces/Chat";
+import { IChat, IChatModule } from "@interfaces/Chat";
 import { IMessage } from "@interfaces/Messages";
-import IUser from "@interfaces/User";
+import { IUser } from "@interfaces/User";
 
 import Message from "@messages/Message";
 
-import User, { GenerateUser } from "@modules/User";
+import { UserModule } from "@modules/User";
+import { Client } from "@modules/Client";
+import BotBase from "@modules/BotBase";
+
+import { getUser, getUserId } from "@utils/Generic";
 
 import { ChatStatus, ChatType } from "../types/Chat";
-import { Users } from "../types/User";
-import { Bot } from "../types/Bot";
+import { IUsers, Users } from "../types/User";
 
-export default class Chat implements IChat {
-  public id: string;
-  public type: ChatType;
-  public status: ChatStatus;
-  public name: string;
-  public description: string;
-  public profile: Buffer;
-  public users: Users;
+export type ChatModule = IChat & IChatModule;
 
-  constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: Users, status?: ChatStatus) {
-    this.id = id;
-    this.type = type || "pv";
-    this.name = name || "";
-    this.description = description || "";
-    this.profile = profile || Buffer.from("");
-    this.users = users || {};
-    this.status = status || "offline";
-  }
-
-  /**
-   * @param chat Sala de bate-papo que será obtida
-   * @returns Retorna a sala de bate-papo
-   */
-  public static getChat<ChatIn extends IChat>(chat: ChatIn | string): ChatIn | IChat {
-    if (typeof chat == "string") {
-      return new Chat(chat);
-    }
-
-    return chat;
-  }
-
-  /**
-   * @param chat Sala de bate-papo
-   * @returns Retorna o ID da sala de bate-papo
-   */
-  public static getChatId(chat: IChat | string): string {
-    if (typeof chat == "string") {
-      return String(chat || "");
-    }
-
-    if (typeof chat == "object" && !Array.isArray(chat) && chat?.id) {
-      return String(chat.id);
-    }
-
-    return String(chat || "");
-  }
+export function CreateChat(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: IUsers, status?: ChatStatus): IChat {
+  return {
+    id: id || "",
+    type: type || "pv",
+    name: name || "",
+    description: description || "",
+    profile: profile || Buffer.from(""),
+    users: users || {},
+    status: status || "offline",
+  };
 }
 
-export function GenerateChat<C extends IChat>(bot: Bot, chat: C): C & ChatModule {
-  const module: C & ChatModule = {
+export function Chat(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: IUsers, status?: ChatStatus): ChatModule {
+  return ChatModule(new BotBase(), CreateChat(id, type, name, description, profile, users, status));
+}
+
+export function ChatClient<CLIENT extends Client>(client: CLIENT, id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: IUsers, status?: ChatStatus) {
+  return ChatModule(client, CreateChat(id, type, name, description, profile, users, status));
+}
+
+export function ChatModule<CLIENT extends Client, CHAT extends IChat>(client: CLIENT, chat: CHAT): CHAT & IChatModule {
+  const module: CHAT & IChatModule = {
     ...chat,
+
+    get client() {
+      return client;
+    },
+
+    set client(c: CLIENT) {
+      client = c;
+    },
 
     async setName(name: string): Promise<void> {
       this.name = name;
 
-      await bot.setChatName(this, name);
+      await client.setChatName(this, name);
     },
 
     async getName(): Promise<string> {
-      return bot.getChatName(this);
+      return client.getChatName(this);
     },
 
     async getDescription(): Promise<string> {
-      return bot.getChatDescription(this);
+      return client.getChatDescription(this);
     },
 
     async setDescription(description: string): Promise<void> {
       this.description = description;
 
-      return bot.setChatDescription(this, description);
+      return client.setChatDescription(this, description);
     },
 
     async getProfile(): Promise<Buffer> {
-      return bot.getChatProfile(this);
+      return client.getChatProfile(this);
     },
 
     async setProfile(image: Buffer): Promise<void> {
       this.profile = image;
 
-      return bot.setChatProfile(this, image);
+      return client.setChatProfile(this, image);
     },
 
     async IsAdmin(user: IUser | string): Promise<boolean> {
-      const admins = await bot.getChatAdmins(this);
+      const admins = await client.getChatAdmins(this);
 
-      return admins.hasOwnProperty(User.getUserId(user));
+      return admins.hasOwnProperty(getUserId(user));
     },
 
     async IsLeader(user: IUser | string): Promise<boolean> {
-      const leader = await bot.getChatLeader(this);
+      const leader = await client.getChatLeader(this);
 
-      return leader.id == User.getUserId(user);
+      return leader.id == getUserId(user);
     },
 
     async getAdmins(): Promise<Users> {
-      return bot.getChatAdmins(this);
+      return client.getChatAdmins(this);
     },
 
     async addUser(user: IUser | string): Promise<void> {
-      return bot.addUserInChat(this, user);
+      return client.addUserInChat(this, user);
     },
 
     async removeUser(user: IUser | string): Promise<void> {
-      return bot.removeUserInChat(this, user);
+      return client.removeUserInChat(this, user);
     },
 
     async promote(user: IUser | string): Promise<void> {
-      return bot.promoteUserInChat(this, user);
+      return client.promoteUserInChat(this, user);
     },
 
     async demote(user: IUser | string): Promise<void> {
-      return bot.demoteUserInChat(this, User.getUser(user));
+      return client.demoteUserInChat(this, getUser(user));
     },
 
     async leave(): Promise<void> {
-      return bot.leaveChat(this);
+      return client.leaveChat(this);
     },
 
     async send(message: IMessage | string): Promise<Message> {
-      return bot.send(Message.getMessage(message));
+      return client.send(Message.getMessage(message));
     },
 
     async changeStatus(status: ChatStatus): Promise<void> {
-      return bot.changeChatStatus(this, status);
+      return client.changeChatStatus(this, status);
     },
   };
 
   for (const id in chat.users) {
-    const user = chat.users[id];
-
-    if (!(user instanceof User)) {
-      module.users[id] = GenerateUser(bot, chat.users[id]);
-    } else {
-      module.users[id] = user;
-    }
+    module.users[id] = UserModule(client, chat.users[id]);
   }
 
   return module;

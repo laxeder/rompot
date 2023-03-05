@@ -1,8 +1,9 @@
 import { IMessage } from "@interfaces/Messages";
-import IUser from "@interfaces/User";
+import { IUser } from "@interfaces/User";
 
 import { ChatStatus, ChatType } from "../types/Chat";
-import { Users } from "../types/User";
+import { IUsers, Users } from "../types/User";
+import { Client } from "@modules/Client";
 
 export interface IChat {
   /**
@@ -38,10 +39,15 @@ export interface IChat {
   /**
    * * Usuários que estão naquela sala de bate-papo
    */
-  users: Users;
+  users: IUsers;
 }
 
-export interface ChatModule {
+export interface IChatModule {
+  /** * Client do modulo */
+  get client(): Client;
+
+  set client(client: Client);
+
   /**
    * @returns Retorna o nome da sala de bate-papo
    */

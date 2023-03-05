@@ -1,6 +1,6 @@
 import ICommand from "@interfaces/ICommand";
 import Message from "@messages/Message";
-import { Bot } from "../types/Bot";
+import { Client } from "../types/Client";
 export default class Command implements ICommand {
     tags: string[];
     prefix: string;
@@ -8,7 +8,7 @@ export default class Command implements ICommand {
     description: string;
     categories: string[];
     permissions: string[];
-    get bot(): Bot;
+    get bot(): Client;
     execute(message: Message): Promise<void>;
     response(message: Message): Promise<void>;
     help(message: Message): Promise<void>;

@@ -117,7 +117,7 @@ export default class WhatsAppBot implements IBot {
           }
 
           if (update.connection == "close") {
-            // Bot desligado
+            // Client desligado
             const status = (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
             const botStatus = String(this.status);
 

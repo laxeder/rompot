@@ -5,7 +5,7 @@ import IChat from "@interfaces/IChat";
 import Message from "@messages/Message";
 import { ChatStatus, ChatType } from "../types/Chat";
 import { Users } from "../types/User";
-import { Bot } from "../types/Bot";
+import { Client } from "../types/Client";
 export default class Chat implements IChat {
     id: string;
     type: ChatType;
@@ -14,7 +14,7 @@ export default class Chat implements IChat {
     description: string;
     profile: Buffer;
     users: Users;
-    get bot(): Bot;
+    get bot(): Client;
     constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: Users, status?: ChatStatus);
     setName(name: string): Promise<void>;
     getName(): Promise<string>;
@@ -44,8 +44,8 @@ export default class Chat implements IChat {
     static getChatId(chat: IChat | string): string;
     /**
      * * Injeta a interface no modulo
-     * @param bot Bot que irá executar os métodos
+     * @param bot Client que irá executar os métodos
      * @param chat Interface da sala de bate-papo
      */
-    static Inject<ChatIn extends IChat>(bot: Bot, chat: ChatIn): ChatIn & Chat;
+    static Inject<ChatIn extends IChat>(bot: Client, chat: ChatIn): ChatIn & Chat;
 }

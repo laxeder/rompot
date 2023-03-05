@@ -18,15 +18,15 @@ export declare type EventsEmitter = {
         qr?: string;
     };
     /**
-     * * Bot conectou
+     * * Client conectou
      * @param isNewLogin Se é um novo login
      */
     open: {
         isNewLogin: boolean;
     };
-    /** * Bot reconectando */
+    /** * Client reconectando */
     reconnecting: {};
-    /** * Bot conectando */
+    /** * Client conectando */
     connecting: {};
     /** * Sessão do bot encerrada */
     closed: {};

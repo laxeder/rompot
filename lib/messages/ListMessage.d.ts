@@ -2,7 +2,7 @@ import { IListMessage } from "@interfaces/Messages";
 import IChat from "@interfaces/IChat";
 import Message from "@messages/Message";
 import { List, ListItem } from "../types/Message";
-import { Bot } from "../types/Bot";
+import { Client } from "../types/Client";
 export default class ListMessage extends Message implements IListMessage {
     list: List[];
     button: string;
@@ -17,8 +17,8 @@ export default class ListMessage extends Message implements IListMessage {
     generateID(): string;
     /**
      * * Injeta a interface no modulo
-     * @param bot Bot que irá executar os métodos
+     * @param bot Client que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends IListMessage>(bot: Bot, msg: MessageIn): MessageIn & ListMessage;
+    static Inject<MessageIn extends IListMessage>(bot: Client, msg: MessageIn): MessageIn & ListMessage;
 }

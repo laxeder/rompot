@@ -21,13 +21,13 @@ import Emmiter from "@utils/Emmiter";
 import { Chats, ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
 import AudioMessage from "@messages/AudioMessage";
-export default class BotModule<Bot extends IBot, Command extends ICommand> extends Emmiter {
+export default class BotModule<Client extends IBot, Command extends ICommand> extends Emmiter {
     #private;
     commands: Command[];
-    bot: Bot;
+    bot: Client;
     config: ConnectionConfig;
     get id(): string;
-    constructor(bot: Bot, config?: ConnectionConfig);
+    constructor(bot: Client, config?: ConnectionConfig);
     /** * Configura os eventos */
     configEvents(): void;
     /**
@@ -390,4 +390,4 @@ export default class BotModule<Bot extends IBot, Command extends ICommand> exten
      */
     ButtonMessage(chat: IChat | string, text: string): ButtonMessage;
 }
-export declare function BuildBot<Bot extends IBot, Command extends ICommand>(bot: Bot, config?: ConnectionConfig): BotModule<Bot, Command>;
+export declare function BuildBot<Client extends IBot, Command extends ICommand>(bot: Client, config?: ConnectionConfig): BotModule<Client, Command>;

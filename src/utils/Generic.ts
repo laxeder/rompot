@@ -1,11 +1,15 @@
+import { Transform } from "stream";
+import https from "https";
+
 import { IMessage } from "@interfaces/Messages";
 import { IChat } from "@interfaces/Chat";
 import { IUser } from "@interfaces/User";
 
 import Message from "@messages/Message";
 
-import Chat from "@modules/Chat";
-import User from "@modules/User";
+import { Client } from "@modules/Client";
+import { User } from "@modules/User";
+import { Chat } from "@modules/Chat";
 
 export type ArgumentTypes<F extends Function> = F extends (...args: infer A) => any ? A : never;
 
@@ -15,7 +19,7 @@ export type ArgumentTypes<F extends Function> = F extends (...args: infer A) => 
  */
 export function getMessage<MSG extends IMessage>(message: MSG | string): MSG | IMessage {
   if (typeof message == "string") {
-    return new Message(new Chat(""), message);
+    return new Message(Chat(""), message);
   }
 
   return message;
@@ -43,7 +47,7 @@ export function getMessageId(message: IMessage | string): string {
  */
 export function getChat<CHAT extends IChat>(chat: CHAT | string): CHAT | IChat {
   if (typeof chat == "string") {
-    return new Chat(chat);
+    return Chat(chat);
   }
 
   return chat;
@@ -71,7 +75,7 @@ export function getChatId(chat: IChat | string): string {
  */
 export function getUser<USER extends IUser>(user: USER | string): USER | IUser {
   if (typeof user == "string") {
-    return new User(user);
+    return User(user);
   }
 
   return user;
@@ -91,4 +95,69 @@ export function getUserId(user: IUser | string) {
   }
 
   return String(user || "");
+}
+
+/**
+ * * Define o cliente de um objeto
+ * @param client
+ * @param obj
+ */
+export function setClientProperty(client: Client, obj: { client: Client }) {
+  Object.defineProperty(obj, "client", {
+    get: () => client,
+    set: (value: Client) => (client = value),
+  });
+}
+
+/**
+ * * Aguarda um determinado tempo
+ * @param timeout
+ * @returns
+ */
+export async function sleep(timeout: number = 1000): Promise<void> {
+  const result = timeout - 2147483647;
+
+  if (result > 0) {
+    await new Promise((res) => setTimeout(res, 2147483647));
+
+    await sleep(result);
+  } else {
+    await new Promise((res) => setTimeout(res, timeout));
+  }
+}
+
+/**
+ * * Obtem a imagem de uma url
+ * @param uri URL
+ * @returns
+ */
+export async function getImageURL(uri: string): Promise<Buffer> {
+  if (!!!uri) return Buffer.from("");
+
+  return new Promise((res, rej) => {
+    try {
+      https
+        .request(uri, (response) => {
+          var data = new Transform();
+
+          response.on("data", (chunk) => data.push(chunk));
+          response.on("end", () => res(data.read()));
+        })
+        .end();
+    } catch (e) {
+      res(Buffer.from(""));
+    }
+  });
+}
+
+/**
+ * @param err Erro
+ * @returns Retorna um erro
+ */
+export function getError(err: any): any {
+  if (!(err instanceof Error)) {
+    err = new Error(`${err}`);
+  }
+
+  return err;
 }

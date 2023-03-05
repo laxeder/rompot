@@ -13,11 +13,11 @@ bot.on("open", (open: { status: string; isNewLogin: boolean }) => {
     console.log("Nova conexão");
   }
 
-  console.log("Bot conectado!");
+  console.log("Client conectado!");
 });
 
 bot.on("close", () => {
-  console.log(`Bot desligado!`);
+  console.log(`Client desligado!`);
 });
 
 bot.on("qr", (qr: string) => {

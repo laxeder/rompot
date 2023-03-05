@@ -1,9 +1,10 @@
-import { MessageModule } from "@interfaces/Messages";
+import { IMessages, MessageModule } from "@interfaces/Messages";
+
 import { ArgumentTypes } from "@utils/Generic";
 
-export type MessageGenerate = { [key: string]: (...args: any) => any };
+export type TMessages = { [key: string]: (...args: any) => any };
 
-export type MessagesGenerate<G extends MessageGenerate> = { [K in keyof G]: (...args: ArgumentTypes<G[K]>) => ReturnType<G[K]> & MessageModule };
+export type MessagesGenerate<Messages extends IMessages> = { [K in keyof Messages]: (...args: ArgumentTypes<Messages[K]>) => ReturnType<Messages[K]> & MessageModule };
 
 export interface List {
   /**

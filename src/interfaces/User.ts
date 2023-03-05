@@ -1,5 +1,7 @@
 import { IChat } from "@interfaces/Chat";
 
+import { Client } from "@modules/Client";
+
 export interface IUser {
   /**
    * * ID do usuário
@@ -22,7 +24,12 @@ export interface IUser {
   profile: Buffer;
 }
 
-export interface UserModule {
+export interface IUserModule {
+  /** * Cliente do modulo */
+  get client(): Client;
+
+  set client(client: Client);
+
   /**
    * * Bloqueia o usuário
    */

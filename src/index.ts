@@ -17,7 +17,7 @@ import BotModule from "@modules/BotModule";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 
-import PromiseMessages, { PromiseMessage } from "@utils/PromiseMessages";
+import PromiseMessages, { PromiseMessage } from "@modules/PromiseMessages";
 import Emmiter, { EventsEmitter } from "@utils/Emmiter";
 import WaitCallBack from "@utils/WaitCallBack";
 import getImageURL from "@utils/getImageURL";

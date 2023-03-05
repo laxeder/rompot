@@ -2,7 +2,7 @@
 import { IMessage } from "@interfaces/Messages";
 import IUser from "@interfaces/IUser";
 import { ChatStatus, ChatType } from "../types/Chat";
-import { Bot } from "../types/Bot";
+import { Client } from "../types/Client";
 import { Users } from "../types/User";
 export default interface IChat {
     /**
@@ -34,9 +34,9 @@ export default interface IChat {
      */
     users: Users;
     /**
-     * * Bot irá executar os métodos
+     * * Client irá executar os métodos
      */
-    bot: Bot;
+    bot: Client;
     /**
      * @returns Retorna o nome da sala de bate-papo
      */

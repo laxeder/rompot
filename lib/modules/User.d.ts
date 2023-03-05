@@ -1,13 +1,13 @@
 /// <reference types="node" />
 import IUser from "@interfaces/IUser";
 import Chat from "@modules/Chat";
-import { Bot } from "../types/Bot";
+import { Client } from "../types/Client";
 export default class User implements IUser {
     id: string;
     name: string;
     description: string;
     profile: Buffer;
-    get bot(): Bot;
+    get bot(): Client;
     constructor(id: string, name?: string, description?: string, profile?: Buffer);
     blockUser(): Promise<void>;
     unblockUser(): Promise<void>;
@@ -31,8 +31,8 @@ export default class User implements IUser {
     static getUserId(user: IUser | string): string;
     /**
      * * Injeta a interface no modulo
-     * @param bot Bot que irá executar os métodos
+     * @param bot Client que irá executar os métodos
      * @param user Interface do usuário
      */
-    static Inject<UserIn extends IUser>(bot: Bot, user: UserIn): UserIn & IUser;
+    static Inject<UserIn extends IUser>(bot: Client, user: UserIn): UserIn & IUser;
 }

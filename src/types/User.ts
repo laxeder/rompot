@@ -1,5 +1,9 @@
-import IUser from "@interfaces/User";
+import { IUser } from "@interfaces/User";
 
-export type Users = { [id: string]: IUser };
+import { UserModule } from "@modules/User";
+
+export type IUsers = { [id: string]: IUser };
+
+export type Users = { [id: string]: UserModule };
 
 export type UserAction = "add" | "remove" | "promote" | "demote";

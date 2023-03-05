@@ -1,7 +1,7 @@
 import { ILocationMessage } from "@interfaces/Messages";
 import IChat from "@interfaces/IChat";
 import Message from "@messages/Message";
-import { Bot } from "../types/Bot";
+import { Client } from "../types/Client";
 export default class LocationMessage extends Message implements ILocationMessage {
     latitude: number;
     longitude: number;
@@ -9,8 +9,8 @@ export default class LocationMessage extends Message implements ILocationMessage
     setLocation(latitude: number, longitude: number): void;
     /**
      * * Injeta a interface no modulo
-     * @param bot Bot que irá executar os métodos
+     * @param bot Client que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends ILocationMessage>(bot: Bot, msg: MessageIn): MessageIn & LocationMessage;
+    static Inject<MessageIn extends ILocationMessage>(bot: Client, msg: MessageIn): MessageIn & LocationMessage;
 }

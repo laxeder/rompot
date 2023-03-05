@@ -7,7 +7,7 @@ import Emmiter from "@utils/Emmiter";
 import { IAudioMessage, IButtonMessage, IContactMessage, IImageMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IVideoMessage } from "@interfaces/Messages";
 import Auth from "@interfaces/Auth";
 import { Chats, ChatStatus } from "../types/Chat";
-import { BotStatus } from "../types/Bot";
+import { BotStatus } from "../types/Client";
 import { Users } from "../types/User";
 export default interface IBot {
     /** ID do bot */

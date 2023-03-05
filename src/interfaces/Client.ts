@@ -1,19 +1,22 @@
-import { ChatModule, IChat } from "@interfaces/Chat";
-import { IUser, UserModule } from "@interfaces/User";
-
-import { IMessage, MessageModule } from "@interfaces/Messages";
+import { IMessage, IMessages, MessageModule } from "@interfaces/Messages";
 import ICommand from "@interfaces/ICommand";
+import { IUser } from "@interfaces/User";
+import { IChat } from "@interfaces/Chat";
 import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
-import Emmiter from "@utils/Emmiter";
+import { UserModule } from "@modules/User";
+import { ChatModule } from "@modules/Chat";
 
-import { MessageGenerate, MessagesGenerate } from "../types/Message";
-import { ChatStatus } from "../types/Chat";
+import { ClientEvents } from "@utils/Emmiter";
 
-export type ClientType<Bot extends IBot, Command extends ICommand, M extends MessageGenerate> = IClient<Command> & Bot & MessagesGenerate<M>;
+import { Chats, ChatStatus, IChats } from "../types/Chat";
+import { MessagesGenerate } from "../types/Message";
+import { IUsers, Users } from "../types/User";
 
-export interface IClient<Command extends ICommand> extends Emmiter {
+export type ClientType<Client extends IBot, Command extends ICommand, Messages extends IMessages> = IClient<Command> & Client & MessagesGenerate<Messages>;
+
+export interface IClient<Command extends ICommand> extends ClientEvents {
   /** * Comandos do cliente */
   commands: Command[];
 
@@ -212,7 +215,7 @@ export interface IClient<Command extends ICommand> extends Emmiter {
    * @param chat Sala de bate-papo
    * @returns Retorna uma sala de bate-papo
    */
-  getChat(chat: IChat | string): Promise<(IChat & ChatModule) | null>;
+  getChat(chat: IChat | string): Promise<ChatModule | null>;
 
   /**
    * * Define uma sala de bate-papo
@@ -260,24 +263,24 @@ export interface IClient<Command extends ICommand> extends Emmiter {
    * @param chat Sala de bate-papo
    * @returns Retorna os administradores de uma sala de bate-papo
    */
-  getChatAdmins(chat: IChat | string): Promise<{ [id: string]: IUser & UserModule }>;
+  getChatAdmins(chat: IChat | string): Promise<Users>;
 
   /**
    * @param chat Sala de bate-papo
    * @returns Retorna o lider da sala de bate-papo
    */
-  getChatLeader(chat: IChat | string): Promise<IUser & UserModule>;
+  getChatLeader(chat: IChat | string): Promise<UserModule>;
 
   /**
    * @returns Retorna as sala de bate-papo que o bot está
    */
-  getChats(): Promise<{ [id: string]: IChat & ChatModule }>;
+  getChats(): Promise<Chats>;
 
   /**
    * * Define as salas de bate-papo que o bot está
    * @param chats Salas de bate-papo
    */
-  setChats(chats: { [id: string]: IChat & ChatModule }): Promise<void>;
+  setChats(chats: IChats): Promise<void>;
 
   //? *************** USER **************
 
@@ -297,7 +300,7 @@ export interface IClient<Command extends ICommand> extends Emmiter {
    * @param user Usuário
    * @returns Retorna um usuário
    */
-  getUser(user: IUser | string): Promise<(IUser & UserModule) | null>;
+  getUser(user: IUser | string): Promise<UserModule | null>;
 
   /**
    * * Define um usuário
@@ -356,13 +359,13 @@ export interface IClient<Command extends ICommand> extends Emmiter {
   /**
    * @returns Retorna a lista de usuários do bot
    */
-  getUsers(): Promise<{ [id: string]: IUser & UserModule }>;
+  getUsers(): Promise<Users>;
 
   /**
    * * Define a lista de usuários do bot
    * @param users Usuários
    */
-  setUsers(users: { [id: string]: IUser & UserModule }): Promise<void>;
+  setUsers(users: IUsers): Promise<void>;
 
   //? ************** MODELS **************
 
@@ -370,13 +373,13 @@ export interface IClient<Command extends ICommand> extends Emmiter {
    * * Sala de bate-papo
    * @param id Sala de bate-papo
    */
-  Chat(id: string): IChat & ChatModule;
+  Chat(id: IChat | string): ChatModule;
 
   /**
    * * Usuário
    * @param user Usuário
    */
-  User(id: string): IUser & UserModule;
+  User(id: IUser | string): UserModule;
 
   //? ************** MESSAGE *************
 

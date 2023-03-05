@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import IChat from "@interfaces/IChat";
-import { Bot } from "../types/Bot";
+import { Client } from "../types/Client";
 export default interface IUser {
     /**
      * * ID do usuário
@@ -19,9 +19,9 @@ export default interface IUser {
      */
     profile: Buffer;
     /**
-     * * Bot que irá executar os métodos
+     * * Client que irá executar os métodos
      */
-    bot: Bot;
+    bot: Client;
     /**
      * * Bloqueia o usuário
      */

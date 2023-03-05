@@ -1,18 +1,17 @@
 import { ConnectionConfig } from "@config/ConnectionConfig";
 
+import { IMessage, IMessages } from "@interfaces/Messages";
 import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
+import Auth from "@interfaces/Auth";
 
 import Command from "@modules/Command";
 
-import Emmiter from "@utils/Emmiter";
+import { BotEvents } from "@utils/Emmiter";
 
-import { IAudioMessage, IButtonMessage, IContactMessage, IImageMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IVideoMessage } from "@interfaces/Messages";
-import Auth from "@interfaces/Auth";
-
-import { Chats, ChatStatus } from "../types/Chat";
+import { IChats, ChatStatus } from "../types/Chat";
 import { BotStatus } from "../types/Bot";
-import { Users } from "../types/User";
+import { IUsers } from "../types/User";
 
 export default interface IBot {
   //? ************** CONFIG **************
@@ -20,11 +19,11 @@ export default interface IBot {
   /** ID do bot */
   id: string;
 
-  /* Status do Bot */
+  /* Status do Client */
   status: BotStatus;
 
   /** Gerenciador de eventos */
-  ev: Emmiter;
+  ev: BotEvents;
 
   /** Configurações do bot */
   config: ConnectionConfig;
@@ -223,7 +222,7 @@ export default interface IBot {
    * @param chat Sala de bate-papo
    * @returns Retorna os administradores de uma sala de bate-papo
    */
-  getChatAdmins(chat: IChat): Promise<Users>;
+  getChatAdmins(chat: IChat): Promise<IUsers>;
 
   /**
    * @param chat Sala de bate-papo
@@ -234,13 +233,13 @@ export default interface IBot {
   /**
    * @returns Retorna as sala de bate-papo que o bot está
    */
-  getChats(): Promise<Chats>;
+  getChats(): Promise<IChats>;
 
   /**
    * * Define as salas de bate-papo que o bot está
    * @param chats Salas de bate-papo
    */
-  setChats(chats: Chats): Promise<void>;
+  setChats(chats: IChats): Promise<void>;
 
   //? *************** USER **************
 
@@ -319,13 +318,13 @@ export default interface IBot {
   /**
    * @returns Retorna a lista de usuários do bot
    */
-  getUsers(): Promise<Users>;
+  getUsers(): Promise<IUsers>;
 
   /**
    * * Define a lista de usuários do bot
    * @param users Usuários
    */
-  setUsers(users: Users): Promise<void>;
+  setUsers(users: IUsers): Promise<void>;
 
   //? ************** MODELS **************
 
@@ -362,72 +361,5 @@ export default interface IBot {
   removeReaction(message: IMessage): Promise<void>;
 
   /** * Todas as mensagens dísponiveis da plataforma */
-  messages: {
-    /**
-     * * Mensagem
-     * @param chat Sala de bate-papo
-     * @param text Texto da mensagem
-     */
-    Message(chat: IChat, text: string): IMessage;
-
-    /**
-     * * Mensagem contendo uma mídia
-     * @param chat Sala de bate-papo
-     * @param text Texto da mensagem
-     */
-    MediaMessage(chat: IChat, text: string, file: any): IMediaMessage;
-
-    /**
-     * * Mensagem com imagem
-     * @param chat Sala de bate-papo
-     * @param text Texto da mensagem
-     * @param image Imagem
-     */
-    ImageMessage(chat: IChat, text: string, image: Buffer): IImageMessage;
-
-    /**
-     * * Mensagem com vídeo
-     * @param chat Sala de bate-papo
-     * @param text Texto da mensagem
-     * @param video Video
-     */
-    VideoMessage(chat: IChat, text: string, video: Buffer): IVideoMessage;
-
-    /**
-     * * Mensagem com audio
-     * @param chat Sala de bate-papo
-     * @param audio Audio
-     */
-    AudioMessage(chat: IChat, audio: Buffer): IAudioMessage;
-
-    /**
-     * * Mensagem com contatos
-     * @param chat Sala de bate-papo
-     * @param text Texto da mensagem
-     * @param contact Contato
-     */
-    ContactMessage(chat: IChat, text: string, contact: string | string[]): IContactMessage;
-
-    /**
-     * * Mensagem com localização
-     * @param chat Sala de bate-papo
-     * @param longitude Longitude
-     * @param latitude Latitude
-     */
-    LocationMessage(chat: IChat, latitude: number, longitude: number): ILocationMessage;
-
-    /**
-     * * Mensagem com lista
-     * @param chat Sala de bate-papo
-     * @param text Texto da mensagem
-     */
-    ListMessage(chat: IChat, text: string, button: string): IListMessage;
-
-    /**
-     * * Mensagem com botões
-     * @param chat Sala de bate-papo
-     * @param text Texto da mensagem
-     */
-    ButtonMessage(chat: IChat, text: string): IButtonMessage;
-  };
+  messages: IMessages;
 }

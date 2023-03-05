@@ -33,7 +33,7 @@ export * from "./types/Connection";
 export * from "./types/Message";
 export * from "./types/Chat";
 export * from "./types/User";
-export * from "./types/Bot";
+export * from "./types/Client";
 export * from "./wa/WAModule";
 export { DefaultCommandConfig, DefaultConnectionConfig };
 export { Command };

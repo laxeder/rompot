@@ -4,7 +4,7 @@ import Message from "@messages/Message";
 
 import BotBase from "@modules/BotBase";
 
-import { Bot } from "../types/Bot";
+import { Client } from "@modules/Client";
 
 
 export default class Command implements ICommand {
@@ -15,7 +15,7 @@ export default class Command implements ICommand {
   public categories: string[] = [];
   public permissions: string[] = [];
 
-  get bot(): Bot {
+  get bot(): Client {
     return new BotBase();
   }
 

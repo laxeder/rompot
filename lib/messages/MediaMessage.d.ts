@@ -2,7 +2,7 @@
 import { IMediaMessage } from "@interfaces/Messages";
 import IChat from "@interfaces/IChat";
 import Message from "@messages/Message";
-import { Bot } from "../types/Bot";
+import { Client } from "../types/Client";
 export default class MediaMessage extends Message implements IMediaMessage {
     isGIF: boolean;
     file: any;
@@ -10,8 +10,8 @@ export default class MediaMessage extends Message implements IMediaMessage {
     getStream(stream?: any): Promise<Buffer>;
     /**
      * * Injeta a interface no modulo
-     * @param bot Bot que irá executar os métodos
+     * @param bot Client que irá executar os métodos
      * @param message Interface da mensagem
      */
-    static Inject<MessageIn extends IMediaMessage>(bot: Bot, msg: MessageIn): MessageIn & MediaMessage;
+    static Inject<MessageIn extends IMediaMessage>(bot: Client, msg: MessageIn): MessageIn & MediaMessage;
 }

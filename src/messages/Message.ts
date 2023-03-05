@@ -1,15 +1,16 @@
-import { IMessage } from "@interfaces/Messages";
+import { IMessage, MessageModule } from "@interfaces/Messages";
 import { IChat } from "@interfaces/Chat";
 
-import Chat, { GenerateChat } from "@modules/Chat";
-import User from "@modules/User";
+import { Chat, ChatModule } from "@modules/Chat";
+import { Client } from "@modules/Client";
 import BotBase from "@modules/BotBase";
+import User from "@modules/User";
 
-import { Bot } from "../types/Bot";
+import { getChat } from "@utils/Generic";
 
 export default class Message implements IMessage {
   public id: string;
-  public chat: Chat;
+  public chat: ChatModule;
   public user: User;
   public text: string;
   public fromMe: boolean;
@@ -18,12 +19,12 @@ export default class Message implements IMessage {
   public mention?: Message;
   public timestamp: Number | Long;
 
-  get bot(): Bot {
+  get bot(): Client {
     return new BotBase();
   }
 
   constructor(chat: IChat | string, text: string, mention?: IMessage, id?: string) {
-    this.chat = GenerateChat(this.bot, Chat.getChat(chat));
+    this.chat = ChatModule(this.bot, getChat(chat));
 
     this.id = id || String(Date.now());
     this.user = new User(this.bot.id);
@@ -62,9 +63,9 @@ export default class Message implements IMessage {
    * @param message Mensagem que será obtida
    * @returns Retorna a mensagem
    */
-  public static getMessage<MessageIn extends IMessage>(message: MessageIn | string): MessageIn | IMessage {
+  public static getMessage<MessageIn extends IMessage>(message: MessageIn | string): MessageIn | MessageModule {
     if (typeof message == "string") {
-      return new Message(new Chat(""), message);
+      return new Message(Chat(""), message);
     }
 
     return message;

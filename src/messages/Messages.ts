@@ -19,17 +19,17 @@ import {
   VideoMessageModule,
 } from "@interfaces/Messages";
 
-import { GenerateChat } from "@modules/Chat";
+import { ChatModule } from "@modules/Chat";
 import { GenerateUser } from "@modules/User";
 
-import { Bot } from "../types/Bot";
+import { Client } from "@modules/Client";
 import Message from "./Message";
 
-export function GenerateMessage<IMSG extends IMessage>(bot: Bot, message: IMSG): IMSG & MessageModule {
+export function GenerateMessage<IMSG extends IMessage>(bot: Client, message: IMSG): IMSG & MessageModule {
   const module: IMSG & MessageModule = {
     ...message,
     mention: undefined,
-    chat: GenerateChat(bot, message.chat),
+    chat: ChatModule(bot, message.chat),
     user: GenerateUser(bot, message.user),
 
     async addReaction(reaction: string): Promise<void> {
@@ -56,7 +56,7 @@ export function GenerateMessage<IMSG extends IMessage>(bot: Bot, message: IMSG):
 
 export type MediaMessage = IMediaMessage & MediaMessageModule;
 
-export function GenerateMediaMessage<IMSG extends IMediaMessage>(bot: Bot, message: IMSG): IMSG & MediaMessageModule {
+export function GenerateMediaMessage<IMSG extends IMediaMessage>(bot: Client, message: IMSG): IMSG & MediaMessageModule {
   const module: IMSG & MediaMessageModule = {
     ...GenerateMessage(bot, message),
   };
@@ -66,7 +66,7 @@ export function GenerateMediaMessage<IMSG extends IMediaMessage>(bot: Bot, messa
 
 export type ImageMessage = IImageMessage & ImageMessageModule;
 
-export default function GenerateImageMessage<IMSG extends IImageMessage>(bot: Bot, message: IMSG): IMSG & ImageMessageModule {
+export default function GenerateImageMessage<IMSG extends IImageMessage>(bot: Client, message: IMSG): IMSG & ImageMessageModule {
   const module: IMSG & ImageMessageModule = {
     ...GenerateMessage(bot, message),
     getImage(): Promise<Buffer> {
@@ -79,7 +79,7 @@ export default function GenerateImageMessage<IMSG extends IImageMessage>(bot: Bo
 
 export type VideoMessage = IVideoMessage & VideoMessageModule;
 
-export function GenerateVideoMessage<IMSG extends IVideoMessage>(bot: Bot, message: IMSG): IMSG & VideoMessageModule {
+export function GenerateVideoMessage<IMSG extends IVideoMessage>(bot: Client, message: IMSG): IMSG & VideoMessageModule {
   const module: IMSG & VideoMessageModule = {
     ...GenerateMessage(bot, message),
     getVideo(): Promise<Buffer> {
@@ -92,7 +92,7 @@ export function GenerateVideoMessage<IMSG extends IVideoMessage>(bot: Bot, messa
 
 export type AudioMessage = IAudioMessage & AudioMessageModule;
 
-export function GenerateAudioMessage<IMSG extends IAudioMessage>(bot: Bot, message: IMSG): IMSG & AudioMessageModule {
+export function GenerateAudioMessage<IMSG extends IAudioMessage>(bot: Client, message: IMSG): IMSG & AudioMessageModule {
   const module: IMSG & AudioMessageModule = {
     ...GenerateMessage(bot, message),
     getAudio(): Promise<Buffer> {
@@ -105,7 +105,7 @@ export function GenerateAudioMessage<IMSG extends IAudioMessage>(bot: Bot, messa
 
 export type LocationMessage = ILocationMessage & LocationMessageModule;
 
-export function GenerateLocationMessage<IMSG extends ILocationMessage>(bot: Bot, message: IMSG): IMSG & LocationMessageModule {
+export function GenerateLocationMessage<IMSG extends ILocationMessage>(bot: Client, message: IMSG): IMSG & LocationMessageModule {
   const module: IMSG & LocationMessageModule = {
     ...GenerateMessage(bot, message),
     setLocation(latitude: number, longitude: number) {
@@ -119,7 +119,7 @@ export function GenerateLocationMessage<IMSG extends ILocationMessage>(bot: Bot,
 
 export type ContactMessage = IContactMessage & ContactMessageModule;
 
-export function GenerateContactMessage<IMSG extends IContactMessage>(bot: Bot, message: IMSG): IMSG & ContactMessageModule {
+export function GenerateContactMessage<IMSG extends IContactMessage>(bot: Client, message: IMSG): IMSG & ContactMessageModule {
   const module: IMSG & ContactMessageModule = {
     ...GenerateMessage(bot, message),
   };
@@ -129,7 +129,7 @@ export function GenerateContactMessage<IMSG extends IContactMessage>(bot: Bot, m
 
 export type ListMessage = IListMessage & ListMessageModule;
 
-export function GenerateListMessage<IMSG extends IListMessage>(bot: Bot, message: IMSG): IMSG & ListMessageModule {
+export function GenerateListMessage<IMSG extends IListMessage>(bot: Client, message: IMSG): IMSG & ListMessageModule {
   const module: IMSG & ListMessageModule = {
     ...GenerateMessage(bot, message),
   };
@@ -139,7 +139,7 @@ export function GenerateListMessage<IMSG extends IListMessage>(bot: Bot, message
 
 export type ButtonMessage = IButtonMessage & ButtonMessageModule;
 
-export function GenerateButtonMessage<IMSG extends IButtonMessage>(bot: Bot, message: IMSG): IMSG & ButtonMessageModule {
+export function GenerateButtonMessage<IMSG extends IButtonMessage>(bot: Client, message: IMSG): IMSG & ButtonMessageModule {
   const module: IMSG & ButtonMessageModule = {
     ...GenerateMessage(bot, message),
   };

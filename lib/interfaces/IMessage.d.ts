@@ -3,7 +3,7 @@
 import IUser from "@interfaces/IUser";
 import IChat from "@interfaces/IChat";
 import { Button, List, ListItem } from "../types/Message";
-import { Bot } from "../types/Bot";
+import { Client } from "../types/Client";
 export interface IMessage {
     /**
      * * ID da mensagem
@@ -40,9 +40,9 @@ export interface IMessage {
      */
     timestamp: Number | Long;
     /**
-     * * Bot que irá executar os métodos
+     * * Client que irá executar os métodos
      */
-    bot: Bot;
+    bot: Client;
     /**
      * * Adiciona uma reação a mensagem
      * @param reaction Reação
@@ -60,10 +60,10 @@ export interface IMessage {
     read(): Promise<void>;
     /**
      * * Injeta a interface no modulo
-     * @param bot Bot que irá executar os métodos
+     * @param bot Client que irá executar os métodos
      * @param message Interface da mensagem
      */
-    inject(bot: Bot, message: IMessage): void;
+    inject(bot: Client, message: IMessage): void;
 }
 export interface IMediaMessage extends IMessage {
     /**

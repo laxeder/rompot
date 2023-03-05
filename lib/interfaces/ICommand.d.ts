@@ -1,5 +1,5 @@
 import { IMessage } from "@interfaces/Messages";
-import { Bot } from "../types/Bot";
+import { Client } from "../types/Client";
 export default interface ICommand {
     /**
      * * Tags do comando
@@ -26,9 +26,9 @@ export default interface ICommand {
      */
     permissions: string[];
     /**
-     * * Bot que irá executar os métodos
+     * * Client que irá executar os métodos
      */
-    bot: Bot;
+    bot: Client;
     /**
      * * Método chamado quando a função é executada
      * @param message Mensagem recebida
