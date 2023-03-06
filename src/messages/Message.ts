@@ -2,9 +2,9 @@ import { IMessage, IMessageModule } from "@interfaces/Messages";
 import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 
+import { ClientType } from "@modules/Client";
 import { UserModule } from "@modules/User";
 import { ChatModule } from "@modules/Chat";
-import { ClientType } from "@modules/Client";
 import BotBase from "@modules/BotBase";
 
 import { getChat, getMessage, getUser } from "@utils/Generic";

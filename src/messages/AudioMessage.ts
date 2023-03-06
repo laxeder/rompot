@@ -1,15 +1,72 @@
-import { IAudioMessage } from "@interfaces/Messages";
+import { IAudioMessage, IMessage, IMessageModule } from "@interfaces/Messages";
+import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 
-import MediaMessage from "@messages/MediaMessage";
-import Message from "@messages/Message";
+import { MediaMessageModule } from "@messages/MediaMessage";
 
-export default class AudioMessage extends MediaMessage implements IAudioMessage {
-  constructor(chat: IChat, audio: Buffer, mention?: Message, id?: string) {
-    super(chat, "", audio, mention, id);
-  }
+import { ClientType } from "@modules/Client";
+import BotBase from "@modules/BotBase";
 
-  public async getAudio(): Promise<Buffer> {
-    return this.getStream(this.file);
-  }
+export type AudioMessageModule = IAudioMessage & IMessageModule;
+
+export type AudioMessage = AudioMessageModule;
+
+export function CreateAudioMessage(
+  chat: IChat | string,
+  text: string,
+  file: any,
+  mention?: IMessage,
+  id?: string,
+  user?: IUser | string,
+  fromMe?: boolean,
+  selected?: string,
+  mentions?: string[],
+  timestamp?: Number | Long
+): IAudioMessage {
+  return {
+    ...CreateAudioMessage(chat, text, file, mention, id, user, fromMe, selected, mentions, timestamp),
+    getAudio() {
+      return this.getStream(this.file);
+    },
+  };
+}
+
+export function AudioMessage(
+  chat: IChat | string,
+  text: string,
+  file: any,
+  mention?: IMessage,
+  id?: string,
+  user?: IUser | string,
+  fromMe?: boolean,
+  selected?: string,
+  mentions?: string[],
+  timestamp?: Number | Long
+): AudioMessageModule {
+  return AudioMessageModule(BotBase(), CreateAudioMessage(chat, text, file, mention, id, user, fromMe, selected, mentions, timestamp));
+}
+
+export function AudioMessageClient<CLIENT extends ClientType>(
+  client: CLIENT,
+  chat: IChat | string,
+  text: string,
+  file: any,
+  mention?: IMessage,
+  id?: string,
+  user?: IUser | string,
+  fromMe?: boolean,
+  selected?: string,
+  mentions?: string[],
+  timestamp?: Number | Long
+): AudioMessageModule {
+  return AudioMessageModule(client, CreateAudioMessage(chat, text, file, mention, id, user, fromMe, selected, mentions, timestamp));
+}
+
+export function AudioMessageModule<CLIENT extends ClientType, MSG extends IAudioMessage>(client: CLIENT, message: MSG): MSG & IMessageModule {
+  const module: MSG & IMessageModule = {
+    ...message,
+    ...MediaMessageModule(client, message),
+  };
+
+  return module;
 }

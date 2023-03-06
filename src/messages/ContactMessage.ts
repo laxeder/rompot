@@ -1,20 +1,69 @@
-import { IContactMessage } from "@interfaces/Messages";
+import { IContactMessage, IMessage, IMessageModule } from "@interfaces/Messages";
+import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 
-import Message from "@messages/Message";
+import { CreateMessage, MessageModule } from "@messages/Message";
 
-export default class ContactMessage extends Message implements IContactMessage {
-  public contacts: string[] = [];
+import { ClientType } from "@modules/Client";
+import BotBase from "@modules/BotBase";
 
-  constructor(chat: IChat | string, text: string, contacts: string | string[], mention?: Message, id?: string) {
-    super(chat, text, mention, id);
+export type ContactMessageModule = IContactMessage & IMessageModule;
 
-    if (Array.isArray(contacts)) {
-      contacts.forEach((contact) => {
-        this.contacts.push(contact);
-      });
-    } else {
-      this.contacts.push(contacts || "");
-    }
-  }
+export type ContactMessage = ContactMessageModule;
+
+export function CreateContactMessage(
+  chat: IChat | string,
+  text: string,
+  contacts: string | string[],
+  mention?: IMessage,
+  id?: string,
+  user?: IUser | string,
+  fromMe?: boolean,
+  selected?: string,
+  mentions?: string[],
+  timestamp?: Number | Long
+): IContactMessage {
+  return {
+    ...CreateMessage(chat, text, mention, id, user, fromMe, selected, mentions, timestamp),
+    contacts: typeof contacts == "string" ? [contacts] : contacts,
+  };
+}
+
+export function ContactMessage(
+  chat: IChat | string,
+  text: string,
+  contacts: string | string[],
+  mention?: IMessage,
+  id?: string,
+  user?: IUser | string,
+  fromMe?: boolean,
+  selected?: string,
+  mentions?: string[],
+  timestamp?: Number | Long
+): ContactMessageModule {
+  return ContactMessageModule(BotBase(), CreateContactMessage(chat, text, contacts, mention, id, user, fromMe, selected, mentions, timestamp));
+}
+
+export function ContactMessageClient<CLIENT extends ClientType>(
+  client: CLIENT,
+  chat: IChat | string,
+  text: string,
+  contacts: string | string[],
+  mention?: IMessage,
+  id?: string,
+  user?: IUser | string,
+  fromMe?: boolean,
+  selected?: string,
+  mentions?: string[],
+  timestamp?: Number | Long
+): ContactMessageModule {
+  return ContactMessageModule(client, CreateContactMessage(chat, text, contacts, mention, id, user, fromMe, selected, mentions, timestamp));
+}
+
+export function ContactMessageModule<CLIENT extends ClientType, MSG extends IContactMessage>(client: CLIENT, message: MSG): MSG & IMessageModule {
+  const module: MSG & IMessageModule = {
+    ...MessageModule(client, message),
+  };
+
+  return module;
 }
