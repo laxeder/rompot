@@ -1,7 +1,7 @@
 import ICommand from "@interfaces/ICommand";
 
-import BotModule from "@modules/BotModule";
+import Client from "@modules/Client";
 
 import WhatsAppBot from "@wa/WhatsAppBot";
 
-export type WAModule = BotModule<WhatsAppBot, ICommand>;
+export type WAClient = Client<WhatsAppBot, ICommand>;

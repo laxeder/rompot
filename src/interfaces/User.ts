@@ -22,6 +22,12 @@ export interface IUser {
    * * Foto de perfil do usuário
    */
   profile: Buffer;
+
+  /** * Usuário é administrador */
+  isAdmin: boolean;
+
+  /** * Usuário é líder */
+  isLeader: boolean;
 }
 
 export interface IUserModule {

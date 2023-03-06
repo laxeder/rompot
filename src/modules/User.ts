@@ -8,12 +8,16 @@ import { getChatId } from "@utils/Generic";
 
 export type UserModule = IUser & IUserModule;
 
+export type User = UserModule;
+
 export function CreateUser(id: string, name?: string, description?: string, profile?: Buffer) {
   return {
     id: id || "",
     name: name || "",
     description: description || "",
     profile: profile || Buffer.from(""),
+    isAdmin: false,
+    isLeader: false,
   };
 }
 

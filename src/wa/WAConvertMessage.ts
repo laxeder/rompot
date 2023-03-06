@@ -11,20 +11,19 @@ import VideoMessage from "@messages/VideoMessage";
 import ListMessage from "@messages/ListMessage";
 
 import WhatsAppBot from "@wa/WhatsAppBot";
-import Message from "@messages/Message";
+import { Message } from "@messages/Message";
 import { replaceID } from "@wa/ID";
-import Chat from "@modules/Chat";
-import User from "@modules/User";
-import WAUser from "./WAUser";
+import { Chat } from "@modules/Chat";
+import { User } from "@modules/User";
 import AudioMessage from "@messages/AudioMessage";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
   private _message: any = {};
 
-  private _convertedMessage: Message = new Message(new Chat(""), "");
-  private _user: User = new User("");
-  private _chat: Chat = new Chat("");
+  private _convertedMessage: IMessage = Message(Chat(""), "");
+  private _user: User = User("");
+  private _chat: Chat = Chat("");
   private _mention?: Message;
   private _wa: WhatsAppBot;
 
@@ -65,7 +64,7 @@ export class WhatsAppConvertMessage {
   public async convertMessage(message: WAMessage, type?: MessageUpsertType) {
     const id = replaceID(message.key.remoteJid || "");
 
-    const chat = this._wa.chats[id] ? this._wa.chats[id] : new Chat(id);
+    const chat = this._wa.chats[id] ? this._wa.chats[id] : Chat(id);
 
     if (id) {
       if (chat) this._chat = chat;
@@ -79,7 +78,7 @@ export class WhatsAppConvertMessage {
     if (message.pushName) this._chat.name = message.pushName;
 
     const userID = replaceID(message.key.participant || message.participant || message.key.remoteJid || "");
-    this._user = chat?.users && chat?.users[userID] ? chat?.users[userID] : new User(userID);
+    this._user = chat?.users && chat?.users[userID] ? chat?.users[userID] : User(userID);
     this._user.name = message.pushName || "";
 
     await this.convertContentMessage(message.message);
@@ -196,7 +195,7 @@ export class WhatsAppConvertMessage {
     const getContact = (vcard: string | any): string => {
       //TODO: obter diretamente contato
 
-      const user = new WAUser("");
+      const user = User("");
 
       if (typeof vcard == "object") {
         vcard = vcard.vcard;

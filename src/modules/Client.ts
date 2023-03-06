@@ -311,7 +311,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
     return adminModules;
   }
 
-  public async getChatLeader(chat: IChat | string) {
+  public async getChatLeader(chat: IChat | string): Promise<UserModule> {
     const leader = await this.bot.getChatLeader(getChat(chat));
 
     return UserModule(this, leader);
@@ -319,7 +319,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
 
   //! <==============================> USER <==============================>
 
-  public async getUser(user: IUser | string) {
+  public async getUser(user: IUser | string): Promise<UserModule | null> {
     const usr = await this.bot.getUser(getUser(user));
 
     if (usr) return UserModule(this, usr);
@@ -327,7 +327,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
     return null;
   }
 
-  public setUser(user: IUser | string) {
+  public setUser(user: IUser | string): Promise<void> {
     return this.bot.setUser(UserModule(this, getUser(user)));
   }
 
@@ -347,7 +347,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
     return this.bot.setUsers(users);
   }
 
-  public addUser(user: IUser | string) {
+  public addUser(user: IUser | string): Promise<void> {
     return this.bot.addUser(UserModule(this, getUser(user)));
   }
 

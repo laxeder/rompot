@@ -11,6 +11,8 @@ import { getChat, getMessage, getUser } from "@utils/Generic";
 
 export type MessageModule = IMessage & IMessageModule;
 
+export type Message = MessageModule;
+
 export function CreateMessage(
   chat: IChat | string,
   text: string,

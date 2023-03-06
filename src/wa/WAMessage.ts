@@ -8,22 +8,23 @@ import MediaMessage from "@messages/MediaMessage";
 import VideoMessage from "@messages/VideoMessage";
 import AudioMessage from "@messages/AudioMessage";
 import ListMessage from "@messages/ListMessage";
-import Message from "@messages/Message";
+import { Message } from "@messages/Message";
 
 import WhatsAppBot from "@wa/WhatsAppBot";
 import { getID } from "@wa/ID";
 
 import { List, ListItem } from "../types/Message";
+import { IMessage } from "@interfaces/Messages";
 
 export class WhatsAppMessage {
-  private _message: Message;
+  private _message: IMessage;
   private _wa: WhatsAppBot;
 
   public chat: string = "";
   public message: any = {};
   public options: MiscMessageGenerationOptions = {};
 
-  constructor(wa: WhatsAppBot, message: Message) {
+  constructor(wa: WhatsAppBot, message: IMessage) {
     this._message = message;
     this._wa = wa;
   }
@@ -57,7 +58,7 @@ export class WhatsAppMessage {
    * @param message
    * @returns
    */
-  public async refactoryMessage(message: Message) {
+  public async refactoryMessage(message: IMessage) {
     const msg: any = {};
 
     msg.text = message.text;

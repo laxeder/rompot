@@ -15,6 +15,8 @@ import { IUsers, Users } from "../types/User";
 
 export type ChatModule = IChat & IChatModule;
 
+export type Chat = ChatModule;
+
 export function CreateChat(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: IUsers, status?: ChatStatus): IChat {
   return {
     id: id || "",
