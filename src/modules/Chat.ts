@@ -4,8 +4,8 @@ import { IUser } from "@interfaces/User";
 
 import { MessageModule } from "@messages/Message";
 
+import { ClientType } from "@modules/Client";
 import { UserModule } from "@modules/User";
-import { Client } from "@modules/Client";
 import BotBase from "@modules/BotBase";
 
 import { getMessage, getUser, getUserId } from "@utils/Generic";
@@ -31,11 +31,11 @@ export function Chat(id: string, type?: ChatType, name?: string, description?: s
   return ChatModule(BotBase(), CreateChat(id, type, name, description, profile, users, status));
 }
 
-export function ChatClient<CLIENT extends Client>(client: CLIENT, id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: IUsers, status?: ChatStatus) {
+export function ChatClient<CLIENT extends ClientType>(client: CLIENT, id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: IUsers, status?: ChatStatus) {
   return ChatModule(client, CreateChat(id, type, name, description, profile, users, status));
 }
 
-export function ChatModule<CLIENT extends Client, CHAT extends IChat>(client: CLIENT, chat: CHAT): CHAT & IChatModule {
+export function ChatModule<CLIENT extends ClientType, CHAT extends IChat>(client: CLIENT, chat: CHAT): CHAT & IChatModule {
   const module: CHAT & IChatModule = {
     ...chat,
 

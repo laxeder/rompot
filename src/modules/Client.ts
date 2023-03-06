@@ -1,5 +1,4 @@
-import { IMessage, IMessages } from "@interfaces/Messages";
-import { ClientType } from "@interfaces/Client";
+import { IMessage } from "@interfaces/Messages";
 import ICommand from "@interfaces/ICommand";
 import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
@@ -11,400 +10,392 @@ import { MessageModule } from "@messages/Message";
 import { ChatModule } from "@modules/Chat";
 import { UserModule } from "@modules/User";
 
-import { ArgumentTypes, getChat, getChatId, getError, sleep, getUser, getUserId } from "@utils/Generic";
+import { getChat, getChatId, getError, sleep, getUser, getUserId } from "@utils/Generic";
 import PromiseMessages from "@utils/PromiseMessages";
 import { ClientEvents } from "@utils/Emmiter";
 
 import { Chats, ChatStatus, IChats } from "../types/Chat";
-import { MessagesGenerate } from "../types/Message";
 import { IUsers, Users } from "../types/User";
+import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
+import { IClient } from "@interfaces/Client";
 
-export type Client = ClientType<IBot, ICommand, IMessages>;
+export type ClientType = Client<IBot, ICommand>;
 
-export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
-  const promiseMessages: PromiseMessages = new PromiseMessages();
-  const autoMessages: any = {};
-  const emmiter = new ClientEvents();
+export default class Client<Bot extends IBot, Command extends ICommand> extends ClientEvents implements IClient {
+  public promiseMessages: PromiseMessages = new PromiseMessages();
+  public autoMessages: any = {};
 
-  //@ts-ignore
-  const client: ClientType<Bot, Command, typeof bot.messages> = {
-    ...bot,
-    commands: [],
+  public bot: Bot;
+  public config: ConnectionConfig;
+  public commands: Command[];
 
-    events: emmiter.events,
-    on: emmiter.on,
-    off: emmiter.off,
-    removeAllListeners: emmiter.removeAllListeners,
-    emit: emmiter.emit,
+  get id() {
+    return this.bot.id;
+  }
 
-    configEvents() {
-      bot.ev.on("message", (message: MessageModule) => {
-        try {
-          if (promiseMessages.resolvePromiseMessages(message)) return;
+  get status() {
+    return this.bot.status;
+  }
 
-          if (message.fromMe && this.config.disableAutoCommand) return;
-          if (this.config.disableAutoCommand) return;
+  constructor(bot: Bot, config: ConnectionConfig = DefaultConnectionConfig, commands: Command[] = []) {
+    super();
 
-          this.config.commandConfig.get(message.text, this.commands)?.execute(message);
-        } catch (err) {
-          this.emit("error", getError(err));
-        }
-      });
+    this.bot = bot;
+    this.config = config;
+    this.commands = commands;
 
-      bot.ev.on("me", (message: MessageModule) => {
-        try {
-          if (promiseMessages.resolvePromiseMessages(message)) return;
+    this.configEvents();
+  }
 
-          if (this.config.disableAutoCommand || this.config.receiveAllMessages) return;
-
-          this.getCommand(message.text)?.execute(message);
-        } catch (err) {
-          this.emit("error", getError(err));
-        }
-      });
-    },
-
-    connect(auth: Auth | string) {
-      return bot.connect(auth);
-    },
-
-    reconnect(alert?: boolean) {
-      return bot.reconnect(alert);
-    },
-
-    stop(reason: any) {
-      return bot.stop(reason);
-    },
-
-    addReaction(message: IMessage, reaction: string): Promise<void> {
-      return bot.addReaction(message, reaction);
-    },
-
-    removeReaction(message: IMessage): Promise<void> {
-      return bot.removeReaction(message);
-    },
-
-    deleteMessage(message: IMessage): Promise<void> {
-      return bot.removeMessage(message);
-    },
-
-    removeMessage(message: IMessage): Promise<void> {
-      return bot.removeMessage(message);
-    },
-
-    readMessage(message: IMessage) {
-      return bot.readMessage(message);
-    },
-
-    async send(message: IMessage) {
+  public configEvents() {
+    this.bot.ev.on("message", (message: MessageModule) => {
       try {
-        return MessageModule(this, await bot.send(message));
+        if (this.promiseMessages.resolvePromiseMessages(message)) return;
+
+        if (message.fromMe && this.config.disableAutoCommand) return;
+        if (this.config.disableAutoCommand) return;
+
+        this.config.commandConfig.get(message.text, this.commands)?.execute(message);
       } catch (err) {
         this.emit("error", getError(err));
       }
+    });
 
-      return MessageModule(this, message);
-    },
-
-    async awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: IMessage[]): Promise<MessageModule> {
-      return MessageModule(this, await promiseMessages.addPromiseMessage(getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages));
-    },
-
-    async addAutomate(message: MessageModule, timeout: number, chats?: { [key: string]: ChatModule }, id: string = String(Date.now())): Promise<any> {
+    this.bot.ev.on("me", (message: MessageModule) => {
       try {
-        const now = Date.now();
+        if (this.promiseMessages.resolvePromiseMessages(message)) return;
 
-        // Criar e atualizar dados da mensagem automatizada
-        autoMessages[id] = { id, chats: chats || (await this.getChats()), updatedAt: now, message };
+        if (this.config.disableAutoCommand || this.config.receiveAllMessages) return;
 
-        // Aguarda o tempo definido
-        await sleep(timeout - now);
-
-        // Cancelar se estiver desatualizado
-        if (autoMessages[id].updatedAt !== now) return;
-
-        await Promise.all(
-          autoMessages[id].chats.map(async (chat: ChatModule) => {
-            const automated: any = autoMessages[id];
-
-            if (automated.updatedAt !== now) return;
-
-            automated.message?.setChat(chat);
-
-            // Enviar mensagem
-            await this.send(automated.message);
-
-            // Remover sala de bate-papo da mensagem
-            const nowChats = automated.chats;
-            const index = nowChats.indexOf(automated.chats[chat.id]);
-            autoMessages[id].chats = nowChats.splice(index + 1, nowChats.length);
-          })
-        );
+        this.getCommand(message.text)?.execute(message);
       } catch (err) {
         this.emit("error", getError(err));
       }
-    },
+    });
+  }
 
-    setCommands(commands: Command[]) {
-      this.commands = commands;
-    },
+  //! <===========================> CONNECTION <===========================>
 
-    getCommands() {
-      return this.commands;
-    },
+  public connect(auth: Auth | string) {
+    return this.bot.connect(auth);
+  }
 
-    addCommand(command: Command) {
-      this.commands.push(command);
-    },
+  public reconnect(alert?: boolean) {
+    return this.bot.reconnect(alert);
+  }
 
-    getCommand(command: string): Command | null {
-      const cmd = this.config.commandConfig?.get(command, this.commands);
+  public stop(reason: any) {
+    return this.bot.stop(reason);
+  }
 
-      if (!cmd) return null;
+  //! <============================> COMMANDS <============================>
 
-      // setClientProperty(this, cmd);
+  public setCommands(commands: Command[]) {
+    this.commands = commands;
+  }
 
-      //@ts-ignore
-      return cmd;
-    },
+  public getCommands() {
+    return this.commands;
+  }
 
-    //! <==============================> CHAT <==============================>
+  public addCommand(command: Command) {
+    this.commands.push(command);
+  }
 
-    async getChat(chat: IChat | string): Promise<ChatModule | null> {
-      const iChat = await bot.getChat(getChat(chat));
+  public getCommand(command: string): Command | null {
+    const cmd = this.config.commandConfig?.get(command, this.commands);
 
-      if (!iChat) return null;
+    if (!cmd) return null;
 
-      return ChatModule(this, iChat);
-    },
+    //@ts-ignore
+    return cmd;
+  }
 
-    async setChat(chat: IChat) {
-      return bot.setChat(ChatModule(this, chat));
-    },
+  //! <============================> MESSAGES <============================>
 
-    async getChats(): Promise<Chats> {
-      const modules: Chats = {};
+  public deleteMessage(message: IMessage): Promise<void> {
+    return this.bot.removeMessage(message);
+  }
 
-      const chats = await bot.getChats();
+  public removeMessage(message: IMessage): Promise<void> {
+    return this.bot.removeMessage(message);
+  }
 
-      for (const id in chats) {
-        modules[id] = ChatModule(this, chats[id]);
-      }
+  public readMessage(message: IMessage) {
+    return this.bot.readMessage(message);
+  }
 
-      return modules;
-    },
+  public addReaction(message: IMessage, reaction: string): Promise<void> {
+    return this.bot.addReaction(message, reaction);
+  }
 
-    setChats(chats: IChats): Promise<void> {
-      return bot.setChats(chats);
-    },
+  public removeReaction(message: IMessage): Promise<void> {
+    return this.bot.removeReaction(message);
+  }
 
-    addChat(chat: string | IChat): Promise<void> {
-      return bot.addChat(ChatModule(this, getChat(chat)));
-    },
+  public async send(message: IMessage): Promise<MessageModule> {
+    try {
+      return MessageModule(this, await this.bot.send(message));
+    } catch (err) {
+      this.emit("error", getError(err));
+    }
 
-    removeChat(chat: string | IChat): Promise<void> {
-      return bot.removeChat(ChatModule(this, getChat(chat)));
-    },
+    return MessageModule(this, message);
+  }
 
-    getChatName(chat: IChat | string) {
-      return bot.getChatName(getChat(chat));
-    },
+  public async awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: IMessage[]): Promise<MessageModule> {
+    return MessageModule(this, await this.promiseMessages.addPromiseMessage(getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages));
+  }
 
-    setChatName(chat: IChat | string, name: string) {
-      return bot.setChatName(getChat(chat), name);
-    },
+  async addAutomate(message: MessageModule, timeout: number, chats?: Chats, id: string = String(Date.now())): Promise<any> {
+    try {
+      const now = Date.now();
 
-    getChatDescription(chat: IChat | string) {
-      return bot.getChatDescription(getChat(chat));
-    },
+      // Criar e atualizar dados da mensagem automatizada
+      this.autoMessages[id] = { id, chats: chats || (await this.getChats()), updatedAt: now, message };
 
-    setChatDescription(chat: IChat | string, description: string) {
-      return bot.setChatDescription(getChat(chat), description);
-    },
+      // Aguarda o tempo definido
+      await sleep(timeout - now);
 
-    getChatProfile(chat: IChat | string) {
-      return bot.getChatProfile(getChat(chat));
-    },
+      // Cancelar se estiver desatualizado
+      if (this.autoMessages[id].updatedAt !== now) return;
 
-    setChatProfile(chat: IChat | string, profile: Buffer) {
-      return bot.setChatProfile(getChat(chat), profile);
-    },
+      await Promise.all(
+        this.autoMessages[id].chats.map(async (chat: ChatModule) => {
+          const automated: any = this.autoMessages[id];
 
-    async changeChatStatus(chat: IChat | string, status: ChatStatus): Promise<void> {
-      return bot.changeChatStatus(ChatModule(this, getChat(chat)), status);
-    },
+          if (automated.updatedAt !== now) return;
 
-    addUserInChat(chat: IChat | string, user: IUser | string) {
-      return bot.addUserInChat(getChat(chat), getUser(user));
-    },
+          automated.message?.setChat(chat);
 
-    removeUserInChat(chat: IChat | string, user: IUser | string) {
-      return bot.removeUserInChat(getChat(chat), getUser(user));
-    },
+          // Enviar mensagem
+          await this.send(automated.message);
 
-    promoteUserInChat(chat: IChat | string, user: IUser | string) {
-      return bot.promoteUserInChat(getChat(chat), getUser(user));
-    },
+          // Remover sala de bate-papo da mensagem
+          const nowChats = automated.chats;
+          const index = nowChats.indexOf(automated.chats[chat.id]);
 
-    demoteUserInChat(chat: IChat | string, user: IUser) {
-      return bot.demoteUserInChat(getChat(chat), getUser(user));
-    },
+          this.autoMessages[id].chats = nowChats.splice(index + 1, nowChats.length);
+        })
+      );
+    } catch (err) {
+      this.emit("error", getError(err));
+    }
+  }
 
-    createChat(chat: IChat) {
-      return bot.createChat(getChat(chat));
-    },
+  //! <===============================> BOT <==============================>
 
-    leaveChat(chat: IChat | string) {
-      return bot.leaveChat(getChat(chat));
-    },
+  public getBotName() {
+    return this.bot.getBotName();
+  }
 
-    async getChatAdmins(chat: IChat | string) {
-      const admins = await bot.getChatAdmins(getChat(chat));
+  public setBotName(name: string) {
+    return this.bot.setBotName(name);
+  }
 
-      const adminModules: Users = {};
+  public getBotDescription() {
+    return this.bot.getBotDescription();
+  }
 
-      Object.keys(admins).forEach((id) => {
-        adminModules[id] = UserModule(this, admins[id]);
-      });
+  public setBotDescription(description: string) {
+    return this.bot.setBotDescription(description);
+  }
 
-      return adminModules;
-    },
+  public getBotProfile() {
+    return this.bot.getBotProfile();
+  }
 
-    async getChatLeader(chat: IChat | string) {
-      const leader = await bot.getChatLeader(getChat(chat));
+  public setBotProfile(profile: Buffer) {
+    return this.bot.setBotProfile(profile);
+  }
 
-      return UserModule(this, leader);
-    },
+  //! <==============================> CHAT <==============================>
 
-    //! <==============================> USER <==============================>
+  public async getChat(chat: IChat | string): Promise<ChatModule | null> {
+    const iChat = await this.bot.getChat(getChat(chat));
 
-    async getUser(user: IUser | string) {
-      const usr = await bot.getUser(getUser(user));
+    if (!iChat) return null;
 
-      if (usr) return UserModule(this, usr);
+    return ChatModule(this, iChat);
+  }
 
-      return null;
-    },
+  public setChat(chat: IChat): Promise<void> {
+    return this.bot.setChat(ChatModule(this, chat));
+  }
 
-    async setUser(user: IUser | string) {
-      return bot.setUser(UserModule(this, getUser(user)));
-    },
+  public async getChats(): Promise<Chats> {
+    const modules: Chats = {};
 
-    async getUsers(): Promise<Users> {
-      const modules: Users = {};
+    const chats = await this.bot.getChats();
 
-      const users = await bot.getUsers();
+    for (const id in chats) {
+      modules[id] = ChatModule(this, chats[id]);
+    }
 
-      for (const id in users) {
-        modules[id] = UserModule(this, users[id]);
-      }
+    return modules;
+  }
 
-      return modules;
-    },
+  public setChats(chats: IChats): Promise<void> {
+    return this.bot.setChats(chats);
+  }
 
-    setUsers(users: IUsers) {
-      return bot.setUsers(users);
-    },
+  public addChat(chat: string | IChat): Promise<void> {
+    return this.bot.addChat(ChatModule(this, getChat(chat)));
+  }
 
-    addUser(user: IUser | string) {
-      return bot.addUser(UserModule(this, getUser(user)));
-    },
+  public removeChat(chat: string | IChat): Promise<void> {
+    return this.bot.removeChat(ChatModule(this, getChat(chat)));
+  }
 
-    removeUser(user: IUser | string) {
-      return bot.removeUser(getUser(user));
-    },
+  public getChatName(chat: IChat | string) {
+    return this.bot.getChatName(getChat(chat));
+  }
 
-    getUserName(user: IUser | string) {
-      if (getUserId(user) == this.id) return this.getBotName();
+  public setChatName(chat: IChat | string, name: string) {
+    return this.bot.setChatName(getChat(chat), name);
+  }
 
-      return bot.getUserName(getUser(user));
-    },
+  public getChatDescription(chat: IChat | string) {
+    return this.bot.getChatDescription(getChat(chat));
+  }
 
-    setUserName(user: IUser | string, name: string) {
-      if (getUserId(user) == this.id) return this.setBotName(name);
+  public setChatDescription(chat: IChat | string, description: string) {
+    return this.bot.setChatDescription(getChat(chat), description);
+  }
 
-      return bot.setUserName(getUser(user), name);
-    },
+  public getChatProfile(chat: IChat | string) {
+    return this.bot.getChatProfile(getChat(chat));
+  }
 
-    getUserDescription(user: IUser | string) {
-      if (getUserId(user) == this.id) return this.getBotDescription();
+  public setChatProfile(chat: IChat | string, profile: Buffer) {
+    return this.bot.setChatProfile(getChat(chat), profile);
+  }
 
-      return bot.getUserDescription(getUser(user));
-    },
+  public changeChatStatus(chat: IChat | string, status: ChatStatus): Promise<void> {
+    return this.bot.changeChatStatus(getChat(chat), status);
+  }
 
-    setUserDescription(user: IUser | string, description: string) {
-      if (getUserId(user) == this.id) return this.setBotDescription(description);
+  public addUserInChat(chat: IChat | string, user: IUser | string) {
+    return this.bot.addUserInChat(getChat(chat), getUser(user));
+  }
 
-      return bot.setUserDescription(getUser(user), description);
-    },
+  public removeUserInChat(chat: IChat | string, user: IUser | string) {
+    return this.bot.removeUserInChat(getChat(chat), getUser(user));
+  }
 
-    getUserProfile(user: IUser | string) {
-      if (getUserId(user) == this.id) return this.getBotProfile();
+  public promoteUserInChat(chat: IChat | string, user: IUser | string) {
+    return this.bot.promoteUserInChat(getChat(chat), getUser(user));
+  }
 
-      return bot.getUserProfile(getUser(user));
-    },
+  public demoteUserInChat(chat: IChat | string, user: IUser) {
+    return this.bot.demoteUserInChat(getChat(chat), getUser(user));
+  }
 
-    setUserProfile(user: IUser | string, profile: Buffer) {
-      if (getUserId(user) == this.id) return this.setBotProfile(profile);
+  public createChat(chat: IChat) {
+    return this.bot.createChat(getChat(chat));
+  }
 
-      return bot.setUserProfile(getUser(user), profile);
-    },
+  public leaveChat(chat: IChat | string) {
+    return this.bot.leaveChat(getChat(chat));
+  }
 
-    unblockUser(user: IUser | string) {
-      return bot.unblockUser(getUser(user));
-    },
+  public async getChatAdmins(chat: IChat | string) {
+    const admins = await this.bot.getChatAdmins(getChat(chat));
 
-    blockUser(user: IUser | string) {
-      return bot.blockUser(getUser(user));
-    },
+    const adminModules: Users = {};
 
-    //! <===============================> BOT <==============================>
+    Object.keys(admins).forEach((id) => {
+      adminModules[id] = UserModule(this, admins[id]);
+    });
 
-    getBotName() {
-      return bot.getBotName();
-    },
+    return adminModules;
+  }
 
-    setBotName(name: string) {
-      return bot.setBotName(name);
-    },
+  public async getChatLeader(chat: IChat | string) {
+    const leader = await this.bot.getChatLeader(getChat(chat));
 
-    getBotDescription() {
-      return bot.getBotDescription();
-    },
+    return UserModule(this, leader);
+  }
 
-    setBotDescription(description: string) {
-      return bot.setBotDescription(description);
-    },
+  //! <==============================> USER <==============================>
 
-    getBotProfile() {
-      return bot.getBotProfile();
-    },
+  public async getUser(user: IUser | string) {
+    const usr = await this.bot.getUser(getUser(user));
 
-    setBotProfile(profile: Buffer) {
-      return bot.setBotProfile(profile);
-    },
+    if (usr) return UserModule(this, usr);
 
-    //! <=============================> MODULES <=============================>
+    return null;
+  }
 
-    Chat(chat: IChat | string): ChatModule {
-      return ChatModule(this, bot.Chat(getChat(chat)));
-    },
+  public setUser(user: IUser | string) {
+    return this.bot.setUser(UserModule(this, getUser(user)));
+  }
 
-    User(user: IUser | string): UserModule {
-      return UserModule(this, bot.User(getUser(user)));
-    },
+  public async getUsers(): Promise<Users> {
+    const modules: Users = {};
 
-    ...(<Messages extends IMessages>(messages: Messages) =>
-      (Object.keys(messages) as Array<keyof Messages>).reduce(<Key extends keyof Messages>(result: MessagesGenerate<Messages>, key: Key) => {
-        result[key] = (...args: ArgumentTypes<Messages[Key]>[]): ReturnType<Messages[Key]> & MessageModule => {
-          return MessageModule(client, messages[key](...args));
-        };
+    const users = await this.bot.getUsers();
 
-        return result;
-      }, {} as MessagesGenerate<Messages>))(bot.messages),
-  };
+    for (const id in users) {
+      modules[id] = UserModule(this, users[id]);
+    }
 
-  client.configEvents();
+    return modules;
+  }
 
-  return client;
+  public setUsers(users: IUsers) {
+    return this.bot.setUsers(users);
+  }
+
+  public addUser(user: IUser | string) {
+    return this.bot.addUser(UserModule(this, getUser(user)));
+  }
+
+  public removeUser(user: IUser | string) {
+    return this.bot.removeUser(getUser(user));
+  }
+
+  public getUserName(user: IUser | string) {
+    if (getUserId(user) == this.id) return this.getBotName();
+
+    return this.bot.getUserName(getUser(user));
+  }
+
+  public setUserName(user: IUser | string, name: string) {
+    if (getUserId(user) == this.id) return this.setBotName(name);
+
+    return this.bot.setUserName(getUser(user), name);
+  }
+
+  public getUserDescription(user: IUser | string) {
+    if (getUserId(user) == this.id) return this.getBotDescription();
+
+    return this.bot.getUserDescription(getUser(user));
+  }
+
+  public setUserDescription(user: IUser | string, description: string) {
+    if (getUserId(user) == this.id) return this.setBotDescription(description);
+
+    return this.bot.setUserDescription(getUser(user), description);
+  }
+
+  public getUserProfile(user: IUser | string) {
+    if (getUserId(user) == this.id) return this.getBotProfile();
+
+    return this.bot.getUserProfile(getUser(user));
+  }
+
+  public setUserProfile(user: IUser | string, profile: Buffer) {
+    if (getUserId(user) == this.id) return this.setBotProfile(profile);
+
+    return this.bot.setUserProfile(getUser(user), profile);
+  }
+
+  public unblockUser(user: IUser | string) {
+    return this.bot.unblockUser(getUser(user));
+  }
+
+  public blockUser(user: IUser | string) {
+    return this.bot.blockUser(getUser(user));
+  }
 }

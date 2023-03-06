@@ -1,11 +1,9 @@
 import ICommand from "@interfaces/ICommand";
 
-import Message from "@messages/Message";
+import { MessageModule } from "@messages/Message";
 
+import { ClientType } from "@modules/Client";
 import BotBase from "@modules/BotBase";
-
-import { Client } from "@modules/Client";
-
 
 export default class Command implements ICommand {
   public tags: string[] = [];
@@ -15,13 +13,19 @@ export default class Command implements ICommand {
   public categories: string[] = [];
   public permissions: string[] = [];
 
-  get bot(): Client {
-    return BotBase();
+  #client: ClientType = BotBase();
+
+  get client(): ClientType {
+    return this.#client;
   }
 
-  public async execute(message: Message): Promise<void> {}
+  set client(c: ClientType) {
+    this.#client = c;
+  }
 
-  public async response(message: Message): Promise<void> {}
+  public async execute(message: MessageModule): Promise<void> {}
 
-  public async help(message: Message): Promise<void> {}
+  public async response(message: MessageModule): Promise<void> {}
+
+  public async help(message: MessageModule): Promise<void> {}
 }

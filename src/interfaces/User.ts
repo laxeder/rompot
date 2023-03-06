@@ -1,6 +1,6 @@
 import { IChat } from "@interfaces/Chat";
 
-import { Client } from "@modules/Client";
+import { ClientType } from "@modules/Client";
 
 export interface IUser {
   /**
@@ -26,9 +26,9 @@ export interface IUser {
 
 export interface IUserModule {
   /** * Cliente do modulo */
-  get client(): Client;
+  get client(): ClientType;
 
-  set client(client: Client);
+  set client(client: ClientType);
 
   /**
    * * Bloqueia o usuário

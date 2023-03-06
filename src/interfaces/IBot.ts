@@ -1,11 +1,7 @@
-import { ConnectionConfig } from "@config/ConnectionConfig";
-
-import { IMessage, IMessages } from "@interfaces/Messages";
+import { IMessage } from "@interfaces/Messages";
 import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 import Auth from "@interfaces/Auth";
-
-import Command from "@modules/Command";
 
 import { BotEvents } from "@utils/Emmiter";
 
@@ -24,9 +20,6 @@ export default interface IBot {
 
   /** Gerenciador de eventos */
   ev: BotEvents;
-
-  /** Configurações do bot */
-  config: ConnectionConfig;
 
   //? ************ CONNECTION ************
 
@@ -326,25 +319,6 @@ export default interface IBot {
    */
   setUsers(users: IUsers): Promise<void>;
 
-  //? ************** MODELS **************
-
-  /**
-   * * Sala de bate-papo
-   * @param id Sala de bate-papo
-   */
-  Chat(id: IChat): IChat;
-
-  /**
-   * * Usuário
-   * @param user Usuário
-   */
-  User(id: IUser): IUser;
-
-  /**
-   * * Comando
-   */
-  Command(): Command;
-
   //? ************** MESSAGE *************
 
   /**
@@ -359,7 +333,4 @@ export default interface IBot {
    * @param Mensagem que terá sua reação removida
    */
   removeReaction(message: IMessage): Promise<void>;
-
-  /** * Todas as mensagens dísponiveis da plataforma */
-  messages: IMessages;
 }

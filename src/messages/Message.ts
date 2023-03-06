@@ -4,7 +4,7 @@ import { IChat } from "@interfaces/Chat";
 
 import { UserModule } from "@modules/User";
 import { ChatModule } from "@modules/Chat";
-import { Client } from "@modules/Client";
+import { ClientType } from "@modules/Client";
 import BotBase from "@modules/BotBase";
 
 import { getChat, getMessage, getUser } from "@utils/Generic";
@@ -49,7 +49,7 @@ export function Message(
   return MessageModule(BotBase(), CreateMessage(chat, text, mention, id, user, fromMe, selected, mentions, timestamp));
 }
 
-export function MessageClient<CLIENT extends Client>(
+export function MessageClient<CLIENT extends ClientType>(
   client: CLIENT,
   chat: IChat | string,
   text: string,
@@ -64,7 +64,7 @@ export function MessageClient<CLIENT extends Client>(
   return MessageModule(client, CreateMessage(chat, text, mention, id, user, fromMe, selected, mentions, timestamp));
 }
 
-export function MessageModule<CLIENT extends Client, MSG extends IMessage>(client: CLIENT, message: MSG): MSG & IMessageModule {
+export function MessageModule<CLIENT extends ClientType, MSG extends IMessage>(client: CLIENT, message: MSG): MSG & IMessageModule {
   const module: MSG & IMessageModule = {
     ...message,
 

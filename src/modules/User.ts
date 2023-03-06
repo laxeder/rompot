@@ -1,9 +1,9 @@
 import { IUser, IUserModule } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 
+import { ClientType } from "@modules/Client";
 import BotBase from "@modules/BotBase";
 
-import { Client } from "@modules/Client";
 import { getChatId } from "@utils/Generic";
 
 export type UserModule = IUser & IUserModule;
@@ -21,11 +21,11 @@ export function User(id: string, name?: string, description?: string, profile?: 
   return UserModule(BotBase(), CreateUser(id, name, description, profile));
 }
 
-export function UserClient(client: Client, id: string, name?: string, description?: string, profile?: Buffer): UserModule {
+export function UserClient<CLIENT extends ClientType>(client: CLIENT, id: string, name?: string, description?: string, profile?: Buffer): UserModule {
   return UserModule(client, CreateUser(id, name, description, profile));
 }
 
-export function UserModule<CLIENT extends Client, USER extends IUser>(client: CLIENT, user: USER): USER & IUserModule {
+export function UserModule<CLIENT extends ClientType, USER extends IUser>(client: CLIENT, user: USER): USER & IUserModule {
   const module = {
     ...user,
 

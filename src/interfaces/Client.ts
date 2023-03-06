@@ -1,8 +1,7 @@
-import { IMessage, IMessages } from "@interfaces/Messages";
+import { IMessage } from "@interfaces/Messages";
 import ICommand from "@interfaces/ICommand";
 import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
-import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
 import { MessageModule } from "@messages/Message";
@@ -13,14 +12,11 @@ import { ChatModule } from "@modules/Chat";
 import { ClientEvents } from "@utils/Emmiter";
 
 import { Chats, ChatStatus, IChats } from "../types/Chat";
-import { MessagesGenerate } from "../types/Message";
 import { IUsers, Users } from "../types/User";
 
-export type ClientType<Bot extends IBot, Command extends ICommand, Messages extends IMessages> = IClient<Command> & Bot & MessagesGenerate<Messages>;
-
-export interface IClient<Command extends ICommand> extends ClientEvents {
+export interface IClient extends ClientEvents {
   /** * Comandos do cliente */
-  commands: Command[];
+  commands: ICommand[];
 
   /** * Configura os eventos do cliente */
   configEvents(): void;
@@ -30,24 +26,24 @@ export interface IClient<Command extends ICommand> extends ClientEvents {
    * * Define os comandos do bot
    * @param commands Comandos que será injetado
    */
-  setCommands(commands: Command[]): void;
+  setCommands(commands: ICommand[]): void;
 
   /**
    * @returns Retorna os comandos do bot
    */
-  getCommands(): Command[];
+  getCommands(): ICommand[];
 
   /**
    * * Adiciona um comando na lista de comandos
    * @param command Comando que será definido
    */
-  addCommand(command: Command): void;
+  addCommand(command: ICommand): void;
 
   /**
    * @param command Comando que será procurado
    * @returns Retorna um comando do bot
    */
-  getCommand(command: string): Command | null;
+  getCommand(command: string): ICommand | null;
 
   //? ************ CONNECTION ************
 
@@ -367,20 +363,6 @@ export interface IClient<Command extends ICommand> extends ClientEvents {
    * @param users Usuários
    */
   setUsers(users: IUsers): Promise<void>;
-
-  //? ************** MODELS **************
-
-  /**
-   * * Sala de bate-papo
-   * @param id Sala de bate-papo
-   */
-  Chat(id: IChat | string): ChatModule;
-
-  /**
-   * * Usuário
-   * @param user Usuário
-   */
-  User(id: IUser | string): UserModule;
 
   //? ************** MESSAGE *************
 

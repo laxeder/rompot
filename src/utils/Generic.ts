@@ -7,7 +7,7 @@ import { IUser } from "@interfaces/User";
 
 import { Message } from "@messages/Message";
 
-import { Client } from "@modules/Client";
+import { ClientType } from "@modules/Client";
 import { User } from "@modules/User";
 import { Chat } from "@modules/Chat";
 
@@ -102,10 +102,10 @@ export function getUserId(user: IUser | string) {
  * @param client
  * @param obj
  */
-export function setClientProperty(client: Client, obj: { client: Client }) {
+export function setClientProperty(client: ClientType, obj: { client: ClientType }) {
   Object.defineProperty(obj, "client", {
     get: () => client,
-    set: (value: Client) => (client = value),
+    set: (value: ClientType) => (client = value),
   });
 }
 

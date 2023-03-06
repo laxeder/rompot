@@ -1,7 +1,7 @@
 import { IChat } from "@interfaces/Chat";
 import { IUser } from "@interfaces/User";
 
-import { Client } from "@modules/Client";
+import { ClientType } from "@modules/Client";
 
 import { Button, List, ListItem, TMessages } from "../types/Message";
 
@@ -269,9 +269,9 @@ export interface IButtonMessage extends IMessage {
 
 export interface IMessageModule {
   /** * Cliente do modulo */
-  get client(): Client;
+  get client(): ClientType;
 
-  set client(client: Client);
+  set client(client: ClientType);
 
   /**
    * * Adiciona uma reação a mensagem

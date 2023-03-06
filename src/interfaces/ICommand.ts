@@ -1,8 +1,13 @@
-import { IMessage } from "@interfaces/Messages";
+import { MessageModule } from "@messages/Message";
 
-import { Client } from "@modules/Client";
+import { ClientType } from "@modules/Client";
 
 export default interface ICommand {
+  /** * Cliente do modulo */
+  get client(): ClientType;
+
+  set client(client: ClientType);
+
   /**
    * * Tags do comando
    */
@@ -34,25 +39,20 @@ export default interface ICommand {
   permissions: string[];
 
   /**
-   * * Client que irá executar os métodos
-   */
-  bot: Client;
-
-  /**
    * * Método chamado quando a função é executada
    * @param message Mensagem recebida
    */
-  execute(message: IMessage): Promise<void>;
+  execute(message: MessageModule): Promise<void>;
 
   /**
    * * Método chamado quando é respondido uma mensagem do comando
    * @param message
    */
-  response(message: IMessage): Promise<void>;
+  response(message: MessageModule): Promise<void>;
 
   /**
    * * Método chamado quando é solicitado a ajuda do comando
    * @param message
    */
-  help(message: IMessage): Promise<void>;
+  help(message: MessageModule): Promise<void>;
 }
