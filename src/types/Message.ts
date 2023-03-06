@@ -1,4 +1,6 @@
-import { IMessages, MessageModule } from "@interfaces/Messages";
+import { IMessages } from "@interfaces/Messages";
+
+import { MessageModule } from "@messages/Message";
 
 import { ArgumentTypes } from "@utils/Generic";
 

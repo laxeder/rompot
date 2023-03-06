@@ -11,7 +11,7 @@ import { MessageModule } from "@messages/Message";
 import { ChatModule } from "@modules/Chat";
 import { UserModule } from "@modules/User";
 
-import { ArgumentTypes, getChat, getChatId, setClientProperty, getError, sleep, getUser, getUserId } from "@utils/Generic";
+import { ArgumentTypes, getChat, getChatId, getError, sleep, getUser, getUserId } from "@utils/Generic";
 import PromiseMessages from "@utils/PromiseMessages";
 import { ClientEvents } from "@utils/Emmiter";
 
@@ -26,9 +26,8 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
   const autoMessages: any = {};
   const emmiter = new ClientEvents();
 
-  type BotMessages = typeof bot.messages;
-
-  const client: ClientType<Bot, Command, BotMessages> = {
+  //@ts-ignore
+  const client: ClientType<Bot, Command, typeof bot.messages> = {
     ...bot,
     commands: [],
 
@@ -93,7 +92,7 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
       return bot.removeMessage(message);
     },
 
-    async readMessage(message: IMessage) {
+    readMessage(message: IMessage) {
       return bot.readMessage(message);
     },
 
@@ -163,7 +162,7 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
 
       if (!cmd) return null;
 
-      setClientProperty(this, cmd);
+      // setClientProperty(this, cmd);
 
       //@ts-ignore
       return cmd;
@@ -180,7 +179,7 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
     },
 
     async setChat(chat: IChat) {
-      bot.setChat(ChatModule(this, chat));
+      return bot.setChat(ChatModule(this, chat));
     },
 
     async getChats(): Promise<Chats> {
@@ -195,7 +194,7 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
       return modules;
     },
 
-    async setChats(chats: IChats): Promise<void> {
+    setChats(chats: IChats): Promise<void> {
       return bot.setChats(chats);
     },
 
@@ -231,7 +230,7 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
       return bot.setChatProfile(getChat(chat), profile);
     },
 
-    async changeChatStatus(chat: string | IChat, status: ChatStatus): Promise<void> {
+    async changeChatStatus(chat: IChat | string, status: ChatStatus): Promise<void> {
       return bot.changeChatStatus(ChatModule(this, getChat(chat)), status);
     },
 
@@ -279,7 +278,7 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
 
     //! <==============================> USER <==============================>
 
-    async getUser(user: string) {
+    async getUser(user: IUser | string) {
       const usr = await bot.getUser(getUser(user));
 
       if (usr) return UserModule(this, usr);
@@ -287,11 +286,11 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
       return null;
     },
 
-    async setUser(user: string | IUser) {
+    async setUser(user: IUser | string) {
       return bot.setUser(UserModule(this, getUser(user)));
     },
 
-    async getUsers() {
+    async getUsers(): Promise<Users> {
       const modules: Users = {};
 
       const users = await bot.getUsers();
@@ -307,7 +306,7 @@ export function Client<Bot extends IBot, Command extends ICommand>(bot: Bot) {
       return bot.setUsers(users);
     },
 
-    addUser(user: string | IUser) {
+    addUser(user: IUser | string) {
       return bot.addUser(UserModule(this, getUser(user)));
     },
 

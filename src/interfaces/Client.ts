@@ -16,7 +16,7 @@ import { Chats, ChatStatus, IChats } from "../types/Chat";
 import { MessagesGenerate } from "../types/Message";
 import { IUsers, Users } from "../types/User";
 
-export type ClientType<Client extends IBot, Command extends ICommand, Messages extends IMessages> = IClient<Command> & Client & MessagesGenerate<Messages>;
+export type ClientType<Bot extends IBot, Command extends ICommand, Messages extends IMessages> = IClient<Command> & Bot & MessagesGenerate<Messages>;
 
 export interface IClient<Command extends ICommand> extends ClientEvents {
   /** * Comandos do cliente */
@@ -45,10 +45,9 @@ export interface IClient<Command extends ICommand> extends ClientEvents {
 
   /**
    * @param command Comando que será procurado
-   * @param args Argumentos que serão usados na construção do comando
    * @returns Retorna um comando do bot
    */
-  getCommand(command: Command | string | string[], ...args: any[]): Command | null;
+  getCommand(command: string): Command | null;
 
   //? ************ CONNECTION ************
 
