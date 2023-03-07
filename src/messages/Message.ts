@@ -3,102 +3,58 @@ import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 
 import { ClientType } from "@modules/Client";
-import { UserModule } from "@modules/User";
-import { ChatModule } from "@modules/Chat";
-import BotBase from "@modules/BotBase";
+import BaseBot from "@modules/BotBase";
 
 import { getChat, getMessage, getUser } from "@utils/Generic";
 
-export type MessageModule = IMessage & IMessageModule;
+export default class Message implements IMessage, IMessageModule {
+  public chat: IChat;
+  public text: string;
+  public mention?: IMessage | undefined;
+  public id: string;
+  public user: IUser;
+  public fromMe: boolean;
+  public selected: string;
+  public mentions: string[];
+  public timestamp: Number | Long;
 
-export type Message = MessageModule;
+  #client: ClientType = BaseBot();
 
-export function CreateMessage(
-  chat: IChat | string,
-  text: string,
-  mention?: IMessage,
-  id?: string,
-  user?: IUser | string,
-  fromMe?: boolean,
-  selected?: string,
-  mentions?: string[],
-  timestamp?: Number | Long
-): IMessage {
-  return {
-    chat: getChat(chat || ""),
-    text: text || "",
-    mention: mention || undefined,
-    id: id || "",
-    user: getUser(user || ""),
-    fromMe: !!fromMe,
-    selected: selected || "",
-    mentions: mentions || [],
-    timestamp: timestamp || Date.now(),
-  };
-}
+  get client() {
+    return this.#client;
+  }
 
-export function Message(
-  chat: IChat | string,
-  text: string,
-  mention?: IMessage,
-  id?: string,
-  user?: IUser | string,
-  fromMe?: boolean,
-  selected?: string,
-  mentions?: string[],
-  timestamp?: Number | Long
-): MessageModule {
-  return MessageModule(BotBase(), CreateMessage(chat, text, mention, id, user, fromMe, selected, mentions, timestamp));
-}
+  set client(client: ClientType) {
+    this.#client = client;
+  }
 
-export function MessageClient<CLIENT extends ClientType>(
-  client: CLIENT,
-  chat: IChat | string,
-  text: string,
-  mention?: IMessage,
-  id?: string,
-  user?: IUser | string,
-  fromMe?: boolean,
-  selected?: string,
-  mentions?: string[],
-  timestamp?: Number | Long
-): MessageModule {
-  return MessageModule(client, CreateMessage(chat, text, mention, id, user, fromMe, selected, mentions, timestamp));
-}
+  constructor(chat: IChat | string, text: string, mention?: IMessage, id?: string, user?: IUser | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long) {
+    this.chat = getChat(chat || "");
+    this.user = getUser(user || "");
 
-export function MessageModule<CLIENT extends ClientType, MSG extends IMessage>(client: CLIENT, message: MSG): MSG & IMessageModule {
-  const module: MSG & IMessageModule = {
-    ...message,
+    this.id = id || "";
+    this.text = text || "";
+    this.fromMe = !!fromMe;
+    this.selected = selected || "";
+    this.mentions = mentions || [];
+    this.timestamp = timestamp || Date.now();
 
-    get client(): CLIENT {
-      return client;
-    },
+    if (mention) this.mention = new Message(mention.chat, mention.text, mention.mention, mention.id, mention.user, mention.fromMe, mention.selected, mention.mentions, mention.timestamp);
+  }
 
-    set client(c: CLIENT) {
-      client = c;
-    },
+  public async addReaction(reaction: string): Promise<void> {
+    return this.client.addReaction(this, reaction);
+  }
 
-    chat: ChatModule(client, message.chat),
-    user: UserModule(client, message.user),
+  public async reply(message: IMessage | string, mention: boolean = true) {
+    const msg = getMessage(message);
 
-    async addReaction(reaction: string): Promise<void> {
-      return this.client.addReaction(this, reaction);
-    },
+    if (mention) msg.mention = this;
 
-    async reply(message: IMessage | string, mention: boolean = true) {
-      const msg = getMessage(message);
+    return this.client.send(msg);
+  }
 
-      if (mention) msg.mention = this;
-
-      return MessageModule(client, await client.send(msg));
-    },
-
-    async read(): Promise<void> {
-      return this.client.readMessage(this);
-    },
-  };
-
-  if (message.mention) module.mention = MessageModule(client, message.mention);
-
-  return module;
+  public async read(): Promise<void> {
+    return this.client.readMessage(this);
+  }
 }

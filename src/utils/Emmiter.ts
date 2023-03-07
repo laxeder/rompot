@@ -3,7 +3,7 @@ import EventEmitter from "events";
 import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 
-import Message from "@messages/Message";
+import { Message } from "@messages/Message";
 
 import { UserModule } from "@modules/User";
 import { ChatModule } from "@modules/Chat";
@@ -11,6 +11,7 @@ import { ChatModule } from "@modules/Chat";
 import { ConnectionType } from "../types/Connection";
 import { UserAction } from "../types/User";
 import { ChatAction } from "../types/Chat";
+import { IMessage } from "@interfaces/Messages";
 
 export type BotEventsMap = {
   /**
@@ -57,10 +58,10 @@ export type BotEventsMap = {
   chat: { action: ChatAction; chat: IChat };
 
   /** * Nova mensagem */
-  message: Message;
+  message: IMessage;
 
   /** * Mensagem enviada pelo bot */
-  me: Message;
+  me: IMessage;
 
   /** * Erro ocorrido */
   error: Error;

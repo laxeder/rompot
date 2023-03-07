@@ -183,7 +183,7 @@ export interface IContactMessage extends IMessage {
   /**
    * * Contatos da mensagem
    */
-  contacts: string[];
+  contacts: IUser[];
 }
 
 export interface IListMessage extends IMessage {
@@ -213,7 +213,7 @@ export interface IListMessage extends IMessage {
    * @param items Items da lista
    * @returns Categoria criada
    */
-  addCategory(title: string, items: ListItem[]): number;
+  addCategory(title: string, items?: ListItem[]): number;
 
   /**
    * * Adiciona um item a lista
@@ -242,7 +242,7 @@ export interface IButtonMessage extends IMessage {
    * @param url Url do botão
    * @param index Posição do botão
    */
-  addUrl(text: string, url: string, index: number): void;
+  addUrl(text: string, url: string, index?: number): void;
 
   /**
    * * Adiciona um botão com um telefone
@@ -250,7 +250,7 @@ export interface IButtonMessage extends IMessage {
    * @param phone Tefefone do botão
    * @param index Posição do botão
    */
-  addCall(text: string, phone: string, index: number): void;
+  addCall(text: string, phone: string, index?: number): void;
 
   /**
    * * Adiciona um botão respondivel
@@ -258,7 +258,7 @@ export interface IButtonMessage extends IMessage {
    * @param id ID do botão
    * @param index Posição do botão
    */
-  addReply(text: string, id: string, index: number): void;
+  addReply(text: string, id: string, index?: number): void;
 
   /**
    * * Remove um botão

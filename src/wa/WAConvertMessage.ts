@@ -1,30 +1,33 @@
 import { downloadMediaMessage, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
 import pino from "pino";
 
-import LocationMessage from "@messages/LocationMessage";
-import ContactMessage from "@messages/ContactMessage";
-import ButtonMessage from "@messages/ButtonMessage";
-import ImageMessage from "@messages/ImageMessage";
-import MediaMessage from "@messages/MediaMessage";
-import VideoMessage from "@messages/VideoMessage";
-// import AudioMessage from "@messages/AudioMessage";
-import ListMessage from "@messages/ListMessage";
+import { IContactMessage, IMediaMessage, IMessage } from "@interfaces/Messages";
+
+import { LocationMessage } from "@messages/LocationMessage";
+import { ContactMessage } from "@messages/ContactMessage";
+import { CreateButtonMessage } from "@messages/ButtonMessage";
+import { ImageMessage } from "@messages/ImageMessage";
+import { CreateMediaMessage } from "@messages/MediaMessage";
+import { VideoMessage } from "@messages/VideoMessage";
+import { AudioMessage } from "@messages/AudioMessage";
+import { ListMessage } from "@messages/ListMessage";
 
 import WhatsAppBot from "@wa/WhatsAppBot";
 import { Message } from "@messages/Message";
 import { replaceID } from "@wa/ID";
-import { Chat } from "@modules/Chat";
-import { User } from "@modules/User";
-import AudioMessage from "@messages/AudioMessage";
+import { Chat, CreateChat } from "@modules/Chat";
+import { CreateUser, User } from "@modules/User";
+import { IUser } from "@interfaces/User";
+import { IChat } from "@interfaces/Chat";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
   private _message: any = {};
 
-  private _convertedMessage: IMessage = Message(Chat(""), "");
-  private _user: User = User("");
-  private _chat: Chat = Chat("");
-  private _mention?: Message;
+  private _convertedMessage: IMessage | IContactMessage | IMediaMessage = Message(Chat(""), "");
+  private _user: IUser = CreateUser("");
+  private _chat: IChat = CreateChat("");
+  private _mention?: IMessage;
   private _wa: WhatsAppBot;
 
   constructor(wa: WhatsAppBot, message: WAMessage, type?: MessageUpsertType) {
@@ -182,7 +185,7 @@ export class WhatsAppConvertMessage {
    * @param content
    */
   public convertLocationMessage(content: any) {
-    this._convertedMessage = new LocationMessage(this._chat, content.degreesLatitude, content.degreesLongitude);
+    this._convertedMessage = LocationMessage(this._chat, content.degreesLatitude, content.degreesLongitude);
   }
 
   /**
@@ -190,12 +193,12 @@ export class WhatsAppConvertMessage {
    * @param content
    */
   public convertContactMessage(content: any) {
-    this._convertedMessage = new ContactMessage(this._chat, content.displayName, []);
+    const msg = ContactMessage(this._chat, content.displayName, []);
 
     const getContact = (vcard: string | any): string => {
       //TODO: obter diretamente contato
 
-      const user = User("");
+      const user = CreateUser("");
 
       if (typeof vcard == "object") {
         vcard = vcard.vcard;
@@ -210,21 +213,17 @@ export class WhatsAppConvertMessage {
       return user.id;
     };
 
-    const contacts: string[] = [];
-
     if (content.contacts) {
       content.contacts.forEach((vcard: string) => {
-        contacts.push(getContact(vcard));
+        msg.contacts.push(getContact(vcard));
       });
     }
 
     if (content.vcard) {
-      contacts.push(getContact(content.vcard));
+      msg.contacts.push(getContact(content.vcard));
     }
 
-    if (this._convertedMessage instanceof ContactMessage) {
-      this._convertedMessage.contacts = contacts;
-    }
+    this._convertedMessage = msg;
   }
 
   /**
@@ -233,41 +232,43 @@ export class WhatsAppConvertMessage {
    * @param contentType
    */
   public convertMediaMessage(content: any, contentType: keyof proto.IMessage) {
+    var msg: IMediaMessage = CreateMediaMessage(this._chat, "", Buffer.from(""));
+
     if (contentType == "imageMessage") {
-      this._convertedMessage = new ImageMessage(this._chat, this._convertedMessage.text, content.url);
+      msg = ImageMessage(this._chat, this._convertedMessage.text, content.url);
     }
 
     if (contentType == "videoMessage") {
-      this._convertedMessage = new VideoMessage(this._chat, this._convertedMessage.text, content.url);
+      msg = VideoMessage(this._chat, this._convertedMessage.text, content.url);
     }
 
     if (contentType == "audioMessage") {
-      this._convertedMessage = new AudioMessage(this._chat, content.url);
+      msg = AudioMessage(this._chat, content.url);
     }
 
-    if (content.gifPlayback && this._convertedMessage instanceof MediaMessage) {
-      this._convertedMessage.isGIF = true;
+    if (content.gifPlayback) {
+      msg.isGIF = true;
     }
+
+    this._convertedMessage = msg;
 
     const logger: any = pino({ level: "silent" });
 
-    if (this._convertedMessage instanceof MediaMessage) {
-      const download = () => {
-        return downloadMediaMessage(
-          this._message,
-          "buffer",
-          {},
-          {
-            logger,
-            reuploadRequest: (msg: proto.IWebMessageInfo) => new Promise((resolve) => resolve(msg)),
-          }
-        );
-      };
+    const download = () => {
+      return downloadMediaMessage(
+        this._message,
+        "buffer",
+        {},
+        {
+          logger,
+          reuploadRequest: (m: proto.IWebMessageInfo) => new Promise((resolve) => resolve(m)),
+        }
+      );
+    };
 
-      Object.defineProperty(this._convertedMessage, "getStream", {
-        get: () => download,
-      });
-    }
+    Object.defineProperty(this._convertedMessage, "getStream", {
+      get: () => download,
+    });
   }
 
   /**
@@ -277,7 +278,7 @@ export class WhatsAppConvertMessage {
    */
   public convertButtonMessage(content: WAMessageContent) {
     let buttonMessage: any = content.buttonsMessage || content.templateMessage;
-    const buttonMSG = new ButtonMessage(this._chat, "");
+    const buttonMSG = CreateButtonMessage(this._chat, "", "");
 
     if (buttonMessage.hydratedTemplate) buttonMessage = buttonMessage.hydratedTemplate;
 
@@ -286,7 +287,7 @@ export class WhatsAppConvertMessage {
     // buttonMSG.setType(buttonMessage.headerType || buttonMessage.hydratedHeaderType || 1)
 
     buttonMessage.buttons?.map((button: proto.Message.ButtonsMessage.IButton) => {
-      buttonMSG.addReply(button?.buttonText?.displayText || "", button.buttonId || buttonMSG.generateID());
+      buttonMSG.addReply(button?.buttonText?.displayText || "", button.buttonId || String(Date.now()));
     });
 
     buttonMessage.hydratedButtons?.map((button: any) => {
@@ -316,7 +317,7 @@ export class WhatsAppConvertMessage {
 
     if (!!!listMessage) return;
 
-    const listMSG = new ListMessage(this._chat, "", "", "", "");
+    const listMSG = ListMessage(this._chat, "", "", "", "");
 
     listMSG.text = listMessage.description || "";
     listMSG.title = listMessage.title || "";
