@@ -1,13 +1,13 @@
 /// <reference types="node" />
 import { DisconnectReason, proto, MediaDownloadOptions } from "@adiwajshing/baileys";
-import { ConnectionConfig } from "@config/ConnectionConfig";
-import { IMessage } from "@interfaces/Messages";
-import { IChat } from "@interfaces/Chat";
-import { IUser } from "@interfaces/User";
-import IBot from "@interfaces/IBot";
-import Auth from "@interfaces/Auth";
-import { BotEvents } from "@utils/Emmiter";
-import WaitCallBack from "@utils/WaitCallBack";
+import { ConnectionConfig } from "../config/ConnectionConfig";
+import { IMessage } from "../interfaces/Messages";
+import { IChat } from "../interfaces/Chat";
+import { IUser } from "../interfaces/User";
+import IBot from "../interfaces/IBot";
+import Auth from "../interfaces/Auth";
+import { BotEvents } from "../utils/Emmiter";
+import WaitCallBack from "../utils/WaitCallBack";
 import { ConnectionStatus } from "../types/Connection";
 import { ChatStatus, IChats } from "../types/Chat";
 import { IUsers } from "../types/User";

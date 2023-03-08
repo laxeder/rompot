@@ -1,8 +1,8 @@
 /// <reference types="long" />
-import { IListMessage, IMessage } from "@interfaces/Messages";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-import Message from "@messages/Message";
+import { IListMessage, IMessage } from "../interfaces/Messages";
+import { IUser } from "../interfaces/User";
+import { IChat } from "../interfaces/Chat";
+import Message from "./Message";
 import { List, ListItem } from "../types/Message";
 export default class ListMessage extends Message implements IListMessage {
     button: string;

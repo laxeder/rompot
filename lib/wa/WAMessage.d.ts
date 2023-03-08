@@ -1,11 +1,11 @@
 import { MiscMessageGenerationOptions } from "@adiwajshing/baileys";
-import LocationMessage from "@messages/LocationMessage";
-import ContactMessage from "@messages/ContactMessage";
-import ButtonMessage from "@messages/ButtonMessage";
-import MediaMessage from "@messages/MediaMessage";
-import ListMessage from "@messages/ListMessage";
-import WhatsAppBot from "@wa/WhatsAppBot";
-import { IMessage } from "@interfaces/Messages";
+import LocationMessage from "../messages/LocationMessage";
+import ContactMessage from "../messages/ContactMessage";
+import ButtonMessage from "../messages/ButtonMessage";
+import MediaMessage from "../messages/MediaMessage";
+import ListMessage from "../messages/ListMessage";
+import WhatsAppBot from "./WhatsAppBot";
+import { IMessage } from "../interfaces/Messages";
 export declare class WhatsAppMessage {
     private _message;
     private _wa;

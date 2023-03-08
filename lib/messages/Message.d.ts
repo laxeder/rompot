@@ -1,10 +1,10 @@
 /// <reference types="long" />
-import { IMessage, IMessageModule } from "@interfaces/Messages";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-import { ClientType } from "@modules/Client";
-import User from "@modules/User";
-import Chat from "@modules/Chat";
+import { IMessage, IMessageModule } from "../interfaces/Messages";
+import { IUser } from "../interfaces/User";
+import { IChat } from "../interfaces/Chat";
+import { ClientType } from "../modules/Client";
+import User from "../modules/User";
+import Chat from "../modules/Chat";
 export default class Message implements IMessage, IMessageModule {
     chat: Chat;
     text: string;

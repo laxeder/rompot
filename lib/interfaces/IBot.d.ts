@@ -1,9 +1,9 @@
 /// <reference types="node" />
-import { IMessage } from "@interfaces/Messages";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-import Auth from "@interfaces/Auth";
-import { BotEvents } from "@utils/Emmiter";
+import { IMessage } from "./Messages";
+import { IUser } from "./User";
+import { IChat } from "./Chat";
+import Auth from "./Auth";
+import { BotEvents } from "../utils/Emmiter";
 import { IChats, ChatStatus } from "../types/Chat";
 import { BotStatus } from "../types/Bot";
 import { IUsers } from "../types/User";

@@ -1,9 +1,9 @@
 /// <reference types="node" />
-import { IMessage } from "@interfaces/Messages";
-import { IChat, IChatModule } from "@interfaces/Chat";
-import { IUser, IUserModule } from "@interfaces/User";
-import Message from "@messages/Message";
-import { ClientType } from "@modules/Client";
+import { IMessage } from "../interfaces/Messages";
+import { IChat, IChatModule } from "../interfaces/Chat";
+import { IUser, IUserModule } from "../interfaces/User";
+import Message from "../messages/Message";
+import { ClientType } from "../modules/Client";
 export declare type ArgumentTypes<F extends Function> = F extends (...args: infer A) => any ? A : never;
 /**
  * @param message Mensagem que será obtida

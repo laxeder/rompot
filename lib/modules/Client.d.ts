@@ -1,19 +1,19 @@
 /// <reference types="node" />
-import { IMessage } from "@interfaces/Messages";
-import ICommand from "@interfaces/ICommand";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-import IBot from "@interfaces/IBot";
-import Auth from "@interfaces/Auth";
-import Message from "@messages/Message";
-import User from "@modules/User";
-import Chat from "@modules/Chat";
-import PromiseMessages from "@utils/PromiseMessages";
-import { ClientEvents } from "@utils/Emmiter";
+import { IMessage } from "../interfaces/Messages";
+import ICommand from "../interfaces/ICommand";
+import { IUser } from "../interfaces/User";
+import { IChat } from "../interfaces/Chat";
+import IBot from "../interfaces/IBot";
+import Auth from "../interfaces/Auth";
+import Message from "../messages/Message";
+import User from "./User";
+import Chat from "./Chat";
+import PromiseMessages from "../utils/PromiseMessages";
+import { ClientEvents } from "../utils/Emmiter";
 import { Chats, ChatStatus, IChats } from "../types/Chat";
 import { IUsers, Users } from "../types/User";
-import { ConnectionConfig } from "@config/ConnectionConfig";
-import { IClient } from "@interfaces/Client";
+import { ConnectionConfig } from "../config/ConnectionConfig";
+import { IClient } from "../interfaces/Client";
 export declare type ClientType = Client<IBot, ICommand>;
 export default class Client<Bot extends IBot, Command extends ICommand> extends ClientEvents implements IClient {
     promiseMessages: PromiseMessages;

@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { SignalDataTypeMap } from "@adiwajshing/baileys";
-import Auth from "@interfaces/Auth";
+import Auth from "../interfaces/Auth";
 export declare class MultiFileAuthState implements Auth {
     folder: string;
     constructor(folder: string);

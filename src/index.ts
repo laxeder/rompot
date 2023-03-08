@@ -1,6 +1,7 @@
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
+import { DefaultCommandConfig } from "@config/CommandConfig";
 
-import IUser from "@interfaces/User";
+import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 import IBot from "@interfaces/IBot";
 
@@ -13,31 +14,30 @@ import MediaMessage from "@messages/MediaMessage";
 import ListMessage from "@messages/ListMessage";
 import Message from "@messages/Message";
 
-import BotModule from "@modules/BotModule";
+import Client, { ClientType } from "@modules/Client";
+import Command from "@modules/Command";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 
-import PromiseMessages, { PromiseMessage } from "@modules/PromiseMessages";
-import Emmiter, { EventsEmitter } from "@utils/Emmiter";
+import PromiseMessages, { PromiseMessage } from "@utils/PromiseMessages";
+import { ClientEvents, BotEvents } from "@utils/Emmiter";
 import WaitCallBack from "@utils/WaitCallBack";
-import getImageURL from "@utils/getImageURL";
-import sleep from "@utils/sleep";
+
 import WhatsAppBot from "@wa/WhatsAppBot";
-import Command from "@modules/Command";
-import { DefaultCommandConfig } from "@config/CommandConfig";
 
 export { ConnectionConfig };
 
 export { IUser, IChat, IBot };
+
 export * from "@interfaces/Messages";
 
 export { ButtonMessage, ContactMessage, ImageMessage, VideoMessage, MediaMessage, Message, ListMessage, LocationMessage };
 
-export { BotModule, Chat, User };
+export { Client, ClientType, Chat, User };
 
-export { Emmiter, EventsEmitter, PromiseMessages, PromiseMessage, WaitCallBack, sleep, getImageURL };
-export * from "@utils/error";
-export * from "@utils/bot";
+export { ClientEvents, BotEvents, PromiseMessages, PromiseMessage, WaitCallBack };
+
+export * from "@utils/Generic";
 
 export * from "./types/Connection";
 export * from "./types/Message";
@@ -53,4 +53,4 @@ export { Command };
 
 export { WhatsAppBot };
 
-export default BotModule;
+export default Client;

@@ -1,4 +1,4 @@
-import CommandConfig from "@config/CommandConfig";
+import CommandConfig from "./CommandConfig";
 export interface ConnectionConfig {
     commandConfig: CommandConfig;
     receiveAllMessages?: boolean;

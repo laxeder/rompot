@@ -1,13 +1,13 @@
 /// <reference types="node" />
-import { IMessage } from "@interfaces/Messages";
-import ICommand from "@interfaces/ICommand";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-import Auth from "@interfaces/Auth";
-import Message from "@messages/Message";
-import User from "@modules/User";
-import Chat from "@modules/Chat";
-import { ClientEvents } from "@utils/Emmiter";
+import { IMessage } from "./Messages";
+import ICommand from "./ICommand";
+import { IUser } from "./User";
+import { IChat } from "./Chat";
+import Auth from "./Auth";
+import Message from "../messages/Message";
+import User from "../modules/User";
+import Chat from "../modules/Chat";
+import { ClientEvents } from "../utils/Emmiter";
 import { Chats, ChatStatus, IChats } from "../types/Chat";
 import { IUsers, Users } from "../types/User";
 export interface IClient extends ClientEvents {

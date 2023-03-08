@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { IMessage } from "@interfaces/Messages";
-import { IUser } from "@interfaces/User";
-import Message from "@messages/Message";
-import { ClientType } from "@modules/Client";
+import { IMessage } from "./Messages";
+import { IUser } from "./User";
+import Message from "../messages/Message";
+import { ClientType } from "../modules/Client";
 import { ChatStatus, ChatType } from "../types/Chat";
 import { IUsers, Users } from "../types/User";
 export interface IChat {

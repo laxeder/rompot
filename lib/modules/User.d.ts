@@ -1,7 +1,7 @@
 /// <reference types="node" />
-import { IUser, IUserModule } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-import { ClientType } from "@modules/Client";
+import { IUser, IUserModule } from "../interfaces/User";
+import { IChat } from "../interfaces/Chat";
+import { ClientType } from "./Client";
 export default class User implements IUser, IUserModule {
     id: string;
     name: string;

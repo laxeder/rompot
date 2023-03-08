@@ -1,9 +1,9 @@
 /// <reference types="long" />
-import { IContactMessage, IMessage } from "@interfaces/Messages";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-import Message from "@messages/Message";
-import User from "@modules/User";
+import { IContactMessage, IMessage } from "../interfaces/Messages";
+import { IUser } from "../interfaces/User";
+import { IChat } from "../interfaces/Chat";
+import Message from "./Message";
+import User from "../modules/User";
 import { IUsers } from "../types/User";
 export default class ContactMessage extends Message implements IContactMessage {
     contacts: User[];

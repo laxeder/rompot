@@ -1,6 +1,6 @@
 /// <reference types="node" />
-import { IChat } from "@interfaces/Chat";
-import { ClientType } from "@modules/Client";
+import { IChat } from "./Chat";
+import { ClientType } from "../modules/Client";
 export interface IUser {
     /**
      * * ID do usuário

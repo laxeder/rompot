@@ -1,14 +1,14 @@
 /// <reference types="node" />
 import EventEmitter from "events";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-import Message from "@messages/Message";
-import User from "@modules/User";
-import Chat from "@modules/Chat";
+import { IUser } from "../interfaces/User";
+import { IChat } from "../interfaces/Chat";
+import Message from "../messages/Message";
+import User from "../modules/User";
+import Chat from "../modules/Chat";
 import { ConnectionType } from "../types/Connection";
 import { UserAction } from "../types/User";
 import { ChatAction } from "../types/Chat";
-import { IMessage } from "@interfaces/Messages";
+import { IMessage } from "../interfaces/Messages";
 export declare type BotEventsMap = {
     /**
      * * Conexão alterada

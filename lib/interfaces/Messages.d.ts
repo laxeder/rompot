@@ -1,10 +1,10 @@
 /// <reference types="long" />
 /// <reference types="node" />
 import { Chat } from "@adiwajshing/baileys";
-import { IChat } from "@interfaces/Chat";
-import { IUser } from "@interfaces/User";
-import { ClientType } from "@modules/Client";
-import User from "@modules/User";
+import { IChat } from "./Chat";
+import { IUser } from "./User";
+import { ClientType } from "../modules/Client";
+import User from "../modules/User";
 import { Button, List, ListItem } from "../types/Message";
 export interface IMessage {
     /**

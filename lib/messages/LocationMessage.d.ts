@@ -1,8 +1,8 @@
 /// <reference types="long" />
-import { ILocationMessage, IMessage } from "@interfaces/Messages";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-import Message from "@messages/Message";
+import { ILocationMessage, IMessage } from "../interfaces/Messages";
+import { IUser } from "../interfaces/User";
+import { IChat } from "../interfaces/Chat";
+import Message from "./Message";
 export default class LocationMessage extends Message implements ILocationMessage {
     latitude: number;
     longitude: number;

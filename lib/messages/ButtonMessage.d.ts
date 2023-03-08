@@ -1,8 +1,8 @@
 /// <reference types="long" />
-import { IButtonMessage, IMessage } from "@interfaces/Messages";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-import Message from "@messages/Message";
+import { IButtonMessage, IMessage } from "../interfaces/Messages";
+import { IUser } from "../interfaces/User";
+import { IChat } from "../interfaces/Chat";
+import Message from "./Message";
 import { Button } from "../types/Message";
 export default class ButtonMessage extends Message implements IButtonMessage {
     footer: string;

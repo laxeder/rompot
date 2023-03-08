@@ -1,6 +1,6 @@
-import ICommand from "@interfaces/ICommand";
-import Message from "@messages/Message";
-import { ClientType } from "@modules/Client";
+import ICommand from "../interfaces/ICommand";
+import Message from "../messages/Message";
+import { ClientType } from "./Client";
 export default class Command implements ICommand {
     #private;
     tags: string[];

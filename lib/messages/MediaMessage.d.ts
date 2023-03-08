@@ -1,9 +1,9 @@
 /// <reference types="node" />
 /// <reference types="long" />
-import { IMediaMessage, IMessage } from "@interfaces/Messages";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-import Message from "@messages/Message";
+import { IMediaMessage, IMessage } from "../interfaces/Messages";
+import { IUser } from "../interfaces/User";
+import { IChat } from "../interfaces/Chat";
+import Message from "./Message";
 export default class MediaMessage extends Message implements IMediaMessage {
     file: any | Buffer;
     isGIF: boolean;

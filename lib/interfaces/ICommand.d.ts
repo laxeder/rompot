@@ -1,5 +1,5 @@
-import Message from "@messages/Message";
-import { ClientType } from "@modules/Client";
+import Message from "../messages/Message";
+import { ClientType } from "../modules/Client";
 export default interface ICommand {
     /** * Cliente do modulo */
     get client(): ClientType;

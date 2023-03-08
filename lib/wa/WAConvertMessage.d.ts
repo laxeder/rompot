@@ -1,6 +1,6 @@
 import { MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
-import { IContactMessage, IMediaMessage, IMessage } from "@interfaces/Messages";
-import WhatsAppBot from "@wa/WhatsAppBot";
+import { IContactMessage, IMediaMessage, IMessage } from "../interfaces/Messages";
+import WhatsAppBot from "./WhatsAppBot";
 export declare class WhatsAppConvertMessage {
     private _type?;
     private _message;

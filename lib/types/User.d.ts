@@ -1,5 +1,5 @@
-import { IUser } from "@interfaces/User";
-import User from "@modules/User";
+import { IUser } from "../interfaces/User";
+import User from "../modules/User";
 export declare type IUsers = {
     [id: string]: IUser;
 };

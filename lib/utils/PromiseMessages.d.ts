@@ -1,4 +1,4 @@
-import { IMessage } from "@interfaces/Messages";
+import { IMessage } from "../interfaces/Messages";
 export declare type PromiseMessage = {
     [chatId: string]: {
         stopRead: boolean;

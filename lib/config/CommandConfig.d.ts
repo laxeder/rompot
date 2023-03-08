@@ -1,4 +1,4 @@
-import ICommand from "@interfaces/ICommand";
+import ICommand from "../interfaces/ICommand";
 export declare const DefaultCommandConfig: CommandConfig;
 export default interface CommandConfig {
     /**
