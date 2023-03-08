@@ -55,7 +55,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
         if (message.fromMe && this.config.disableAutoCommand) return;
         if (this.config.disableAutoCommand) return;
 
-        this.config.commandConfig.get(message.text, this.commands)?.execute(message);
+        this.config.commandConfig.get(message.text, this.commands)?.execute(MessageClient(this, message));
       } catch (err) {
         this.emit("error", getError(err));
       }
@@ -67,7 +67,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
 
         if (this.config.disableAutoCommand || this.config.receiveAllMessages) return;
 
-        this.getCommand(message.text)?.execute(message);
+        this.getCommand(message.text)?.execute(MessageClient(this, message));
       } catch (err) {
         this.emit("error", getError(err));
       }
