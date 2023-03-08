@@ -14,7 +14,6 @@ export default class ButtonMessage extends Message implements IButtonMessage {
     chat: IChat | string,
     text: string,
     footer?: string,
-    title?: string,
     mention?: IMessage,
     id?: string,
     user?: IUser | string,

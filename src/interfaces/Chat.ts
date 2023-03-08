@@ -1,6 +1,8 @@
 import { IMessage } from "@interfaces/Messages";
 import { IUser } from "@interfaces/User";
 
+import Message from "@messages/Message";
+
 import { ClientType } from "@modules/Client";
 
 import { ChatStatus, ChatType } from "../types/Chat";
@@ -45,9 +47,10 @@ export interface IChat {
 
 export interface IChatModule {
   /** * Client do modulo */
-  get client(): ClientType;
+  client: ClientType;
 
-  set client(client: ClientType);
+  /** * Usuários presentes na sala de bate-papo */
+  users: Users;
 
   /**
    * @returns Retorna o nome da sala de bate-papo
@@ -132,7 +135,7 @@ export interface IChatModule {
    * * Envia uma mensagem na sala de bate-papo que a mensagem foi enviada
    * @param message Mensagem que será enviada
    */
-  send(message: IMessage | string): Promise<IMessage>;
+  send(message: IMessage | string): Promise<Message>;
 
   /**
    * * Altera o status da sala de bate-pappo

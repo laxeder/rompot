@@ -1,6 +1,6 @@
 import ICommand from "@interfaces/ICommand";
 
-import { MessageModule } from "@messages/Message";
+import Message from "@messages/Message";
 
 import { ClientType } from "@modules/Client";
 import BotBase from "@modules/BotBase";
@@ -23,9 +23,9 @@ export default class Command implements ICommand {
     this.#client = c;
   }
 
-  public async execute(message: MessageModule): Promise<void> {}
+  public async execute(message: Message): Promise<void> {}
 
-  public async response(message: MessageModule): Promise<void> {}
+  public async response(message: Message): Promise<void> {}
 
-  public async help(message: MessageModule): Promise<void> {}
+  public async help(message: Message): Promise<void> {}
 }

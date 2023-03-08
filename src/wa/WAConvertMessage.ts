@@ -2,31 +2,32 @@ import { downloadMediaMessage, getContentType, MessageUpsertType, proto, WAMessa
 import pino from "pino";
 
 import { IContactMessage, IMediaMessage, IMessage } from "@interfaces/Messages";
-
-import { LocationMessage } from "@messages/LocationMessage";
-import { ContactMessage } from "@messages/ContactMessage";
-import { CreateButtonMessage } from "@messages/ButtonMessage";
-import { ImageMessage } from "@messages/ImageMessage";
-import { CreateMediaMessage } from "@messages/MediaMessage";
-import { VideoMessage } from "@messages/VideoMessage";
-import { AudioMessage } from "@messages/AudioMessage";
-import { ListMessage } from "@messages/ListMessage";
-
-import WhatsAppBot from "@wa/WhatsAppBot";
-import { Message } from "@messages/Message";
-import { replaceID } from "@wa/ID";
-import { Chat, CreateChat } from "@modules/Chat";
-import { CreateUser, User } from "@modules/User";
 import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
+
+import LocationMessage from "@messages/LocationMessage";
+import ContactMessage from "@messages/ContactMessage";
+import ButtonMessage from "@messages/ButtonMessage";
+import MediaMessage from "@messages/MediaMessage";
+import ImageMessage from "@messages/ImageMessage";
+import VideoMessage from "@messages/VideoMessage";
+import AudioMessage from "@messages/AudioMessage";
+import ListMessage from "@messages/ListMessage";
+import Message from "@messages/Message";
+
+import Chat from "@modules/Chat";
+import User from "@modules/User";
+
+import WhatsAppBot from "@wa/WhatsAppBot";
+import { replaceID } from "@wa/ID";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
   private _message: any = {};
 
-  private _convertedMessage: IMessage | IContactMessage | IMediaMessage = Message(Chat(""), "");
-  private _user: IUser = CreateUser("");
-  private _chat: IChat = CreateChat("");
+  private _convertedMessage: IMessage | IContactMessage | IMediaMessage = new Message("", "");
+  private _user: IUser = new User("");
+  private _chat: IChat = new Chat("");
   private _mention?: IMessage;
   private _wa: WhatsAppBot;
 
@@ -67,7 +68,7 @@ export class WhatsAppConvertMessage {
   public async convertMessage(message: WAMessage, type?: MessageUpsertType) {
     const id = replaceID(message.key.remoteJid || "");
 
-    const chat = this._wa.chats[id] ? this._wa.chats[id] : Chat(id);
+    const chat = this._wa.chats[id] ? this._wa.chats[id] : new Chat(id);
 
     if (id) {
       if (chat) this._chat = chat;
@@ -81,7 +82,7 @@ export class WhatsAppConvertMessage {
     if (message.pushName) this._chat.name = message.pushName;
 
     const userID = replaceID(message.key.participant || message.participant || message.key.remoteJid || "");
-    this._user = chat?.users && chat?.users[userID] ? chat?.users[userID] : User(userID);
+    this._user = chat?.users && chat?.users[userID] ? chat?.users[userID] : new User(userID);
     this._user.name = message.pushName || "";
 
     await this.convertContentMessage(message.message);
@@ -185,7 +186,7 @@ export class WhatsAppConvertMessage {
    * @param content
    */
   public convertLocationMessage(content: any) {
-    this._convertedMessage = LocationMessage(this._chat, content.degreesLatitude, content.degreesLongitude);
+    this._convertedMessage = new LocationMessage(this._chat, content.degreesLatitude, content.degreesLongitude);
   }
 
   /**
@@ -193,12 +194,10 @@ export class WhatsAppConvertMessage {
    * @param content
    */
   public convertContactMessage(content: any) {
-    const msg = ContactMessage(this._chat, content.displayName, []);
+    const msg: IContactMessage = new ContactMessage(this._chat, content.displayName, []);
 
-    const getContact = (vcard: string | any): string => {
-      //TODO: obter diretamente contato
-
-      const user = CreateUser("");
+    const getContact = (vcard: string | any): IUser => {
+      const user = new User("");
 
       if (typeof vcard == "object") {
         vcard = vcard.vcard;
@@ -210,7 +209,7 @@ export class WhatsAppConvertMessage {
       const id = vcard.slice(vcard.indexOf("waid=") + 5);
       user.id = replaceID(id.slice(0, id.indexOf(":")) + "@s.whatsapp.net");
 
-      return user.id;
+      return user;
     };
 
     if (content.contacts) {
@@ -232,18 +231,18 @@ export class WhatsAppConvertMessage {
    * @param contentType
    */
   public convertMediaMessage(content: any, contentType: keyof proto.IMessage) {
-    var msg: IMediaMessage = CreateMediaMessage(this._chat, "", Buffer.from(""));
+    var msg: IMediaMessage = new MediaMessage(this._chat, "", Buffer.from(""));
 
     if (contentType == "imageMessage") {
-      msg = ImageMessage(this._chat, this._convertedMessage.text, content.url);
+      msg = new ImageMessage(this._chat, this._convertedMessage.text, content.url);
     }
 
     if (contentType == "videoMessage") {
-      msg = VideoMessage(this._chat, this._convertedMessage.text, content.url);
+      msg = new VideoMessage(this._chat, this._convertedMessage.text, content.url);
     }
 
     if (contentType == "audioMessage") {
-      msg = AudioMessage(this._chat, content.url);
+      msg = new AudioMessage(this._chat, content.url);
     }
 
     if (content.gifPlayback) {
@@ -278,7 +277,7 @@ export class WhatsAppConvertMessage {
    */
   public convertButtonMessage(content: WAMessageContent) {
     let buttonMessage: any = content.buttonsMessage || content.templateMessage;
-    const buttonMSG = CreateButtonMessage(this._chat, "", "");
+    const buttonMSG = new ButtonMessage(this._chat, "", "");
 
     if (buttonMessage.hydratedTemplate) buttonMessage = buttonMessage.hydratedTemplate;
 
@@ -317,7 +316,7 @@ export class WhatsAppConvertMessage {
 
     if (!!!listMessage) return;
 
-    const listMSG = ListMessage(this._chat, "", "", "", "");
+    const listMSG = new ListMessage(this._chat, "", "");
 
     listMSG.text = listMessage.description || "";
     listMSG.title = listMessage.title || "";

@@ -3,34 +3,28 @@ import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 
 import { ClientType } from "@modules/Client";
-import BaseBot from "@modules/BotBase";
+import BotBase from "@modules/BotBase";
 
-import { getChat, getMessage, getUser } from "@utils/Generic";
+import { ChatClient, getChat, getMessage, getUser, UserClient } from "@utils/Generic";
+import User from "@modules/User";
+import Chat from "@modules/Chat";
 
 export default class Message implements IMessage, IMessageModule {
-  public chat: IChat;
+  public chat: Chat;
   public text: string;
-  public mention?: IMessage | undefined;
+  public mention?: Message | undefined;
   public id: string;
-  public user: IUser;
+  public user: User;
   public fromMe: boolean;
   public selected: string;
   public mentions: string[];
   public timestamp: Number | Long;
 
-  #client: ClientType = BaseBot();
-
-  get client() {
-    return this.#client;
-  }
-
-  set client(client: ClientType) {
-    this.#client = client;
-  }
+  public client: ClientType = BotBase();
 
   constructor(chat: IChat | string, text: string, mention?: IMessage, id?: string, user?: IUser | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long) {
-    this.chat = getChat(chat || "");
-    this.user = getUser(user || "");
+    this.chat = ChatClient(this.client, getChat(chat || ""));
+    this.user = UserClient(this.client, getUser(user || ""));
 
     this.id = id || "";
     this.text = text || "";

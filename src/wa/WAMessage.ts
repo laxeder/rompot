@@ -8,7 +8,6 @@ import MediaMessage from "@messages/MediaMessage";
 import VideoMessage from "@messages/VideoMessage";
 import AudioMessage from "@messages/AudioMessage";
 import ListMessage from "@messages/ListMessage";
-import { Message } from "@messages/Message";
 
 import WhatsAppBot from "@wa/WhatsAppBot";
 import { getID } from "@wa/ID";
@@ -121,8 +120,8 @@ export class WhatsAppMessage {
         "BEGIN:VCARD\n" +
         "VERSION:3.0\n" +
         `FN:${""}\n` +
-        // `ORG:${user.description};\n` +
-        `TEL;type=CELL;type=VOICE;waid=${user}: ${getID(user)}\n` +
+        `ORG:${user.description};\n` +
+        `TEL;type=CELL;type=VOICE;waid=${user.id}: ${getID(user.id)}\n` +
         "END:VCARD";
 
       if (message.contacts.length < 2) {

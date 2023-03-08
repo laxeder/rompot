@@ -4,9 +4,9 @@ import { IChat } from "@interfaces/Chat";
 
 import Message from "@messages/Message";
 
-import { User, UserModule } from "@modules/User";
+import User from "@modules/User";
 
-import { getUser } from "@utils/Generic";
+import { getUser, UserClient } from "@utils/Generic";
 import { IUsers } from "../types/User";
 
 export default class ContactMessage extends Message implements IContactMessage {
@@ -27,7 +27,7 @@ export default class ContactMessage extends Message implements IContactMessage {
     super(chat, text, mention, id, user, fromMe, selected, mentions, timestamp);
 
     for (const contact in contacts) {
-      this.contacts.push(UserModule(this.client, getUser(contact)));
+      this.contacts.push(UserClient(this.client, getUser(contact)));
     }
   }
 }

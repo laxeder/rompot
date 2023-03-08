@@ -1,78 +1,11 @@
+import { Chat } from "@adiwajshing/baileys";
 import { IChat } from "@interfaces/Chat";
 import { IUser } from "@interfaces/User";
 
 import { ClientType } from "@modules/Client";
+import User from "@modules/User";
 
-import { Button, List, ListItem, TMessages } from "../types/Message";
-
-export interface IMessages extends TMessages {
-  /**
-   * * Mensagem
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   */
-  Message(chat: IChat, text: string): IMessage;
-
-  /**
-   * * Mensagem contendo uma mídia
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   */
-  MediaMessage(chat: IChat, text: string, file: any): IMediaMessage;
-
-  /**
-   * * Mensagem com imagem
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   * @param image Imagem
-   */
-  ImageMessage(chat: IChat, text: string, image: Buffer): IImageMessage;
-
-  /**
-   * * Mensagem com vídeo
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   * @param video Video
-   */
-  VideoMessage(chat: IChat, text: string, video: Buffer): IVideoMessage;
-
-  /**
-   * * Mensagem com audio
-   * @param chat Sala de bate-papo
-   * @param audio Audio
-   */
-  AudioMessage(chat: IChat, audio: Buffer): IAudioMessage;
-
-  /**
-   * * Mensagem com contatos
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   * @param contact Contato
-   */
-  ContactMessage(chat: IChat, text: string, contact: string | string[]): IContactMessage;
-
-  /**
-   * * Mensagem com localização
-   * @param chat Sala de bate-papo
-   * @param longitude Longitude
-   * @param latitude Latitude
-   */
-  LocationMessage(chat: IChat, latitude: number, longitude: number): ILocationMessage;
-
-  /**
-   * * Mensagem com lista
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   */
-  ListMessage(chat: IChat, text: string, button: string): IListMessage;
-
-  /**
-   * * Mensagem com botões
-   * @param chat Sala de bate-papo
-   * @param text Texto da mensagem
-   */
-  ButtonMessage(chat: IChat, text: string): IButtonMessage;
-}
+import { Button, List, ListItem } from "../types/Message";
 
 export interface IMessage {
   /**
@@ -269,9 +202,16 @@ export interface IButtonMessage extends IMessage {
 
 export interface IMessageModule {
   /** * Cliente do modulo */
-  get client(): ClientType;
+  client: ClientType;
 
-  set client(client: ClientType);
+  /** * Sala de bate-papo que foi enviado a mensagem */
+  chat: Chat;
+
+  /** * Usuário que enviou a mensagem */
+  user: User;
+
+  /** * Mnesagem mencionada */
+  mention?: IMessage & IMessageModule;
 
   /**
    * * Adiciona uma reação a mensagem
@@ -284,7 +224,7 @@ export interface IMessageModule {
    * @param message Mensagem que terá enviada
    * @param mention Se verdadeiro a mensagem é mencionada
    */
-  reply(message: IMessage | string, mention?: boolean): Promise<IMessageModule>;
+  reply(message: IMessage | string, mention?: boolean): Promise<IMessage & IMessageModule>;
 
   /**
    * * Marca mensagem como visualizada

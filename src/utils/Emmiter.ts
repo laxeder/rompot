@@ -3,10 +3,10 @@ import EventEmitter from "events";
 import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 
-import { Message } from "@messages/Message";
+import Message from "@messages/Message";
 
-import { UserModule } from "@modules/User";
-import { ChatModule } from "@modules/Chat";
+import User from "@modules/User";
+import Chat from "@modules/Chat";
 
 import { ConnectionType } from "../types/Connection";
 import { UserAction } from "../types/User";
@@ -102,14 +102,14 @@ export type ClientEventsMap = {
    * @param chat Sala de bate-papo que recebeu o novo usuário
    * @param user Usuário
    */
-  user: { action: UserAction; chat: ChatModule; user: UserModule };
+  user: { action: UserAction; chat: Chat; user: User };
 
   /**
    * * Sala de bate-papo alterado
    * @param action ação ocorrida
    * @param chat Sala de bate-papo que foi alterada
    */
-  chat: { action: ChatAction; chat: ChatModule };
+  chat: { action: ChatAction; chat: Chat };
 
   /** * Nova mensagem */
   message: Message;

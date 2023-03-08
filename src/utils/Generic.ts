@@ -1,15 +1,15 @@
 import { Transform } from "stream";
 import https from "https";
 
-import { IMessage } from "@interfaces/Messages";
-import { IChat } from "@interfaces/Chat";
-import { IUser } from "@interfaces/User";
+import { IMessage, IMessageModule } from "@interfaces/Messages";
+import { IChat, IChatModule } from "@interfaces/Chat";
+import { IUser, IUserModule } from "@interfaces/User";
 
-import { Message } from "@messages/Message";
+import Message from "@messages/Message";
 
 import { ClientType } from "@modules/Client";
-import { User } from "@modules/User";
-import { Chat } from "@modules/Chat";
+import User from "@modules/User";
+import Chat from "@modules/Chat";
 
 export type ArgumentTypes<F extends Function> = F extends (...args: infer A) => any ? A : never;
 
@@ -19,7 +19,7 @@ export type ArgumentTypes<F extends Function> = F extends (...args: infer A) => 
  */
 export function getMessage<MSG extends IMessage>(message: MSG | string): MSG | IMessage {
   if (typeof message == "string") {
-    return Message(Chat(""), message);
+    return new Message(new Chat(""), message);
   }
 
   return message;
@@ -47,7 +47,7 @@ export function getMessageId(message: IMessage | string): string {
  */
 export function getChat<CHAT extends IChat>(chat: CHAT | string): CHAT | IChat {
   if (typeof chat == "string") {
-    return Chat(chat);
+    return new Chat(chat);
   }
 
   return chat;
@@ -75,7 +75,7 @@ export function getChatId(chat: IChat | string): string {
  */
 export function getUser<USER extends IUser>(user: USER | string): USER | IUser {
   if (typeof user == "string") {
-    return User(user);
+    return new User(user);
   }
 
   return user;
@@ -107,6 +107,48 @@ export function setClientProperty(client: ClientType, obj: { client: ClientType 
     get: () => client,
     set: (value: ClientType) => (client = value),
   });
+}
+
+/**
+ * * Cria uma mensagem com cliente instanciado
+ * @param client Cliente
+ * @param msg Mensagem
+ * @returns
+ */
+export function MessageClient<MSG extends IMessage>(client: ClientType, msg: MSG): MSG & Message {
+  const message = new Message(msg.chat, msg.text, msg.mention, msg.id, msg.user, msg.fromMe, msg.selected, msg.mentions, msg.timestamp);
+
+  message.client = client;
+
+  return { ...msg, ...message };
+}
+
+/**
+ * * Cria uma sala de bate-papo com cliente instanciado
+ * @param client Cliente
+ * @param chat Sala de bate-papo
+ * @returns
+ */
+export function ChatClient<C extends IChat>(client: ClientType, chat: C): C & IChatModule {
+  const c = new Chat(chat.id, chat.type, chat.name, chat.description, chat.profile, chat.users, chat.status);
+
+  c.client = client;
+
+  return { ...chat, ...c };
+}
+
+/**
+ * * Cria um usuário com cliente instanciado
+ * @param client Cliente
+ * @param user Usuário
+ * @returns
+ */
+export function UserClient<U extends IUser>(client: ClientType, user: U): U & IUserModule {
+  const u = new User(user.id, user.name, user.description, user.profile);
+
+  u.client = client;
+
+  return { ...user, ...u };
 }
 
 /**

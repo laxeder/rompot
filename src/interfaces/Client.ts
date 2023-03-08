@@ -4,10 +4,10 @@ import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 import Auth from "@interfaces/Auth";
 
-import { MessageModule } from "@messages/Message";
+import Message from "@messages/Message";
 
-import { UserModule } from "@modules/User";
-import { ChatModule } from "@modules/Chat";
+import User from "@modules/User";
+import Chat from "@modules/Chat";
 
 import { ClientEvents } from "@utils/Emmiter";
 
@@ -78,7 +78,7 @@ export interface IClient extends ClientEvents {
    * @param content
    * @returns Retorna o conteudo enviado
    */
-  send(message: IMessage): Promise<MessageModule>;
+  send(message: IMessage): Promise<Message>;
 
   /**
    * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
@@ -88,7 +88,7 @@ export interface IClient extends ClientEvents {
    * @param ignoreMessages Não resolve a promessa se a mensagem recebida é a mesma escolhida
    * @returns
    */
-  awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean, stopRead: boolean, ...ignoreMessages: IMessage[]): Promise<MessageModule>;
+  awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean, stopRead: boolean, ...ignoreMessages: IMessage[]): Promise<Message>;
 
   /**
    * * Automotiza uma mensagem
@@ -212,7 +212,7 @@ export interface IClient extends ClientEvents {
    * @param chat Sala de bate-papo
    * @returns Retorna uma sala de bate-papo
    */
-  getChat(chat: IChat | string): Promise<ChatModule | null>;
+  getChat(chat: IChat | string): Promise<Chat | null>;
 
   /**
    * * Define uma sala de bate-papo
@@ -266,7 +266,7 @@ export interface IClient extends ClientEvents {
    * @param chat Sala de bate-papo
    * @returns Retorna o lider da sala de bate-papo
    */
-  getChatLeader(chat: IChat | string): Promise<UserModule>;
+  getChatLeader(chat: IChat | string): Promise<User>;
 
   /**
    * @returns Retorna as sala de bate-papo que o bot está
@@ -297,7 +297,7 @@ export interface IClient extends ClientEvents {
    * @param user Usuário
    * @returns Retorna um usuário
    */
-  getUser(user: IUser | string): Promise<UserModule | null>;
+  getUser(user: IUser | string): Promise<User | null>;
 
   /**
    * * Define um usuário

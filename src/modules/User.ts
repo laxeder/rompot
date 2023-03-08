@@ -6,89 +6,70 @@ import BotBase from "@modules/BotBase";
 
 import { getChatId } from "@utils/Generic";
 
-export type UserModule = IUser & IUserModule;
+export default class User implements IUser, IUserModule {
+  public id: string;
+  public name: string;
+  public description: string;
+  public profile: Buffer;
+  public isAdmin: boolean;
+  public isLeader: boolean;
 
-export type User = UserModule;
+  public client: ClientType = BotBase();
 
-export function CreateUser(id: string, name?: string, description?: string, profile?: Buffer) {
-  return {
-    id: id || "",
-    name: name || "",
-    description: description || "",
-    profile: profile || Buffer.from(""),
-    isAdmin: false,
-    isLeader: false,
-  };
-}
+  constructor(id: string, name?: string, description?: string, profile?: Buffer) {
+    this.id = id || "";
+    this.name = name || "";
+    this.description = description || "";
+    this.profile = profile || Buffer.from("");
+    this.isAdmin = false;
+    this.isLeader = false;
+  }
 
-export function User(id: string, name?: string, description?: string, profile?: Buffer): UserModule {
-  return UserModule(BotBase(), CreateUser(id, name, description, profile));
-}
+  async blockUser(): Promise<void> {
+    return this.client.blockUser(this);
+  }
 
-export function UserClient<CLIENT extends ClientType>(client: CLIENT, id: string, name?: string, description?: string, profile?: Buffer): UserModule {
-  return UserModule(client, CreateUser(id, name, description, profile));
-}
+  async unblockUser(): Promise<void> {
+    return this.client.unblockUser(this);
+  }
 
-export function UserModule<CLIENT extends ClientType, USER extends IUser>(client: CLIENT, user: USER): USER & IUserModule {
-  const module = {
-    ...user,
+  async getName(): Promise<string> {
+    return this.client.getUserName(this);
+  }
 
-    get client(): CLIENT {
-      return client;
-    },
+  async setName(name: string): Promise<void> {
+    return this.client.setUserName(this, name);
+  }
 
-    set client(c: CLIENT) {
-      client = c;
-    },
+  async getDescription(): Promise<string> {
+    return this.client.getUserDescription(this);
+  }
 
-    blockUser(): Promise<void> {
-      return this.client.blockUser(this);
-    },
+  async setDescription(description: string): Promise<void> {
+    return this.client.setUserDescription(this, description);
+  }
 
-    async unblockUser(): Promise<void> {
-      return this.client.unblockUser(this);
-    },
+  async getProfile(): Promise<Buffer> {
+    return this.client.getUserProfile(this);
+  }
 
-    async getName(): Promise<string> {
-      return this.client.getUserName(this);
-    },
+  async setProfile(image: Buffer): Promise<void> {
+    return this.client.setUserProfile(this, image);
+  }
 
-    async setName(name: string): Promise<void> {
-      return this.client.setUserName(this, name);
-    },
+  async IsAdmin(chat: IChat | string): Promise<boolean> {
+    const chatId = getChatId(chat);
 
-    async getDescription(): Promise<string> {
-      return this.client.getUserDescription(this);
-    },
+    const admins = await this.client.getChatAdmins(chatId);
 
-    async setDescription(description: string): Promise<void> {
-      return this.client.setUserDescription(this, description);
-    },
+    return admins.hasOwnProperty(this.id);
+  }
 
-    async getProfile(): Promise<Buffer> {
-      return this.client.getUserProfile(this);
-    },
+  async IsLeader(chat: IChat | string): Promise<boolean> {
+    const chatId = getChatId(chat);
 
-    async setProfile(image: Buffer): Promise<void> {
-      return this.client.setUserProfile(this, image);
-    },
+    const leader = await this.client.getChatLeader(chatId);
 
-    async IsAdmin(chat: IChat | string): Promise<boolean> {
-      const chatId = getChatId(chat);
-
-      const admins = await this.client.getChatAdmins(chatId);
-
-      return admins.hasOwnProperty(this.id);
-    },
-
-    async IsLeader(chat: IChat | string): Promise<boolean> {
-      const chatId = getChatId(chat);
-
-      const leader = await this.client.getChatLeader(chatId);
-
-      return leader.id == this.id;
-    },
-  };
-
-  return module;
+    return leader.id == this.id;
+  }
 }

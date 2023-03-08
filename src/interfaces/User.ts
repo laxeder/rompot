@@ -32,9 +32,7 @@ export interface IUser {
 
 export interface IUserModule {
   /** * Cliente do modulo */
-  get client(): ClientType;
-
-  set client(client: ClientType);
+  client: ClientType;
 
   /**
    * * Bloqueia o usuário

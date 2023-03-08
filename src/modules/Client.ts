@@ -5,12 +5,12 @@ import { IChat } from "@interfaces/Chat";
 import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
-import { MessageModule } from "@messages/Message";
+import Message from "@messages/Message";
 
-import { ChatModule } from "@modules/Chat";
-import { UserModule } from "@modules/User";
+import User from "@modules/User";
+import Chat from "@modules/Chat";
 
-import { getChat, getChatId, getError, sleep, getUser, getUserId } from "@utils/Generic";
+import { getChat, getChatId, getError, sleep, getUser, getUserId, MessageClient, ChatClient, UserClient } from "@utils/Generic";
 import PromiseMessages from "@utils/PromiseMessages";
 import { ClientEvents } from "@utils/Emmiter";
 
@@ -48,7 +48,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
   }
 
   public configEvents() {
-    this.bot.ev.on("message", (message: MessageModule) => {
+    this.bot.ev.on("message", (message: IMessage) => {
       try {
         if (this.promiseMessages.resolvePromiseMessages(message)) return;
 
@@ -61,7 +61,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
       }
     });
 
-    this.bot.ev.on("me", (message: MessageModule) => {
+    this.bot.ev.on("me", (message: IMessage) => {
       try {
         if (this.promiseMessages.resolvePromiseMessages(message)) return;
 
@@ -133,21 +133,21 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
     return this.bot.removeReaction(message);
   }
 
-  public async send(message: IMessage): Promise<MessageModule> {
+  public async send(message: IMessage): Promise<Message> {
     try {
-      return MessageModule(this, await this.bot.send(message));
+      return MessageClient(this, await this.bot.send(message));
     } catch (err) {
       this.emit("error", getError(err));
     }
 
-    return MessageModule(this, message);
+    return MessageClient(this, message);
   }
 
-  public async awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: IMessage[]): Promise<MessageModule> {
-    return MessageModule(this, await this.promiseMessages.addPromiseMessage(getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages));
+  public async awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: IMessage[]): Promise<Message> {
+    return MessageClient(this, await this.promiseMessages.addPromiseMessage(getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages));
   }
 
-  async addAutomate(message: MessageModule, timeout: number, chats?: Chats, id: string = String(Date.now())): Promise<any> {
+  async addAutomate(message: Message, timeout: number, chats?: Chats, id: string = String(Date.now())): Promise<any> {
     try {
       const now = Date.now();
 
@@ -161,7 +161,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
       if (this.autoMessages[id].updatedAt !== now) return;
 
       await Promise.all(
-        this.autoMessages[id].chats.map(async (chat: ChatModule) => {
+        this.autoMessages[id].chats.map(async (chat: IChat) => {
           const automated: any = this.autoMessages[id];
 
           if (automated.updatedAt !== now) return;
@@ -211,16 +211,16 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
 
   //! <==============================> CHAT <==============================>
 
-  public async getChat(chat: IChat | string): Promise<ChatModule | null> {
+  public async getChat(chat: IChat | string): Promise<Chat | null> {
     const iChat = await this.bot.getChat(getChat(chat));
 
     if (!iChat) return null;
 
-    return ChatModule(this, iChat);
+    return ChatClient(this, iChat);
   }
 
   public setChat(chat: IChat): Promise<void> {
-    return this.bot.setChat(ChatModule(this, chat));
+    return this.bot.setChat(ChatClient(this, chat));
   }
 
   public async getChats(): Promise<Chats> {
@@ -229,7 +229,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
     const chats = await this.bot.getChats();
 
     for (const id in chats) {
-      modules[id] = ChatModule(this, chats[id]);
+      modules[id] = ChatClient(this, chats[id]);
     }
 
     return modules;
@@ -240,11 +240,11 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
   }
 
   public addChat(chat: string | IChat): Promise<void> {
-    return this.bot.addChat(ChatModule(this, getChat(chat)));
+    return this.bot.addChat(ChatClient(this, getChat(chat)));
   }
 
   public removeChat(chat: string | IChat): Promise<void> {
-    return this.bot.removeChat(ChatModule(this, getChat(chat)));
+    return this.bot.removeChat(ChatClient(this, getChat(chat)));
   }
 
   public getChatName(chat: IChat | string) {
@@ -305,30 +305,30 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
     const adminModules: Users = {};
 
     Object.keys(admins).forEach((id) => {
-      adminModules[id] = UserModule(this, admins[id]);
+      adminModules[id] = UserClient(this, admins[id]);
     });
 
     return adminModules;
   }
 
-  public async getChatLeader(chat: IChat | string): Promise<UserModule> {
+  public async getChatLeader(chat: IChat | string): Promise<User> {
     const leader = await this.bot.getChatLeader(getChat(chat));
 
-    return UserModule(this, leader);
+    return UserClient(this, leader);
   }
 
   //! <==============================> USER <==============================>
 
-  public async getUser(user: IUser | string): Promise<UserModule | null> {
+  public async getUser(user: IUser | string): Promise<User | null> {
     const usr = await this.bot.getUser(getUser(user));
 
-    if (usr) return UserModule(this, usr);
+    if (usr) return UserClient(this, usr);
 
     return null;
   }
 
   public setUser(user: IUser | string): Promise<void> {
-    return this.bot.setUser(UserModule(this, getUser(user)));
+    return this.bot.setUser(UserClient(this, getUser(user)));
   }
 
   public async getUsers(): Promise<Users> {
@@ -337,7 +337,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
     const users = await this.bot.getUsers();
 
     for (const id in users) {
-      modules[id] = UserModule(this, users[id]);
+      modules[id] = UserClient(this, users[id]);
     }
 
     return modules;
@@ -348,7 +348,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
   }
 
   public addUser(user: IUser | string): Promise<void> {
-    return this.bot.addUser(UserModule(this, getUser(user)));
+    return this.bot.addUser(UserClient(this, getUser(user)));
   }
 
   public removeUser(user: IUser | string) {
