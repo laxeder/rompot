@@ -1,8 +1,5 @@
 /// <reference types="node" />
 import EventEmitter from "events";
-import { IMessage } from "../interfaces/Messages";
-import { IUser } from "../interfaces/User";
-import { IChat } from "../interfaces/Chat";
 import Message from "../messages/Message";
 import User from "../modules/User";
 import Chat from "../modules/Chat";
@@ -45,8 +42,8 @@ export declare type BotEventsMap = {
      */
     user: {
         action: UserAction;
-        chat: IChat;
-        user: IUser;
+        chat: Chat;
+        user: User;
     };
     /**
      * * Sala de bate-papo alterado
@@ -55,10 +52,10 @@ export declare type BotEventsMap = {
      */
     chat: {
         action: ChatAction;
-        chat: IChat;
+        chat: Chat;
     };
     /** * Nova mensagem */
-    message: IMessage;
+    message: Message;
     /** * Erro ocorrido */
     error: Error;
 };

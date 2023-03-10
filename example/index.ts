@@ -1,4 +1,4 @@
-import Client, { WhatsAppBot, Message, Command, DefaultCommandConfig, ChatClient } from "../src/index";
+import Client, { WhatsAppBot, Message, Command, DefaultCommandConfig } from "../lib/index";
 
 const client = new Client(new WhatsAppBot(), {
   disableAutoCommand: false,
@@ -36,8 +36,6 @@ client.on("reconnecting", () => {
 });
 
 client.on("message", async (message: Message) => {
-  console.log(ChatClient(client, message.chat))
-
   if (message.fromMe) {
     console.log(`Send message to ${message.user.id}`);
   } else {
@@ -115,8 +113,6 @@ class BanCommand extends Command {
       return;
     }
 
-    console.log(message.chat.send);
-
     if (!(await message.chat.IsAdmin(message.user))) {
       await message.reply("Vocẽ não tem permissão para executar esse comando");
       return;
@@ -132,7 +128,9 @@ class BanCommand extends Command {
       return;
     }
 
-    await client.removeUserInChat(message.chat, message.mentions[0]);
+    console.log(message.mentions);
+
+    await message.chat.removeUser(message.mentions[0]);
 
     await message.chat.send("Usuário removido com sucesso!!");
   }

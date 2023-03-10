@@ -3,7 +3,7 @@ import { SignalDataTypeMap } from "@adiwajshing/baileys";
 import Auth from "../interfaces/Auth";
 export declare class MultiFileAuthState implements Auth {
     folder: string;
-    constructor(folder: string);
+    constructor(folder: string, autoCreateDir?: boolean);
     getStat(folder: string): import("fs").Stats | null;
     get: (key: string) => Promise<string | null>;
     set: (key: string, data: any) => Promise<void>;

@@ -7,7 +7,7 @@ import Auth from "@interfaces/Auth";
 export class MultiFileAuthState implements Auth {
   public folder: string;
 
-  constructor(folder: string) {
+  constructor(folder: string, autoCreateDir: boolean = true) {
     this.folder = folder;
 
     const folderInfo = this.getStat(folder);
@@ -17,7 +17,7 @@ export class MultiFileAuthState implements Auth {
         throw new Error(`found something that is not a directory at ${folder}, either delete it or specify a different location`);
       }
     } else {
-      mkdirSync(folder, { recursive: true });
+      if (autoCreateDir) mkdirSync(folder, { recursive: true });
     }
   }
 

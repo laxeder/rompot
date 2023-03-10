@@ -46,7 +46,7 @@ export default class WhatsAppBot implements IBot {
   public ev: BotEvents = new BotEvents();
   public status: ConnectionStatus = "offline";
   public id: string = "";
-  public auth: Auth = new MultiFileAuthState("./session");
+  public auth: Auth = new MultiFileAuthState("./session", false);
   public wcb: WaitCallBack = new WaitCallBack();
   public config: Partial<SocketConfig>;
 
@@ -382,8 +382,7 @@ export default class WhatsAppBot implements IBot {
     if (chat.id.includes("@g")) chat.type = "group";
     if (!chat.id.includes("@")) chat.type = "pv";
 
-    this.chats[chat.id] = new Chat(chat.id, chat.type, chat.name, chat.description);
-    this.chats[chat.id].profile = chat.profile;
+    this.chats[chat.id] = new Chat(chat.id, chat.type, chat.name, chat.description, chat.profile, chat.users);
   }
 
   public async getChats(): Promise<Chats> {
