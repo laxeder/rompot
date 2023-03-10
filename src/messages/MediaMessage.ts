@@ -1,31 +1,24 @@
-import { IMediaMessage, IMessage } from "@interfaces/Messages";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-
 import Message from "@messages/Message";
 
-export default class MediaMessage extends Message implements IMediaMessage {
+import Chat from "@modules/Chat";
+import User from "@modules/User";
+
+export default class MediaMessage extends Message {
+  /** * Arquivo da mensagem */
   public file: any | Buffer;
+  /** * O arquivo é um GIF */
   public isGIF: boolean = false;
 
-  constructor(
-    chat: IChat | string,
-    text: string,
-    file: any,
-    mention?: IMessage,
-    id?: string,
-    user?: IUser | string,
-    fromMe?: boolean,
-    selected?: string,
-    mentions?: string[],
-    timestamp?: Number | Long
-  ) {
+  constructor(chat: Chat | string, text: string, file: any, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long) {
     super(chat, text, mention, id, user, fromMe, selected, mentions, timestamp);
 
     this.file = file;
   }
 
-  public getStream(stream?: any) {
+  /**
+   * @returns Obter arquivo
+   */
+  public async getStream(stream?: any): Promise<Buffer> {
     return stream || this.file;
   }
 }

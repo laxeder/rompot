@@ -1,20 +1,21 @@
-import { ILocationMessage, IMessage } from "@interfaces/Messages";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-
 import Message from "@messages/Message";
 
-export default class LocationMessage extends Message implements ILocationMessage {
+import Chat from "@modules/Chat";
+import User from "@modules/User";
+
+export default class LocationMessage extends Message {
+  /** * Latitude */
   public latitude: number;
+  /** * Longitude */
   public longitude: number;
 
   constructor(
-    chat: IChat | string,
+    chat: Chat | string,
     latitude: number,
     longitude: number,
-    mention?: IMessage,
+    mention?: Message,
     id?: string,
-    user?: IUser | string,
+    user?: User | string,
     fromMe?: boolean,
     selected?: string,
     mentions?: string[],
@@ -25,6 +26,11 @@ export default class LocationMessage extends Message implements ILocationMessage
     this.longitude = longitude;
   }
 
+  /**
+   * * Definir localização
+   * @param latitude Latitude
+   * @param longitude Longitude
+   */
   public setLocation(latitude: number, longitude: number) {
     this.latitude = latitude;
     this.longitude = longitude;

@@ -1,9 +1,5 @@
 import EventEmitter from "events";
 
-import { IMessage } from "@interfaces/Messages";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-
 import Message from "@messages/Message";
 
 import User from "@modules/User";
@@ -48,17 +44,17 @@ export type BotEventsMap = {
    * @param chat Sala de bate-papo que recebeu o novo usuário
    * @param user Usuário
    */
-  user: { action: UserAction; chat: IChat; user: IUser };
+  user: { action: UserAction; chat: Chat; user: User };
 
   /**
    * * Sala de bate-papo alterado
    * @param action ação ocorrida
    * @param chat Sala de bate-papo que foi alterada
    */
-  chat: { action: ChatAction; chat: IChat };
+  chat: { action: ChatAction; chat: Chat };
 
   /** * Nova mensagem */
-  message: IMessage;
+  message: Message;
 
   /** * Erro ocorrido */
   error: Error;

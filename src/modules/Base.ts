@@ -1,24 +1,24 @@
-import { IMessage } from "@interfaces/Messages";
 import ICommand from "@interfaces/ICommand";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
 import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
+import Message from "@messages/Message";
+
 import Client, { ClientType } from "@modules/Client";
 import User from "@modules/User";
+import Chat from "@modules/Chat";
 
 import { BotEvents } from "@utils/Emmiter";
 
-import { IChats, ChatStatus } from "../types/Chat";
+import { Chats, ChatStatus } from "../types/Chat";
 import { BotStatus } from "../types/Bot";
-import { IUsers } from "../types/User";
+import { Users } from "../types/User";
 
 export function ClientBase(): ClientType {
   return new Client<BotBase, ICommand>(new BotBase());
 }
 
-export  class BotBase implements IBot {
+export class BotBase implements IBot {
   id: string = "";
   status: BotStatus = "offline";
   ev: BotEvents = new BotEvents();
@@ -29,15 +29,15 @@ export  class BotBase implements IBot {
 
   async stop(reason: any): Promise<void> {}
 
-  async readMessage(message: IMessage): Promise<void> {}
+  async readMessage(message: Message): Promise<void> {}
 
-  async send(message: IMessage): Promise<IMessage> {
+  async send(message: Message): Promise<Message> {
     return message;
   }
 
-  async removeMessage(message: IMessage): Promise<void> {}
+  async removeMessage(message: Message): Promise<void> {}
 
-  async deleteMessage(message: IMessage): Promise<void> {}
+  async deleteMessage(message: Message): Promise<void> {}
 
   async getBotName(): Promise<string> {
     return "";
@@ -57,101 +57,101 @@ export  class BotBase implements IBot {
 
   async setBotProfile(image: Buffer): Promise<void> {}
 
-  async addChat(chat: IChat): Promise<void> {}
+  async addChat(chat: Chat): Promise<void> {}
 
-  async removeChat(chat: IChat): Promise<void> {}
+  async removeChat(chat: Chat): Promise<void> {}
 
-  async addUserInChat(chat: IChat, user: IUser): Promise<void> {}
+  async addUserInChat(chat: Chat, user: User): Promise<void> {}
 
-  async removeUserInChat(chat: IChat, user: IUser): Promise<void> {}
+  async removeUserInChat(chat: Chat, user: User): Promise<void> {}
 
-  async promoteUserInChat(chat: IChat, user: IUser): Promise<void> {}
+  async promoteUserInChat(chat: Chat, user: User): Promise<void> {}
 
-  async demoteUserInChat(chat: IChat, user: IUser): Promise<void> {}
+  async demoteUserInChat(chat: Chat, user: User): Promise<void> {}
 
-  async changeChatStatus(chat: IChat, status: ChatStatus): Promise<void> {}
+  async changeChatStatus(chat: Chat, status: ChatStatus): Promise<void> {}
 
-  async createChat(chat: IChat): Promise<void> {}
+  async createChat(chat: Chat): Promise<void> {}
 
-  async leaveChat(chat: IChat): Promise<void> {}
+  async leaveChat(chat: Chat): Promise<void> {}
 
-  async getChat(chat: IChat): Promise<IChat | null> {
+  async getChat(chat: Chat): Promise<Chat | null> {
     return null;
   }
 
-  async setChat(chat: IChat): Promise<void> {}
+  async setChat(chat: Chat): Promise<void> {}
 
-  async getChatName(chat: IChat): Promise<string> {
+  async getChatName(chat: Chat): Promise<string> {
     return "";
   }
 
-  async setChatName(chat: IChat, name: string): Promise<void> {}
+  async setChatName(chat: Chat, name: string): Promise<void> {}
 
-  async getChatDescription(chat: IChat): Promise<string> {
+  async getChatDescription(chat: Chat): Promise<string> {
     return "";
   }
 
-  async setChatDescription(chat: IChat, description: string): Promise<void> {}
+  async setChatDescription(chat: Chat, description: string): Promise<void> {}
 
-  async getChatProfile(chat: IChat): Promise<Buffer> {
+  async getChatProfile(chat: Chat): Promise<Buffer> {
     return Buffer.from("");
   }
 
-  async setChatProfile(chat: IChat, profile: Buffer): Promise<void> {}
+  async setChatProfile(chat: Chat, profile: Buffer): Promise<void> {}
 
-  async getChatAdmins(chat: IChat): Promise<IUsers> {
+  async getChatAdmins(chat: Chat): Promise<Users> {
     return {};
   }
 
-  async getChatLeader(chat: IChat): Promise<IUser> {
+  async getChatLeader(chat: Chat): Promise<User> {
     return new User("");
   }
 
-  async getChats(): Promise<IChats> {
+  async getChats(): Promise<Chats> {
     return {};
   }
 
-  async setChats(chats: IChats): Promise<void> {}
+  async setChats(chats: Chats): Promise<void> {}
 
-  async addUser(user: IUser): Promise<void> {}
+  async addUser(user: User): Promise<void> {}
 
-  async removeUser(user: IUser): Promise<void> {}
+  async removeUser(user: User): Promise<void> {}
 
-  async getUser(user: IUser): Promise<IUser | null> {
+  async getUser(user: User): Promise<User | null> {
     return null;
   }
 
-  async setUser(user: IUser): Promise<void> {}
+  async setUser(user: User): Promise<void> {}
 
-  async getUserName(user: IUser): Promise<string> {
+  async getUserName(user: User): Promise<string> {
     return "";
   }
 
-  async setUserName(user: IUser, name: string): Promise<void> {}
+  async setUserName(user: User, name: string): Promise<void> {}
 
-  async getUserDescription(user: IUser): Promise<string> {
+  async getUserDescription(user: User): Promise<string> {
     return "";
   }
 
-  async setUserDescription(user: IUser, description: string): Promise<void> {}
+  async setUserDescription(user: User, description: string): Promise<void> {}
 
-  async getUserProfile(user: IUser): Promise<Buffer> {
+  async getUserProfile(user: User): Promise<Buffer> {
     return Buffer.from("");
   }
 
-  async setUserProfile(user: IUser, profile: Buffer): Promise<void> {}
+  async setUserProfile(user: User, profile: Buffer): Promise<void> {}
 
-  async unblockUser(user: IUser): Promise<void> {}
+  async unblockUser(user: User): Promise<void> {}
 
-  async blockUser(user: IUser): Promise<void> {}
+  async blockUser(user: User): Promise<void> {}
 
-  async getUsers(): Promise<IUsers> {
+  async getUsers(): Promise<Users> {
     return {};
   }
 
-  async setUsers(users: IUsers): Promise<void> {}
+  async setUsers(users: Users): Promise<void> {}
 
-  async addReaction(message: IMessage, reaction: string): Promise<void> {}
+  async addReaction(message: Message, reaction: string): Promise<void> {}
 
-  async removeReaction(message: IMessage): Promise<void> {}
+  async removeReaction(message: Message): Promise<void> {}
 }

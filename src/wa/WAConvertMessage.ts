@@ -1,10 +1,6 @@
 import { downloadMediaMessage, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
 import pino from "pino";
 
-import { IContactMessage, IMediaMessage, IMessage } from "@interfaces/Messages";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
-
 import LocationMessage from "@messages/LocationMessage";
 import ContactMessage from "@messages/ContactMessage";
 import ButtonMessage from "@messages/ButtonMessage";
@@ -25,10 +21,10 @@ export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
   private _message: any = {};
 
-  private _convertedMessage: IMessage | IContactMessage | IMediaMessage = new Message("", "");
-  private _user: IUser = new User("");
-  private _chat: IChat = new Chat("");
-  private _mention?: IMessage;
+  private _convertedMessage: Message = new Message("", "");
+  private _user: User = new User("");
+  private _chat: Chat = new Chat("");
+  private _mention?: Message;
   private _wa: WhatsAppBot;
 
   constructor(wa: WhatsAppBot, message: WAMessage, type?: MessageUpsertType) {
@@ -194,9 +190,9 @@ export class WhatsAppConvertMessage {
    * @param content
    */
   public convertContactMessage(content: any) {
-    const msg: IContactMessage = new ContactMessage(this._chat, content.displayName, []);
+    const msg = new ContactMessage(this._chat, content.displayName, []);
 
-    const getContact = (vcard: string | any): IUser => {
+    const getContact = (vcard: string | any): User => {
       const user = new User("");
 
       if (typeof vcard == "object") {
@@ -231,7 +227,7 @@ export class WhatsAppConvertMessage {
    * @param contentType
    */
   public convertMediaMessage(content: any, contentType: keyof proto.IMessage) {
-    var msg: IMediaMessage = new MediaMessage(this._chat, "", Buffer.from(""));
+    var msg = new MediaMessage(this._chat, "", Buffer.from(""));
 
     if (contentType == "imageMessage") {
       msg = new ImageMessage(this._chat, this._convertedMessage.text, content.url);

@@ -1,7 +1,7 @@
-import { IMessage } from "@interfaces/Messages";
+import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
+
+import { IClient } from "@interfaces/Client";
 import ICommand from "@interfaces/ICommand";
-import { IUser } from "@interfaces/User";
-import { IChat } from "@interfaces/Chat";
 import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
@@ -10,14 +10,12 @@ import Message from "@messages/Message";
 import User from "@modules/User";
 import Chat from "@modules/Chat";
 
-import { getChat, getChatId, getError, sleep, getUser, getUserId, MessageClient, ChatClient, UserClient } from "@utils/Generic";
 import PromiseMessages from "@utils/PromiseMessages";
+import { sleep, getError } from "@utils/Generic";
 import { ClientEvents } from "@utils/Emmiter";
 
-import { Chats, ChatStatus, IChats } from "../types/Chat";
-import { IUsers, Users } from "../types/User";
-import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
-import { IClient } from "@interfaces/Client";
+import { Chats, ChatStatus } from "../types/Chat";
+import { Users } from "../types/User";
 
 export type ClientType = Client<IBot, ICommand>;
 
@@ -48,15 +46,15 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
   }
 
   public configEvents() {
-    this.bot.ev.on("message", (message: IMessage) => {
+    this.bot.ev.on("message", (message: Message) => {
       try {
         if (this.promiseMessages.resolvePromiseMessages(message)) return;
 
-        this.emit("message", MessageClient(this, message));
+        this.emit("message", Message.Client(this, message));
 
         if (this.config.disableAutoCommand) return;
 
-        this.getCommand(message.text)?.execute(MessageClient(this, message));
+        this.getCommand(message.text)?.execute(Message.Client(this, message));
       } catch (err) {
         this.emit("error", getError(err));
       }
@@ -122,8 +120,8 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
       try {
         this.emit("user", {
           action: update.action,
-          chat: ChatClient(this, update.chat),
-          user: UserClient(this, update.user),
+          chat: Chat.Client(this, update.chat),
+          user: User.Client(this, update.user),
         });
       } catch (err) {
         this.emit("error", getError(err));
@@ -178,38 +176,38 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
 
   //! <============================> MESSAGES <============================>
 
-  public deleteMessage(message: IMessage): Promise<void> {
+  public deleteMessage(message: Message): Promise<void> {
     return this.bot.removeMessage(message);
   }
 
-  public removeMessage(message: IMessage): Promise<void> {
+  public removeMessage(message: Message): Promise<void> {
     return this.bot.removeMessage(message);
   }
 
-  public readMessage(message: IMessage) {
+  public readMessage(message: Message) {
     return this.bot.readMessage(message);
   }
 
-  public addReaction(message: IMessage, reaction: string): Promise<void> {
+  public addReaction(message: Message, reaction: string): Promise<void> {
     return this.bot.addReaction(message, reaction);
   }
 
-  public removeReaction(message: IMessage): Promise<void> {
+  public removeReaction(message: Message): Promise<void> {
     return this.bot.removeReaction(message);
   }
 
-  public async send(message: IMessage): Promise<Message> {
+  public async send(message: Message): Promise<Message> {
     try {
-      return MessageClient(this, await this.bot.send(message));
+      return Message.Client(this, await this.bot.send(message));
     } catch (err) {
       this.emit("error", getError(err));
     }
 
-    return MessageClient(this, message);
+    return Message.Client(this, message);
   }
 
-  public async awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: IMessage[]): Promise<Message> {
-    return MessageClient(this, await this.promiseMessages.addPromiseMessage(getChatId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages));
+  public async awaitMessage(chat: Chat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
+    return Message.Client(this, await this.promiseMessages.addPromiseMessage(Chat.getId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages));
   }
 
   async addAutomate(message: Message, timeout: number, chats?: Chats, id: string = String(Date.now())): Promise<any> {
@@ -226,7 +224,7 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
       if (this.autoMessages[id].updatedAt !== now) return;
 
       await Promise.all(
-        this.autoMessages[id].chats.map(async (chat: IChat) => {
+        this.autoMessages[id].chats.map(async (chat: Chat) => {
           const automated: any = this.autoMessages[id];
 
           if (automated.updatedAt !== now) return;
@@ -276,16 +274,16 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
 
   //! <==============================> CHAT <==============================>
 
-  public async getChat(chat: IChat | string): Promise<Chat | null> {
-    const iChat = await this.bot.getChat(getChat(chat));
+  public async getChat(chat: Chat | string): Promise<Chat | null> {
+    const iChat = await this.bot.getChat(Chat.get(chat));
 
     if (!iChat) return null;
 
-    return ChatClient(this, iChat);
+    return Chat.Client(this, iChat);
   }
 
-  public setChat(chat: IChat): Promise<void> {
-    return this.bot.setChat(ChatClient(this, chat));
+  public setChat(chat: Chat): Promise<void> {
+    return this.bot.setChat(Chat.Client(this, chat));
   }
 
   public async getChats(): Promise<Chats> {
@@ -294,106 +292,106 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
     const chats = await this.bot.getChats();
 
     for (const id in chats) {
-      modules[id] = ChatClient(this, chats[id]);
+      modules[id] = Chat.Client(this, chats[id]);
     }
 
     return modules;
   }
 
-  public setChats(chats: IChats): Promise<void> {
+  public setChats(chats: Chats): Promise<void> {
     return this.bot.setChats(chats);
   }
 
-  public addChat(chat: string | IChat): Promise<void> {
-    return this.bot.addChat(ChatClient(this, getChat(chat)));
+  public addChat(chat: string | Chat): Promise<void> {
+    return this.bot.addChat(Chat.Client(this, Chat.get(chat)));
   }
 
-  public removeChat(chat: string | IChat): Promise<void> {
-    return this.bot.removeChat(ChatClient(this, getChat(chat)));
+  public removeChat(chat: string | Chat): Promise<void> {
+    return this.bot.removeChat(Chat.Client(this, Chat.get(chat)));
   }
 
-  public getChatName(chat: IChat | string) {
-    return this.bot.getChatName(getChat(chat));
+  public getChatName(chat: Chat | string) {
+    return this.bot.getChatName(Chat.get(chat));
   }
 
-  public setChatName(chat: IChat | string, name: string) {
-    return this.bot.setChatName(getChat(chat), name);
+  public setChatName(chat: Chat | string, name: string) {
+    return this.bot.setChatName(Chat.get(chat), name);
   }
 
-  public getChatDescription(chat: IChat | string) {
-    return this.bot.getChatDescription(getChat(chat));
+  public getChatDescription(chat: Chat | string) {
+    return this.bot.getChatDescription(Chat.get(chat));
   }
 
-  public setChatDescription(chat: IChat | string, description: string) {
-    return this.bot.setChatDescription(getChat(chat), description);
+  public setChatDescription(chat: Chat | string, description: string) {
+    return this.bot.setChatDescription(Chat.get(chat), description);
   }
 
-  public getChatProfile(chat: IChat | string) {
-    return this.bot.getChatProfile(getChat(chat));
+  public getChatProfile(chat: Chat | string) {
+    return this.bot.getChatProfile(Chat.get(chat));
   }
 
-  public setChatProfile(chat: IChat | string, profile: Buffer) {
-    return this.bot.setChatProfile(getChat(chat), profile);
+  public setChatProfile(chat: Chat | string, profile: Buffer) {
+    return this.bot.setChatProfile(Chat.get(chat), profile);
   }
 
-  public changeChatStatus(chat: IChat | string, status: ChatStatus): Promise<void> {
-    return this.bot.changeChatStatus(getChat(chat), status);
+  public changeChatStatus(chat: Chat | string, status: ChatStatus): Promise<void> {
+    return this.bot.changeChatStatus(Chat.get(chat), status);
   }
 
-  public addUserInChat(chat: IChat | string, user: IUser | string) {
-    return this.bot.addUserInChat(getChat(chat), getUser(user));
+  public addUserInChat(chat: Chat | string, user: User | string) {
+    return this.bot.addUserInChat(Chat.get(chat), User.get(user));
   }
 
-  public removeUserInChat(chat: IChat | string, user: IUser | string) {
-    return this.bot.removeUserInChat(getChat(chat), getUser(user));
+  public removeUserInChat(chat: Chat | string, user: User | string) {
+    return this.bot.removeUserInChat(Chat.get(chat), User.get(user));
   }
 
-  public promoteUserInChat(chat: IChat | string, user: IUser | string) {
-    return this.bot.promoteUserInChat(getChat(chat), getUser(user));
+  public promoteUserInChat(chat: Chat | string, user: User | string) {
+    return this.bot.promoteUserInChat(Chat.get(chat), User.get(user));
   }
 
-  public demoteUserInChat(chat: IChat | string, user: IUser) {
-    return this.bot.demoteUserInChat(getChat(chat), getUser(user));
+  public demoteUserInChat(chat: Chat | string, user: User) {
+    return this.bot.demoteUserInChat(Chat.get(chat), User.get(user));
   }
 
-  public createChat(chat: IChat) {
-    return this.bot.createChat(getChat(chat));
+  public createChat(chat: Chat) {
+    return this.bot.createChat(Chat.get(chat));
   }
 
-  public leaveChat(chat: IChat | string) {
-    return this.bot.leaveChat(getChat(chat));
+  public leaveChat(chat: Chat | string) {
+    return this.bot.leaveChat(Chat.get(chat));
   }
 
-  public async getChatAdmins(chat: IChat | string) {
-    const admins = await this.bot.getChatAdmins(getChat(chat));
+  public async getChatAdmins(chat: Chat | string) {
+    const admins = await this.bot.getChatAdmins(Chat.get(chat));
 
     const adminModules: Users = {};
 
     Object.keys(admins).forEach((id) => {
-      adminModules[id] = UserClient(this, admins[id]);
+      adminModules[id] = User.Client(this, admins[id]);
     });
 
     return adminModules;
   }
 
-  public async getChatLeader(chat: IChat | string): Promise<User> {
-    const leader = await this.bot.getChatLeader(getChat(chat));
+  public async getChatLeader(chat: Chat | string): Promise<User> {
+    const leader = await this.bot.getChatLeader(Chat.get(chat));
 
-    return UserClient(this, leader);
+    return User.Client(this, leader);
   }
 
   //! <==============================> USER <==============================>
 
-  public async getUser(user: IUser | string): Promise<User | null> {
-    const usr = await this.bot.getUser(getUser(user));
+  public async getUser(user: User | string): Promise<User | null> {
+    const usr = await this.bot.getUser(User.get(user));
 
-    if (usr) return UserClient(this, usr);
+    if (usr) return User.Client(this, usr);
 
     return null;
   }
 
-  public setUser(user: IUser | string): Promise<void> {
-    return this.bot.setUser(UserClient(this, getUser(user)));
+  public setUser(user: User | string): Promise<void> {
+    return this.bot.setUser(User.Client(this, User.get(user)));
   }
 
   public async getUsers(): Promise<Users> {
@@ -402,65 +400,65 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
     const users = await this.bot.getUsers();
 
     for (const id in users) {
-      modules[id] = UserClient(this, users[id]);
+      modules[id] = User.Client(this, users[id]);
     }
 
     return modules;
   }
 
-  public setUsers(users: IUsers) {
+  public setUsers(users: Users) {
     return this.bot.setUsers(users);
   }
 
-  public addUser(user: IUser | string): Promise<void> {
-    return this.bot.addUser(UserClient(this, getUser(user)));
+  public addUser(user: User | string): Promise<void> {
+    return this.bot.addUser(User.Client(this, User.get(user)));
   }
 
-  public removeUser(user: IUser | string) {
-    return this.bot.removeUser(getUser(user));
+  public removeUser(user: User | string) {
+    return this.bot.removeUser(User.get(user));
   }
 
-  public getUserName(user: IUser | string) {
-    if (getUserId(user) == this.id) return this.getBotName();
+  public getUserName(user: User | string) {
+    if (User.getId(user) == this.id) return this.getBotName();
 
-    return this.bot.getUserName(getUser(user));
+    return this.bot.getUserName(User.get(user));
   }
 
-  public setUserName(user: IUser | string, name: string) {
-    if (getUserId(user) == this.id) return this.setBotName(name);
+  public setUserName(user: User | string, name: string) {
+    if (User.getId(user) == this.id) return this.setBotName(name);
 
-    return this.bot.setUserName(getUser(user), name);
+    return this.bot.setUserName(User.get(user), name);
   }
 
-  public getUserDescription(user: IUser | string) {
-    if (getUserId(user) == this.id) return this.getBotDescription();
+  public getUserDescription(user: User | string) {
+    if (User.getId(user) == this.id) return this.getBotDescription();
 
-    return this.bot.getUserDescription(getUser(user));
+    return this.bot.getUserDescription(User.get(user));
   }
 
-  public setUserDescription(user: IUser | string, description: string) {
-    if (getUserId(user) == this.id) return this.setBotDescription(description);
+  public setUserDescription(user: User | string, description: string) {
+    if (User.getId(user) == this.id) return this.setBotDescription(description);
 
-    return this.bot.setUserDescription(getUser(user), description);
+    return this.bot.setUserDescription(User.get(user), description);
   }
 
-  public getUserProfile(user: IUser | string) {
-    if (getUserId(user) == this.id) return this.getBotProfile();
+  public getUserProfile(user: User | string) {
+    if (User.getId(user) == this.id) return this.getBotProfile();
 
-    return this.bot.getUserProfile(getUser(user));
+    return this.bot.getUserProfile(User.get(user));
   }
 
-  public setUserProfile(user: IUser | string, profile: Buffer) {
-    if (getUserId(user) == this.id) return this.setBotProfile(profile);
+  public setUserProfile(user: User | string, profile: Buffer) {
+    if (User.getId(user) == this.id) return this.setBotProfile(profile);
 
-    return this.bot.setUserProfile(getUser(user), profile);
+    return this.bot.setUserProfile(User.get(user), profile);
   }
 
-  public unblockUser(user: IUser | string) {
-    return this.bot.unblockUser(getUser(user));
+  public unblockUser(user: User | string) {
+    return this.bot.unblockUser(User.get(user));
   }
 
-  public blockUser(user: IUser | string) {
-    return this.bot.blockUser(getUser(user));
+  public blockUser(user: User | string) {
+    return this.bot.blockUser(User.get(user));
   }
 }
