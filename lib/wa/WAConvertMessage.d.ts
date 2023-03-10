@@ -19,7 +19,7 @@ export declare class WhatsAppConvertMessage {
     /**
      * * Retorna a mensagem convertida
      */
-    get(): Promise<IMessage | IContactMessage | IMediaMessage>;
+    get(): Promise<IMessage | IMediaMessage | IContactMessage>;
     /**
      * * Converte a mensagem
      * @param message

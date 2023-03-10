@@ -1,4 +1,15 @@
-import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, ConnectionState, WAMessage, MessageUpsertType, WASocket, generateWAMessage } from "@adiwajshing/baileys";
+import makeWASocket, {
+  DisconnectReason,
+  downloadMediaMessage,
+  proto,
+  MediaDownloadOptions,
+  ConnectionState,
+  WAMessage,
+  MessageUpsertType,
+  WASocket,
+  generateWAMessage,
+  SocketConfig,
+} from "@adiwajshing/baileys";
 import { Boom } from "@hapi/boom";
 
 import { WhatsAppConvertMessage } from "@wa/WAConvertMessage";
@@ -6,8 +17,6 @@ import { getBaileysAuth, MultiFileAuthState } from "@wa/Auth";
 import { WhatsAppMessage } from "@wa/WAMessage";
 import { getID, replaceID } from "@wa/ID";
 import { WAStatus } from "@wa/WAStatus";
-
-import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
 import { IMessage } from "@interfaces/Messages";
 import { IChat } from "@interfaces/Chat";
@@ -29,6 +38,7 @@ import { getError } from "@utils/Generic";
 import { ConnectionStatus } from "../types/Connection";
 import { ChatStatus, IChats } from "../types/Chat";
 import { IUsers } from "../types/User";
+import pino from "pino";
 
 export default class WhatsAppBot implements IBot {
   //@ts-ignore
@@ -40,7 +50,16 @@ export default class WhatsAppBot implements IBot {
   public id: string = "";
   public auth: Auth = new MultiFileAuthState("./session");
   public wcb: WaitCallBack = new WaitCallBack();
-  public config: ConnectionConfig = DefaultConnectionConfig;
+  public config: Partial<SocketConfig>;
+
+  constructor(config?: Partial<SocketConfig>) {
+    this.config = {
+      printQRInTerminal: true,
+      connectTimeoutMs: 2000,
+      logger: pino({ level: "fatal" }),
+      ...config,
+    };
+  }
 
   public async connect(auth?: string | Auth): Promise<void> {
     return await new Promise(async (resolve, reject) => {
@@ -53,7 +72,7 @@ export default class WhatsAppBot implements IBot {
 
         const { state, saveCreds } = await getBaileysAuth(this.auth);
 
-        this.sock = makeWASocket({ auth: state });
+        this.sock = makeWASocket({ auth: state, ...this.config });
         this.sock.ev.on("creds.update", saveCreds);
 
         this.sock.ev.on("connection.update", async (update: Partial<ConnectionState>) => {

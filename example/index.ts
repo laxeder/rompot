@@ -1,52 +1,51 @@
-import BuildBot, { WhatsAppBot, Message, Command, WAModule, DefaultCommandConfig } from "../lib/index";
+import Client, { WhatsAppBot, Message, Command, DefaultCommandConfig, ChatClient } from "../src/index";
 
-const bot: WAModule = BuildBot(new WhatsAppBot(), {
+const client = new Client(new WhatsAppBot(), {
   disableAutoCommand: false,
   disableAutoTyping: false,
   disableAutoRead: true,
-  receiveAllMessages: false,
   commandConfig: DefaultCommandConfig,
 });
 
-bot.on("open", (open: { status: string; isNewLogin: boolean }) => {
+client.on("open", (open: { isNewLogin: boolean }) => {
   if (open.isNewLogin) {
     console.log("Nova conexão");
   }
 
-  console.log("Client conectado!");
+  console.log("Cliente conectado!");
 });
 
-bot.on("close", () => {
-  console.log(`Client desligado!`);
+client.on("close", () => {
+  console.log(`Cliente desligado!`);
 });
 
-bot.on("qr", (qr: string) => {
+client.on("qr", (qr: string) => {
   console.log("QR Gerado:", qr);
 });
 
-bot.on("conn", (update) => {
-  if (update.action == "connecting") {
-    console.log("Tentando conectar bot...");
-  }
+client.on("connecting", () => {
+  console.log("Tentando conectar cliente...");
+});
 
-  if (update.action == "closed") {
-    console.log(`A conexão desse bot foi fechada`);
-  }
+client.on("closed", () => {
+  console.log(`A conexão desse cliente foi fechada`);
+});
 
-  if (update.action == "reconnecting") {
-    console.log("Reconectando...");
+client.on("reconnecting", () => {
+  console.log("Reconectando...");
+});
+
+client.on("message", async (message: Message) => {
+  console.log(ChatClient(client, message.chat))
+
+  if (message.fromMe) {
+    console.log(`Send message to ${message.user.id}`);
+  } else {
+    console.log(`New message in ${message.chat.id}`);
   }
 });
 
-bot.on("message", async (message: Message) => {
-  console.log(`New message in ${message.chat.id}`);
-});
-
-bot.on("me", (message: Message) => {
-  console.log(`Send message to ${message.user.id}`);
-});
-
-bot.on("chat", (update) => {
+client.on("chat", (update) => {
   if (update.action == "add") {
     console.log(`New chat: ${update.chat.id}`);
   }
@@ -56,9 +55,9 @@ bot.on("chat", (update) => {
   }
 });
 
-bot.on("member", (update) => {
+client.on("user", (update) => {
   if (update.action == "add") {
-    console.log(`Number ${update.member.id} joined group ${update.chat.id}`);
+    console.log(`Number ${update.user.id} joined group ${update.chat.id}`);
   }
 
   if (update.action == "remove") {
@@ -66,15 +65,15 @@ bot.on("member", (update) => {
   }
 
   if (update.action == "promote") {
-    console.log(`Member (${update.member.id}) promoved!`);
+    console.log(`Member (${update.user.id}) promoved!`);
   }
 
   if (update.action == "demote") {
-    console.log(`Member (${update.member.id}) demoted!`);
+    console.log(`Member (${update.user.id}) demoted!`);
   }
 });
 
-bot.on("error", (err: any) => {
+client.on("error", (err: any) => {
   console.log("Um erro ocorreu:", err);
 });
 
@@ -116,12 +115,14 @@ class BanCommand extends Command {
       return;
     }
 
+    console.log(message.chat.send);
+
     if (!(await message.chat.IsAdmin(message.user))) {
       await message.reply("Vocẽ não tem permissão para executar esse comando");
       return;
     }
 
-    if (!(await message.chat.IsAdmin(bot.id))) {
+    if (!(await message.chat.IsAdmin(client.id))) {
       await message.reply("Eu não tenho permissão para executar esse comando");
       return;
     }
@@ -131,7 +132,7 @@ class BanCommand extends Command {
       return;
     }
 
-    await bot.removeUserInChat(message.chat, message.mentions[0]);
+    await client.removeUserInChat(message.chat, message.mentions[0]);
 
     await message.chat.send("Usuário removido com sucesso!!");
   }
@@ -156,7 +157,7 @@ class AddCommand extends Command {
       return;
     }
 
-    if (!(await message.chat.IsAdmin(bot.id))) {
+    if (!(await message.chat.IsAdmin(client.id))) {
       message.reply("Eu não tenho permissão para executar esse comando");
       return;
     }
@@ -166,7 +167,7 @@ class AddCommand extends Command {
       return;
     }
 
-    await bot.addUserInChat(message.chat, message.mentions[0]);
+    await client.addUserInChat(message.chat, message.mentions[0]);
 
     await message.chat.send("Usuário adicionado com sucesso!!");
   }
@@ -174,5 +175,5 @@ class AddCommand extends Command {
 
 const commands = [new HelloCommand(), new DateCommand(), new BanCommand(), new AddCommand()];
 
-bot.setCommands(commands);
-bot.connect();
+client.setCommands(commands);
+client.connect("./example/auth");

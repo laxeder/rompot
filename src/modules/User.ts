@@ -2,7 +2,7 @@ import { IUser, IUserModule } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 
 import { ClientType } from "@modules/Client";
-import BotBase from "@modules/BotBase";
+import { ClientBase } from "@modules/Base";
 
 import { getChatId } from "@utils/Generic";
 
@@ -14,7 +14,7 @@ export default class User implements IUser, IUserModule {
   public isAdmin: boolean;
   public isLeader: boolean;
 
-  public client: ClientType = BotBase();
+  public client: ClientType = ClientBase();
 
   constructor(id: string, name?: string, description?: string, profile?: Buffer) {
     this.id = id || "";

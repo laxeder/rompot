@@ -3,7 +3,7 @@ import ICommand from "@interfaces/ICommand";
 import Message from "@messages/Message";
 
 import { ClientType } from "@modules/Client";
-import BotBase from "@modules/BotBase";
+import { ClientBase } from "@modules/Base";
 
 export default class Command implements ICommand {
   public tags: string[] = [];
@@ -13,7 +13,7 @@ export default class Command implements ICommand {
   public categories: string[] = [];
   public permissions: string[] = [];
 
-  #client: ClientType = BotBase();
+  #client: ClientType = ClientBase();
 
   get client(): ClientType {
     return this.#client;

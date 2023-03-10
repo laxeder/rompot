@@ -23,6 +23,7 @@ import PromiseMessages, { PromiseMessage } from "@utils/PromiseMessages";
 import { ClientEvents, BotEvents } from "@utils/Emmiter";
 import WaitCallBack from "@utils/WaitCallBack";
 
+import { ClientBase, BotBase } from "@modules/Base";
 import WhatsAppBot from "@wa/WhatsAppBot";
 
 export { ConnectionConfig };
@@ -51,6 +52,6 @@ export { DefaultCommandConfig, DefaultConnectionConfig };
 
 export { Command };
 
-export { WhatsAppBot };
+export { ClientBase, BotBase, WhatsAppBot };
 
 export default Client;

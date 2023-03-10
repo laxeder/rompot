@@ -1,7 +1,6 @@
 import CommandConfig from "./CommandConfig";
 export interface ConnectionConfig {
     commandConfig: CommandConfig;
-    receiveAllMessages?: boolean;
     disableAutoCommand?: boolean;
     printQRInTerminal?: boolean;
     disableAutoTyping?: boolean;
@@ -9,7 +8,6 @@ export interface ConnectionConfig {
 }
 export declare const DefaultConnectionConfig: {
     commandConfig: CommandConfig;
-    receiveAllMessages: boolean;
     printQRInTerminal: boolean;
     disableAutoCommand: boolean;
     disableAutoTyping: boolean;

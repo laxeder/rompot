@@ -3,7 +3,7 @@ import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 
 import { ClientType } from "@modules/Client";
-import BotBase from "@modules/BotBase";
+import { ClientBase } from "@modules/Base";
 
 import { ChatClient, getChat, getMessage, getUser, UserClient } from "@utils/Generic";
 import User from "@modules/User";
@@ -20,11 +20,13 @@ export default class Message implements IMessage, IMessageModule {
   public mentions: string[];
   public timestamp: Number | Long;
 
-  public client: ClientType = BotBase();
+  public client: ClientType = ClientBase();
 
   constructor(chat: IChat | string, text: string, mention?: IMessage, id?: string, user?: IUser | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long) {
     this.chat = ChatClient(this.client, getChat(chat || ""));
     this.user = UserClient(this.client, getUser(user || ""));
+
+    console.log(this.chat.send)
 
     this.id = id || "";
     this.text = text || "";

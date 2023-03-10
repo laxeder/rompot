@@ -4,7 +4,7 @@ import { IUser } from "@interfaces/User";
 import Message from "@messages/Message";
 
 import { ClientType } from "@modules/Client";
-import BotBase from "@modules/BotBase";
+import { ClientBase } from "@modules/Base";
 
 import { getMessage, getUser, getUserId, UserClient } from "@utils/Generic";
 
@@ -20,7 +20,7 @@ export default class Chat implements IChat, IChatModule {
   public status: ChatStatus;
   public users: Users = {};
 
-  public client: ClientType = BotBase();
+  public client: ClientType = ClientBase();
 
   constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: IUsers, status?: ChatStatus) {
     this.id = id || "";

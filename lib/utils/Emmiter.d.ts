@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import EventEmitter from "events";
+import { IMessage } from "../interfaces/Messages";
 import { IUser } from "../interfaces/User";
 import { IChat } from "../interfaces/Chat";
 import Message from "../messages/Message";
@@ -8,7 +9,6 @@ import Chat from "../modules/Chat";
 import { ConnectionType } from "../types/Connection";
 import { UserAction } from "../types/User";
 import { ChatAction } from "../types/Chat";
-import { IMessage } from "../interfaces/Messages";
 export declare type BotEventsMap = {
     /**
      * * Conexão alterada
@@ -59,8 +59,6 @@ export declare type BotEventsMap = {
     };
     /** * Nova mensagem */
     message: IMessage;
-    /** * Mensagem enviada pelo bot */
-    me: IMessage;
     /** * Erro ocorrido */
     error: Error;
 };
@@ -114,19 +112,17 @@ export declare type ClientEventsMap = {
     };
     /** * Nova mensagem */
     message: Message;
-    /** * Mensagem enviada pelo bot */
-    me: Message;
     /** * Erro ocorrido */
     error: Error;
 };
 export declare class ClientEvents {
     events: EventEmitter;
     constructor();
-    on<T extends keyof BotEventsMap>(eventName: T, listener: (arg: BotEventsMap[T]) => void): void;
-    off<T extends keyof BotEventsMap>(eventName: T, listener: (arg: BotEventsMap[T]) => void): void;
-    removeAllListeners<T extends keyof BotEventsMap>(event: T): void;
+    on<T extends keyof ClientEventsMap>(eventName: T, listener: (arg: ClientEventsMap[T]) => void): void;
+    off<T extends keyof ClientEventsMap>(eventName: T, listener: (arg: ClientEventsMap[T]) => void): void;
+    removeAllListeners<T extends keyof ClientEventsMap>(event: T): void;
     /** * Emite um evento */
-    emit<T extends keyof BotEventsMap>(eventName: T, arg: BotEventsMap[T]): boolean;
+    emit<T extends keyof ClientEventsMap>(eventName: T, arg: ClientEventsMap[T]): boolean;
 }
 export declare class BotEvents {
     events: EventEmitter;

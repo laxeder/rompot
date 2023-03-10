@@ -1,6 +1,5 @@
 /// <reference types="node" />
-import { DisconnectReason, proto, MediaDownloadOptions } from "@adiwajshing/baileys";
-import { ConnectionConfig } from "../config/ConnectionConfig";
+import { DisconnectReason, proto, MediaDownloadOptions, SocketConfig } from "@adiwajshing/baileys";
 import { IMessage } from "../interfaces/Messages";
 import { IChat } from "../interfaces/Chat";
 import { IUser } from "../interfaces/User";
@@ -20,7 +19,8 @@ export default class WhatsAppBot implements IBot {
     id: string;
     auth: Auth;
     wcb: WaitCallBack;
-    config: ConnectionConfig;
+    config: Partial<SocketConfig>;
+    constructor(config?: Partial<SocketConfig>);
     connect(auth?: string | Auth): Promise<void>;
     /**
      * * Reconecta ao servidor do WhatsApp

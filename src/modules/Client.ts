@@ -52,22 +52,87 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
       try {
         if (this.promiseMessages.resolvePromiseMessages(message)) return;
 
-        if (message.fromMe && this.config.disableAutoCommand) return;
+        this.emit("message", MessageClient(this, message));
+
         if (this.config.disableAutoCommand) return;
 
-        this.config.commandConfig.get(message.text, this.commands)?.execute(MessageClient(this, message));
+        this.getCommand(message.text)?.execute(MessageClient(this, message));
       } catch (err) {
         this.emit("error", getError(err));
       }
     });
 
-    this.bot.ev.on("me", (message: IMessage) => {
+    this.bot.ev.on("conn", (update) => {
       try {
-        if (this.promiseMessages.resolvePromiseMessages(message)) return;
+        this.emit("conn", update);
+      } catch (err) {
+        this.emit("error", getError(err));
+      }
+    });
 
-        if (this.config.disableAutoCommand || this.config.receiveAllMessages) return;
+    this.bot.ev.on("open", (update) => {
+      try {
+        this.emit("open", update);
+      } catch (err) {
+        this.emit("error", getError(err));
+      }
+    });
 
-        this.getCommand(message.text)?.execute(MessageClient(this, message));
+    this.bot.ev.on("reconnecting", (update) => {
+      try {
+        this.emit("reconnecting", update);
+      } catch (err) {
+        this.emit("error", getError(err));
+      }
+    });
+
+    this.bot.ev.on("connecting", (update) => {
+      try {
+        this.emit("connecting", update);
+      } catch (err) {
+        this.emit("error", getError(err));
+      }
+    });
+
+    this.bot.ev.on("closed", (update) => {
+      try {
+        this.emit("closed", update);
+      } catch (err) {
+        this.emit("error", getError(err));
+      }
+    });
+
+    this.bot.ev.on("close", (update) => {
+      try {
+        this.emit("close", update);
+      } catch (err) {
+        this.emit("error", getError(err));
+      }
+    });
+
+    this.bot.ev.on("qr", (qr) => {
+      try {
+        this.emit("qr", qr);
+      } catch (err) {
+        this.emit("error", getError(err));
+      }
+    });
+
+    this.bot.ev.on("user", (update) => {
+      try {
+        this.emit("user", {
+          action: update.action,
+          chat: ChatClient(this, update.chat),
+          user: UserClient(this, update.user),
+        });
+      } catch (err) {
+        this.emit("error", getError(err));
+      }
+    });
+
+    this.bot.ev.on("error", (err) => {
+      try {
+        this.emit("error", getError(err));
       } catch (err) {
         this.emit("error", getError(err));
       }

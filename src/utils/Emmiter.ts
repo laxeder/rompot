@@ -1,5 +1,6 @@
 import EventEmitter from "events";
 
+import { IMessage } from "@interfaces/Messages";
 import { IUser } from "@interfaces/User";
 import { IChat } from "@interfaces/Chat";
 
@@ -11,7 +12,6 @@ import Chat from "@modules/Chat";
 import { ConnectionType } from "../types/Connection";
 import { UserAction } from "../types/User";
 import { ChatAction } from "../types/Chat";
-import { IMessage } from "@interfaces/Messages";
 
 export type BotEventsMap = {
   /**
@@ -59,9 +59,6 @@ export type BotEventsMap = {
 
   /** * Nova mensagem */
   message: IMessage;
-
-  /** * Mensagem enviada pelo bot */
-  me: IMessage;
 
   /** * Erro ocorrido */
   error: Error;
@@ -114,9 +111,6 @@ export type ClientEventsMap = {
   /** * Nova mensagem */
   message: Message;
 
-  /** * Mensagem enviada pelo bot */
-  me: Message;
-
   /** * Erro ocorrido */
   error: Error;
 };
@@ -150,20 +144,20 @@ export class ClientEvents {
     });
   }
 
-  on<T extends keyof BotEventsMap>(eventName: T, listener: (arg: BotEventsMap[T]) => void) {
+  on<T extends keyof ClientEventsMap>(eventName: T, listener: (arg: ClientEventsMap[T]) => void) {
     this.events.on(eventName, listener);
   }
 
-  off<T extends keyof BotEventsMap>(eventName: T, listener: (arg: BotEventsMap[T]) => void): void {
+  off<T extends keyof ClientEventsMap>(eventName: T, listener: (arg: ClientEventsMap[T]) => void): void {
     this.events.off(eventName, listener);
   }
 
-  removeAllListeners<T extends keyof BotEventsMap>(event: T): void {
+  removeAllListeners<T extends keyof ClientEventsMap>(event: T): void {
     this.events.removeAllListeners(event);
   }
 
   /** * Emite um evento */
-  emit<T extends keyof BotEventsMap>(eventName: T, arg: BotEventsMap[T]): boolean {
+  emit<T extends keyof ClientEventsMap>(eventName: T, arg: ClientEventsMap[T]): boolean {
     return this.events.emit(eventName, arg);
   }
 }
