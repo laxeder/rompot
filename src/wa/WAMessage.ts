@@ -42,7 +42,8 @@ export class WhatsAppMessage {
 
       const ctx: any = {};
 
-      this.options.quoted = await generateWAMessage(this.chat, waMSG.message, { userJid: getID(this._wa.id), ...ctx });
+      this.options.quoted = await generateWAMessage(this.chat, waMSG.message, { userJid: getID(waMSG.message.participant || this._wa.id), ...ctx });
+      this.options.quoted.key.fromMe = getID(waMSG.message.participant) == getID(this._wa.id);
     }
 
     if (message instanceof ButtonMessage) await this.refactoryButtonMessage(message);

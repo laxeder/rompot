@@ -46,8 +46,10 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
   }
 
   public configEvents() {
-    this.bot.ev.on("message", (message: Message) => {
+    this.bot.ev.on("message", async (message: Message) => {
       try {
+        if (!message.fromMe && !this.config.disableAutoRead) await this.readMessage(message);
+
         if (this.promiseMessages.resolvePromiseMessages(message)) return;
 
         this.emit("message", Message.Client(this, message));
@@ -198,6 +200,10 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
 
   public async send(message: Message): Promise<Message> {
     try {
+      if (!this.config.disableAutoTyping) {
+        await this.changeChatStatus(message.chat, "typing");
+      }
+
       return Message.Client(this, await this.bot.send(message));
     } catch (err) {
       this.emit("error", getError(err));

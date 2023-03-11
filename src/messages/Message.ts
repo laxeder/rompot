@@ -69,6 +69,8 @@ export default class Message {
   public async reply(message: Message | string, mention: boolean = true) {
     const msg = Message.get(message);
 
+    if (!!!msg.chat.id) msg.chat.id = this.chat.id;
+    if (!!!msg.user.id) msg.user.id = this.client.id;
     if (mention) msg.mention = this;
 
     return this.client.send(msg);

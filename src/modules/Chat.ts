@@ -169,7 +169,12 @@ export default class Chat {
    * @param message Mensagem que será enviada
    */
   public async send(message: Message | string): Promise<Message> {
-    return this.client.send(Message.get(message));
+    const msg = Message.get(message);
+
+    if (!!!msg.chat.id) msg.chat.id = this.id;
+    if (!!!msg.user.id) msg.user.id = this.client.id;
+
+    return this.client.send(msg);
   }
 
   /**

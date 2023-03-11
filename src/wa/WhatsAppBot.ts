@@ -54,7 +54,8 @@ export default class WhatsAppBot implements IBot {
     this.config = {
       printQRInTerminal: true,
       connectTimeoutMs: 2000,
-      logger: pino({ level: "fatal" }),
+      defaultQueryTimeoutMs: 30000,
+      logger: pino({ level: "silent" }),
       ...config,
     };
   }
@@ -685,12 +686,6 @@ export default class WhatsAppBot implements IBot {
   }
 
   public async send(content: Message): Promise<Message> {
-    if (content instanceof MediaMessage) {
-      await this.changeChatStatus(content.chat, "recording");
-    } else {
-      await this.changeChatStatus(content.chat, "typing");
-    }
-
     const waMSG = new WhatsAppMessage(this, content);
     await waMSG.refactory(content);
 
