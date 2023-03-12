@@ -7,11 +7,14 @@ import IBot from "@interfaces/IBot";
 
 import LocationMessage from "@messages/LocationMessage";
 import ContactMessage from "@messages/ContactMessage";
+import StickerMessage from "@messages/StickerMessage";
 import ButtonMessage from "@messages/ButtonMessage";
 import ImageMessage from "@messages/ImageMessage";
 import VideoMessage from "@messages/VideoMessage";
 import MediaMessage from "@messages/MediaMessage";
 import ListMessage from "@messages/ListMessage";
+import FileMessage from "@messages/FileMessage";
+
 import Message from "@messages/Message";
 
 import Client, { ClientType } from "@modules/Client";
@@ -32,7 +35,7 @@ export { IUser, IChat, IBot };
 
 export * from "@interfaces/Messages";
 
-export { ButtonMessage, ContactMessage, ImageMessage, VideoMessage, MediaMessage, Message, ListMessage, LocationMessage };
+export { ButtonMessage, ContactMessage, ImageMessage, VideoMessage, MediaMessage, Message, ListMessage, LocationMessage, StickerMessage, FileMessage };
 
 export { Client, ClientType, Chat, User };
 

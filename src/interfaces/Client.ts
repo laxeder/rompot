@@ -1,6 +1,7 @@
 import ICommand from "@interfaces/ICommand";
 import Auth from "@interfaces/Auth";
 
+import MediaMessage from "@messages/MediaMessage";
 import Message from "@messages/Message";
 
 import User from "@modules/User";
@@ -65,6 +66,19 @@ export interface IClient extends ClientEvents {
   //? ************** MESSAGE *************
 
   /**
+   * * Adiciona uma reação na mensagem
+   * @param message Mensagem que será reagida
+   * @param reaction Reação
+   */
+  addReaction(message: Message, reaction: string): Promise<void>;
+
+  /**
+   * * Remove a reação da mensagem
+   * @param message Mensagem que terá sua reação removida
+   */
+  removeReaction(message: Message): Promise<void>;
+
+  /**
    * * Marca uma mensagem como visualizada
    * @param message Mensagem que será visualizada
    */
@@ -108,6 +122,13 @@ export interface IClient extends ClientEvents {
    * @param message Mensagem que será deletada da sala de bate-papos
    */
   deleteMessage(message: Message): Promise<void>;
+
+  /**
+   * * Retorna a stream da mídia
+   * @param message Mídia que será baixada
+   * @returns Stream da mídia
+   */
+  downloadStreamMessage(message: MediaMessage): Promise<Buffer>;
 
   //? *************** BOT ***************
 
@@ -360,19 +381,4 @@ export interface IClient extends ClientEvents {
    * @param users Usuários
    */
   setUsers(users: Users): Promise<void>;
-
-  //? ************** MESSAGE *************
-
-  /**
-   * * Adiciona uma reação na mensagem
-   * @param message Mensagem que será reagida
-   * @param reaction Reação
-   */
-  addReaction(message: Message, reaction: string): Promise<void>;
-
-  /**
-   * * Remove a reação da mensagem
-   * @param message Mensagem que terá sua reação removida
-   */
-  removeReaction(message: Message): Promise<void>;
 }

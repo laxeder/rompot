@@ -11,6 +11,7 @@ import makeWASocket, {
   SocketConfig,
 } from "@adiwajshing/baileys";
 import { Boom } from "@hapi/boom";
+import internal from "stream";
 import pino from "pino";
 
 import { getBaileysAuth, MultiFileAuthState } from "@wa/Auth";
@@ -22,7 +23,6 @@ import { WAStatus } from "@wa/WAStatus";
 import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
-import MediaMessage from "@messages/MediaMessage";
 import Message from "@messages/Message";
 
 import User from "@modules/User";
@@ -36,6 +36,7 @@ import { getError } from "@utils/Generic";
 
 import { ConnectionStatus } from "../types/Connection";
 import { Chats, ChatStatus } from "../types/Chat";
+import { Media } from "../types/Message";
 import { Users } from "../types/User";
 
 export default class WhatsAppBot implements IBot {
@@ -47,6 +48,7 @@ export default class WhatsAppBot implements IBot {
   public status: ConnectionStatus = "offline";
   public id: string = "";
   public auth: Auth = new MultiFileAuthState("./session", false);
+  public logger: any = pino({ level: "silent" });
   public wcb: WaitCallBack = new WaitCallBack();
   public config: Partial<SocketConfig>;
 
@@ -55,7 +57,7 @@ export default class WhatsAppBot implements IBot {
       printQRInTerminal: true,
       connectTimeoutMs: 2000,
       defaultQueryTimeoutMs: 30000,
-      logger: pino({ level: "silent" }),
+      logger: this.logger,
       ...config,
     };
   }
@@ -694,11 +696,12 @@ export default class WhatsAppBot implements IBot {
     var sendedMessage: proto.WebMessageInfo | undefined;
 
     if (message.hasOwnProperty("templateButtons")) {
-      const ctx: any = {};
       const fullMsg = await this.wcb.waitCall(() =>
         generateWAMessage(chat, message, {
           userJid: getID(this.id),
-          ...ctx,
+          upload(): any {
+            return {};
+          },
         })
       );
 
@@ -712,6 +715,24 @@ export default class WhatsAppBot implements IBot {
     }
 
     return sendedMessage ? await new WhatsAppConvertMessage(this, sendedMessage).get() : content;
+  }
+
+  public async downloadStreamMessage(media: Media): Promise<Buffer> {
+    const stream: any = await downloadMediaMessage(
+      media.stream,
+      "buffer",
+      {},
+      {
+        logger: this.logger,
+        reuploadRequest: (m: proto.IWebMessageInfo) => new Promise((resolve) => resolve(m)),
+      }
+    );
+
+    if (stream instanceof internal.Transform) {
+      return stream.read();
+    }
+
+    return stream;
   }
 
   //! ******************************** OUTROS *******************************

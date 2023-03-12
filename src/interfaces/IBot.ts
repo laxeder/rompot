@@ -9,6 +9,7 @@ import { BotEvents } from "@utils/Emmiter";
 
 import { Chats, ChatStatus } from "../types/Chat";
 import { BotStatus } from "../types/Bot";
+import { Media } from "../types/Message";
 import { Users } from "../types/User";
 
 export default interface IBot {
@@ -68,6 +69,13 @@ export default interface IBot {
    * @param message Mensagem que será deletada da sala de bate-papos
    */
   deleteMessage(message: Message): Promise<void>;
+
+  /**
+   * * Retorna a stream da mídia
+   * @param message Mídia que será baixada
+   * @returns Stream da mídia
+   */
+  downloadStreamMessage(media: Media): Promise<Buffer>;
 
   //? *************** BOT ***************
 

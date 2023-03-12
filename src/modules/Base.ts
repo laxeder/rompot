@@ -12,6 +12,7 @@ import { BotEvents } from "@utils/Emmiter";
 
 import { Chats, ChatStatus } from "../types/Chat";
 import { BotStatus } from "../types/Bot";
+import { Media } from "../types/Message";
 import { Users } from "../types/User";
 
 export function ClientBase(): ClientType {
@@ -29,6 +30,10 @@ export class BotBase implements IBot {
 
   async stop(reason: any): Promise<void> {}
 
+  async addReaction(message: Message, reaction: string): Promise<void> {}
+
+  async removeReaction(message: Message): Promise<void> {}
+
   async readMessage(message: Message): Promise<void> {}
 
   async send(message: Message): Promise<Message> {
@@ -38,6 +43,10 @@ export class BotBase implements IBot {
   async removeMessage(message: Message): Promise<void> {}
 
   async deleteMessage(message: Message): Promise<void> {}
+
+  async downloadStreamMessage(media: Media): Promise<Buffer> {
+    return Buffer.from("");
+  }
 
   async getBotName(): Promise<string> {
     return "";
@@ -150,8 +159,4 @@ export class BotBase implements IBot {
   }
 
   async setUsers(users: Users): Promise<void> {}
-
-  async addReaction(message: Message, reaction: string): Promise<void> {}
-
-  async removeReaction(message: Message): Promise<void> {}
 }

@@ -1,3 +1,4 @@
+import MediaMessage from "@messages/MediaMessage";
 import Message from "@messages/Message";
 
 import Chat from "@modules/Chat";
@@ -5,12 +6,7 @@ import User from "@modules/User";
 
 import { Media } from "../types/Message";
 
-export default class MediaMessage extends Message {
-  /** * Arquivo da mensagem */
-  public file: Media | Buffer | string;
-  /** * O arquivo é um GIF */
-  public isGIF: boolean = false;
-
+export default class FileMessage extends MediaMessage {
   constructor(
     chat: Chat | string,
     text: string,
@@ -23,15 +19,13 @@ export default class MediaMessage extends Message {
     mentions?: string[],
     timestamp?: Number | Long
   ) {
-    super(chat, text, mention, id, user, fromMe, selected, mentions, timestamp);
-
-    this.file = file;
+    super(chat, text, file, mention, id, user, fromMe, selected, mentions, timestamp);
   }
 
   /**
    * @returns Obter arquivo
    */
-  public getStream(): Promise<Buffer> {
-    return this.client.downloadStreamMessage(this);
+  public getFile() {
+    return this.getStream();
   }
 }

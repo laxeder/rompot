@@ -7,6 +7,7 @@ import ImageMessage from "@messages/ImageMessage";
 import MediaMessage from "@messages/MediaMessage";
 import VideoMessage from "@messages/VideoMessage";
 import AudioMessage from "@messages/AudioMessage";
+import FileMessage from "@messages/FileMessage";
 import ListMessage from "@messages/ListMessage";
 import Message from "@messages/Message";
 
@@ -40,9 +41,12 @@ export class WhatsAppMessage {
       const waMSG = new WhatsAppMessage(this._wa, message.mention);
       await waMSG.refactory(message.mention);
 
-      const ctx: any = {};
-
-      this.options.quoted = await generateWAMessage(this.chat, waMSG.message, { userJid: getID(waMSG.message.participant || this._wa.id), ...ctx });
+      this.options.quoted = await generateWAMessage(this.chat, waMSG.message, {
+        userJid: getID(waMSG.message.participant || this._wa.id),
+        upload(): any {
+          return {};
+        },
+      });
       this.options.quoted.key.fromMe = getID(waMSG.message.participant) == getID(this._wa.id);
     }
 
@@ -87,16 +91,21 @@ export class WhatsAppMessage {
     delete this.message.text;
 
     if (message instanceof ImageMessage) {
-      this.message.image = message.getImage();
+      this.message.image = await message.getImage();
     }
 
     if (message instanceof VideoMessage) {
-      this.message.video = message.getVideo();
+      this.message.video = await message.getVideo();
     }
 
     if (message instanceof AudioMessage) {
-      this.message.audio = message.getAudio();
+      this.message.audio = await message.getAudio();
       this.message.mimetype = "audio/mp4";
+    }
+
+    if (message instanceof FileMessage) {
+      this.message.document = await message.getFile();
+      this.message.mimetype = "application/octet-stream";
     }
 
     if (message.isGIF) {

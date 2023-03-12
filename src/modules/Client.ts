@@ -1,3 +1,5 @@
+import { readFileSync } from "fs";
+
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
 import { IClient } from "@interfaces/Client";
@@ -5,6 +7,7 @@ import ICommand from "@interfaces/ICommand";
 import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
+import MediaMessage from "@messages/MediaMessage";
 import Message from "@messages/Message";
 
 import User from "@modules/User";
@@ -250,6 +253,23 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
     } catch (err) {
       this.emit("error", getError(err));
     }
+  }
+
+  /**
+   * * Retorna a stream da mídia
+   * @param message Mídia que será baixada
+   * @returns Stream da mídia
+   */
+  async downloadStreamMessage(message: MediaMessage): Promise<Buffer> {
+    if (!!!message.file) return Buffer.from("");
+
+    if (typeof message.file == "string") {
+      return readFileSync(message.file);
+    }
+
+    if (Buffer.isBuffer(message.file)) return message.file;
+
+    return this.bot.downloadStreamMessage(message.file);
   }
 
   //! <===============================> BOT <==============================>

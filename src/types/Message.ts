@@ -50,3 +50,5 @@ export type Button = {
 };
 
 export type ButtonType = "reply" | "call" | "url";
+
+export type Media = { stream: any };

@@ -6,15 +6,20 @@ import User from "@modules/User";
 
 import { Media } from "../types/Message";
 
-export default class AudioMessage extends MediaMessage {
+export default class StickerMessage extends MediaMessage {
+  /** * Titulo da figurinha */
+  public title: string = "";
+  /** * Descrição da figurinha */
+  public description: string = "";
+
   constructor(chat: Chat | string, file: Media | Buffer | string, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long) {
     super(chat, "", file, mention, id, user, fromMe, selected, mentions, timestamp);
   }
 
   /**
-   * @returns Obter audio
+   * @returns Obter figurinha
    */
-  public getAudio() {
+  public getSticker() {
     return this.getStream();
   }
 }

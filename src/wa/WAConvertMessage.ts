@@ -1,5 +1,4 @@
-import { downloadMediaMessage, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
-import pino from "pino";
+import { getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
 
 import LocationMessage from "@messages/LocationMessage";
 import ContactMessage from "@messages/ContactMessage";
@@ -9,6 +8,7 @@ import ImageMessage from "@messages/ImageMessage";
 import VideoMessage from "@messages/VideoMessage";
 import AudioMessage from "@messages/AudioMessage";
 import ListMessage from "@messages/ListMessage";
+import FileMessage from "@messages/FileMessage";
 import Message from "@messages/Message";
 
 import Chat from "@modules/Chat";
@@ -16,6 +16,8 @@ import User from "@modules/User";
 
 import WhatsAppBot from "@wa/WhatsAppBot";
 import { replaceID } from "@wa/ID";
+
+import { Media } from "../types/Message";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
@@ -112,7 +114,7 @@ export class WhatsAppConvertMessage {
       return;
     }
 
-    if (contentType == "imageMessage" || contentType == "videoMessage" || contentType == "audioMessage") {
+    if (contentType == "imageMessage" || contentType == "videoMessage" || contentType == "audioMessage" || contentType == "stickerMessage" || contentType == "documentMessage") {
       this.convertMediaMessage(content, contentType);
     }
 
@@ -228,17 +230,22 @@ export class WhatsAppConvertMessage {
    */
   public convertMediaMessage(content: any, contentType: keyof proto.IMessage) {
     var msg = new MediaMessage(this._chat, "", Buffer.from(""));
+    const file: Media = { stream: this._message };
+
+    if (contentType == "documentMessage") {
+      msg = new FileMessage(this._chat, this._convertedMessage.text, file);
+    }
 
     if (contentType == "imageMessage") {
-      msg = new ImageMessage(this._chat, this._convertedMessage.text, content.url);
+      msg = new ImageMessage(this._chat, this._convertedMessage.text, file);
     }
 
     if (contentType == "videoMessage") {
-      msg = new VideoMessage(this._chat, this._convertedMessage.text, content.url);
+      msg = new VideoMessage(this._chat, this._convertedMessage.text, file);
     }
 
     if (contentType == "audioMessage") {
-      msg = new AudioMessage(this._chat, content.url);
+      msg = new AudioMessage(this._chat, file);
     }
 
     if (content.gifPlayback) {
@@ -246,24 +253,6 @@ export class WhatsAppConvertMessage {
     }
 
     this._convertedMessage = msg;
-
-    const logger: any = pino({ level: "silent" });
-
-    const download = () => {
-      return downloadMediaMessage(
-        this._message,
-        "buffer",
-        {},
-        {
-          logger,
-          reuploadRequest: (m: proto.IWebMessageInfo) => new Promise((resolve) => resolve(m)),
-        }
-      );
-    };
-
-    Object.defineProperty(this._convertedMessage, "getStream", {
-      get: () => download,
-    });
   }
 
   /**
