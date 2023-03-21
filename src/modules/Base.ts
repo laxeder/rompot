@@ -16,7 +16,7 @@ import { Media } from "../types/Message";
 import { Users } from "../types/User";
 
 export function ClientBase(): ClientType {
-  return new Client<BotBase, ICommand>(new BotBase());
+  return new Client<BotBase>(new BotBase());
 }
 
 export class BotBase implements IBot {

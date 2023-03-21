@@ -44,6 +44,7 @@ export default class WhatsAppBot implements IBot {
   private sock: WASocket = {};
   public DisconnectReason = DisconnectReason;
   public chats: Chats = {};
+  public users: Users = {};
   public ev: BotEvents = new BotEvents();
   public status: ConnectionStatus = "offline";
   public id: string = "";
@@ -117,6 +118,20 @@ export default class WhatsAppBot implements IBot {
                     this.chats[key].users[userKey].isLeader = user.isLeader;
                   });
                 }
+              });
+            }
+
+            const users: Users = JSON.parse((await this.auth.get(`users`)) || "{}");
+
+            if (!!users) {
+              Object.keys(users).forEach((key) => {
+                key = replaceID(key);
+
+                const user = users[key];
+
+                if (!!!user) return;
+
+                this.users[key] = new User(replaceID(user.id), user.name, user.description, user.profile);
               });
             }
 
@@ -213,6 +228,14 @@ export default class WhatsAppBot implements IBot {
 
             const user = new User(p);
 
+            if (!this.chats.hasOwnProperty(id)) {
+              this.chats[id] = new Chat(id);
+            }
+
+            if (!this.chats[id].users.hasOwnProperty(p)) {
+              this.chats[id].users[p] = user;
+            }
+
             if (action == "add") this.chats[id].users[p] = user;
             if (action == "promote") this.chats[id].users[p].isAdmin = true;
             if (action == "demote") {
@@ -307,6 +330,14 @@ export default class WhatsAppBot implements IBot {
   }
 
   /**
+   * * Salva os usuários salvos
+   * @param users Usuários
+   */
+  protected async saveUsers(users: any = this.users) {
+    await this.auth.set(`users`, JSON.stringify(users));
+  }
+
+  /**
    * * Lê o chat e seta ele
    * @param chat Sala de bate-papo
    */
@@ -324,7 +355,7 @@ export default class WhatsAppBot implements IBot {
             chat.participants = metadata?.participants || [];
             newChat.name = metadata?.subject;
 
-            newChat.description = Buffer.from(metadata?.desc || "", "base64").toString();
+            newChat.description = metadata?.desc || "";
           }
 
           for (const user of chat.participants) {
@@ -338,6 +369,26 @@ export default class WhatsAppBot implements IBot {
         }
 
         this.addChat(newChat);
+      }
+    } catch (err) {
+      this.ev.emit("error", getError(err));
+    }
+  }
+
+  /**
+   * * Lê o usuário e seta ele
+   * @param user Usuário
+   */
+  protected async userUpsert(user: any) {
+    try {
+      if (user.id || user.newJId) {
+        user.id = replaceID(user.id || user.newJID);
+
+        const newUser = new User(user.id, user.name || user.verifiedName || user.notify || user.subject);
+
+        newUser.description = user?.desc || "";
+
+        this.addUser(newUser);
       }
     } catch (err) {
       this.ev.emit("error", getError(err));
@@ -481,17 +532,17 @@ export default class WhatsAppBot implements IBot {
   }
 
   public async getUser(user: User): Promise<User | null> {
-    if (this.chats.hasOwnProperty(user.id)) {
-      const chat = this.chats[user.id];
+    const usr = this.chats[user.id] || this.users[user.id];
 
-      return new User(chat.id, chat.name, chat.description);
-    }
+    if (!usr) return null;
 
-    return null;
+    return new User(usr.id, usr.name, usr.description, usr.profile);
   }
 
   public async setUser(user: User): Promise<void> {
-    this.chats[user.id] = new Chat(user.id, "pv", user.name, user.description, user.profile);
+    this.users[user.id] = new User(user.id, user.name, user.description, user.profile);
+
+    await this.saveUsers(this.users);
   }
 
   public async getUsers(): Promise<Users> {

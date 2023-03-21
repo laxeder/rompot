@@ -15,6 +15,8 @@ import WhatsAppBot from "@wa/WhatsAppBot";
 import { getID } from "@wa/ID";
 
 import { List, ListItem } from "../types/Message";
+import StickerMessage from "@messages/StickerMessage";
+import Sticker, { StickerTypes } from "wa-sticker-formatter/dist";
 
 export class WhatsAppMessage {
   private _message: Message;
@@ -106,6 +108,19 @@ export class WhatsAppMessage {
     if (message instanceof FileMessage) {
       this.message.document = await message.getFile();
       this.message.mimetype = "application/octet-stream";
+    }
+
+    if (message instanceof StickerMessage) {
+      const sticker = new Sticker(await message.getSticker(), {
+        pack: message.pack,
+        author: message.author,
+        categories: message.categories,
+        id: message.id,
+        type: StickerTypes.FULL,
+        quality: 100,
+      });
+
+      this.message = { ...this.message, ...(await sticker.toMessage()) };
     }
 
     if (message.isGIF) {

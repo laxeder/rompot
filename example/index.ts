@@ -1,9 +1,9 @@
-import Client, { WhatsAppBot, Message, Command, DefaultCommandConfig } from "../lib/index";
+import Client, { WhatsAppBot, Message, Command, DefaultCommandConfig, ImageMessage, StickerMessage } from "../src/index";
 
 const client = new Client(new WhatsAppBot(), {
   disableAutoCommand: false,
   disableAutoTyping: false,
-  disableAutoRead: true,
+  disableAutoRead: false,
   commandConfig: DefaultCommandConfig,
 });
 
@@ -127,8 +127,6 @@ class BanCommand extends Command {
       await message.reply("Vocẽ precisa mencionar alguem para que ela possa ser banida");
       return;
     }
-
-    console.log(message.mentions);
 
     await message.chat.removeUser(message.mentions[0]);
 

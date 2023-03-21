@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
 import { IClient } from "@interfaces/Client";
-import ICommand from "@interfaces/ICommand";
+import Command from "@modules/Command";
 import IBot from "@interfaces/IBot";
 import Auth from "@interfaces/Auth";
 
@@ -20,9 +20,9 @@ import { ClientEvents } from "@utils/Emmiter";
 import { Chats, ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
 
-export type ClientType = Client<IBot, ICommand>;
+export type ClientType = Client<IBot>;
 
-export default class Client<Bot extends IBot, Command extends ICommand> extends ClientEvents implements IClient {
+export default class Client<Bot extends IBot> extends ClientEvents implements IClient {
   public promiseMessages: PromiseMessages = new PromiseMessages();
   public autoMessages: any = {};
 
@@ -171,11 +171,10 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
   }
 
   public getCommand(command: string): Command | null {
-    const cmd = this.config.commandConfig?.get(command, this.commands);
+    const cmd = this.config.commandConfig.get(command, this.commands);
 
     if (!cmd) return null;
 
-    //@ts-ignore
     return cmd;
   }
 
@@ -187,6 +186,38 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
 
   public removeMessage(message: Message): Promise<void> {
     return this.bot.removeMessage(message);
+  }
+
+  public addAnimatedReaction(message: Message, reactions: string[], interval: number = 2000, maxTimeout: number = 60000): (reactionStop?: string) => Promise<void> {
+    var isStoped: boolean = false;
+    const now = Date.now();
+
+    const stop = async (reactionStop?: string) => {
+      if (isStoped) return;
+      if (!reactionStop) {
+        await this.removeReaction(message);
+      } else {
+        await this.addReaction(message, reactionStop);
+      }
+
+      isStoped = true;
+    };
+
+    const addReaction = async (index: number) => {
+      if (isStoped || now + maxTimeout == Date.now()) return;
+
+      if (reactions[index]) {
+        await this.addReaction(message, reactions[index]);
+      }
+
+      await sleep(interval);
+
+      addReaction(index + 1 >= reactions.length ? 0 : index + 1);
+    };
+
+    addReaction(0);
+
+    return stop;
   }
 
   public readMessage(message: Message) {

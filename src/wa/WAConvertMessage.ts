@@ -18,6 +18,8 @@ import WhatsAppBot from "@wa/WhatsAppBot";
 import { replaceID } from "@wa/ID";
 
 import { Media } from "../types/Message";
+import StickerMessage from "@messages/StickerMessage";
+import { extractMetadata } from "wa-sticker-formatter/dist";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
@@ -115,7 +117,7 @@ export class WhatsAppConvertMessage {
     }
 
     if (contentType == "imageMessage" || contentType == "videoMessage" || contentType == "audioMessage" || contentType == "stickerMessage" || contentType == "documentMessage") {
-      this.convertMediaMessage(content, contentType);
+      await this.convertMediaMessage(content, contentType);
     }
 
     if (contentType === "buttonsMessage" || contentType === "templateMessage") {
@@ -228,7 +230,7 @@ export class WhatsAppConvertMessage {
    * @param content
    * @param contentType
    */
-  public convertMediaMessage(content: any, contentType: keyof proto.IMessage) {
+  public async convertMediaMessage(content: any, contentType: keyof proto.IMessage) {
     var msg = new MediaMessage(this._chat, "", Buffer.from(""));
     const file: Media = { stream: this._message };
 
@@ -246,6 +248,18 @@ export class WhatsAppConvertMessage {
 
     if (contentType == "audioMessage") {
       msg = new AudioMessage(this._chat, file);
+    }
+
+    if (contentType == "stickerMessage") {
+      msg = new StickerMessage(this._chat, file);
+
+      const data = await extractMetadata(await this._wa.downloadStreamMessage(file));
+
+      if (msg instanceof StickerMessage) {
+        msg.author = data["sticker-pack-publisher"] || "";
+        msg.id = data["sticker-pack-id"] || msg.id;
+        msg.pack = data["sticker-pack-name"] || "";
+      }
     }
 
     if (content.gifPlayback) {

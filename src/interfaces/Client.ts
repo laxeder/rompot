@@ -79,6 +79,15 @@ export interface IClient extends ClientEvents {
   removeReaction(message: Message): Promise<void>;
 
   /**
+   * * Adiciona animações na reação da mensagem
+   * @param message Mensagem que receberá a animação
+   * @param reactions Reações em sequência
+   * @param interval Intervalo entre cada reação
+   * @param maxTimeout Maximo de tempo reagindo
+   */
+  addAnimatedReaction(message: Message, reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void>;
+
+  /**
    * * Marca uma mensagem como visualizada
    * @param message Mensagem que será visualizada
    */

@@ -1,8 +1,8 @@
-import ICommand from "@interfaces/ICommand";
+import Command from "@modules/Command";
 
 export const DefaultCommandConfig: CommandConfig = {
-  get(command: string, commands: ICommand[], ...args: any[]): ICommand | null {
-    var cmdResult: ICommand | null = null;
+  get(command: string, commands: Command[], ...args: any[]): Command | null {
+    var cmdResult: Command | null = null;
 
     for (const cmd of commands) {
       let msg: string = command;
@@ -38,5 +38,5 @@ export default interface CommandConfig {
    * @param args Argumentos para encontrar comando
    * @returns Retorna o comando
    */
-  get(command: string, commands: ICommand[], ...args: any[]): ICommand | null;
+  get(command: string, commands: Command[], ...args: any[]): Command | null;
 }
