@@ -218,11 +218,7 @@ const contactMessage = new ContactMessage(chat, "nome", new User("id", "nome", "
 ## Outros tipos de mensagem
 
 ```ts
-import { ButtonMessage, ListMessage, ReactionMessage } from "rompot";
-
-// Cria uma mensagem de reação
-// message || id --> define a mensagem que vai receber a reação
-const reactionMessage = new ReactionMessage(chat, "❤️", message || id);
+import { ButtonMessage, ListMessage } from "rompot";
 
 // Criando botões
 const btnMessage = new ButtonMessage(chat, "texto", "rodapé");
@@ -247,7 +243,7 @@ listMessage.addItem(index2, "Abc 2");
 ```ts
 class ButtonCommand extends Command {
   tags: string[] = ["cmd-button"];
-  
+
   public async reply(message: Message): Promise<void> {
     await message.reply(`Button Clicked!`);
   }
