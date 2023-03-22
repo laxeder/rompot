@@ -1,4 +1,4 @@
-import ICommand from "../interfaces/ICommand";
+import Command from "../modules/Command";
 export declare const DefaultCommandConfig: CommandConfig;
 export default interface CommandConfig {
     /**
@@ -7,5 +7,5 @@ export default interface CommandConfig {
      * @param args Argumentos para encontrar comando
      * @returns Retorna o comando
      */
-    get(command: string, commands: ICommand[], ...args: any[]): ICommand | null;
+    get(command: string, commands: Command[], ...args: any[]): Command | null;
 }

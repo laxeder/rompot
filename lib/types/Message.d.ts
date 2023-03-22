@@ -41,3 +41,6 @@ export declare type Button = {
     content: string;
 };
 export declare type ButtonType = "reply" | "call" | "url";
+export declare type Media = {
+    stream: any;
+};

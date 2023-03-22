@@ -9,15 +9,18 @@ import { BotEvents } from "../utils/Emmiter";
 import WaitCallBack from "../utils/WaitCallBack";
 import { ConnectionStatus } from "../types/Connection";
 import { Chats, ChatStatus } from "../types/Chat";
+import { Media } from "../types/Message";
 import { Users } from "../types/User";
 export default class WhatsAppBot implements IBot {
     private sock;
     DisconnectReason: typeof DisconnectReason;
     chats: Chats;
+    users: Users;
     ev: BotEvents;
     status: ConnectionStatus;
     id: string;
     auth: Auth;
+    logger: any;
     wcb: WaitCallBack;
     config: Partial<SocketConfig>;
     constructor(config?: Partial<SocketConfig>);
@@ -40,10 +43,20 @@ export default class WhatsAppBot implements IBot {
      */
     protected saveChats(chats?: any): Promise<void>;
     /**
+     * * Salva os usuários salvos
+     * @param users Usuários
+     */
+    protected saveUsers(users?: any): Promise<void>;
+    /**
      * * Lê o chat e seta ele
      * @param chat Sala de bate-papo
      */
     protected chatUpsert(chat: any): Promise<void>;
+    /**
+     * * Lê o usuário e seta ele
+     * @param user Usuário
+     */
+    protected userUpsert(user: any): Promise<void>;
     addChat(chat: Chat): Promise<void>;
     removeChat(chat: Chat): Promise<void>;
     getChat(chat: Chat): Promise<Chat | null>;
@@ -91,6 +104,7 @@ export default class WhatsAppBot implements IBot {
     addReaction(message: Message, reaction: string): Promise<void>;
     removeReaction(message: Message): Promise<void>;
     send(content: Message): Promise<Message>;
+    downloadStreamMessage(media: Media): Promise<Buffer>;
     /**
      * * Faz o download de arquivos do WhatsApp
      * @param message

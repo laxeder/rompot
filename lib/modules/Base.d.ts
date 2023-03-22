@@ -8,6 +8,7 @@ import Chat from "./Chat";
 import { BotEvents } from "../utils/Emmiter";
 import { Chats, ChatStatus } from "../types/Chat";
 import { BotStatus } from "../types/Bot";
+import { Media } from "../types/Message";
 import { Users } from "../types/User";
 export declare function ClientBase(): ClientType;
 export declare class BotBase implements IBot {
@@ -17,10 +18,13 @@ export declare class BotBase implements IBot {
     connect(auth: Auth | string): Promise<void>;
     reconnect(alert?: boolean): Promise<void>;
     stop(reason: any): Promise<void>;
+    addReaction(message: Message, reaction: string): Promise<void>;
+    removeReaction(message: Message): Promise<void>;
     readMessage(message: Message): Promise<void>;
     send(message: Message): Promise<Message>;
     removeMessage(message: Message): Promise<void>;
     deleteMessage(message: Message): Promise<void>;
+    downloadStreamMessage(media: Media): Promise<Buffer>;
     getBotName(): Promise<string>;
     setBotName(name: string): Promise<void>;
     getBotDescription(): Promise<string>;
@@ -62,6 +66,4 @@ export declare class BotBase implements IBot {
     blockUser(user: User): Promise<void>;
     getUsers(): Promise<Users>;
     setUsers(users: Users): Promise<void>;
-    addReaction(message: Message, reaction: string): Promise<void>;
-    removeReaction(message: Message): Promise<void>;
 }

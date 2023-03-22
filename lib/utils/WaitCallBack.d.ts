@@ -5,7 +5,7 @@ export default class WaitCallBack {
      * @param callback
      * @returns
      */
-    sub(callback: (...args: any) => {}): Promise<any> | undefined;
+    sub(callback: (...args: any) => {}): Promise<any>;
     /**
      * * Desinscreve um observador
      * @param index

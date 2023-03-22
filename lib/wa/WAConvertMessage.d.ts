@@ -53,7 +53,7 @@ export declare class WhatsAppConvertMessage {
      * @param content
      * @param contentType
      */
-    convertMediaMessage(content: any, contentType: keyof proto.IMessage): void;
+    convertMediaMessage(content: any, contentType: keyof proto.IMessage): Promise<void>;
     /**
      * * Converte uma mensagem de botão
      * @param content

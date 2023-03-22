@@ -3,14 +3,15 @@
 import Message from "./Message";
 import Chat from "../modules/Chat";
 import User from "../modules/User";
+import { Media } from "../types/Message";
 export default class MediaMessage extends Message {
     /** * Arquivo da mensagem */
-    file: any | Buffer;
+    file: Media | Buffer | string;
     /** * O arquivo é um GIF */
     isGIF: boolean;
-    constructor(chat: Chat | string, text: string, file: any, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
+    constructor(chat: Chat | string, text: string, file: Media | Buffer | string, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
     /**
      * @returns Obter arquivo
      */
-    getStream(stream?: any): Promise<Buffer>;
+    getStream(): Promise<Buffer>;
 }

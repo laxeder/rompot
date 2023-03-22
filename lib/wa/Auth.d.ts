@@ -4,13 +4,13 @@ import Auth from "../interfaces/Auth";
 export declare class MultiFileAuthState implements Auth {
     folder: string;
     constructor(folder: string, autoCreateDir?: boolean);
-    getStat(folder: string): import("fs").Stats | null;
-    get: (key: string) => Promise<string | null>;
+    getStat(folder: string): import("fs").Stats;
+    get: (key: string) => Promise<string>;
     set: (key: string, data: any) => Promise<void>;
     writeData: (data: any, file: string) => Promise<void>;
-    readData: (file: string) => string | null;
+    readData: (file: string) => string;
     removeData: (file: string) => Promise<void>;
-    fixFileName: (file?: string) => string | undefined;
+    fixFileName: (file?: string) => string;
 }
 export declare function getBaileysAuth(auth: Auth): Promise<{
     saveCreds: () => Promise<void>;

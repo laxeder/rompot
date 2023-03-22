@@ -31,6 +31,13 @@ export default class Message {
      */
     addReaction(reaction: string): Promise<void>;
     /**
+     * * Adiciona animações na reação da mensagem
+     * @param reactions Reações em sequência
+     * @param interval Intervalo entre cada reação
+     * @param maxTimeout Maximo de tempo reagindo
+     */
+    addAnimatedReaction(reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void>;
+    /**
      * * Envia uma mensagem mencionando a mensagem atual
      * @param message Mensagem que terá enviada
      * @param mention Se verdadeiro a mensagem é mencionada

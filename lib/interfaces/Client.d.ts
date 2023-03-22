@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import ICommand from "./ICommand";
 import Auth from "./Auth";
+import MediaMessage from "../messages/MediaMessage";
 import Message from "../messages/Message";
 import User from "../modules/User";
 import Chat from "../modules/Chat";
@@ -47,6 +48,25 @@ export interface IClient extends ClientEvents {
      */
     stop(reason: any): Promise<void>;
     /**
+     * * Adiciona uma reação na mensagem
+     * @param message Mensagem que será reagida
+     * @param reaction Reação
+     */
+    addReaction(message: Message, reaction: string): Promise<void>;
+    /**
+     * * Remove a reação da mensagem
+     * @param message Mensagem que terá sua reação removida
+     */
+    removeReaction(message: Message): Promise<void>;
+    /**
+     * * Adiciona animações na reação da mensagem
+     * @param message Mensagem que receberá a animação
+     * @param reactions Reações em sequência
+     * @param interval Intervalo entre cada reação
+     * @param maxTimeout Maximo de tempo reagindo
+     */
+    addAnimatedReaction(message: Message, reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void>;
+    /**
      * * Marca uma mensagem como visualizada
      * @param message Mensagem que será visualizada
      */
@@ -87,6 +107,12 @@ export interface IClient extends ClientEvents {
      * @param message Mensagem que será deletada da sala de bate-papos
      */
     deleteMessage(message: Message): Promise<void>;
+    /**
+     * * Retorna a stream da mídia
+     * @param message Mídia que será baixada
+     * @returns Stream da mídia
+     */
+    downloadStreamMessage(message: MediaMessage): Promise<Buffer>;
     /**
      * @returns Retorna o nome do bot
      */
@@ -292,15 +318,4 @@ export interface IClient extends ClientEvents {
      * @param users Usuários
      */
     setUsers(users: Users): Promise<void>;
-    /**
-     * * Adiciona uma reação na mensagem
-     * @param message Mensagem que será reagida
-     * @param reaction Reação
-     */
-    addReaction(message: Message, reaction: string): Promise<void>;
-    /**
-     * * Remove a reação da mensagem
-     * @param message Mensagem que terá sua reação removida
-     */
-    removeReaction(message: Message): Promise<void>;
 }

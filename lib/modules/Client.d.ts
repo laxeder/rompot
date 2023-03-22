@@ -1,9 +1,10 @@
 /// <reference types="node" />
 import { ConnectionConfig } from "../config/ConnectionConfig";
 import { IClient } from "../interfaces/Client";
-import ICommand from "../interfaces/ICommand";
+import Command from "./Command";
 import IBot from "../interfaces/IBot";
 import Auth from "../interfaces/Auth";
+import MediaMessage from "../messages/MediaMessage";
 import Message from "../messages/Message";
 import User from "./User";
 import Chat from "./Chat";
@@ -11,8 +12,8 @@ import PromiseMessages from "../utils/PromiseMessages";
 import { ClientEvents } from "../utils/Emmiter";
 import { Chats, ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
-export declare type ClientType = Client<IBot, ICommand>;
-export default class Client<Bot extends IBot, Command extends ICommand> extends ClientEvents implements IClient {
+export declare type ClientType = Client<IBot>;
+export default class Client<Bot extends IBot> extends ClientEvents implements IClient {
     promiseMessages: PromiseMessages;
     autoMessages: any;
     bot: Bot;
@@ -31,12 +32,19 @@ export default class Client<Bot extends IBot, Command extends ICommand> extends 
     getCommand(command: string): Command | null;
     deleteMessage(message: Message): Promise<void>;
     removeMessage(message: Message): Promise<void>;
+    addAnimatedReaction(message: Message, reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void>;
     readMessage(message: Message): Promise<void>;
     addReaction(message: Message, reaction: string): Promise<void>;
     removeReaction(message: Message): Promise<void>;
     send(message: Message): Promise<Message>;
     awaitMessage(chat: Chat | string, ignoreMessageFromMe?: boolean, stopRead?: boolean, ...ignoreMessages: Message[]): Promise<Message>;
     addAutomate(message: Message, timeout: number, chats?: Chats, id?: string): Promise<any>;
+    /**
+     * * Retorna a stream da mídia
+     * @param message Mídia que será baixada
+     * @returns Stream da mídia
+     */
+    downloadStreamMessage(message: MediaMessage): Promise<Buffer>;
     getBotName(): Promise<string>;
     setBotName(name: string): Promise<void>;
     getBotDescription(): Promise<string>;
