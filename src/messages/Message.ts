@@ -62,6 +62,16 @@ export default class Message {
   }
 
   /**
+   * * Adiciona animações na reação da mensagem
+   * @param reactions Reações em sequência
+   * @param interval Intervalo entre cada reação
+   * @param maxTimeout Maximo de tempo reagindo
+   */
+  public addAnimatedReaction(reactions: string[], interval: number = 2000, maxTimeout: number = 60000): (reactionStop?: string) => Promise<void> {
+    return this.client.addAnimatedReaction(this, reactions, interval, maxTimeout);
+  }
+
+  /**
    * * Envia uma mensagem mencionando a mensagem atual
    * @param message Mensagem que terá enviada
    * @param mention Se verdadeiro a mensagem é mencionada
