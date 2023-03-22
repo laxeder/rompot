@@ -6,7 +6,7 @@
     "rootDir": "./src",
     "outDir": "./lib",
     "esModuleInterop": true,
-    "strict": true,
+    "strict": false,
     "declaration": true,
     "baseUrl": ".",
     "moduleResolution": "node",
