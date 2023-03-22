@@ -23,10 +23,10 @@ Importando API
 
 ```ts
 // TypeScript
-import { WhatsAppBot } from "rompot";
+import { Client, WhatsAppBot } from "rompot";
 
 // Javascript
-const { WhatsAppBot } = require("rompot");
+const { Client, WhatsAppBot } = require("rompot");
 ```
 
 ## WhatsApp
@@ -34,10 +34,10 @@ const { WhatsAppBot } = require("rompot");
 Após iniciar o bot um QR Code será emprimido no terminal, escane-o com seu WhatsApp para gerar uma nova conexão entre seu número e o Client. Essa conexão será guardada em `./path-to-auth`, para gerar uma nova delete-o ou se conecte com um novo caminho de sessão.
 
 ```ts
-const bot = new WhatsAppBot();
-bot.connect({ auth: "./path-to-auth" });
+const client = new Client(new WhatsAppBot())
+client.connect({ auth: "./path-to-auth" });
 
-bot.on("qr", (qr) => {
+client.on("qr", (qr) => {
   console.log("Scan QR:" qr)
 })
 ```
@@ -46,15 +46,13 @@ bot.on("qr", (qr) => {
 
 ```ts
 type BuildConfig = {
-  /** Define o caminho da sessão do bot ou o gerenciador da sessão */
-  auth: string | Auth;
-  /** Desativa comandos automaticos */
+  /** * Configuração dos comandos */
+  commandConfig: CommandConfig;
+  /** * Desabilita comandos automaticos */
   disableAutoCommand?: boolean;
-  /** Ativa comandos automaticos para mensagem enviadas pelo bot */
-  autoRunBotCommand?: boolean;
-  /** Recebe as mensagem enviadas pelo bot no evento "message" */
-  receiveAllMessages?: boolean;
-  /** Desativa a visualização automatica das mensagem recebidas */
+  /** * Desabilita escrevndo automatico */
+  disableAutoTyping?: boolean;
+  /** * Desabilita a visualização automatica das mensagem recebidas */
   disableAutoRead?: boolean;
 };
 ```
@@ -62,24 +60,34 @@ type BuildConfig = {
 ## ⚙️ Criando comandos
 
 ```ts
-import { Commands, Command, Message } from "rompot";
+import { Command, Message } from "rompot";
 
 // Cria um comando com o nome Hello
-// Ao ser executado envia a mensagem Hello There!
-const hello = new Command("hello");
-hello.setSend("Hello There!");
+// Ao ser executado envia a mensagem "Hello World!"
+class HelloCommand extends Command {
+  tags: string[] = ["hello"];
+  prefix: string = "/";
+
+  public async execute(message: Message): Promise<void> {
+    await message.reply(`Hello World!`);
+  }
+}
 
 // Cria um comando com os nomes date, dt e data
 // Executa uma função quando chamado
-const date = new Command(["date", "dt", "data"]);
-date.setExecute((message: Message) => {
-  message.reply(`Data: ${new Date()}`);
-});
+class DateCommand extends Command {
+  tags: string[] = ["date"];
+  prefix: string = "/";
+
+  public async execute(message: Message): Promise<void> {
+    await message.reply(`Data: ${new Date()}`);
+  }
+}
 
 // Listando comandos
-const commands = new Commands({ hello, date }, bot);
-commands.setPrefix("/");
-bot.setCommands(commands);
+const commands = [new HelloCommand(), new DateCommand()];
+
+client.setCommands(commands);
 ```
 
 ## Eventos
@@ -87,23 +95,23 @@ bot.setCommands(commands);
 ### Conexão
 
 ```ts
-bot.on("open", (open) => {
+client.on("open", (open) => {
   console.log("Client conectado!");
 });
 
-bot.on("close", (close) => {
+client.on("close", (close) => {
   console.log("Client desconectado!");
 });
 
-bot.on("closed", (closed) => {
+client.on("closed", (closed) => {
   console.log("Conexão com o bot encerrada!");
 });
 
-bot.on("connecting", (conn) => {
+client.on("connecting", (conn) => {
   console.log("Conectando bot");
 });
 
-bot.on("reconnecting", (conn) => {
+client.on("reconnecting", (conn) => {
   console.log("Reconectando bot");
 });
 ```
@@ -111,28 +119,24 @@ bot.on("reconnecting", (conn) => {
 ### Mensagem
 
 ```ts
-bot.on("message", (message) => {
+client.on("message", (message) => {
   console.log(`Mensagem recebida de ${message.user.name}`);
 
   if (message.text == "Oi") {
     message.reply("Olá");
   }
 });
-
-bot.on("me", (message) => {
-  console.log(`Mensagem enviada para ${message.chat.id}`);
-});
 ```
 
 ### Membros
 
 ```ts
-bot.on("member", (member) => {
+client.on("member", (member) => {
   // Novo membro de um grupo
   if (member.action == "add") {
     const msg = new Message(member.chat, `Bem vindo ao grupo @${member.user.id}`);
     msg.addMentions(member.user.id);
-    bot.send(msg);
+    client.send(msg);
   }
 
   if (member.action == "remove") {
@@ -150,7 +154,7 @@ bot.on("member", (member) => {
 ### Erro interno
 
 ```ts
-bot.on("error", (err: any) => {
+client.on("error", (err: any) => {
   console.error(`Um erro ocorreu: ${err}`);
 });
 ```
@@ -167,7 +171,7 @@ const chat = new Chat("id12345");
 const msg = new Message(chat, "texto");
 
 // Enviar mensagem
-bot.send(msg);
+client.send(msg);
 
 // Mencionar usuário
 msg.addMentions("user.id");
@@ -175,13 +179,17 @@ msg.addMentions("user.id");
 // Marcar mensagem
 msg.setMention(message);
 
+// Ativa as funções da mensagen
+msg.client = client;
+
 // Responder mensagem
-//! Message.setBot(Client) deve ser chamado antes
-//? Por padrão mensagens de eventos" já vem configurado
 msg.reply(message);
 
 // Visualiza uma mensagem recebida
 msg.read();
+
+// Reage a mensagem
+msg.addReaction("❤");
 ```
 
 ## Mensagem de mídia
@@ -223,7 +231,7 @@ btn.addUrl("Link", "https://example.com");
 btn.addReply("Texto", "button-id-123");
 
 // Criar lista
-const listMessage = new ListMessage(chat, "titulo", "texto", "rodapé", "botão");
+const listMessage = new ListMessage(chat, "texto", "botão", "titulo", "rodapé");
 const index1 = listMessage.addCategory("Categoria 1");
 const index2 = listMessage.addCategory("Categoria 2");
 
@@ -237,18 +245,19 @@ listMessage.addItem(index2, "Abc 2");
 ## Lendo resposas de ButtonMessage e ListMessage
 
 ```ts
-const cmd = new Command("cmd-button");
-cmd.setReply((message: Message) => {
-  message.reply("Botão clicado");
-});
-
-bot.commands.setCommand(cmd);
-
-bot.on("message", async (message: Message) => {
-  if (message.selected == "button-id-123") {
-    bot.commands.get("cmd-button")?.reply(message);
+class ButtonCommand extends Command {
+  tags: string[] = ["cmd-button"];
+  
+  public async reply(message: Message): Promise<void> {
+    await message.reply(`Button Clicked!`);
   }
-});
+}
+
+client.on("message", async (message: Message) => {
+  if (message.selected == "button-id-123") {
+    client.commands.get("cmd-button")?.reply(message);
+  }
+}):
 ```
 
 ## Client
@@ -256,97 +265,97 @@ bot.on("message", async (message: Message) => {
 - Definir foto de perfil
 
 ```ts
-bot.setProfile(new Buffer(""));
+client.setBotProfile(new Buffer(""));
 ```
 
 - Obter foto de perfil do bot
 
 ```ts
-bot.getProfile();
+client.getBotProfile();
 ```
 
 - Definir nome do bot
 
 ```ts
-bot.setBotName("Name");
+client.setBotName("Name");
 ```
 
 - Definir descrição do bot
 
 ```ts
-bot.setDescription("Description");
+client.setBotDescription("Description");
 ```
 
 - Obter descrição do bot
 
 ```ts
-bot.getDescription();
+client.getBotDescription();
 ```
 
 ## Grupo
 
-Você pode obter o chat em `message.chat` ou `bot.getChat("id")`, o ID pode ser encontrado em `message.chat.id`
+Você pode obter o chat em `message.chat` ou `client.getChat("id")`, o ID pode ser encontrado em `message.chat.id`
 
 - Criar grupo
 
 ```ts
-bot.createChat("name");
+client.createChat("name");
 ```
 
 - Sair de um grupo
 
 ```ts
-bot.leaveChat(chat);
+client.leaveChat(chat);
 ```
 
 - Definir imagem do grupo
 
 ```ts
-bot.setProfile(new Buffer(""), chat);
+client.setChatProfile(chat, new Buffer(""));
 ```
 
 - Obter imagem do grupo
 
 ```ts
-bot.getProfile(chat);
+client.getProfile(chat);
 ```
 
 - Definir nome do grupo
 
 ```ts
-bot.setChatName("Name chat", chat);
+client.setChatName(chat, "Name chat");
 ```
 
 - Definir a descrição do grupo
 
 ```ts
-bot.setDescription("Chat description");
+client.setChatDescription(chat, "Chat description");
 ```
 
 - Obter descrição do grupo
 
 ```ts
-bot.getDescription(chat);
+client.getChatDescription(chat);
 ```
 
 - Adicionar membro
   - Você pode encontrar o user em `message.user` ou em `chat.getMember("id")`, o ID pode se encontrado em `message.user.id`
 
 ```ts
-bot.addMember(chat, user);
+client.addUserInChat(chat, user);
 ```
 
 - Remover membro
 
 ```ts
-bot.removeMember(chat, user);
+client.removeUserInChat(chat, user);
 ```
 
 ## 🛠️ Construído com
 
 Esse Software foi construído com:
 
-- [Baileys](https://github.com/adiwajshing/Baileys) - API para se conectar ao WhatsApp
+- [Baileys@5.0.0](https://github.com/adiwajshing/Baileys) - API para se conectar ao WhatsApp
 
 ## 📄 Licença
 
