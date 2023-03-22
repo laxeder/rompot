@@ -313,7 +313,7 @@ client.setChatProfile(chat, new Buffer(""));
 - Obter imagem do grupo
 
 ```ts
-client.getProfile(chat);
+client.getChatProfile(chat);
 ```
 
 - Definir nome do grupo
