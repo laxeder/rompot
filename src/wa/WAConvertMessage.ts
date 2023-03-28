@@ -1,5 +1,6 @@
 import { getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
 
+import ReactionMessage from "@messages/ReactionMessage";
 import LocationMessage from "@messages/LocationMessage";
 import ContactMessage from "@messages/ContactMessage";
 import ButtonMessage from "@messages/ButtonMessage";
@@ -136,6 +137,10 @@ export class WhatsAppConvertMessage {
       this.convertContactMessage(content);
     }
 
+    if (contentType === "reactionMessage") {
+      this.convertReactionMessage(content);
+    }
+
     if (!!!this._convertedMessage.text) {
       this._convertedMessage.text = content.text || content.caption || content.buttonText || content.contentText || content.hydratedTemplate?.hydratedContentText || content.displayName || "";
     }
@@ -267,6 +272,14 @@ export class WhatsAppConvertMessage {
     }
 
     this._convertedMessage = msg;
+  }
+
+  /**
+   * * Converte uma mensagem de reação
+   * @param content
+   */
+  public convertReactionMessage(content: any) {
+    this._convertedMessage = new ReactionMessage(this._chat, content.text, content.key.id);
   }
 
   /**

@@ -20,9 +20,10 @@ import { WhatsAppMessage } from "@wa/WAMessage";
 import { getID, replaceID } from "@wa/ID";
 import { WAStatus } from "@wa/WAStatus";
 
+import IAuth from "@interfaces/IAuth";
 import IBot from "@interfaces/IBot";
-import Auth from "@interfaces/Auth";
 
+import ReactionMessage from "@messages/ReactionMessage";
 import Message from "@messages/Message";
 
 import User from "@modules/User";
@@ -48,7 +49,7 @@ export default class WhatsAppBot implements IBot {
   public ev: BotEvents = new BotEvents();
   public status: ConnectionStatus = "offline";
   public id: string = "";
-  public auth: Auth = new MultiFileAuthState("./session", false);
+  public auth: IAuth = new MultiFileAuthState("./session", false);
   public logger: any = pino({ level: "silent" });
   public wcb: WaitCallBack = new WaitCallBack();
   public config: Partial<SocketConfig>;
@@ -63,7 +64,7 @@ export default class WhatsAppBot implements IBot {
     };
   }
 
-  public async connect(auth?: string | Auth): Promise<void> {
+  public async connect(auth?: string | IAuth): Promise<void> {
     return await new Promise(async (resolve, reject) => {
       try {
         if (!!!auth) auth = String("./session");
@@ -693,9 +694,9 @@ export default class WhatsAppBot implements IBot {
     const key: proto.MessageKey = {
       remoteJid: getID(message.chat.id),
       id: message.id || "",
-      fromMe: message.user.id == this.id,
+      fromMe: message.fromMe || message.user.id == this.id,
       participant: message.chat.id.includes("@g") ? getID(message.user.id) : "",
-      toJSON: () => this,
+      toJSON: () => message,
     };
 
     return await this.wcb.waitCall(() => this.sock.readMessages([key]));
@@ -724,11 +725,11 @@ export default class WhatsAppBot implements IBot {
     await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), { delete: key }));
   }
 
-  public async addReaction(message: Message, reaction: string): Promise<void> {
+  public async addReaction(message: ReactionMessage): Promise<void> {
     const waMSG = new WhatsAppMessage(this, message);
     await waMSG.refactory(message);
 
-    await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), { react: { key: waMSG.message.key, text: reaction } }));
+    await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), waMSG.message));
   }
 
   public async removeReaction(message: Message): Promise<void> {

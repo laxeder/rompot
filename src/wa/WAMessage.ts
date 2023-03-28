@@ -1,5 +1,6 @@
 import { generateWAMessage, MiscMessageGenerationOptions } from "@adiwajshing/baileys";
 
+import ReactionMessage from "@messages/ReactionMessage";
 import LocationMessage from "@messages/LocationMessage";
 import ContactMessage from "@messages/ContactMessage";
 import ButtonMessage from "@messages/ButtonMessage";
@@ -57,6 +58,7 @@ export class WhatsAppMessage {
     if (message instanceof LocationMessage) this.refactoryLocationMessage(message);
     if (message instanceof ContactMessage) this.refactoryContactMessage(message);
     if (message instanceof ListMessage) this.refactoryListMessage(message);
+    if (message instanceof ReactionMessage) this.refactoryReactionMessage(message);
   }
 
   /**
@@ -155,6 +157,25 @@ export class WhatsAppMessage {
     });
 
     delete this.message.text;
+  }
+
+  /**
+   * * Refatora uma mensagem de reação
+   * @param message
+   */
+  public refactoryReactionMessage(message: ReactionMessage) {
+    this.message = {
+      react: {
+        key: {
+          remoteJid: getID(message.chat.id),
+          id: message.id || "",
+          fromMe: message.fromMe || message.user.id == this._wa.id,
+          participant: message.chat.id.includes("@g") ? getID(message.user.id) : "",
+          toJSON: () => this,
+        },
+        text: message.text,
+      },
+    };
   }
 
   /**

@@ -2,8 +2,9 @@ import ICommand from "@interfaces/ICommand";
 
 import Message from "@messages/Message";
 
-import { ClientType } from "@modules/Client";
 import { ClientBase } from "@modules/Base";
+
+import { ClientType } from "../types/Client";
 
 export default class Command implements ICommand {
   public tags: string[] = [];
@@ -23,9 +24,9 @@ export default class Command implements ICommand {
     this.#client = c;
   }
 
-  public async execute(message: Message): Promise<void> {}
+  public async execute(message: Message): Promise<any> {}
 
-  public async response(message: Message): Promise<void> {}
+  public async response(message: Message): Promise<any> {}
 
-  public async help(message: Message): Promise<void> {}
+  public async help(message: Message): Promise<any> {}
 }

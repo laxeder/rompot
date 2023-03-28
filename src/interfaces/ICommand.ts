@@ -1,6 +1,6 @@
 import Message from "@messages/Message";
 
-import { ClientType } from "@modules/Client";
+import { ClientType } from "../types/Client";
 
 export default interface ICommand {
   /** * Cliente do modulo */
@@ -42,17 +42,17 @@ export default interface ICommand {
    * * Método chamado quando a função é executada
    * @param message Mensagem recebida
    */
-  execute(message: Message): Promise<void>;
+  execute(message: Message): Promise<any>;
 
   /**
    * * Método chamado quando é respondido uma mensagem do comando
    * @param message
    */
-  response(message: Message): Promise<void>;
+  response(message: Message): Promise<any>;
 
   /**
    * * Método chamado quando é solicitado a ajuda do comando
    * @param message
    */
-  help(message: Message): Promise<void>;
+  help(message: Message): Promise<any>;
 }

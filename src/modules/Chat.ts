@@ -1,10 +1,10 @@
 import Message from "@messages/Message";
 
-import { ClientType } from "@modules/Client";
 import { ClientBase } from "@modules/Base";
 import User from "@modules/User";
 
 import { ChatStatus, ChatType } from "../types/Chat";
+import { ClientType } from "../types/Client";
 import { Users } from "../types/User";
 
 export default class Chat {

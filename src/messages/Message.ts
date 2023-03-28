@@ -1,8 +1,9 @@
-import { ClientType } from "@modules/Client";
 import { ClientBase } from "@modules/Base";
 
 import User from "@modules/User";
 import Chat from "@modules/Chat";
+
+import { ClientType } from "../types/Client";
 
 export default class Message {
   #client: ClientType = ClientBase();
@@ -59,6 +60,13 @@ export default class Message {
    */
   public async addReaction(reaction: string): Promise<void> {
     return this.client.addReaction(this, reaction);
+  }
+
+  /**
+   * * Remove a reação da mensagem
+   */
+  public async removeReaction(): Promise<void> {
+    return this.client.removeReaction(this);
   }
 
   /**

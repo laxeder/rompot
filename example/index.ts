@@ -1,4 +1,4 @@
-import Client, { WhatsAppBot, Message, Command, DefaultCommandConfig, ImageMessage, StickerMessage } from "../src/index";
+import Client, { WhatsAppBot, Message, Command, DefaultCommandConfig } from "../src/index";
 
 const client = new Client(new WhatsAppBot(), {
   disableAutoCommand: false,

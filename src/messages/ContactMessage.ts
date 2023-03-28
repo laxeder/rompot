@@ -10,7 +10,7 @@ export default class ContactMessage extends Message {
   constructor(
     chat: Chat | string,
     text: string,
-    contacts: User[] | string[],
+    contacts: Array<User | string>,
     mention?: Message,
     id?: string,
     user?: User | string,

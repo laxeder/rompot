@@ -1,6 +1,7 @@
-import { ClientType } from "@modules/Client";
 import { ClientBase } from "@modules/Base";
 import Chat from "@modules/Chat";
+
+import { ClientType } from "../types/Client";
 
 export default class User {
   #client: ClientType = ClientBase();

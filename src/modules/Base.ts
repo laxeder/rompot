@@ -1,16 +1,17 @@
-import ICommand from "@interfaces/ICommand";
+import IAuth from "@interfaces/IAuth";
 import IBot from "@interfaces/IBot";
-import Auth from "@interfaces/Auth";
 
+import ReactionMessage from "@messages/ReactionMessage";
 import Message from "@messages/Message";
 
-import Client, { ClientType } from "@modules/Client";
+import Client from "@modules/Client";
 import User from "@modules/User";
 import Chat from "@modules/Chat";
 
 import { BotEvents } from "@utils/Emmiter";
 
 import { Chats, ChatStatus } from "../types/Chat";
+import { ClientType } from "../types/Client";
 import { BotStatus } from "../types/Bot";
 import { Media } from "../types/Message";
 import { Users } from "../types/User";
@@ -24,13 +25,13 @@ export class BotBase implements IBot {
   status: BotStatus = "offline";
   ev: BotEvents = new BotEvents();
 
-  async connect(auth: Auth | string): Promise<void> {}
+  async connect(auth: IAuth | string): Promise<void> {}
 
   async reconnect(alert?: boolean): Promise<void> {}
 
   async stop(reason: any): Promise<void> {}
 
-  async addReaction(message: Message, reaction: string): Promise<void> {}
+  async addReaction(message: ReactionMessage): Promise<void> {}
 
   async removeReaction(message: Message): Promise<void> {}
 

@@ -2,9 +2,9 @@ import { SignalDataTypeMap, initAuthCreds, BufferJSON, proto } from "@adiwajshin
 import { mkdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "fs";
 import { join } from "path";
 
-import Auth from "@interfaces/Auth";
+import IAuth from "@interfaces/IAuth";
 
-export class MultiFileAuthState implements Auth {
+export class MultiFileAuthState implements IAuth {
   public folder: string;
 
   constructor(folder: string, autoCreateDir: boolean = true) {
@@ -61,7 +61,7 @@ export class MultiFileAuthState implements Auth {
   public fixFileName = (file?: string) => file?.replace(/\//g, "__")?.replace(/:/g, "-");
 }
 
-export async function getBaileysAuth(auth: Auth) {
+export async function getBaileysAuth(auth: IAuth) {
   let creds = JSON.parse(await auth.get("creds"), BufferJSON.reviver) || initAuthCreds();
 
   return {

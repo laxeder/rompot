@@ -2,11 +2,12 @@ import { readFileSync } from "fs";
 
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 
-import { IClient } from "@interfaces/Client";
+import { IClient } from "@interfaces/IClient";
 import Command from "@modules/Command";
+import IAuth from "@interfaces/IAuth";
 import IBot from "@interfaces/IBot";
-import Auth from "@interfaces/Auth";
 
+import ReactionMessage from "@messages/ReactionMessage";
 import MediaMessage from "@messages/MediaMessage";
 import Message from "@messages/Message";
 
@@ -19,8 +20,6 @@ import { ClientEvents } from "@utils/Emmiter";
 
 import { Chats, ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
-
-export type ClientType = Client<IBot>;
 
 export default class Client<Bot extends IBot> extends ClientEvents implements IClient {
   public promiseMessages: PromiseMessages = new PromiseMessages();
@@ -144,7 +143,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
 
   //! <===========================> CONNECTION <===========================>
 
-  public connect(auth: Auth | string) {
+  public connect(auth: IAuth | string) {
     return this.bot.connect(auth);
   }
 
@@ -188,6 +187,19 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return this.bot.removeMessage(message);
   }
 
+  public addReaction(message: Message, reaction: string): Promise<void> {
+    if (!(message instanceof ReactionMessage)) {
+      const reactionMessage = new ReactionMessage(message.chat, reaction, message);
+      reactionMessage.user = message.user;
+      reactionMessage.id = message.id;
+      reactionMessage.fromMe = message.fromMe;
+
+      message = reactionMessage;
+    }
+
+    return this.bot.addReaction(message);
+  }
+
   public addAnimatedReaction(message: Message, reactions: string[], interval: number = 2000, maxTimeout: number = 60000): (reactionStop?: string) => Promise<void> {
     var isStoped: boolean = false;
     const now = Date.now();
@@ -222,10 +234,6 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
 
   public readMessage(message: Message) {
     return this.bot.readMessage(message);
-  }
-
-  public addReaction(message: Message, reaction: string): Promise<void> {
-    return this.bot.addReaction(message, reaction);
   }
 
   public removeReaction(message: Message): Promise<void> {

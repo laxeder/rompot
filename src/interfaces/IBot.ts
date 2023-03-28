@@ -1,5 +1,6 @@
-import Auth from "@interfaces/Auth";
+import IAuth from "@interfaces/IAuth";
 
+import ReactionMessage from "@messages/ReactionMessage";
 import Message from "@messages/Message";
 
 import Chat from "@modules/Chat";
@@ -30,7 +31,7 @@ export default interface IBot {
    * * Conectar bot
    * @param auth Autenticação do bot
    */
-  connect(auth: Auth | string): Promise<void>;
+  connect(auth: IAuth | string): Promise<void>;
 
   /**
    * * Reconectar bot
@@ -333,10 +334,9 @@ export default interface IBot {
 
   /**
    * * Adiciona uma reação na mensagem
-   * @param message Mensagem que será reagida
-   * @param reaction Reação
+   * @param message Mensagem
    */
-  addReaction(message: Message, reaction: string): Promise<void>;
+  addReaction(message: ReactionMessage): Promise<void>;
 
   /**
    * * Remove a reação da mensagem
