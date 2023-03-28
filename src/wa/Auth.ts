@@ -71,8 +71,8 @@ export async function getBaileysAuth(auth: IAuth) {
     state: {
       creds,
       keys: {
-        get: async (type: keyof SignalDataTypeMap, ids: string[]) => {
-          const data: { [_: string]: SignalDataTypeMap[typeof type] } = {};
+        async get<T extends keyof SignalDataTypeMap>(type: T, ids: string[]): Promise<{ [id: string]: SignalDataTypeMap[T] }> {
+          const data: { [id: string]: SignalDataTypeMap[typeof type] } = {};
 
           await Promise.all(
             ids.map(async (id) => {
