@@ -1,15 +1,4 @@
-import makeWASocket, {
-  DisconnectReason,
-  downloadMediaMessage,
-  proto,
-  MediaDownloadOptions,
-  ConnectionState,
-  WAMessage,
-  MessageUpsertType,
-  WASocket,
-  generateWAMessage,
-  SocketConfig,
-} from "@adiwajshing/baileys";
+import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, ConnectionState, WAMessage, MessageUpsertType, WASocket, SocketConfig } from "@adiwajshing/baileys";
 import { Boom } from "@hapi/boom";
 import internal from "stream";
 import pino from "pino";
@@ -743,28 +732,7 @@ export default class WhatsAppBot implements IBot {
     const waMSG = new WhatsAppMessage(this, content);
     await waMSG.refactory(content);
 
-    const { chat, message, options } = waMSG;
-
-    var sendedMessage: proto.WebMessageInfo | undefined;
-
-    if (message.hasOwnProperty("templateButtons")) {
-      const fullMsg = await this.wcb.waitCall(() =>
-        generateWAMessage(chat, message, {
-          userJid: getID(this.id),
-          upload(): any {
-            return {};
-          },
-        })
-      );
-
-      fullMsg.message = { viewOnceMessage: { message: fullMsg.message } };
-
-      await this.wcb.waitCall(() => this.sock?.relayMessage(chat, fullMsg.message!, { messageId: fullMsg.key.id! }));
-
-      sendedMessage = fullMsg;
-    } else {
-      sendedMessage = await this.wcb.waitCall(() => this.sock?.sendMessage(chat, message, options));
-    }
+    const sendedMessage = await this.wcb.waitCall(() => this.sock?.sendMessage(waMSG.chat, waMSG.message, waMSG.options));
 
     return sendedMessage ? await new WhatsAppConvertMessage(this, sendedMessage).get() : content;
   }

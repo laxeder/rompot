@@ -10,6 +10,7 @@ import VideoMessage from "@messages/VideoMessage";
 import AudioMessage from "@messages/AudioMessage";
 import FileMessage from "@messages/FileMessage";
 import ListMessage from "@messages/ListMessage";
+import PollMessage from "@messages/PollMessage";
 import Message from "@messages/Message";
 
 import WhatsAppBot from "@wa/WhatsAppBot";
@@ -53,12 +54,13 @@ export class WhatsAppMessage {
       this.options.quoted.key.fromMe = getID(waMSG.message.participant) == getID(this._wa.id);
     }
 
-    if (message instanceof ButtonMessage) await this.refactoryButtonMessage(message);
     if (message instanceof MediaMessage) await this.refactoryMediaMessage(message);
     if (message instanceof LocationMessage) this.refactoryLocationMessage(message);
-    if (message instanceof ContactMessage) this.refactoryContactMessage(message);
-    if (message instanceof ListMessage) this.refactoryListMessage(message);
     if (message instanceof ReactionMessage) this.refactoryReactionMessage(message);
+    if (message instanceof ContactMessage) this.refactoryContactMessage(message);
+    if (message instanceof ButtonMessage) this.refactoryButtonMessage(message);
+    if (message instanceof PollMessage) this.refactoryPollMessage(message);
+    if (message instanceof ListMessage) this.refactoryListMessage(message);
   }
 
   /**
@@ -179,23 +181,31 @@ export class WhatsAppMessage {
   }
 
   /**
+   * * Refatora uma mensagem de enquete
+   * @param message
+   */
+  public refactoryPollMessage(message: PollMessage) {
+    this.message = {
+      poll: {
+        name: message.text,
+        values: message.options,
+      },
+    };
+  }
+
+  /**
    * * Refatora uma mensagem de botão
    * @param message
    */
-  public async refactoryButtonMessage(message: ButtonMessage) {
-    this.message.footer = message.footer;
-    this.message.templateButtons = [];
+  public refactoryButtonMessage(message: ButtonMessage) {
     this.message.text = message.text;
+    this.message.footer = message.footer;
+    this.message.viewOnce = true;
 
-    message.buttons.forEach((button) => {
-      const btn: any = {};
-      btn.index = button.index;
-
-      if (button.type == "reply") btn.quickReplyButton = { displayText: button.text, id: button.content };
-      if (button.type == "call") btn.callButton = { displayText: button.text, phoneNumber: button.content };
-      if (button.type == "reply") btn.urlButton = { displayText: button.text, url: button.content };
-
-      this.message.templateButtons.push(btn);
+    this.message.templateButtons = message.buttons.map((button) => {
+      if (button.type == "reply") return { index: button.index, quickReplyButton: { displayText: button.text, id: button.content } };
+      if (button.type == "call") return { index: button.index, callButton: { displayText: button.text, phoneNumber: button.content } };
+      if (button.type == "url") return { index: button.index, urlButton: { displayText: button.text, url: button.content } };
     });
   }
 
@@ -208,16 +218,15 @@ export class WhatsAppMessage {
     this.message.description = message.text;
     this.message.footer = message.footer;
     this.message.title = message.title;
-    this.message.sections = [];
+    this.message.viewOnce = true;
 
-    message.list.map((list: List) => {
-      const rows: Array<any> = [];
-
-      list.items.map((item: ListItem) => {
-        rows.push({ title: item.title, description: item.description, rowId: item.id });
-      });
-
-      this.message.sections.push({ title: list.title, rows });
+    this.message.sections = message.list.map((list: List) => {
+      return {
+        title: list.title,
+        rows: list.items.map((item: ListItem) => {
+          return { title: item.title, description: item.description, rowId: item.id };
+        }),
+      };
     });
   }
 }

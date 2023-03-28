@@ -16,6 +16,7 @@ import VideoMessage from "@messages/VideoMessage";
 import MediaMessage from "@messages/MediaMessage";
 import ListMessage from "@messages/ListMessage";
 import FileMessage from "@messages/FileMessage";
+import PollMessage from "@messages/PollMessage";
 import Message from "@messages/Message";
 
 import { ClientBase, BotBase } from "@modules/Base";
@@ -35,7 +36,7 @@ export { ConnectionConfig };
 
 export { IAuth, IBot, ICommand, IClient };
 
-export { ButtonMessage, ContactMessage, ImageMessage, VideoMessage, MediaMessage, Message, ListMessage, LocationMessage, StickerMessage, FileMessage, ReactionMessage };
+export { ButtonMessage, ContactMessage, ImageMessage, VideoMessage, MediaMessage, Message, ListMessage, LocationMessage, StickerMessage, FileMessage, ReactionMessage, PollMessage };
 
 export { BotBase, Command, Client, Chat, User, ClientBase };
 

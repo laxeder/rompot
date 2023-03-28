@@ -10,6 +10,7 @@ import VideoMessage from "@messages/VideoMessage";
 import AudioMessage from "@messages/AudioMessage";
 import ListMessage from "@messages/ListMessage";
 import FileMessage from "@messages/FileMessage";
+import PollMessage from "@messages/PollMessage";
 import Message from "@messages/Message";
 
 import Chat from "@modules/Chat";
@@ -139,6 +140,10 @@ export class WhatsAppConvertMessage {
 
     if (contentType === "reactionMessage") {
       this.convertReactionMessage(content);
+    }
+
+    if (contentType === "pollCreationMessage") {
+      this.convertPollCreationMessage(content);
     }
 
     if (!!!this._convertedMessage.text) {
@@ -280,6 +285,18 @@ export class WhatsAppConvertMessage {
    */
   public convertReactionMessage(content: any) {
     this._convertedMessage = new ReactionMessage(this._chat, content.text, content.key.id);
+  }
+
+  /**
+   * * Converte uma mensagem de enquete
+   * @param content
+   */
+  public convertPollCreationMessage(content: proto.Message.PollCreationMessage) {
+    this._convertedMessage = new PollMessage(
+      this._chat,
+      content.name,
+      content.options.map((option) => option.optionName)
+    );
   }
 
   /**
