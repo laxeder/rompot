@@ -68,7 +68,7 @@ class HelloCommand extends Command {
   tags: string[] = ["hello"];
   prefix: string = "/";
 
-  public async execute(message: Message): Promise<void> {
+  public async execute(message: Message) {
     await message.reply(`Hello World!`);
   }
 }
@@ -79,7 +79,7 @@ class DateCommand extends Command {
   tags: string[] = ["date"];
   prefix: string = "/";
 
-  public async execute(message: Message): Promise<void> {
+  public async execute(message: Message) {
     await message.reply(`Data: ${new Date()}`);
   }
 }
@@ -131,7 +131,7 @@ client.on("message", (message) => {
 ### Membros
 
 ```ts
-client.on("member", (member) => {
+client.on("user", (member) => {
   // Novo membro de um grupo
   if (member.action == "add") {
     const msg = new Message(member.chat, `Bem vindo ao grupo @${member.user.id}`);
@@ -174,10 +174,10 @@ const msg = new Message(chat, "texto");
 client.send(msg);
 
 // Mencionar usuário
-msg.addMentions("user.id");
+msg.mentions.push("userId");
 
 // Marcar mensagem
-msg.setMention(message);
+msg.mention = message;
 
 // Ativa as funções da mensagen
 msg.client = client;
@@ -190,12 +190,15 @@ msg.read();
 
 // Reage a mensagem
 msg.addReaction("❤");
+
+// remove a reação de uma mensagem
+msg.removeReaction();
 ```
 
 ## Mensagem de mídia
 
 ```ts
-import { ImageMessage, VideoMessage, AudioMessage, LocationMessage, ContactMessage } from "rompot";
+import { ImageMessage, VideoMessage, AudioMessage, FileMessage, StickerMessage, LocationMessage, ContactMessage } from "rompot";
 
 // Criar mensagem com imagem
 const imageMessage = new ImageMessage(chat, "texto", new Buffer());
@@ -206,13 +209,18 @@ const videoMessage = new VideoMessage(chat, "texto", new Buffer());
 // Criar mensagem de audio
 const audioMessage = new AudioMessage(chat, "texto", new Buffer());
 
+// Criar mensagem de arquivo (Beta)
+const fileMessage = new FileMessage(chat, "texto", new Buffer());
+
+// Criar mensagem de sticker
+const stickerMessage = new AudioMessage(chat, new Buffer());
+
 // Criar mensagem de localiação
 // Latitude, Longitude
 const locationMessage = new LocationMessage(chat, 24.121231, 55.1121221);
 
 // Criar mensagem com contatos
-// import { User } from "rompot"
-const contactMessage = new ContactMessage(chat, "nome", new User("id", "nome", "5599123464"));
+const contactMessage = new ContactMessage(chat, "nome", "userId");
 ```
 
 ## Outros tipos de mensagem
@@ -244,19 +252,23 @@ listMessage.addItem(index2, "Abc 2");
 class ButtonCommand extends Command {
   tags: string[] = ["cmd-button"];
 
-  public async reply(message: Message): Promise<void> {
+  public async response(message: Message) {
     await message.reply(`Button Clicked!`);
   }
 }
 
 client.on("message", async (message: Message) => {
   if (message.selected == "button-id-123") {
-    client.commands.get("cmd-button")?.reply(message);
+    const cmd = client.commands.get("cmd-button");
+
+    if (cmd) {
+      cmd.response(message);
+    }
   }
 }):
 ```
 
-## Client
+## Bot
 
 - Definir foto de perfil
 
