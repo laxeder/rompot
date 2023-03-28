@@ -1,4 +1,4 @@
-import Client, { WhatsAppBot, Message, Command, DefaultCommandConfig } from "../src/index";
+import Client, { WhatsAppBot, Message, Command, DefaultCommandConfig, PollMessage, ButtonMessage, ListMessage } from "../src/index";
 
 const client = new Client(new WhatsAppBot(), {
   disableAutoCommand: false,
@@ -40,6 +40,30 @@ client.on("message", async (message: Message) => {
     console.log(`Send message to ${message.user.id}`);
   } else {
     console.log(`New message in ${message.chat.id}`);
+  }
+
+  if (message.text.toLowerCase() == "poll") {
+    const msg = new PollMessage(message.chat, "Enquete", ["opt 1", "opt 2", "opt 3"]);
+
+    await client.send(msg);
+  }
+
+  if (message.text.toLowerCase() == "btn") {
+    const msg = new ButtonMessage(message.chat, "title");
+
+    msg.addReply("text 1", "id-123");
+
+    await client.send(msg);
+  }
+
+  if (message.text.toLowerCase() == "list") {
+    const msg = new ListMessage(message.chat, "title", "texto");
+
+    const index = msg.addCategory("category 1");
+
+    msg.addItem(index, "title", "description", "id-123");
+
+    await client.send(msg);
   }
 });
 
