@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
+import { DefaultCommandConfig } from "@config/CommandConfig";
 
 import { IClient } from "@interfaces/IClient";
 import Command from "@modules/Command";
@@ -37,12 +38,18 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return this.bot.status;
   }
 
-  constructor(bot: Bot, config: ConnectionConfig = DefaultConnectionConfig, commands: Command[] = []) {
+  constructor(bot: Bot, config: Partial<ConnectionConfig> = DefaultConnectionConfig, commands: Command[] = []) {
     super();
 
     this.bot = bot;
-    this.config = config;
-    this.commands = commands;
+    this.setCommands(commands);
+
+    this.config = {
+      commandConfig: config.commandConfig || DefaultCommandConfig,
+      disableAutoCommand: !!config.disableAutoCommand,
+      disableAutoTyping: !!config.disableAutoTyping,
+      disableAutoRead: !!config.disableAutoRead,
+    };
 
     this.configEvents();
   }
@@ -158,7 +165,14 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
   //! <============================> COMMANDS <============================>
 
   public setCommands(commands: Command[]) {
-    this.commands = commands;
+    const cmds: Command[] = [];
+
+    for (const cmd of commands) {
+      cmd.client = this;
+      cmds.push(cmd);
+    }
+
+    this.commands = cmds;
   }
 
   public getCommands() {
@@ -166,10 +180,41 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
   }
 
   public addCommand(command: Command) {
+    command.client = this;
     this.commands.push(command);
   }
 
-  public getCommand(command: string): Command | null {
+  public removeCommand(command: Command) {
+    const cmds: Command[] = [];
+
+    for (const cmd of this.commands) {
+      if (!!cmd.id || cmd.id == command.id) continue;
+      if (!!cmd.tags || cmd.tags == command.tags) continue;
+      if (!!cmd.name || cmd.name == command.name) continue;
+      if (cmd === command) continue;
+
+      cmds.push(cmd);
+    }
+
+    this.commands = cmds;
+  }
+
+  public getCommand(command: string | Command): Command | null {
+    if (command instanceof Command) {
+      let cmd = command;
+
+      for (const c of this.commands) {
+        if (!!c.tags || c.tags == cmd.tags || !!c.name || c.name == cmd.name || !!c.id || c.id == cmd.id || c == cmd) {
+          cmd = c;
+          break;
+        }
+      }
+
+      cmd.client = this;
+
+      return cmd;
+    }
+
     const cmd = this.config.commandConfig.get(command, this.commands);
 
     if (!cmd) return null;

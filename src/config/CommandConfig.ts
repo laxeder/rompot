@@ -4,21 +4,31 @@ export const DefaultCommandConfig: CommandConfig = {
   get(command: string, commands: Command[], ...args: any[]): Command | null {
     var cmdResult: Command | null = null;
 
+    const replaceTag = (tag: string, msg: string) => msg.replace(msg.slice(msg.indexOf(tag), tag.length), "");
+
     for (const cmd of commands) {
       let msg: string = command;
+
+      if (!!cmd.prefix) {
+        if (!msg.includes(cmd.prefix)) continue;
+
+        msg = replaceTag(cmd.prefix, msg);
+      }
+
       let isCMD: boolean = true;
 
-      const tags = cmd.tags;
+      for (const index in cmd.tags) {
+        const tag = cmd.tags[index];
 
-      if (!!cmd.prefix) tags.unshift(cmd.prefix);
-
-      for (const tag of cmd.tags) {
         if (!msg.includes(tag)) {
-          isCMD = false;
+          if (cmd.reqTags <= 0 || cmd.reqTags > Number(index)) {
+            isCMD = false;
+          }
+
           break;
         }
 
-        msg.slice(msg.indexOf(tag), tag.length);
+        msg = replaceTag(tag, msg);
       }
 
       if (isCMD) {

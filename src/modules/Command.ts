@@ -7,6 +7,8 @@ import { ClientBase } from "@modules/Base";
 import { ClientType } from "../types/Client";
 
 export default class Command implements ICommand {
+  public id: string = `${Date.now()}`;
+  public reqTags: number = 0;
   public tags: string[] = [];
   public prefix: string = "";
   public name: string = "";

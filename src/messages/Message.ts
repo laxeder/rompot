@@ -22,7 +22,7 @@ export default class Message {
   public fromMe: boolean;
   /** * Opção selecionada */
   public selected: string;
-  /** * Mensagem mencionada na mensagem */
+  /** * Usuários mencionados na mensagem */
   public mentions: string[];
   /** * Tempo em que a mensagem foi enviada */
   public timestamp: Number | Long;

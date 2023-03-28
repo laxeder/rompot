@@ -2,9 +2,9 @@ import CommandConfig, { DefaultCommandConfig } from "@config/CommandConfig";
 
 export interface ConnectionConfig {
   commandConfig: CommandConfig;
-  disableAutoCommand?: boolean;
-  disableAutoTyping?: boolean;
-  disableAutoRead?: boolean;
+  disableAutoCommand: boolean;
+  disableAutoTyping: boolean;
+  disableAutoRead: boolean;
 }
 
 export const DefaultConnectionConfig = {

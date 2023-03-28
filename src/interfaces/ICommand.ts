@@ -8,6 +8,15 @@ export default interface ICommand {
 
   set client(client: ClientType);
 
+  /** * ID do comando */
+  id: string;
+
+  /**
+   * * Tags necessárias para executar o comando,
+   * 0 para todos
+   */
+  reqTags: number;
+
   /**
    * * Tags do comando
    */

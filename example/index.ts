@@ -76,7 +76,8 @@ client.on("error", (err: any) => {
 });
 
 class HelloCommand extends Command {
-  tags: string[] = ["hello"];
+  tags: string[] = ["h", "e", "l", "l", "o"];
+  reqTags: number = 3;
   prefix: string = "/";
   name: string = "Olá!";
   description: string = "Reply hello";

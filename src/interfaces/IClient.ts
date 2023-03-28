@@ -34,15 +34,21 @@ export interface IClient extends ClientEvents {
 
   /**
    * * Adiciona um comando na lista de comandos
-   * @param command Comando que será definido
+   * @param command Comando que será adicionado
    */
   addCommand(command: ICommand): void;
+
+  /**
+   * * Remove um comando na lista de comandos
+   * @param command Comando que será removido
+   */
+  removeCommand(command: ICommand): void;
 
   /**
    * @param command Comando que será procurado
    * @returns Retorna um comando do bot
    */
-  getCommand(command: string): ICommand | null;
+  getCommand(command: string | ICommand): ICommand | null;
 
   //? ************ CONNECTION ************
 
