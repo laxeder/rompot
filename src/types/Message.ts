@@ -51,4 +51,6 @@ export type Button = {
 
 export type ButtonType = "reply" | "call" | "url";
 
+export type PollOption = { id: string; name: string };
+
 export type Media = { stream: any };

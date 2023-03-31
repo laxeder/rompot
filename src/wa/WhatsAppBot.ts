@@ -13,6 +13,7 @@ import IAuth from "@interfaces/IAuth";
 import IBot from "@interfaces/IBot";
 
 import ReactionMessage from "@messages/ReactionMessage";
+import PollMessage from "@messages/PollMessage";
 import Message from "@messages/Message";
 
 import User from "@modules/User";
@@ -33,7 +34,6 @@ export default class WhatsAppBot implements IBot {
   //@ts-ignore
   private sock: WASocket = {};
   public DisconnectReason = DisconnectReason;
-  public chats: Chats = {};
   public users: Users = {};
   public ev: BotEvents = new BotEvents();
   public status: ConnectionStatus = "offline";
@@ -42,6 +42,9 @@ export default class WhatsAppBot implements IBot {
   public logger: any = pino({ level: "silent" });
   public wcb: WaitCallBack = new WaitCallBack();
   public config: Partial<SocketConfig>;
+
+  public chats: Chats = {};
+  public polls: { [id: string]: PollMessage } = {};
 
   constructor(config?: Partial<SocketConfig>) {
     this.config = {
@@ -81,49 +84,9 @@ export default class WhatsAppBot implements IBot {
 
             this.id = replaceID(this.sock?.user?.id || "");
 
-            const chats: Chats = JSON.parse((await this.auth.get(`chats`)) || "{}");
-
-            if (!!chats) {
-              Object.keys(chats).forEach((key) => {
-                key = replaceID(key);
-
-                const chat = chats[key];
-
-                if (!!!chat) return;
-
-                this.chats[key] = new Chat(replaceID(chat.id), chat.type, chat.name, chat.description, chat.profile);
-
-                if (chat?.users) {
-                  Object.keys(chat?.users || {}).forEach((userKey) => {
-                    if (!!!userKey) return;
-
-                    userKey = replaceID(userKey);
-
-                    const user = chat?.users[userKey];
-
-                    if (!!!user) return;
-
-                    this.chats[key].users[userKey] = new User(replaceID(user.id), user.name, user.description);
-                    this.chats[key].users[userKey].isAdmin = user.isAdmin;
-                    this.chats[key].users[userKey].isLeader = user.isLeader;
-                  });
-                }
-              });
-            }
-
-            const users: Users = JSON.parse((await this.auth.get(`users`)) || "{}");
-
-            if (!!users) {
-              Object.keys(users).forEach((key) => {
-                key = replaceID(key);
-
-                const user = users[key];
-
-                if (!!!user) return;
-
-                this.users[key] = new User(replaceID(user.id), user.name, user.description, user.profile);
-              });
-            }
+            await this.readChats();
+            await this.readUsers();
+            await this.readPolls();
 
             this.ev.emit("open", { isNewLogin: update.isNewLogin || false });
 
@@ -309,13 +272,13 @@ export default class WhatsAppBot implements IBot {
     this.status = "offline";
   }
 
-  //! ********************************* CHAT *********************************
+  //! ********************************* AUTH *********************************
 
   /**
    * * Salva os chats salvos
    * @param chats Sala de bate-papos
    */
-  protected async saveChats(chats: any = this.chats) {
+  public async saveChats(chats: any = this.chats) {
     await this.auth.set(`chats`, JSON.stringify(chats));
   }
 
@@ -323,9 +286,74 @@ export default class WhatsAppBot implements IBot {
    * * Salva os usuários salvos
    * @param users Usuários
    */
-  protected async saveUsers(users: any = this.users) {
+  public async saveUsers(users: any = this.users) {
     await this.auth.set(`users`, JSON.stringify(users));
   }
+
+  /**
+   * * Salva as mensagem de enquete salvas
+   * @param polls Enquetes
+   */
+  public async savePolls(polls: any = this.polls) {
+    await this.auth.set(`polls`, JSON.stringify(polls));
+  }
+
+  /**
+   * * Obtem os chats salvos
+   */
+  public async readChats() {
+    const chats: Chats = JSON.parse((await this.auth.get(`chats`)) || "{}");
+
+    for (const id of Object.keys(chats || {})) {
+      const chat = chats[id];
+
+      if (!!!chat) return;
+
+      this.chats[id] = new Chat(chat.id, chat.type, chat.name, chat.description, chat.profile);
+
+      for (const userId of Object.keys(chat.users || {})) {
+        const user = chat.users[userId];
+
+        if (!!!user) continue;
+
+        this.chats[id].users[userId] = new User(user.id, user.name, user.description, user.profile);
+        this.chats[id].users[userId].isAdmin = user.isAdmin;
+        this.chats[id].users[userId].isLeader = user.isLeader;
+      }
+    }
+  }
+
+  /**
+   * * Obtem os usuários salvos
+   */
+  public async readUsers() {
+    const users: Users = JSON.parse((await this.auth.get(`users`)) || "{}");
+
+    for (const id of Object.keys(users || {})) {
+      const user = users[id];
+
+      if (!!!user) continue;
+
+      this.users[id] = new User(user.id, user.name, user.description, user.profile);
+    }
+  }
+
+  /**
+   * * Obtem as mensagem de enquete salvas
+   */
+  public async readPolls() {
+    const polls: Users = JSON.parse((await this.auth.get(`polls`)) || "{}");
+
+    for (const id of Object.keys(polls || {})) {
+      const poll = polls[id];
+
+      if (!!!poll) continue;
+
+      this.polls[id] = PollMessage.fromJSON(poll);
+    }
+  }
+
+  //! ********************************* CHAT *********************************
 
   /**
    * * Lê o chat e seta ele
@@ -732,9 +760,26 @@ export default class WhatsAppBot implements IBot {
     const waMSG = new WhatsAppMessage(this, content);
     await waMSG.refactory(content);
 
-    const sendedMessage = await this.wcb.waitCall(() => this.sock?.sendMessage(waMSG.chat, waMSG.message, waMSG.options));
+    if (waMSG.isRelay) {
+      await this.wcb.waitCall(() => this.sock?.relayMessage(waMSG.chat, waMSG.message, { ...waMSG.options, messageId: waMSG.chat })).catch((err) => this.ev.emit("error", err));
 
-    return sendedMessage ? await new WhatsAppConvertMessage(this, sendedMessage).get() : content;
+      return content;
+    }
+
+    const sendedMessage = await this.wcb.waitCall(() => this.sock?.sendMessage(waMSG.chat, waMSG.message, waMSG.options)).catch((err) => this.ev.emit("error", err));
+
+    const msgRes = (await new WhatsAppConvertMessage(this, sendedMessage).get()) || content;
+
+    if (msgRes instanceof PollMessage && content instanceof PollMessage) {
+      msgRes.options = content.options;
+      msgRes.secretKey = sendedMessage.message.messageContextInfo.messageSecret;
+
+      this.polls[msgRes.id] = msgRes;
+
+      await this.savePolls(this.polls);
+    }
+
+    return msgRes;
   }
 
   public async downloadStreamMessage(media: Media): Promise<Buffer> {

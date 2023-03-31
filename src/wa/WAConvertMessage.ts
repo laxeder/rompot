@@ -1,8 +1,12 @@
-import { getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
+import { decryptPollVote, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
+import { extractMetadata } from "wa-sticker-formatter/dist";
+import * as crypto from "crypto";
 
+import PollUpdateMessage from "@messages/PollUpdateMessage";
 import ReactionMessage from "@messages/ReactionMessage";
 import LocationMessage from "@messages/LocationMessage";
 import ContactMessage from "@messages/ContactMessage";
+import StickerMessage from "@messages/StickerMessage";
 import ButtonMessage from "@messages/ButtonMessage";
 import MediaMessage from "@messages/MediaMessage";
 import ImageMessage from "@messages/ImageMessage";
@@ -17,11 +21,9 @@ import Chat from "@modules/Chat";
 import User from "@modules/User";
 
 import WhatsAppBot from "@wa/WhatsAppBot";
-import { replaceID } from "@wa/ID";
+import { getID, replaceID } from "@wa/ID";
 
-import { Media } from "../types/Message";
-import StickerMessage from "@messages/StickerMessage";
-import { extractMetadata } from "wa-sticker-formatter/dist";
+import { Media, PollOption } from "../types/Message";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
@@ -68,7 +70,7 @@ export class WhatsAppConvertMessage {
    * @param type
    */
   public async convertMessage(message: WAMessage, type?: MessageUpsertType) {
-    const id = replaceID(message.key.remoteJid || "");
+    const id = replaceID(message?.key?.remoteJid || "");
 
     const chat = this._wa.chats[id] ? this._wa.chats[id] : new Chat(id);
 
@@ -146,8 +148,13 @@ export class WhatsAppConvertMessage {
       this.convertPollCreationMessage(content);
     }
 
+    if (contentType == "pollUpdateMessage") {
+      await this.convertPollUpdateMessage(content);
+    }
+
     if (!!!this._convertedMessage.text) {
-      this._convertedMessage.text = content.text || content.caption || content.buttonText || content.contentText || content.hydratedTemplate?.hydratedContentText || content.displayName || "";
+      this._convertedMessage.text =
+        content.text || content.caption || content.buttonText || content.hydratedTemplate?.hydratedContentText || content.displayName || content.contentText || this._convertedMessage.text || "";
     }
 
     if (content.contextInfo) {
@@ -292,11 +299,81 @@ export class WhatsAppConvertMessage {
    * @param content
    */
   public convertPollCreationMessage(content: proto.Message.PollCreationMessage) {
-    this._convertedMessage = new PollMessage(
-      this._chat,
-      content.name,
-      content.options.map((option) => option.optionName)
-    );
+    const pollCreation = this._wa.polls[this._chat.id];
+
+    const pollMessage = new PollMessage(this._chat, content.name);
+
+    if (!!pollCreation && pollCreation?.options && pollCreation?.options?.length > 0) {
+      pollMessage.options = pollCreation.options;
+    } else {
+      for (const opt of content.options) {
+        pollMessage.addOption(opt.optionName);
+      }
+    }
+
+    this._convertedMessage = pollMessage;
+  }
+
+  /**
+   * * Converte uma mensagem de enquete atualizada
+   * @param content
+   */
+  public async convertPollUpdateMessage(content: proto.Message.PollUpdateMessage) {
+    const pollCreation = this._wa.polls[content.pollCreationMessageKey.id];
+    const pollUpdate = new PollUpdateMessage(this._chat, pollCreation?.text || "");
+
+    if (pollCreation) {
+      const userId = this._user.id;
+
+      const poll = decryptPollVote(content.vote, {
+        pollCreatorJid: getID(pollCreation.user.id),
+        pollMsgId: content.pollCreationMessageKey.id,
+        pollEncKey: pollCreation.secretKey,
+        voterJid: getID(userId),
+      });
+
+      const hashVotes = poll.selectedOptions.map((opt) => Buffer.from(opt).toString("hex").toUpperCase()).sort();
+      const userHashVotes = pollCreation.getUserVotes(userId).sort();
+
+      const options: { [x: string]: PollOption } = {};
+
+      await Promise.all(
+        pollCreation.options.map(async (opt) => {
+          const hash = Buffer.from(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(Buffer.from(opt.name).toString())))
+            .toString("hex")
+            .toUpperCase();
+
+          options[hash] = opt;
+        })
+      );
+
+      let vote: PollOption | null = null;
+
+      for (const hash of Object.keys(options)) {
+        if (hashVotes.length > userHashVotes.length) {
+          if (userHashVotes.includes(hash)) continue;
+
+          vote = options[hash];
+
+          pollUpdate.action = "add";
+        } else {
+          if (hashVotes.includes(hash)) continue;
+
+          vote = options[hash];
+
+          pollUpdate.action = "remove";
+        }
+      }
+
+      pollUpdate.selected = vote?.id || "";
+      pollUpdate.text = vote?.name || "";
+
+      pollCreation.setUserVotes(userId, hashVotes);
+      this._wa.polls[pollCreation.id] = pollCreation;
+      await this._wa.savePolls(this._wa.polls);
+    }
+
+    this._convertedMessage = pollUpdate;
   }
 
   /**

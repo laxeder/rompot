@@ -43,7 +43,11 @@ client.on("message", async (message: Message) => {
   }
 
   if (message.text.toLowerCase() == "poll") {
-    const msg = new PollMessage(message.chat, "Enquete", ["opt 1", "opt 2", "opt 3"]);
+    const msg = new PollMessage(message.chat, "Enquete");
+
+    msg.addOption("op1", "id1");
+    msg.addOption("op2", "id2");
+    msg.addOption("op3", "id3");
 
     await client.send(msg);
   }

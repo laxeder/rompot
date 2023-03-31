@@ -1,8 +1,10 @@
-import { generateWAMessage, MiscMessageGenerationOptions } from "@adiwajshing/baileys";
+import { generateWAMessage, MiscMessageGenerationOptions, proto } from "@adiwajshing/baileys";
+import Sticker, { StickerTypes } from "wa-sticker-formatter/dist";
 
 import ReactionMessage from "@messages/ReactionMessage";
 import LocationMessage from "@messages/LocationMessage";
 import ContactMessage from "@messages/ContactMessage";
+import StickerMessage from "@messages/StickerMessage";
 import ButtonMessage from "@messages/ButtonMessage";
 import ImageMessage from "@messages/ImageMessage";
 import MediaMessage from "@messages/MediaMessage";
@@ -17,8 +19,6 @@ import WhatsAppBot from "@wa/WhatsAppBot";
 import { getID } from "@wa/ID";
 
 import { List, ListItem } from "../types/Message";
-import StickerMessage from "@messages/StickerMessage";
-import Sticker, { StickerTypes } from "wa-sticker-formatter/dist";
 
 export class WhatsAppMessage {
   private _message: Message;
@@ -27,6 +27,7 @@ export class WhatsAppMessage {
   public chat: string = "";
   public message: any = {};
   public options: MiscMessageGenerationOptions = {};
+  public isRelay: boolean = false;
 
   constructor(wa: WhatsAppBot, message: Message) {
     this._message = message;
@@ -59,8 +60,8 @@ export class WhatsAppMessage {
     if (message instanceof ReactionMessage) this.refactoryReactionMessage(message);
     if (message instanceof ContactMessage) this.refactoryContactMessage(message);
     if (message instanceof ButtonMessage) this.refactoryButtonMessage(message);
-    if (message instanceof PollMessage) this.refactoryPollMessage(message);
     if (message instanceof ListMessage) this.refactoryListMessage(message);
+    if (message instanceof PollMessage) this.refactoryPollMessage(message);
   }
 
   /**
@@ -188,7 +189,7 @@ export class WhatsAppMessage {
     this.message = {
       poll: {
         name: message.text,
-        values: message.options,
+        values: message.options.map((opt) => opt.name),
       },
     };
   }
