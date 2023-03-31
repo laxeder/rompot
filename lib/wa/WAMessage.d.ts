@@ -1,9 +1,11 @@
 import { MiscMessageGenerationOptions } from "@adiwajshing/baileys";
+import ReactionMessage from "../messages/ReactionMessage";
 import LocationMessage from "../messages/LocationMessage";
 import ContactMessage from "../messages/ContactMessage";
 import ButtonMessage from "../messages/ButtonMessage";
 import MediaMessage from "../messages/MediaMessage";
 import ListMessage from "../messages/ListMessage";
+import PollMessage from "../messages/PollMessage";
 import Message from "../messages/Message";
 import WhatsAppBot from "./WhatsAppBot";
 export declare class WhatsAppMessage {
@@ -12,6 +14,7 @@ export declare class WhatsAppMessage {
     chat: string;
     message: any;
     options: MiscMessageGenerationOptions;
+    isRelay: boolean;
     constructor(wa: WhatsAppBot, message: Message);
     /**
      * * Refatora a mensagem
@@ -32,10 +35,20 @@ export declare class WhatsAppMessage {
     refactoryLocationMessage(message: LocationMessage): void;
     refactoryContactMessage(message: ContactMessage): void;
     /**
+     * * Refatora uma mensagem de reação
+     * @param message
+     */
+    refactoryReactionMessage(message: ReactionMessage): void;
+    /**
+     * * Refatora uma mensagem de enquete
+     * @param message
+     */
+    refactoryPollMessage(message: PollMessage): void;
+    /**
      * * Refatora uma mensagem de botão
      * @param message
      */
-    refactoryButtonMessage(message: ButtonMessage): Promise<void>;
+    refactoryButtonMessage(message: ButtonMessage): void;
     /**
      * * Refatora uma mensagem de lista
      * @param message

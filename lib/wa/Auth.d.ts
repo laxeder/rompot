@@ -1,24 +1,24 @@
 /// <reference types="node" />
 import { SignalDataTypeMap } from "@adiwajshing/baileys";
-import Auth from "../interfaces/Auth";
-export declare class MultiFileAuthState implements Auth {
+import IAuth from "../interfaces/IAuth";
+export declare class MultiFileAuthState implements IAuth {
     folder: string;
     constructor(folder: string, autoCreateDir?: boolean);
+    fixFileName: (file?: string) => string;
     getStat(folder: string): import("fs").Stats;
-    get: (key: string) => Promise<string>;
+    get: (key: string) => Promise<any>;
     set: (key: string, data: any) => Promise<void>;
     writeData: (data: any, file: string) => Promise<void>;
-    readData: (file: string) => string;
+    readData: (file: string) => Promise<any>;
     removeData: (file: string) => Promise<void>;
-    fixFileName: (file?: string) => string;
 }
-export declare function getBaileysAuth(auth: Auth): Promise<{
+export declare function getBaileysAuth(auth: IAuth): Promise<{
     saveCreds: () => Promise<void>;
     state: {
         creds: any;
         keys: {
-            get: (type: keyof SignalDataTypeMap, ids: string[]) => Promise<{
-                [_: string]: any;
+            get<T extends keyof SignalDataTypeMap>(type: T, ids: string[]): Promise<{
+                [id: string]: SignalDataTypeMap[T];
             }>;
             set: (data: any) => Promise<void>;
         };

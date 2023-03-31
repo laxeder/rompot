@@ -5,5 +5,5 @@ import User from "../modules/User";
 export default class ContactMessage extends Message {
     /** * Contatos */
     contacts: User[];
-    constructor(chat: Chat | string, text: string, contacts: User[] | string[], mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
+    constructor(chat: Chat | string, text: string, contacts: Array<User | string>, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
 }

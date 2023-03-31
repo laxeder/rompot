@@ -1,8 +1,8 @@
 /// <reference types="node" />
 import Message from "../messages/Message";
-import { ClientType } from "./Client";
 import User from "./User";
 import { ChatStatus, ChatType } from "../types/Chat";
+import { ClientType } from "../types/Client";
 import { Users } from "../types/User";
 export default class Chat {
     #private;

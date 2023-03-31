@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import ICommand from "./ICommand";
-import Auth from "./Auth";
+import IAuth from "./IAuth";
+import ReactionMessage from "../messages/ReactionMessage";
 import MediaMessage from "../messages/MediaMessage";
 import Message from "../messages/Message";
 import User from "../modules/User";
@@ -24,19 +25,24 @@ export interface IClient extends ClientEvents {
     getCommands(): ICommand[];
     /**
      * * Adiciona um comando na lista de comandos
-     * @param command Comando que será definido
+     * @param command Comando que será adicionado
      */
     addCommand(command: ICommand): void;
+    /**
+     * * Remove um comando na lista de comandos
+     * @param command Comando que será removido
+     */
+    removeCommand(command: ICommand): void;
     /**
      * @param command Comando que será procurado
      * @returns Retorna um comando do bot
      */
-    getCommand(command: string): ICommand | null;
+    getCommand(command: string | ICommand): ICommand | null;
     /**
      * * Conectar bot
      * @param auth Autenticação do bot
      */
-    connect(auth: Auth | string): Promise<void>;
+    connect(auth: IAuth | string): Promise<void>;
     /**
      * * Reconectar bot
      * @param alert Alerta que está reconectando
@@ -49,10 +55,10 @@ export interface IClient extends ClientEvents {
     stop(reason: any): Promise<void>;
     /**
      * * Adiciona uma reação na mensagem
-     * @param message Mensagem que será reagida
+     * @param message Mensagem
      * @param reaction Reação
      */
-    addReaction(message: Message, reaction: string): Promise<void>;
+    addReaction(message: Message | ReactionMessage, reaction?: string): Promise<void>;
     /**
      * * Remove a reação da mensagem
      * @param message Mensagem que terá sua reação removida

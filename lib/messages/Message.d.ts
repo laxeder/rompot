@@ -1,7 +1,7 @@
 /// <reference types="long" />
-import { ClientType } from "../modules/Client";
 import User from "../modules/User";
 import Chat from "../modules/Chat";
+import { ClientType } from "../types/Client";
 export default class Message {
     #private;
     /** * Sala de bate-papo que foi enviada a mensagem */
@@ -18,7 +18,7 @@ export default class Message {
     fromMe: boolean;
     /** * Opção selecionada */
     selected: string;
-    /** * Mensagem mencionada na mensagem */
+    /** * Usuários mencionados na mensagem */
     mentions: string[];
     /** * Tempo em que a mensagem foi enviada */
     timestamp: Number | Long;
@@ -30,6 +30,10 @@ export default class Message {
      * @param reaction Reação
      */
     addReaction(reaction: string): Promise<void>;
+    /**
+     * * Remove a reação da mensagem
+     */
+    removeReaction(): Promise<void>;
     /**
      * * Adiciona animações na reação da mensagem
      * @param reactions Reações em sequência

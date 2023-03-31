@@ -1,8 +1,4 @@
-import { IChat } from "../interfaces/Chat";
 import Chat from "../modules/Chat";
-export declare type IChats = {
-    [id: string]: IChat;
-};
 export declare type Chats = {
     [id: string]: Chat;
 };

@@ -1,7 +1,9 @@
 /// <reference types="node" />
 import { DisconnectReason, proto, MediaDownloadOptions, SocketConfig } from "@adiwajshing/baileys";
+import IAuth from "../interfaces/IAuth";
 import IBot from "../interfaces/IBot";
-import Auth from "../interfaces/Auth";
+import ReactionMessage from "../messages/ReactionMessage";
+import PollMessage from "../messages/PollMessage";
 import Message from "../messages/Message";
 import User from "../modules/User";
 import Chat from "../modules/Chat";
@@ -14,17 +16,20 @@ import { Users } from "../types/User";
 export default class WhatsAppBot implements IBot {
     private sock;
     DisconnectReason: typeof DisconnectReason;
-    chats: Chats;
     users: Users;
     ev: BotEvents;
     status: ConnectionStatus;
     id: string;
-    auth: Auth;
+    auth: IAuth;
     logger: any;
     wcb: WaitCallBack;
     config: Partial<SocketConfig>;
+    chats: Chats;
+    polls: {
+        [id: string]: PollMessage;
+    };
     constructor(config?: Partial<SocketConfig>);
-    connect(auth?: string | Auth): Promise<void>;
+    connect(auth?: string | IAuth): Promise<void>;
     /**
      * * Reconecta ao servidor do WhatsApp
      * @param alert Avisa que está econectando
@@ -41,12 +46,29 @@ export default class WhatsAppBot implements IBot {
      * * Salva os chats salvos
      * @param chats Sala de bate-papos
      */
-    protected saveChats(chats?: any): Promise<void>;
+    saveChats(chats?: any): Promise<void>;
     /**
      * * Salva os usuários salvos
      * @param users Usuários
      */
-    protected saveUsers(users?: any): Promise<void>;
+    saveUsers(users?: any): Promise<void>;
+    /**
+     * * Salva as mensagem de enquete salvas
+     * @param polls Enquetes
+     */
+    savePolls(polls?: any): Promise<void>;
+    /**
+     * * Obtem os chats salvos
+     */
+    readChats(): Promise<void>;
+    /**
+     * * Obtem os usuários salvos
+     */
+    readUsers(): Promise<void>;
+    /**
+     * * Obtem as mensagem de enquete salvas
+     */
+    readPolls(): Promise<void>;
     /**
      * * Lê o chat e seta ele
      * @param chat Sala de bate-papo
@@ -101,7 +123,7 @@ export default class WhatsAppBot implements IBot {
     readMessage(message: Message): Promise<void>;
     removeMessage(message: Message): Promise<any>;
     deleteMessage(message: Message): Promise<void>;
-    addReaction(message: Message, reaction: string): Promise<void>;
+    addReaction(message: ReactionMessage): Promise<void>;
     removeReaction(message: Message): Promise<void>;
     send(content: Message): Promise<Message>;
     downloadStreamMessage(media: Media): Promise<Buffer>;

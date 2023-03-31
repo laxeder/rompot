@@ -41,6 +41,10 @@ export declare type Button = {
     content: string;
 };
 export declare type ButtonType = "reply" | "call" | "url";
+export declare type PollOption = {
+    id: string;
+    name: string;
+};
 export declare type Media = {
     stream: any;
 };

@@ -1,6 +1,6 @@
 /// <reference types="node" />
-import { ClientType } from "./Client";
 import Chat from "./Chat";
+import { ClientType } from "../types/Client";
 export default class User {
     #private;
     /** * ID */

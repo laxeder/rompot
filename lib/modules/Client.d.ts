@@ -1,9 +1,9 @@
 /// <reference types="node" />
 import { ConnectionConfig } from "../config/ConnectionConfig";
-import { IClient } from "../interfaces/Client";
+import { IClient } from "../interfaces/IClient";
 import Command from "./Command";
+import IAuth from "../interfaces/IAuth";
 import IBot from "../interfaces/IBot";
-import Auth from "../interfaces/Auth";
 import MediaMessage from "../messages/MediaMessage";
 import Message from "../messages/Message";
 import User from "./User";
@@ -12,7 +12,6 @@ import PromiseMessages from "../utils/PromiseMessages";
 import { ClientEvents } from "../utils/Emmiter";
 import { Chats, ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
-export declare type ClientType = Client<IBot>;
 export default class Client<Bot extends IBot> extends ClientEvents implements IClient {
     promiseMessages: PromiseMessages;
     autoMessages: any;
@@ -21,20 +20,21 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     commands: Command[];
     get id(): string;
     get status(): import("..").BotStatus;
-    constructor(bot: Bot, config?: ConnectionConfig, commands?: Command[]);
+    constructor(bot: Bot, config?: Partial<ConnectionConfig>, commands?: Command[]);
     configEvents(): void;
-    connect(auth: Auth | string): Promise<void>;
+    connect(auth: IAuth | string): Promise<void>;
     reconnect(alert?: boolean): Promise<void>;
     stop(reason: any): Promise<void>;
     setCommands(commands: Command[]): void;
     getCommands(): Command[];
     addCommand(command: Command): void;
-    getCommand(command: string): Command | null;
+    removeCommand(command: Command): void;
+    getCommand(command: string | Command): Command | null;
     deleteMessage(message: Message): Promise<void>;
     removeMessage(message: Message): Promise<void>;
+    addReaction(message: Message, reaction: string): Promise<void>;
     addAnimatedReaction(message: Message, reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void>;
     readMessage(message: Message): Promise<void>;
-    addReaction(message: Message, reaction: string): Promise<void>;
     removeReaction(message: Message): Promise<void>;
     send(message: Message): Promise<Message>;
     awaitMessage(chat: Chat | string, ignoreMessageFromMe?: boolean, stopRead?: boolean, ...ignoreMessages: Message[]): Promise<Message>;

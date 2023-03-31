@@ -55,6 +55,21 @@ export declare class WhatsAppConvertMessage {
      */
     convertMediaMessage(content: any, contentType: keyof proto.IMessage): Promise<void>;
     /**
+     * * Converte uma mensagem de reação
+     * @param content
+     */
+    convertReactionMessage(content: any): void;
+    /**
+     * * Converte uma mensagem de enquete
+     * @param content
+     */
+    convertPollCreationMessage(content: proto.Message.PollCreationMessage): void;
+    /**
+     * * Converte uma mensagem de enquete atualizada
+     * @param content
+     */
+    convertPollUpdateMessage(content: proto.Message.PollUpdateMessage): Promise<void>;
+    /**
      * * Converte uma mensagem de botão
      * @param content
      * @returns
