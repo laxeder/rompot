@@ -54,7 +54,15 @@ export default class WaitCallBack {
    */
   public waitCall(fn: Function): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.sub(async () => resolve(await fn()));
+      this.sub(async () => {
+        try {
+          const result = await fn();
+
+          resolve(result);
+        } catch (err) {
+          reject(err);
+        }
+      });
     });
   }
 }

@@ -1,8 +1,9 @@
 import { SignalDataTypeMap, initAuthCreds, BufferJSON, proto } from "@adiwajshing/baileys";
-import { mkdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "fs";
+import { mkdirSync, statSync, unlinkSync } from "fs";
 import { join } from "path";
 
 import IAuth from "@interfaces/IAuth";
+import { readFile, writeFile } from "fs/promises";
 
 export class MultiFileAuthState implements IAuth {
   public folder: string;
@@ -21,6 +22,8 @@ export class MultiFileAuthState implements IAuth {
     }
   }
 
+  public fixFileName = (file?: string) => file?.replace(/\//g, "__")?.replace(/:/g, "-");
+
   public getStat(folder: string) {
     try {
       return statSync(folder);
@@ -30,7 +33,7 @@ export class MultiFileAuthState implements IAuth {
   }
 
   public get = async (key: string) => {
-    return this.readData(`${key}.json`);
+    return await this.readData(`${key}.json`);
   };
 
   public set = async (key: string, data: any) => {
@@ -39,14 +42,13 @@ export class MultiFileAuthState implements IAuth {
   };
 
   public writeData = async (data: any, file: string) => {
-    return writeFileSync(join(this.folder, this.fixFileName(file)!), data);
+    return writeFile(join(this.folder, this.fixFileName(file)!), JSON.stringify(data, BufferJSON.replacer));
   };
 
-  public readData = (file: string) => {
+  public readData = async (file: string) => {
     try {
-      const data = readFileSync(join(this.folder, this.fixFileName(file)!), { encoding: "utf-8" });
-
-      return data;
+      const data = await readFile(join(this.folder, this.fixFileName(file)!), { encoding: "utf-8" });
+      return JSON.parse(data, BufferJSON.reviver);
     } catch (error) {
       return null;
     }
@@ -57,16 +59,14 @@ export class MultiFileAuthState implements IAuth {
       unlinkSync(join(this.folder, this.fixFileName(file)!));
     } catch {}
   };
-
-  public fixFileName = (file?: string) => file?.replace(/\//g, "__")?.replace(/:/g, "-");
 }
 
 export async function getBaileysAuth(auth: IAuth) {
-  let creds = JSON.parse(await auth.get("creds"), BufferJSON.reviver) || initAuthCreds();
+  const creds = (await auth.get("creds")) || initAuthCreds();
 
   return {
     saveCreds: async () => {
-      return await auth.set("creds", JSON.stringify(creds, BufferJSON.replacer));
+      return await auth.set("creds", creds);
     },
     state: {
       creds,
@@ -76,9 +76,7 @@ export async function getBaileysAuth(auth: IAuth) {
 
           await Promise.all(
             ids.map(async (id) => {
-              const path = `${type}-${id}`;
-
-              let value: any = JSON.parse(await auth.get(path), BufferJSON.reviver);
+              let value = await auth.get(`${type}-${id}`);
 
               if (type === "app-state-sync-key" && value) {
                 value = proto.Message.AppStateSyncKeyData.fromObject(value);
@@ -90,16 +88,13 @@ export async function getBaileysAuth(auth: IAuth) {
 
           return data;
         },
-        set: async (data: any) => {
+
+        set: async (data: any): Promise<void> => {
           const tasks: Promise<void>[] = [];
 
           for (const category in data) {
             for (const id in data[category]) {
-              const value = data[category][id];
-
-              const key = `${category}-${id}`;
-
-              tasks.push(auth.set(key, JSON.stringify(value, BufferJSON.replacer)));
+              tasks.push(auth.set(`${category}-${id}`, data[category][id]));
             }
           }
 
