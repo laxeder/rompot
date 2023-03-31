@@ -6,6 +6,7 @@ import ICommand from "@interfaces/ICommand";
 import IAuth from "@interfaces/IAuth";
 import IBot from "@interfaces/IBot";
 
+import PollUpdateMessage from "@messages/PollUpdateMessage";
 import ReactionMessage from "@messages/ReactionMessage";
 import LocationMessage from "@messages/LocationMessage";
 import ContactMessage from "@messages/ContactMessage";
@@ -36,7 +37,7 @@ export { ConnectionConfig };
 
 export { IAuth, IBot, ICommand, IClient };
 
-export { ButtonMessage, ContactMessage, ImageMessage, VideoMessage, MediaMessage, Message, ListMessage, LocationMessage, StickerMessage, FileMessage, ReactionMessage, PollMessage };
+export { ButtonMessage, ContactMessage, ImageMessage, VideoMessage, MediaMessage, Message, ListMessage, LocationMessage, StickerMessage, FileMessage, ReactionMessage, PollMessage, PollUpdateMessage };
 
 export { BotBase, Command, Client, Chat, User, ClientBase };
 
