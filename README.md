@@ -351,6 +351,12 @@ client.getChatProfile(chat);
 client.setChatName(chat, "Name chat");
 ```
 
+- Obter nome do grupo
+
+```ts
+client.getChatName(chat);
+```
+
 - Definir a descrição do grupo
 
 ```ts
