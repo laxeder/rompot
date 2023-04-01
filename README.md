@@ -7,9 +7,9 @@ Um chatbot multi-plataforma em TypeScript.
 - Multi plataformas
   - WhatsApp
   - Telegram (Em breve)
-  - Discord (Em breve)
 - Automatização de mensagem
 - Criação de comandos
+- Simples uso
 
 ### 🔧 Instalação
 
@@ -45,7 +45,7 @@ client.on("qr", (qr) => {
 ## Configurações
 
 ```ts
-type BuildConfig = {
+type ConnectionConfig = {
   /** * Configuração dos comandos */
   commandConfig: CommandConfig;
   /** * Desabilita comandos automaticos */
@@ -55,6 +55,10 @@ type BuildConfig = {
   /** * Desabilita a visualização automatica das mensagem recebidas */
   disableAutoRead?: boolean;
 };
+
+const config: ConnectionConfig = {};
+
+client.config = config;
 ```
 
 ## ⚙️ Criando comandos
@@ -213,7 +217,7 @@ const audioMessage = new AudioMessage(chat, "texto", new Buffer());
 const fileMessage = new FileMessage(chat, "texto", new Buffer());
 
 // Criar mensagem de sticker
-const stickerMessage = new AudioMessage(chat, new Buffer());
+const stickerMessage = new StickerMessage(chat, new Buffer());
 
 // Criar mensagem de localiação
 // Latitude, Longitude
@@ -226,7 +230,7 @@ const contactMessage = new ContactMessage(chat, "nome", "userId");
 ## Outros tipos de mensagem
 
 ```ts
-import { ButtonMessage, ListMessage } from "rompot";
+import { ButtonMessage, ListMessage, PollMessage } from "rompot";
 
 // Criando botões
 const btnMessage = new ButtonMessage(chat, "texto", "rodapé");
@@ -244,11 +248,20 @@ listMessage.addItem(index1, "Item 2");
 
 listMessage.addItem(index2, "Abc 1");
 listMessage.addItem(index2, "Abc 2");
+
+// Criar enquete
+const pollMessage = new PollMessage(chat, "Hello World!");
+
+pollMessage.addOption("Hello", "id-hello-123");
+pollMessage.addOption("Hey", "id-hey-123");
+pollMessage.addOption("Hi", "id-hi-123");
 ```
 
-## Lendo resposas de ButtonMessage e ListMessage
+## Lendo resposas de ButtonMessage, ListMessage e PollMessage
 
 ```ts
+import { Command, PollUpdateMessage } from "rompot";
+
 class ButtonCommand extends Command {
   tags: string[] = ["cmd-button"];
 
@@ -258,8 +271,12 @@ class ButtonCommand extends Command {
 }
 
 client.on("message", async (message: Message) => {
+  if (message instanceof PollUpdateMessage) {
+    if (message.action == "remove") return;
+  }
+
   if (message.selected == "button-id-123") {
-    const cmd = client.commands.get("cmd-button");
+    const cmd = client.getCommand("cmd-button");
 
     if (cmd) {
       cmd.response(message);
