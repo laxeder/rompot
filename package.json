@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "example": "node example/index.js",
+    "example": "node example/index.ts",
     "dev": "ts-node-dev -r tsconfig-paths/register example/index.ts",
     "build": "npm run clean && npm ci && tsc && tsc-alias",
     "clean": "rimraf lib"
