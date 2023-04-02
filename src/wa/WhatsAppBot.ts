@@ -742,9 +742,11 @@ export default class WhatsAppBot implements IBot {
     await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), { delete: key }));
   }
 
-  public async addReaction(message: ReactionMessage): Promise<void> {
-    const waMSG = new WhatsAppMessage(this, message);
-    await waMSG.refactory(message);
+  public async addReaction(message: Message, reaction: string): Promise<void> {
+    const reactionMessage = new ReactionMessage(message.chat, reaction, message);
+
+    const waMSG = new WhatsAppMessage(this, reactionMessage);
+    await waMSG.refactory(reactionMessage);
 
     await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), waMSG.message));
   }

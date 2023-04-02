@@ -8,7 +8,6 @@ import Command from "@modules/Command";
 import IAuth from "@interfaces/IAuth";
 import IBot from "@interfaces/IBot";
 
-import ReactionMessage from "@messages/ReactionMessage";
 import MediaMessage from "@messages/MediaMessage";
 import Message from "@messages/Message";
 
@@ -233,16 +232,11 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
   }
 
   public addReaction(message: Message, reaction: string): Promise<void> {
-    if (!(message instanceof ReactionMessage)) {
-      const reactionMessage = new ReactionMessage(message.chat, reaction, message);
-      reactionMessage.user = message.user;
-      reactionMessage.id = message.id;
-      reactionMessage.fromMe = message.fromMe;
+    return this.bot.addReaction(message, reaction);
+  }
 
-      message = reactionMessage;
-    }
-
-    return this.bot.addReaction(message);
+  public removeReaction(message: Message): Promise<void> {
+    return this.bot.removeReaction(message);
   }
 
   public addAnimatedReaction(message: Message, reactions: string[], interval: number = 2000, maxTimeout: number = 60000): (reactionStop?: string) => Promise<void> {
@@ -279,10 +273,6 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
 
   public readMessage(message: Message) {
     return this.bot.readMessage(message);
-  }
-
-  public removeReaction(message: Message): Promise<void> {
-    return this.bot.removeReaction(message);
   }
 
   public async send(message: Message): Promise<Message> {

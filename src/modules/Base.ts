@@ -1,7 +1,6 @@
 import IAuth from "@interfaces/IAuth";
 import IBot from "@interfaces/IBot";
 
-import ReactionMessage from "@messages/ReactionMessage";
 import Message from "@messages/Message";
 
 import Client from "@modules/Client";
@@ -31,7 +30,7 @@ export class BotBase implements IBot {
 
   async stop(reason: any): Promise<void> {}
 
-  async addReaction(message: ReactionMessage): Promise<void> {}
+  async addReaction(message: Message, reaction: string): Promise<void> {}
 
   async removeReaction(message: Message): Promise<void> {}
 

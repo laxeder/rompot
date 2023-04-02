@@ -1,7 +1,6 @@
 import ICommand from "@interfaces/ICommand";
 import IAuth from "@interfaces/IAuth";
 
-import ReactionMessage from "@messages/ReactionMessage";
 import MediaMessage from "@messages/MediaMessage";
 import Message from "@messages/Message";
 
@@ -77,7 +76,7 @@ export interface IClient extends ClientEvents {
    * @param message Mensagem
    * @param reaction Reação
    */
-  addReaction(message: Message | ReactionMessage, reaction?: string): Promise<void>;
+  addReaction(message: Message, reaction?: string): Promise<void>;
 
   /**
    * * Remove a reação da mensagem
