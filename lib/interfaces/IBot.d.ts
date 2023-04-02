@@ -1,6 +1,5 @@
 /// <reference types="node" />
 import IAuth from "./IAuth";
-import ReactionMessage from "../messages/ReactionMessage";
 import Message from "../messages/Message";
 import Chat from "../modules/Chat";
 import User from "../modules/User";
@@ -264,8 +263,9 @@ export default interface IBot {
     /**
      * * Adiciona uma reação na mensagem
      * @param message Mensagem
+     * @param reaction Reação
      */
-    addReaction(message: ReactionMessage): Promise<void>;
+    addReaction(message: Message, reaction: string): Promise<void>;
     /**
      * * Remove a reação da mensagem
      * @param Mensagem que terá sua reação removida

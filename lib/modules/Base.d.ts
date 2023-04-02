@@ -1,7 +1,6 @@
 /// <reference types="node" />
 import IAuth from "../interfaces/IAuth";
 import IBot from "../interfaces/IBot";
-import ReactionMessage from "../messages/ReactionMessage";
 import Message from "../messages/Message";
 import User from "./User";
 import Chat from "./Chat";
@@ -19,7 +18,7 @@ export declare class BotBase implements IBot {
     connect(auth: IAuth | string): Promise<void>;
     reconnect(alert?: boolean): Promise<void>;
     stop(reason: any): Promise<void>;
-    addReaction(message: ReactionMessage): Promise<void>;
+    addReaction(message: Message, reaction: string): Promise<void>;
     removeReaction(message: Message): Promise<void>;
     readMessage(message: Message): Promise<void>;
     send(message: Message): Promise<Message>;

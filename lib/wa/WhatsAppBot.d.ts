@@ -2,7 +2,6 @@
 import { DisconnectReason, proto, MediaDownloadOptions, SocketConfig } from "@adiwajshing/baileys";
 import IAuth from "../interfaces/IAuth";
 import IBot from "../interfaces/IBot";
-import ReactionMessage from "../messages/ReactionMessage";
 import PollMessage from "../messages/PollMessage";
 import Message from "../messages/Message";
 import User from "../modules/User";
@@ -123,7 +122,7 @@ export default class WhatsAppBot implements IBot {
     readMessage(message: Message): Promise<void>;
     removeMessage(message: Message): Promise<any>;
     deleteMessage(message: Message): Promise<void>;
-    addReaction(message: ReactionMessage): Promise<void>;
+    addReaction(message: Message, reaction: string): Promise<void>;
     removeReaction(message: Message): Promise<void>;
     send(content: Message): Promise<Message>;
     downloadStreamMessage(media: Media): Promise<Buffer>;

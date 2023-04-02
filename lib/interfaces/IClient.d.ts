@@ -1,7 +1,6 @@
 /// <reference types="node" />
 import ICommand from "./ICommand";
 import IAuth from "./IAuth";
-import ReactionMessage from "../messages/ReactionMessage";
 import MediaMessage from "../messages/MediaMessage";
 import Message from "../messages/Message";
 import User from "../modules/User";
@@ -58,7 +57,7 @@ export interface IClient extends ClientEvents {
      * @param message Mensagem
      * @param reaction Reação
      */
-    addReaction(message: Message | ReactionMessage, reaction?: string): Promise<void>;
+    addReaction(message: Message, reaction?: string): Promise<void>;
     /**
      * * Remove a reação da mensagem
      * @param message Mensagem que terá sua reação removida
