@@ -203,11 +203,17 @@ export class WhatsAppMessage {
     this.message.footer = message.footer;
     this.message.viewOnce = true;
 
-    this.message.templateButtons = message.buttons.map((button) => {
-      if (button.type == "reply") return { index: button.index, quickReplyButton: { displayText: button.text, id: button.content } };
-      if (button.type == "call") return { index: button.index, callButton: { displayText: button.text, phoneNumber: button.content } };
-      if (button.type == "url") return { index: button.index, urlButton: { displayText: button.text, url: button.content } };
-    });
+    if (message.type == "template") {
+      this.message.templateButtons = message.buttons.map((button) => {
+        if (button.type == "reply") return { index: button.index, quickReplyButton: { displayText: button.text, id: button.content } };
+        if (button.type == "call") return { index: button.index, callButton: { displayText: button.text, phoneNumber: button.content } };
+        if (button.type == "url") return { index: button.index, urlButton: { displayText: button.text, url: button.content } };
+      });
+    } else {
+      this.message.buttons = message.buttons.map((button) => {
+        return { buttonId: button.content, buttonText: { displayText: button.text }, type: 1 };
+      });
+    }
   }
 
   /**

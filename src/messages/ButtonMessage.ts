@@ -10,6 +10,8 @@ export default class ButtonMessage extends Message {
   public footer: string;
   /** * Botões */
   public buttons: Button[] = [];
+  /** * Tipo do botões */
+  public type: "template" | "plain" = "template";
 
   constructor(
     chat: Chat | string,
