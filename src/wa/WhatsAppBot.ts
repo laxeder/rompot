@@ -279,7 +279,7 @@ export default class WhatsAppBot implements IBot {
    * @param chats Sala de bate-papos
    */
   public async saveChats(chats: any = this.chats) {
-    await this.auth.set(`chats`, JSON.stringify(chats));
+    await this.auth.set(`chats`, chats);
   }
 
   /**
@@ -287,7 +287,7 @@ export default class WhatsAppBot implements IBot {
    * @param users Usuários
    */
   public async saveUsers(users: any = this.users) {
-    await this.auth.set(`users`, JSON.stringify(users));
+    await this.auth.set(`users`, users);
   }
 
   /**
@@ -295,14 +295,14 @@ export default class WhatsAppBot implements IBot {
    * @param polls Enquetes
    */
   public async savePolls(polls: any = this.polls) {
-    await this.auth.set(`polls`, JSON.stringify(polls));
+    await this.auth.set(`polls`, polls);
   }
 
   /**
    * * Obtem os chats salvos
    */
   public async readChats() {
-    const chats: Chats = JSON.parse((await this.auth.get(`chats`)) || "{}");
+    const chats: Chats = (await this.auth.get(`chats`)) || {};
 
     for (const id of Object.keys(chats || {})) {
       const chat = chats[id];
@@ -327,7 +327,7 @@ export default class WhatsAppBot implements IBot {
    * * Obtem os usuários salvos
    */
   public async readUsers() {
-    const users: Users = JSON.parse((await this.auth.get(`users`)) || "{}");
+    const users: Users = (await this.auth.get(`users`)) || {};
 
     for (const id of Object.keys(users || {})) {
       const user = users[id];
@@ -342,7 +342,7 @@ export default class WhatsAppBot implements IBot {
    * * Obtem as mensagem de enquete salvas
    */
   public async readPolls() {
-    const polls: Users = JSON.parse((await this.auth.get(`polls`)) || "{}");
+    const polls: Users = (await this.auth.get(`polls`)) || {};
 
     for (const id of Object.keys(polls || {})) {
       const poll = polls[id];
