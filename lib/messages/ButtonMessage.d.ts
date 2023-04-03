@@ -8,6 +8,8 @@ export default class ButtonMessage extends Message {
     footer: string;
     /** * Botões */
     buttons: Button[];
+    /** * Tipo do botões */
+    type: "template" | "plain";
     constructor(chat: Chat | string, text: string, footer?: string, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
     /**
      * * Adiciona um botão com uma url
