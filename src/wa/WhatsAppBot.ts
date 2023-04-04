@@ -40,7 +40,7 @@ export default class WhatsAppBot implements IBot {
   public id: string = "";
   public auth: IAuth = new MultiFileAuthState("./session", false);
   public logger: any = pino({ level: "silent" });
-  public wcb: WaitCallBack = new WaitCallBack();
+  public wcb: WaitCallBack = new WaitCallBack((err: any) => this.ev.emit("error", err));
   public config: Partial<SocketConfig>;
 
   public chats: Chats = {};
@@ -227,16 +227,20 @@ export default class WhatsAppBot implements IBot {
         });
 
         this.sock.ev.on("messages.upsert", async (m: { messages: WAMessage[]; type: MessageUpsertType }) => {
-          if (m.messages.length <= 0) return;
+          try {
+            if (m.messages.length <= 0) return;
 
-          const message: WAMessage = m.messages[m.messages.length - 1];
+            const message: WAMessage = m.messages[m.messages.length - 1];
 
-          if (message.key.remoteJid == "status@broadcast") return;
-          if (!message.message) return;
+            if (message.key.remoteJid == "status@broadcast") return;
+            if (!message.message) return;
 
-          const msg = await new WhatsAppConvertMessage(this, message, m.type).get();
+            const msg = await new WhatsAppConvertMessage(this, message, m.type).get();
 
-          this.ev.emit("message", msg);
+            this.ev.emit("message", msg);
+          } catch (err) {
+            this.ev.emit("error", err);
+          }
         });
 
         this.ev.on("chat", () => this.saveChats(this.chats));
@@ -369,6 +373,8 @@ export default class WhatsAppBot implements IBot {
         if (newChat.id.includes("@g")) {
           if (!chat.participants) {
             const metadata = await this.wcb.waitCall(() => this.sock?.groupMetadata(getID(newChat.id)));
+
+            if (metadata == null) return;
 
             chat.participants = metadata?.participants || [];
             newChat.name = metadata?.subject;
@@ -534,7 +540,7 @@ export default class WhatsAppBot implements IBot {
   }
 
   public async createChat(chat: Chat) {
-    return this.wcb.waitCall(() => this.sock.groupCreate(chat.name || "", [getID(this.id)]));
+    await this.wcb.waitCall(() => this.sock.groupCreate(chat.name || "", [getID(this.id)]));
   }
 
   public async leaveChat(chat: Chat): Promise<any> {
@@ -712,7 +718,7 @@ export default class WhatsAppBot implements IBot {
       remoteJid: getID(message.chat.id),
       id: message.id || "",
       fromMe: message.fromMe || message.user.id == this.id,
-      participant: message.chat.id.includes("@g") ? getID(message.user.id) : "",
+      participant: message.chat.id.includes("@g") ? getID(message.user.id || this.id) : getID(this.id),
       toJSON: () => message,
     };
 
@@ -752,10 +758,12 @@ export default class WhatsAppBot implements IBot {
   }
 
   public async removeReaction(message: Message): Promise<void> {
-    const waMSG = new WhatsAppMessage(this, message);
-    await waMSG.refactory(message);
+    const reactionMessage = new ReactionMessage(message.chat, "", message);
 
-    await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), { react: { key: waMSG.message.key, text: "" } }));
+    const waMSG = new WhatsAppMessage(this, reactionMessage);
+    await waMSG.refactory(reactionMessage);
+
+    await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), waMSG.message));
   }
 
   public async send(content: Message): Promise<Message> {
@@ -769,6 +777,8 @@ export default class WhatsAppBot implements IBot {
     }
 
     const sendedMessage = await this.wcb.waitCall(() => this.sock?.sendMessage(waMSG.chat, waMSG.message, waMSG.options)).catch((err) => this.ev.emit("error", err));
+
+    if (typeof sendedMessage == "boolean") return content;
 
     const msgRes = (await new WhatsAppConvertMessage(this, sendedMessage).get()) || content;
 

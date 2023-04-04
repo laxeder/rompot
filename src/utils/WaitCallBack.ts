@@ -1,5 +1,10 @@
 export default class WaitCallBack {
   private observers: Function[] = [];
+  private emitError: Function;
+
+  constructor(emitError: Function) {
+    this.emitError = emitError;
+  }
 
   /**
    * * Inscreve um onservador
@@ -52,17 +57,21 @@ export default class WaitCallBack {
    * @param fn
    * @returns
    */
-  public waitCall(fn: Function): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.sub(async () => {
-        try {
-          const result = await fn();
+  public waitCall<T extends () => any>(fn: T): Promise<ReturnType<T> | null> {
+    return (
+      new Promise<ReturnType<T> | null>((resolve, reject) => {
+        this.sub(async () => {
+          try {
+            const result = await fn();
 
-          resolve(result);
-        } catch (err) {
-          reject(err);
-        }
-      });
-    });
+            resolve(result);
+          } catch (err) {
+            resolve(null);
+
+            this.emitError(err);
+          }
+        });
+      }) || null
+    );
   }
 }
