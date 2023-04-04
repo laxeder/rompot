@@ -391,23 +391,31 @@ export class WhatsAppConvertMessage {
     buttonMSG.footer = buttonMessage.footerText || buttonMessage.hydratedFooterText || "";
     // buttonMSG.setType(buttonMessage.headerType || buttonMessage.hydratedHeaderType || 1)
 
-    buttonMessage.buttons?.map((button: proto.Message.ButtonsMessage.IButton) => {
-      buttonMSG.addReply(button?.buttonText?.displayText || "", button.buttonId || String(Date.now()));
-    });
+    if (buttonMessage.buttons) {
+      buttonMSG.type = "plain";
 
-    buttonMessage.hydratedButtons?.map((button: any) => {
-      if (button.callButton) {
-        buttonMSG.addCall(button.callButton.displayText || "", button.callButton.phoneNumber || buttonMSG.buttons.length);
-      }
+      buttonMessage.buttons?.map((button: proto.Message.ButtonsMessage.IButton) => {
+        buttonMSG.addReply(button?.buttonText?.displayText || "", button.buttonId || String(Date.now()));
+      });
+    }
 
-      if (button.urlButton) {
-        buttonMSG.addUrl(button.urlButton.displayText || "", button.urlButton.url || "");
-      }
+    if (buttonMessage.hydratedButtons) {
+      buttonMSG.type = "template";
 
-      if (button.quickReplyButton) {
-        buttonMSG.addReply(button.quickReplyButton.displayText || "", button.quickReplyButton.id);
-      }
-    });
+      buttonMessage.hydratedButtons?.map((button: any) => {
+        if (button.callButton) {
+          buttonMSG.addCall(button.callButton.displayText || "", button.callButton.phoneNumber || buttonMSG.buttons.length);
+        }
+
+        if (button.urlButton) {
+          buttonMSG.addUrl(button.urlButton.displayText || "", button.urlButton.url || "");
+        }
+
+        if (button.quickReplyButton) {
+          buttonMSG.addReply(button.quickReplyButton.displayText || "", button.quickReplyButton.id);
+        }
+      });
+    }
 
     this._convertedMessage = buttonMSG;
   }
