@@ -172,8 +172,8 @@ export class WhatsAppMessage {
         key: {
           remoteJid: getID(message.chat.id),
           id: message.id || "",
-          fromMe: message.fromMe || message.user.id == this._wa.id,
-          participant: message.chat.id.includes("@g") ? getID(message.user.id) : "",
+          fromMe: message.fromMe || !!message.user.id ? message.user.id == this._wa.id : true,
+          participant: message.chat.id.includes("@g") ? getID(message.user.id || this._wa.id) : "",
           toJSON: () => this,
         },
         text: message.text,

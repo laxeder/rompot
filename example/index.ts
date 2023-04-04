@@ -1,4 +1,4 @@
-import Client, { WhatsAppBot, Message, Command, DefaultCommandConfig, PollMessage, ButtonMessage, ListMessage } from "../src/index";
+import Client, { WhatsAppBot, Message, Command, DefaultCommandConfig, PollMessage, ButtonMessage, ListMessage, sleep } from "../src/index";
 
 const client = new Client(new WhatsAppBot(), {
   disableAutoCommand: false,
@@ -40,6 +40,12 @@ client.on("message", async (message: Message) => {
     console.log(`Send message to ${message.user.id}`);
   } else {
     console.log(`New message in ${message.chat.id}`);
+  }
+
+  if (message.text.toLowerCase() == "react") {
+    await message.addReaction("❤️");
+    await sleep(3000);
+    await message.removeReaction();
   }
 
   if (message.text.toLowerCase() == "poll") {
