@@ -1,5 +1,7 @@
 export default class WaitCallBack {
     private observers;
+    private emitError;
+    constructor(emitError: Function);
     /**
      * * Inscreve um onservador
      * @param callback
@@ -27,5 +29,5 @@ export default class WaitCallBack {
      * @param fn
      * @returns
      */
-    waitCall(fn: Function): Promise<any>;
+    waitCall<T extends () => any>(fn: T): Promise<ReturnType<T> | null>;
 }
