@@ -11,7 +11,7 @@ export default class PollMessage extends Message {
   /** * Chave secreta da enquete */
   public secretKey: Uint8Array = Buffer.from("");
   /** * Last hash votes */
-  public hashVotes: { [user: string]: string[] } = {};
+  public votes: { [user: string]: string[] } = {};
 
   constructor(
     chat: Chat | string,
@@ -59,14 +59,14 @@ export default class PollMessage extends Message {
    * * Obtem os votos de um usuário
    */
   public getUserVotes(user: string) {
-    return this.hashVotes[user] || [];
+    return this.votes[user] || [];
   }
 
   /**
    * * Salva os votos de um usuário
    */
   public setUserVotes(user: string, hashVotes: string[]) {
-    this.hashVotes[user] = hashVotes;
+    this.votes[user] = hashVotes;
   }
 
   /** * Transforma um objeto em PollMessage */
@@ -85,7 +85,7 @@ export default class PollMessage extends Message {
     );
 
     pollMessage.secretKey = Buffer.from(message?.secretKey || "");
-    pollMessage.hashVotes = message?.hashVotes || [];
+    pollMessage.votes = message?.votes || [];
 
     return pollMessage;
   }

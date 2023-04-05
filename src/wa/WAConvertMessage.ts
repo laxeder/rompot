@@ -85,7 +85,7 @@ export class WhatsAppConvertMessage {
 
     if (message.pushName) this._chat.name = message.pushName;
 
-    const userID = replaceID(message.key.participant || message.participant || message.key.remoteJid || "");
+    const userID = replaceID(message.key.fromMe ? this._wa.id : message.key.participant || message.participant || message.key.remoteJid || "");
     this._user = chat?.users && chat?.users[userID] ? chat?.users[userID] : new User(userID);
     this._user.name = message.pushName || "";
 
@@ -270,12 +270,16 @@ export class WhatsAppConvertMessage {
     if (contentType == "stickerMessage") {
       msg = new StickerMessage(this._chat, file);
 
-      const data = await extractMetadata(await this._wa.downloadStreamMessage(file));
+      try {
+        const data = await extractMetadata(await this._wa.downloadStreamMessage(file));
 
-      if (msg instanceof StickerMessage) {
-        msg.author = data["sticker-pack-publisher"] || "";
-        msg.id = data["sticker-pack-id"] || msg.id;
-        msg.pack = data["sticker-pack-name"] || "";
+        if (msg instanceof StickerMessage) {
+          msg.author = data["sticker-pack-publisher"] || "";
+          msg.id = data["sticker-pack-id"] || msg.id;
+          msg.pack = data["sticker-pack-name"] || "";
+        }
+      } catch (err) {
+        this._wa.ev.emit("error", err);
       }
     }
 
@@ -332,10 +336,10 @@ export class WhatsAppConvertMessage {
         voterJid: getID(userId),
       });
 
-      const hashVotes = poll.selectedOptions.map((opt) => Buffer.from(opt).toString("hex").toUpperCase()).sort();
-      const userHashVotes = pollCreation.getUserVotes(userId).sort();
-
-      const options: { [x: string]: PollOption } = {};
+      const votesAlias: { [name: string]: PollOption } = {};
+      const hashVotes: string[] = poll.selectedOptions.map((opt) => Buffer.from(opt).toString("hex").toUpperCase()).sort();
+      const oldVotes: string[] = pollCreation.getUserVotes(userId).sort();
+      const nowVotes: string[] = [];
 
       await Promise.all(
         pollCreation.options.map(async (opt) => {
@@ -343,33 +347,45 @@ export class WhatsAppConvertMessage {
             .toString("hex")
             .toUpperCase();
 
-          options[hash] = opt;
+          votesAlias[opt.name] = opt;
+
+          if (hashVotes.includes(hash)) {
+            nowVotes.push(opt.name);
+          }
         })
       );
 
       let vote: PollOption | null = null;
 
-      for (const hash of Object.keys(options)) {
-        if (hashVotes.length > userHashVotes.length) {
-          if (userHashVotes.includes(hash)) continue;
+      const avaibleVotes = Object.keys(votesAlias);
 
-          vote = options[hash];
+      for (const name of avaibleVotes) {
+        if (nowVotes.length > oldVotes.length) {
+          if (oldVotes.includes(name) || !nowVotes.includes(name)) continue;
+
+          vote = votesAlias[name];
 
           pollUpdate.action = "add";
-        } else {
-          if (hashVotes.includes(hash)) continue;
 
-          vote = options[hash];
+          break;
+        } else {
+          if (nowVotes.includes(name) || !oldVotes.includes(name)) continue;
+
+          vote = votesAlias[name];
 
           pollUpdate.action = "remove";
+
+          break;
         }
       }
 
       pollUpdate.selected = vote?.id || "";
       pollUpdate.text = vote?.name || "";
 
-      pollCreation.setUserVotes(userId, hashVotes);
+      pollCreation.setUserVotes(userId, nowVotes);
+
       this._wa.polls[pollCreation.id] = pollCreation;
+
       await this._wa.savePolls(this._wa.polls);
     }
 
