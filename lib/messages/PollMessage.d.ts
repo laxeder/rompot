@@ -9,7 +9,7 @@ export default class PollMessage extends Message {
     /** * Chave secreta da enquete */
     secretKey: Uint8Array;
     /** * Last hash votes */
-    hashVotes: {
+    votes: {
         [user: string]: string[];
     };
     constructor(chat: Chat | string, text: string, options?: PollOption[], mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
