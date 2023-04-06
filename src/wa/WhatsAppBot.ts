@@ -750,6 +750,7 @@ export default class WhatsAppBot implements IBot {
 
   public async addReaction(message: Message, reaction: string): Promise<void> {
     const reactionMessage = new ReactionMessage(message.chat, reaction, message);
+    reactionMessage.user = message.user;
 
     const waMSG = new WhatsAppMessage(this, reactionMessage);
     await waMSG.refactory(reactionMessage);
@@ -759,6 +760,7 @@ export default class WhatsAppBot implements IBot {
 
   public async removeReaction(message: Message): Promise<void> {
     const reactionMessage = new ReactionMessage(message.chat, "", message);
+    reactionMessage.user = message.user;
 
     const waMSG = new WhatsAppMessage(this, reactionMessage);
     await waMSG.refactory(reactionMessage);

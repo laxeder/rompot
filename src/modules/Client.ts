@@ -245,7 +245,8 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
 
     const stop = async (reactionStop?: string) => {
       if (isStoped) return;
-      if (!reactionStop) {
+
+      if (!!!reactionStop) {
         await this.removeReaction(message);
       } else {
         await this.addReaction(message, reactionStop);
@@ -255,7 +256,9 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     };
 
     const addReaction = async (index: number) => {
-      if (isStoped || now + maxTimeout == Date.now()) return;
+      if (isStoped || now + maxTimeout < Date.now()) {
+        return stop();
+      }
 
       if (reactions[index]) {
         await this.addReaction(message, reactions[index]);

@@ -75,7 +75,7 @@ export default class Message {
    * @param interval Intervalo entre cada reação
    * @param maxTimeout Maximo de tempo reagindo
    */
-  public addAnimatedReaction(reactions: string[], interval: number = 2000, maxTimeout: number = 60000): (reactionStop?: string) => Promise<void> {
+  public addAnimatedReaction(reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void> {
     return this.client.addAnimatedReaction(this, reactions, interval, maxTimeout);
   }
 
