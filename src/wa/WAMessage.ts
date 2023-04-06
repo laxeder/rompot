@@ -43,16 +43,23 @@ export class WhatsAppMessage {
     this.message = await this.refactoryMessage(message);
 
     if (message.mention) {
+      const userJid = getID(message.mention.user.id || this._wa.id);
+
       const waMSG = new WhatsAppMessage(this._wa, message.mention);
       await waMSG.refactory(message.mention);
 
       this.options.quoted = await generateWAMessage(this.chat, waMSG.message, {
-        userJid: getID(waMSG.message.participant || this._wa.id),
+        userJid,
         upload(): any {
           return {};
         },
       });
-      this.options.quoted.key.fromMe = getID(waMSG.message.participant) == getID(this._wa.id);
+
+      this.options.quoted.key.fromMe = userJid == getID(this._wa.id);
+
+      if (this.chat.includes("@g")) {
+        this.options.quoted.key.participant = userJid;
+      }
     }
 
     if (message instanceof MediaMessage) await this.refactoryMediaMessage(message);
