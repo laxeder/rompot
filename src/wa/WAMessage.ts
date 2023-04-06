@@ -1,4 +1,4 @@
-import { generateWAMessage, MiscMessageGenerationOptions, proto } from "@adiwajshing/baileys";
+import { generateWAMessage, MiscMessageGenerationOptions } from "@adiwajshing/baileys";
 import Sticker, { StickerTypes } from "wa-sticker-formatter/dist";
 
 import ReactionMessage from "@messages/ReactionMessage";
