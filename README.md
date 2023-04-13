@@ -370,7 +370,7 @@ client.getChatDescription(chat);
 ```
 
 - Adicionar membro
-  - Você pode encontrar o user em `message.user` ou em `chat.getMember("id")`, o ID pode se encontrado em `message.user.id`
+  - Você pode encontrar o user em `message.user` ou em `chat.getUser("id")`, o ID pode se encontrado em `message.user.id`
 
 ```ts
 client.addUserInChat(chat, user);
