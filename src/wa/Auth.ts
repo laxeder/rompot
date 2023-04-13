@@ -1,9 +1,9 @@
 import { SignalDataTypeMap, initAuthCreds, BufferJSON, proto } from "@adiwajshing/baileys";
 import { mkdirSync, statSync, unlinkSync } from "fs";
+import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 
 import IAuth from "@interfaces/IAuth";
-import { readFile, writeFile } from "fs/promises";
 
 export class MultiFileAuthState implements IAuth {
   public folder: string;
@@ -62,7 +62,7 @@ export class MultiFileAuthState implements IAuth {
 }
 
 export async function getBaileysAuth(auth: IAuth) {
-  const creds = (await auth.get("creds")) || initAuthCreds();
+  const creds = DataReplacer(await auth.get("creds")) || initAuthCreds();
 
   return {
     saveCreds: async () => {
@@ -76,7 +76,7 @@ export async function getBaileysAuth(auth: IAuth) {
 
           await Promise.all(
             ids.map(async (id) => {
-              let value = await auth.get(`${type}-${id}`);
+              var value = DataReplacer(await auth.get(`${type}-${id}`));
 
               if (type === "app-state-sync-key" && value) {
                 value = proto.Message.AppStateSyncKeyData.fromObject(value);
@@ -103,4 +103,13 @@ export async function getBaileysAuth(auth: IAuth) {
       },
     },
   };
+}
+
+function DataReplacer(data: any) {
+  try {
+    const json = JSON.parse(JSON.stringify(data, BufferJSON.replacer), BufferJSON.reviver);
+    return json;
+  } catch (err) {
+    return data;
+  }
 }
