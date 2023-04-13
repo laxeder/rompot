@@ -290,7 +290,7 @@ client.on("message", async (message: Message) => {
 - Definir foto de perfil
 
 ```ts
-client.setBotProfile(new Buffer(""));
+client.setBotProfile(Buffer.from(""));
 ```
 
 - Obter foto de perfil do bot
@@ -336,7 +336,7 @@ client.leaveChat(chat);
 - Definir imagem do grupo
 
 ```ts
-client.setChatProfile(chat, new Buffer(""));
+client.setChatProfile(chat, Buffer.from(""));
 ```
 
 - Obter imagem do grupo
@@ -381,6 +381,19 @@ client.addUserInChat(chat, user);
 ```ts
 client.removeUserInChat(chat, user);
 ```
+
+- Promover membro
+
+```ts
+client.promoteUserInChat(chat, user);
+```
+
+- Despromover membro
+
+```ts
+client.demoteUserInChat(chat, user);
+```
+
 
 ## 🛠️ Construído com
 
