@@ -111,81 +111,8 @@ export type ClientEventsMap = {
   error: Error;
 };
 
-export class ClientEvents {
-  public events = new EventEmitter();
-
-  constructor() {
-    this.on("close", () => {
-      this.emit("conn", { action: "close" });
-    });
-
-    this.on("open", (update: { isNewLogin: boolean }) => {
-      this.emit("conn", { action: "open", isNewLogin: update.isNewLogin });
-    });
-
-    this.on("qr", (qr: string) => {
-      this.emit("conn", { action: "qr", qr });
-    });
-
-    this.on("closed", () => {
-      this.emit("conn", { action: "closed" });
-    });
-
-    this.on("reconnecting", () => {
-      this.emit("conn", { action: "reconnecting" });
-    });
-
-    this.on("connecting", () => {
-      this.emit("conn", { action: "qr" });
-    });
-  }
-
-  on<T extends keyof ClientEventsMap>(eventName: T, listener: (arg: ClientEventsMap[T]) => void) {
-    this.events.on(eventName, listener);
-  }
-
-  off<T extends keyof ClientEventsMap>(eventName: T, listener: (arg: ClientEventsMap[T]) => void): void {
-    this.events.off(eventName, listener);
-  }
-
-  removeAllListeners<T extends keyof ClientEventsMap>(event: T): void {
-    this.events.removeAllListeners(event);
-  }
-
-  /** * Emite um evento */
-  emit<T extends keyof ClientEventsMap>(eventName: T, arg: ClientEventsMap[T]): boolean {
-    return this.events.emit(eventName, arg);
-  }
-}
-
 export class BotEvents {
   public events = new EventEmitter();
-
-  constructor() {
-    this.on("close", () => {
-      this.emit("conn", { action: "close" });
-    });
-
-    this.on("open", (update: { isNewLogin: boolean }) => {
-      this.emit("conn", { action: "open", isNewLogin: update.isNewLogin });
-    });
-
-    this.on("qr", (qr: string) => {
-      this.emit("conn", { action: "qr", qr });
-    });
-
-    this.on("closed", () => {
-      this.emit("conn", { action: "closed" });
-    });
-
-    this.on("reconnecting", () => {
-      this.emit("conn", { action: "reconnecting" });
-    });
-
-    this.on("connecting", () => {
-      this.emit("conn", { action: "qr" });
-    });
-  }
 
   on<T extends keyof BotEventsMap>(eventName: T, listener: (arg: BotEventsMap[T]) => void) {
     this.events.on(eventName, listener);
@@ -202,5 +129,34 @@ export class BotEvents {
   /** * Emite um evento */
   emit<T extends keyof BotEventsMap>(eventName: T, arg: BotEventsMap[T]): boolean {
     return this.events.emit(eventName, arg);
+  }
+}
+
+export class ClientEvents extends BotEvents {
+  constructor() {
+    super();
+    this.on("close", () => {
+      this.emit("conn", { action: "close" });
+    });
+
+    this.on("open", (update: { isNewLogin: boolean }) => {
+      this.emit("conn", { action: "open", isNewLogin: update.isNewLogin });
+    });
+
+    this.on("qr", (qr: string) => {
+      this.emit("conn", { action: "qr", qr });
+    });
+
+    this.on("closed", () => {
+      this.emit("conn", { action: "closed" });
+    });
+
+    this.on("reconnecting", () => {
+      this.emit("conn", { action: "reconnecting" });
+    });
+
+    this.on("connecting", () => {
+      this.emit("conn", { action: "connecting" });
+    });
   }
 }
