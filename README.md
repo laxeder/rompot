@@ -241,9 +241,9 @@ import { ButtonMessage, ListMessage, PollMessage } from "rompot";
 
 // Criando botões
 const btnMessage = new ButtonMessage(chat, "texto", "rodapé");
-btn.addCall("Call", "1234567890");
-btn.addUrl("Link", "https://example.com");
-btn.addReply("Texto", "button-id-123");
+btnMessage.addCall("Call", "1234567890");
+btnMessage.addUrl("Link", "https://example.com");
+btnMessage.addReply("Texto", "button-id-123");
 
 // Criar lista
 const listMessage = new ListMessage(chat, "texto", "botão", "titulo", "rodapé");
