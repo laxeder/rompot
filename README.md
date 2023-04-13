@@ -205,19 +205,19 @@ msg.removeReaction();
 import { ImageMessage, VideoMessage, AudioMessage, FileMessage, StickerMessage, LocationMessage, ContactMessage } from "rompot";
 
 // Criar mensagem com imagem
-const imageMessage = new ImageMessage(chat, "texto", new Buffer());
+const imageMessage = new ImageMessage(chat, "texto", Buffer.from(""));
 
 // Criar mensagem com video
-const videoMessage = new VideoMessage(chat, "texto", new Buffer());
+const videoMessage = new VideoMessage(chat, "texto", Buffer.from(""));
 
 // Criar mensagem de audio
-const audioMessage = new AudioMessage(chat, "texto", new Buffer());
+const audioMessage = new AudioMessage(chat, "texto", Buffer.from(""));
 
 // Criar mensagem de arquivo (Beta)
-const fileMessage = new FileMessage(chat, "texto", new Buffer());
+const fileMessage = new FileMessage(chat, "texto", Buffer.from(""));
 
 // Criar mensagem de sticker
-const stickerMessage = new StickerMessage(chat, new Buffer());
+const stickerMessage = new StickerMessage(chat, Buffer.from(""));
 
 // Criar mensagem de localiação
 // Latitude, Longitude
