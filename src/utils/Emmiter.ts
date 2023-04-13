@@ -5,11 +5,11 @@ import Message from "@messages/Message";
 import User from "@modules/User";
 import Chat from "@modules/Chat";
 
+import { UserAction, UserEvent } from "../types/User";
 import { ConnectionType } from "../types/Connection";
-import { UserAction } from "../types/User";
 import { ChatAction } from "../types/Chat";
 
-export type BotEventsMap = {
+export type EventsMap = {
   /**
    * * Conexão alterada
    * @param action Tipo da conexão
@@ -44,58 +44,7 @@ export type BotEventsMap = {
    * @param chat Sala de bate-papo que recebeu o novo usuário
    * @param user Usuário
    */
-  user: { action: UserAction; chat: Chat; user: User };
-
-  /**
-   * * Sala de bate-papo alterado
-   * @param action ação ocorrida
-   * @param chat Sala de bate-papo que foi alterada
-   */
-  chat: { action: ChatAction; chat: Chat };
-
-  /** * Nova mensagem */
-  message: Message;
-
-  /** * Erro ocorrido */
-  error: Error;
-};
-
-export type ClientEventsMap = {
-  /**
-   * * Conexão alterada
-   * @param action Tipo da conexão
-   * @param isNewLogin Se é um novo bot
-   */
-  conn: { action: ConnectionType; isNewLogin?: boolean; qr?: string };
-
-  /**
-   * * Client conectou
-   * @param isNewLogin Se é um novo login
-   */
-  open: { isNewLogin: boolean };
-
-  /** * Client reconectando */
-  reconnecting: {};
-
-  /** * Client conectando */
-  connecting: {};
-
-  /** * Sessão do bot encerrada */
-  closed: {};
-
-  /** * Conexão fechada */
-  close: {};
-
-  /** * QR code gerado */
-  qr: string;
-
-  /**
-   * * Novo usuário
-   * @param action Ação ocorrida
-   * @param chat Sala de bate-papo que recebeu o novo usuário
-   * @param user Usuário
-   */
-  user: { action: UserAction; chat: Chat; user: User };
+  user: { userAction: UserAction; userEvent: UserEvent; chat: Chat; user: User; fromUser: User };
 
   /**
    * * Sala de bate-papo alterado
@@ -114,20 +63,20 @@ export type ClientEventsMap = {
 export class BotEvents {
   public events = new EventEmitter();
 
-  on<T extends keyof BotEventsMap>(eventName: T, listener: (arg: BotEventsMap[T]) => void) {
+  on<T extends keyof EventsMap>(eventName: T, listener: (arg: EventsMap[T]) => void) {
     this.events.on(eventName, listener);
   }
 
-  off<T extends keyof BotEventsMap>(eventName: T, listener: (arg: BotEventsMap[T]) => void): void {
+  off<T extends keyof EventsMap>(eventName: T, listener: (arg: EventsMap[T]) => void): void {
     this.events.off(eventName, listener);
   }
 
-  removeAllListeners<T extends keyof BotEventsMap>(event: T): void {
+  removeAllListeners<T extends keyof EventsMap>(event: T): void {
     this.events.removeAllListeners(event);
   }
 
   /** * Emite um evento */
-  emit<T extends keyof BotEventsMap>(eventName: T, arg: BotEventsMap[T]): boolean {
+  emit<T extends keyof EventsMap>(eventName: T, arg: EventsMap[T]): boolean {
     return this.events.emit(eventName, arg);
   }
 }
