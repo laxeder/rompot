@@ -85,9 +85,21 @@ export class WhatsAppMessage {
     if (message.mentions) {
       msg.mentions = [];
 
-      message.mentions.forEach((jid) => {
+      for (const jid of message.mentions) {
         msg.mentions.push(getID(jid));
-      });
+      }
+
+      for (const mention of msg.text.split(/@(.*?)/)) {
+        const mentionNumber = mention.split(/\s+/)[0].replace(/\D/g, "");
+
+        if (mention.length < 9 && mention.length > 15) continue;
+
+        const jid = getID(mentionNumber);
+
+        if (msg.mentions.includes(jid)) continue;
+
+        msg.mentions.push(jid);
+      }
     }
 
     if (message.fromMe) msg.fromMe = message.fromMe;
@@ -193,11 +205,9 @@ export class WhatsAppMessage {
    * @param message
    */
   public refactoryPollMessage(message: PollMessage) {
-    this.message = {
-      poll: {
-        name: message.text,
-        values: message.options.map((opt) => opt.name),
-      },
+    this.message.poll = {
+      name: message.text,
+      values: message.options.map((opt) => opt.name),
     };
   }
 
