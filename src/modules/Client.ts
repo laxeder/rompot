@@ -129,8 +129,8 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     this.bot.ev.on("user", (update) => {
       try {
         this.emit("user", {
-          userEvent: update.userEvent,
-          userAction: update.userAction,
+          event: update.event,
+          action: update.action,
           chat: Chat.Client(this, update.chat),
           user: User.Client(this, update.user),
           fromUser: User.Client(this, update.fromUser),
