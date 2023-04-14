@@ -38,6 +38,12 @@ client.on("reconnecting", () => {
 });
 
 client.on("message", async (message: Message) => {
+  if (message.selected.includes("poll")) {
+    const cmd = client.getCommand("/poll");
+
+    if (!!cmd) cmd.response(message);
+  }
+
   if (message.fromMe) {
     console.log(`Send message to ${message.user.id}`);
   } else {
