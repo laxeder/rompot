@@ -277,17 +277,20 @@ class ButtonCommand extends Command {
   }
 }
 
+client.addCommand(new ButtonCommand());
+
 client.on("message", async (message: Message) => {
   if (message instanceof PollUpdateMessage) {
+    // Não responde caso a votação da enquete foi removida
     if (message.action == "remove") return;
   }
 
+  // Verifica o ID passado na mensagem como opção
   if (message.selected == "button-id-123") {
     const cmd = client.getCommand("cmd-button");
 
-    if (cmd) {
-      cmd.response(message);
-    }
+    // Manda a resposta ao comando
+    if (cmd) cmd.response(message);
   }
 }):
 ```
@@ -400,7 +403,6 @@ client.promoteUserInChat(chat, user);
 ```ts
 client.demoteUserInChat(chat, user);
 ```
-
 
 ## 🛠️ Construído com
 
