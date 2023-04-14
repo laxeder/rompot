@@ -205,9 +205,11 @@ export class WhatsAppMessage {
    * @param message
    */
   public refactoryPollMessage(message: PollMessage) {
-    this.message.poll = {
-      name: message.text,
-      values: message.options.map((opt) => opt.name),
+    this.message = {
+      poll: {
+        name: message.text,
+        values: message.options.map((opt) => opt.name),
+      },
     };
   }
 
