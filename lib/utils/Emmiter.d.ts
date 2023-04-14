@@ -3,10 +3,10 @@ import EventEmitter from "events";
 import Message from "../messages/Message";
 import User from "../modules/User";
 import Chat from "../modules/Chat";
+import { UserAction, UserEvent } from "../types/User";
 import { ConnectionType } from "../types/Connection";
-import { UserAction } from "../types/User";
 import { ChatAction } from "../types/Chat";
-export declare type BotEventsMap = {
+export declare type EventsMap = {
     /**
      * * Conexão alterada
      * @param action Tipo da conexão
@@ -36,14 +36,18 @@ export declare type BotEventsMap = {
     qr: string;
     /**
      * * Novo usuário
-     * @param action Ação ocorrida
-     * @param chat Sala de bate-papo que recebeu o novo usuário
-     * @param user Usuário
+     * @param action Ação feita pelo usuário
+     * @param event Evento ocorrido na sala de bate-papo
+     * @param chat Sala de bate-papo que recebeu o evento
+     * @param user Usuário que sofreu a ação
+     * @param fromUser Usuário que executou a ação
      */
     user: {
         action: UserAction;
+        event: UserEvent;
         chat: Chat;
         user: User;
+        fromUser: User;
     };
     /**
      * * Sala de bate-papo alterado
@@ -59,74 +63,14 @@ export declare type BotEventsMap = {
     /** * Erro ocorrido */
     error: Error;
 };
-export declare type ClientEventsMap = {
-    /**
-     * * Conexão alterada
-     * @param action Tipo da conexão
-     * @param isNewLogin Se é um novo bot
-     */
-    conn: {
-        action: ConnectionType;
-        isNewLogin?: boolean;
-        qr?: string;
-    };
-    /**
-     * * Client conectou
-     * @param isNewLogin Se é um novo login
-     */
-    open: {
-        isNewLogin: boolean;
-    };
-    /** * Client reconectando */
-    reconnecting: {};
-    /** * Client conectando */
-    connecting: {};
-    /** * Sessão do bot encerrada */
-    closed: {};
-    /** * Conexão fechada */
-    close: {};
-    /** * QR code gerado */
-    qr: string;
-    /**
-     * * Novo usuário
-     * @param action Ação ocorrida
-     * @param chat Sala de bate-papo que recebeu o novo usuário
-     * @param user Usuário
-     */
-    user: {
-        action: UserAction;
-        chat: Chat;
-        user: User;
-    };
-    /**
-     * * Sala de bate-papo alterado
-     * @param action ação ocorrida
-     * @param chat Sala de bate-papo que foi alterada
-     */
-    chat: {
-        action: ChatAction;
-        chat: Chat;
-    };
-    /** * Nova mensagem */
-    message: Message;
-    /** * Erro ocorrido */
-    error: Error;
-};
-export declare class ClientEvents {
-    events: EventEmitter;
-    constructor();
-    on<T extends keyof ClientEventsMap>(eventName: T, listener: (arg: ClientEventsMap[T]) => void): void;
-    off<T extends keyof ClientEventsMap>(eventName: T, listener: (arg: ClientEventsMap[T]) => void): void;
-    removeAllListeners<T extends keyof ClientEventsMap>(event: T): void;
-    /** * Emite um evento */
-    emit<T extends keyof ClientEventsMap>(eventName: T, arg: ClientEventsMap[T]): boolean;
-}
 export declare class BotEvents {
     events: EventEmitter;
-    constructor();
-    on<T extends keyof BotEventsMap>(eventName: T, listener: (arg: BotEventsMap[T]) => void): void;
-    off<T extends keyof BotEventsMap>(eventName: T, listener: (arg: BotEventsMap[T]) => void): void;
-    removeAllListeners<T extends keyof BotEventsMap>(event: T): void;
+    on<T extends keyof EventsMap>(eventName: T, listener: (arg: EventsMap[T]) => void): void;
+    off<T extends keyof EventsMap>(eventName: T, listener: (arg: EventsMap[T]) => void): void;
+    removeAllListeners<T extends keyof EventsMap>(event: T): void;
     /** * Emite um evento */
-    emit<T extends keyof BotEventsMap>(eventName: T, arg: BotEventsMap[T]): boolean;
+    emit<T extends keyof EventsMap>(eventName: T, arg: EventsMap[T]): boolean;
+}
+export declare class ClientEvents extends BotEvents {
+    constructor();
 }

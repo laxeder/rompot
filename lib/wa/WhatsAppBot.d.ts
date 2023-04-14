@@ -11,7 +11,7 @@ import WaitCallBack from "../utils/WaitCallBack";
 import { ConnectionStatus } from "../types/Connection";
 import { Chats, ChatStatus } from "../types/Chat";
 import { Media } from "../types/Message";
-import { Users } from "../types/User";
+import { UserAction, Users } from "../types/User";
 export default class WhatsAppBot implements IBot {
     private sock;
     DisconnectReason: typeof DisconnectReason;
@@ -78,6 +78,14 @@ export default class WhatsAppBot implements IBot {
      * @param user Usuário
      */
     protected userUpsert(user: any): Promise<void>;
+    /**
+     * * Trata atualizações de participantes
+     * @param action Ação realizada
+     * @param chatId Sala de bate-papo que a ação foi realizada
+     * @param userId Usuário que foi destinado a ação
+     * @param fromId Usuário que realizou a ação
+     */
+    groupParticipantsUpdate(action: UserAction, chatId: string, userId: string, fromId: string): Promise<void>;
     addChat(chat: Chat): Promise<void>;
     removeChat(chat: Chat): Promise<void>;
     getChat(chat: Chat): Promise<Chat | null>;
