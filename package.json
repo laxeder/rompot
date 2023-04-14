@@ -24,6 +24,7 @@
   "dependencies": {
     "@adiwajshing/baileys": "github:adiwajshing/baileys",
     "@adiwajshing/keyed-db": "0.2.4",
+    "crypto-digest-sync": "1.0.0",
     "jimp": "0.16.2",
     "link-preview-js": "3.0.0",
     "pino": "8.7.0",

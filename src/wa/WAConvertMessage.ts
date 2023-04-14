@@ -1,6 +1,6 @@
 import { decryptPollVote, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
 import { extractMetadata } from "wa-sticker-formatter/dist";
-import * as crypto from "crypto";
+import digestSync from "crypto-digest-sync";
 
 import PollUpdateMessage from "@messages/PollUpdateMessage";
 import ReactionMessage from "@messages/ReactionMessage";
@@ -341,19 +341,17 @@ export class WhatsAppConvertMessage {
       const oldVotes: string[] = pollCreation.getUserVotes(userId).sort();
       const nowVotes: string[] = [];
 
-      await Promise.all(
-        pollCreation.options.map(async (opt) => {
-          const hash = Buffer.from(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(Buffer.from(opt.name).toString())))
-            .toString("hex")
-            .toUpperCase();
+      for (const opt of pollCreation.options) {
+        const hash = Buffer.from(digestSync("SHA-256", new TextEncoder().encode(Buffer.from(opt.name).toString())))
+          .toString("hex")
+          .toUpperCase();
 
-          votesAlias[opt.name] = opt;
+        votesAlias[opt.name] = opt;
 
-          if (hashVotes.includes(hash)) {
-            nowVotes.push(opt.name);
-          }
-        })
-      );
+        if (hashVotes.includes(hash)) {
+          nowVotes.push(opt.name);
+        }
+      }
 
       let vote: PollOption | null = null;
 
