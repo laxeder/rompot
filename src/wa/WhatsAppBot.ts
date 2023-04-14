@@ -405,22 +405,22 @@ export default class WhatsAppBot implements IBot {
 
   /**
    * * Trata atualizações de participantes
-   * @param userAction Ação realizada
+   * @param action Ação realizada
    * @param chatId Sala de bate-papo que a ação foi realizada
    * @param userId Usuário que foi destinado a ação
    * @param fromId Usuário que realizou a ação
    */
-  public async groupParticipantsUpdate(userAction: UserAction, chatId: string, userId: string, fromId: string) {
-    const userEvent: UserEvent = userAction == "join" ? "add" : userAction == "leave" ? "remove" : userAction;
+  public async groupParticipantsUpdate(action: UserAction, chatId: string, userId: string, fromId: string) {
+    const event: UserEvent = action == "join" ? "add" : action == "leave" ? "remove" : action;
 
     const fromUser =
-      (userEvent == "remove" && replaceID(userId) == this.id ? await this.getUser(new User(replaceID(fromId))) : this.chats[replaceID(chatId)]?.users[replaceID(fromId)]) ||
+      (event == "remove" && replaceID(userId) == this.id ? await this.getUser(new User(replaceID(fromId))) : this.chats[replaceID(chatId)]?.users[replaceID(fromId)]) ||
       new User(replaceID(fromId));
     const user =
-      (userEvent == "remove" && replaceID(userId) == this.id ? await this.getUser(new User(replaceID(userId))) : this.chats[replaceID(chatId)]?.users[replaceID(userId)]) ||
+      (event == "remove" && replaceID(userId) == this.id ? await this.getUser(new User(replaceID(userId))) : this.chats[replaceID(chatId)]?.users[replaceID(userId)]) ||
       new User(replaceID(userId));
     const chat =
-      (userEvent == "remove" && replaceID(userId) == this.id ? await this.getChat(new Chat(replaceID(chatId))) : this.chats[replaceID(chatId)]) ||
+      (event == "remove" && replaceID(userId) == this.id ? await this.getChat(new Chat(replaceID(chatId))) : this.chats[replaceID(chatId)]) ||
       new Chat(replaceID(chatId), chatId.includes("@g") ? "group" : "pv");
 
     if (!this.chats.hasOwnProperty(chat.id)) this.chats[chat.id] = chat;
@@ -429,14 +429,14 @@ export default class WhatsAppBot implements IBot {
       this.chats[chat.id].users[user.id] = user;
     }
 
-    if (userEvent == "add") this.chats[chat.id].users[user.id] = user;
-    if (userEvent == "promote") this.chats[chat.id].users[user.id].isAdmin = true;
-    if (userEvent == "demote") this.chats[chat.id].users[user.id].isAdmin = false;
+    if (event == "add") this.chats[chat.id].users[user.id] = user;
+    if (event == "promote") this.chats[chat.id].users[user.id].isAdmin = true;
+    if (event == "demote") this.chats[chat.id].users[user.id].isAdmin = false;
 
     await this.saveUsers();
     await this.saveChats();
 
-    if (userEvent == "remove") {
+    if (event == "remove") {
       if (user.id == this.id) {
         delete this.chats[chat.id];
 
@@ -448,7 +448,7 @@ export default class WhatsAppBot implements IBot {
       }
     }
 
-    this.ev.emit("user", { userAction, userEvent, user, fromUser, chat });
+    this.ev.emit("user", { action, event, user, fromUser, chat });
   }
 
   public async addChat(chat: Chat) {

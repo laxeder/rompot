@@ -56,27 +56,27 @@ client.on("chat", (update) => {
 });
 
 client.on("user", async (update) => {
-  if (update.userAction == "join") {
+  if (update.action == "join") {
     await client.send(new Message(update.chat, `@${update.fromUser.id} entrou no grupo.`));
   }
 
-  if (update.userAction == "leave") {
+  if (update.action == "leave") {
     await client.send(new Message(update.chat, `@${update.fromUser.id} saiu do grupo...`));
   }
 
-  if (update.userAction == "add") {
+  if (update.action == "add") {
     await client.send(new Message(update.chat, `Membro @${update.fromUser.id} adicionou o @${update.user.id} ao grupo!`));
   }
 
-  if (update.userAction == "remove") {
+  if (update.action == "remove") {
     client.send(new Message(update.chat, `Membro @${update.fromUser.id} removeu o @${update.user.id} do grupo.`));
   }
 
-  if (update.userAction == "promote") {
+  if (update.action == "promote") {
     client.send(new Message(update.chat, `Membro @${update.fromUser.id} promoveu o @${update.user.id} para admin!`));
   }
 
-  if (update.userAction == "demote") {
+  if (update.action == "demote") {
     await client.send(new Message(update.chat, `Membro @${update.fromUser.id} removeu o admin do @${update.user.id}.`));
   }
 });

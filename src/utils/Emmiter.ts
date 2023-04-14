@@ -40,11 +40,13 @@ export type EventsMap = {
 
   /**
    * * Novo usuário
-   * @param action Ação ocorrida
-   * @param chat Sala de bate-papo que recebeu o novo usuário
-   * @param user Usuário
+   * @param action Ação feita pelo usuário
+   * @param event Evento ocorrido na sala de bate-papo
+   * @param chat Sala de bate-papo que recebeu o evento
+   * @param user Usuário que sofreu a ação
+   * @param fromUser Usuário que executou a ação
    */
-  user: { userAction: UserAction; userEvent: UserEvent; chat: Chat; user: User; fromUser: User };
+  user: { action: UserAction; event: UserEvent; chat: Chat; user: User; fromUser: User };
 
   /**
    * * Sala de bate-papo alterado
