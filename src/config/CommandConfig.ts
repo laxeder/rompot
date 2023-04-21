@@ -1,18 +1,20 @@
 import Command from "@modules/Command";
 
+import { replaceCommandTag } from "@utils/Generic";
+
 export const DefaultCommandConfig: CommandConfig = {
   get(command: string, commands: Command[], ...args: any[]): Command | null {
     var cmdResult: Command | null = null;
 
-    const replaceTag = (tag: string, msg: string) => msg.replace(msg.slice(msg.indexOf(tag), tag.length), "");
-
     for (const cmd of commands) {
       let msg: string = command;
 
-      if (!!cmd.prefix) {
-        if (!msg.includes(cmd.prefix)) continue;
+      const textLow = msg.toLowerCase();
 
-        msg = replaceTag(cmd.prefix, msg);
+      if (!!cmd.prefix) {
+        if (!textLow.includes(cmd.prefix.toLowerCase())) continue;
+
+        msg = replaceCommandTag(cmd.prefix, msg);
       }
 
       let isCMD: boolean = true;
@@ -20,7 +22,7 @@ export const DefaultCommandConfig: CommandConfig = {
       for (const index in cmd.tags) {
         const tag = cmd.tags[index];
 
-        if (!msg.includes(tag)) {
+        if (!textLow.includes(tag.toLowerCase())) {
           if (cmd.reqTags <= 0 || cmd.reqTags > Number(index)) {
             isCMD = false;
           }
@@ -28,7 +30,7 @@ export const DefaultCommandConfig: CommandConfig = {
           break;
         }
 
-        msg = replaceTag(tag, msg);
+        msg = replaceCommandTag(tag, msg);
       }
 
       if (isCMD) {
@@ -37,7 +39,9 @@ export const DefaultCommandConfig: CommandConfig = {
       }
     }
 
-    return cmdResult;
+    if (!!cmdResult) return cmdResult;
+
+    return null;
   },
 };
 
