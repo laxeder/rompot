@@ -53,3 +53,19 @@ export function getError(err: any): any {
 
   return err;
 }
+
+/**
+ * * Remove a Tag do texto
+ * @param tag Tag do comando
+ * @param text Texto do comando
+ * @returns Texto sem a tag
+ */
+export function replaceCommandTag(tag: string, text: string) {
+  const indexOfTag = text.toLowerCase().indexOf(tag.toLowerCase());
+
+  if (indexOfTag == -1) return text;
+
+  return String(`${text}`)
+    .slice(indexOfTag + tag.length)
+    .trim();
+}
