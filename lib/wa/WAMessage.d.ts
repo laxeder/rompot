@@ -2,6 +2,7 @@ import { MiscMessageGenerationOptions } from "@adiwajshing/baileys";
 import ReactionMessage from "../messages/ReactionMessage";
 import LocationMessage from "../messages/LocationMessage";
 import ContactMessage from "../messages/ContactMessage";
+import StickerMessage from "../messages/StickerMessage";
 import ButtonMessage from "../messages/ButtonMessage";
 import MediaMessage from "../messages/MediaMessage";
 import ListMessage from "../messages/ListMessage";
@@ -32,6 +33,7 @@ export declare class WhatsAppMessage {
      * @param message
      */
     refactoryMediaMessage(message: MediaMessage): Promise<void>;
+    refatoryStickerMessage(message: StickerMessage): Promise<void>;
     refactoryLocationMessage(message: LocationMessage): void;
     refactoryContactMessage(message: ContactMessage): void;
     /**
