@@ -16,3 +16,10 @@ export declare function getImageURL(uri: string): Promise<Buffer>;
  * @returns Retorna um erro
  */
 export declare function getError(err: any): any;
+/**
+ * * Remove a Tag do texto
+ * @param tag Tag do comando
+ * @param text Texto do comando
+ * @returns Texto sem a tag
+ */
+export declare function replaceCommandTag(tag: string, text: string): string;
