@@ -135,7 +135,21 @@ export class WhatsAppMessage {
     }
 
     if (message instanceof StickerMessage) {
-      const sticker = new Sticker(await message.getSticker(), {
+      await this.refatoryStickerMessage(message);
+    }
+
+    if (message.isGIF) {
+      this.message.gifPlayback = true;
+    }
+  }
+
+  public async refatoryStickerMessage(message: StickerMessage) {
+    const stickerFile = await message.getSticker();
+
+    this.message = { ...this.message, sticker: stickerFile };
+
+    try {
+      const sticker = new Sticker(stickerFile, {
         pack: message.pack,
         author: message.author,
         categories: message.categories,
@@ -145,10 +159,8 @@ export class WhatsAppMessage {
       });
 
       this.message = { ...this.message, ...(await sticker.toMessage()) };
-    }
-
-    if (message.isGIF) {
-      this.message.gifPlayback = true;
+    } catch (err) {
+      this._wa.ev.emit("error", err);
     }
   }
 

@@ -1,4 +1,4 @@
-import { Command, ImageMessage, Message, PollMessage, StickerMessage } from "../../src";
+import { Command, MediaMessage, Message, StickerMessage } from "../../src";
 
 export class StickerCommand extends Command {
   tags: string[] = ["s", "t", "i", "c", "k", "e", "r"];
@@ -6,14 +6,14 @@ export class StickerCommand extends Command {
   prefix: string = "/";
 
   public async execute(message: Message): Promise<void> {
-    const imageMessage = message.mention || message;
+    const mediaMessage = message.mention || message;
 
-    if (!(imageMessage instanceof ImageMessage)) {
+    if (!(mediaMessage instanceof MediaMessage)) {
       await message.reply("Mencione uma imagem para transforma-la em sticker");
       return;
     }
 
-    const msg = new StickerMessage(message.chat, await imageMessage.getImage());
+    const msg = new StickerMessage(message.chat, await mediaMessage.getStream());
 
     await this.client.send(msg);
   }

@@ -271,13 +271,17 @@ export class WhatsAppConvertMessage {
       msg = new StickerMessage(this._chat, file);
 
       try {
-        const data = await extractMetadata(await this._wa.downloadStreamMessage(file));
-
-        if (msg instanceof StickerMessage) {
-          msg.author = data["sticker-pack-publisher"] || "";
-          msg.id = data["sticker-pack-id"] || msg.id;
-          msg.pack = data["sticker-pack-name"] || "";
-        }
+        await extractMetadata(await this._wa.downloadStreamMessage(file))
+          .then((data) => {
+            if (msg instanceof StickerMessage) {
+              msg.author = data["sticker-pack-publisher"] || "";
+              msg.id = data["sticker-pack-id"] || msg.id;
+              msg.pack = data["sticker-pack-name"] || "";
+            }
+          })
+          .catch((err) => {
+            this._wa.ev.emit("error", err);
+          });
       } catch (err) {
         this._wa.ev.emit("error", err);
       }
