@@ -1,5 +1,5 @@
 import { decryptPollVote, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
-import { extractMetadata } from "wa-sticker-formatter/dist";
+import { extractMetadata } from "@laxeder/wa-sticker/dist";
 import digestSync from "crypto-digest-sync";
 
 import PollUpdateMessage from "@messages/PollUpdateMessage";

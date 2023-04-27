@@ -1,9 +1,10 @@
+import { Categories } from "@laxeder/wa-sticker/dist";
+
 import MediaMessage from "@messages/MediaMessage";
 import Message from "@messages/Message";
 
 import Chat from "@modules/Chat";
 import User from "@modules/User";
-import { Categories } from "wa-sticker-formatter/dist";
 
 import { Media } from "../types/Message";
 

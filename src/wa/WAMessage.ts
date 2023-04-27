@@ -1,5 +1,5 @@
 import { generateWAMessage, MiscMessageGenerationOptions } from "@adiwajshing/baileys";
-import Sticker, { StickerTypes } from "wa-sticker-formatter/dist";
+import Sticker, { StickerTypes } from "@laxeder/wa-sticker/dist";
 
 import ReactionMessage from "@messages/ReactionMessage";
 import LocationMessage from "@messages/LocationMessage";
