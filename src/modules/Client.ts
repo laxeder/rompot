@@ -159,7 +159,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return this.bot.reconnect(alert);
   }
 
-  public stop(reason: any) {
+  public stop(reason?: any) {
     return this.bot.stop(reason);
   }
 
