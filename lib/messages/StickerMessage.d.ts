@@ -1,10 +1,10 @@
 /// <reference types="node" />
 /// <reference types="long" />
+import { Categories } from "@laxeder/wa-sticker/dist";
 import MediaMessage from "./MediaMessage";
 import Message from "./Message";
 import Chat from "../modules/Chat";
 import User from "../modules/User";
-import { Categories } from "wa-sticker-formatter/dist";
 import { Media } from "../types/Message";
 export default class StickerMessage extends MediaMessage {
     /** * Criador da figurinha */

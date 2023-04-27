@@ -24,7 +24,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     configEvents(): void;
     connect(auth: IAuth | string): Promise<void>;
     reconnect(alert?: boolean): Promise<void>;
-    stop(reason: any): Promise<void>;
+    stop(reason?: any): Promise<void>;
     setCommands(commands: Command[]): void;
     getCommands(): Command[];
     addCommand(command: Command): void;

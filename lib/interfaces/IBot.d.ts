@@ -28,7 +28,7 @@ export default interface IBot {
      * * Parar bot
      * @param reason Razão por parar bot
      */
-    stop(reason: any): Promise<void>;
+    stop(reason?: any): Promise<void>;
     /**
      * * Marca uma mensagem como visualizada
      * @param message Mensagem que será visualizada

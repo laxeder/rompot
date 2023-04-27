@@ -51,7 +51,7 @@ export interface IClient extends ClientEvents {
      * * Parar bot
      * @param reason Razão por parar bot
      */
-    stop(reason: any): Promise<void>;
+    stop(reason?: any): Promise<void>;
     /**
      * * Adiciona uma reação na mensagem
      * @param message Mensagem
