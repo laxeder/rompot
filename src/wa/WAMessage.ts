@@ -43,10 +43,10 @@ export class WhatsAppMessage {
     this.message = await this.refactoryMessage(message);
 
     if (message.mention) {
-      const userJid = getID(message.mention.user.id || this._wa.id);
-
       const waMSG = new WhatsAppMessage(this._wa, message.mention);
       await waMSG.refactory(message.mention);
+
+      const userJid = getID(!!message.mention.user.id ? message.mention.user.id : this._wa.id);
 
       this.options.quoted = await generateWAMessage(this.chat, waMSG.message, {
         userJid,
@@ -80,7 +80,8 @@ export class WhatsAppMessage {
     const msg: any = {};
 
     msg.text = message.text;
-    msg.participant = getID(message.user.id);
+
+    if (!!message.user.id) msg.participant = getID(message.user.id);
 
     if (message.mentions) {
       msg.mentions = [];
@@ -90,9 +91,9 @@ export class WhatsAppMessage {
       }
 
       for (const mention of msg.text.split(/@(.*?)/)) {
-        const mentionNumber = mention.split(/\s+/)[0].replace(/\D/g, "");
+        const mentionNumber = mention.split(/\s+/)[0].replace(/\D+/g, "");
 
-        if (mention.length < 9 && mention.length > 15) continue;
+        if (!!!mentionNumber || mentionNumber.length < 9 || mentionNumber.length > 15) continue;
 
         const jid = getID(mentionNumber);
 
