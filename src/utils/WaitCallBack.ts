@@ -57,21 +57,19 @@ export default class WaitCallBack {
    * @param fn
    * @returns
    */
-  public waitCall<T extends () => any>(fn: T): Promise<ReturnType<T> | null> {
-    return (
-      new Promise<ReturnType<T> | null>((resolve, reject) => {
-        this.sub(async () => {
-          try {
-            const result = await fn();
+  public waitCall<T extends () => any>(fn: T): Promise<Awaited<ReturnType<T>> | null> {
+    return new Promise<Awaited<ReturnType<T>> | null>((resolve, reject) => {
+      this.sub(async () => {
+        try {
+          const result = await fn();
 
-            resolve(result);
-          } catch (err) {
-            resolve(null);
+          resolve(result || null);
+        } catch (err) {
+          resolve(null);
 
-            this.emitError(err);
-          }
-        });
-      }) || null
-    );
+          this.emitError(err);
+        }
+      });
+    });
   }
 }
