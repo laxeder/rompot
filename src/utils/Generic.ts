@@ -69,3 +69,39 @@ export function replaceCommandTag(tag: string, text: string) {
     .slice(indexOfTag + tag.length)
     .trim();
 }
+
+export declare type ObjectJSON = { [key: string]: any | ObjectJSON };
+
+/**
+ * * Injeta valores de um objeto em outro
+ * @param object Objeto com novos valores
+ * @param injectableObject Objeto que receberá os novos valores
+ * @returns Retorna o objeto com os novos valores
+ */
+export function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut: T): T {
+  Object.keys(objectIn).forEach((keyIn) => {
+    const keyOut: keyof T = keyIn;
+
+    if (!objectOut.hasOwnProperty(keyOut)) return;
+
+    if (typeof objectOut[keyOut] != typeof objectIn[keyIn]) {
+      if (typeof objectOut[keyOut] == "string" && typeof objectIn[keyIn] == "number") {
+        objectIn[keyIn] = String(objectIn[keyIn]);
+      } else if (typeof objectOut[keyOut] == "number" && typeof objectIn[keyIn] == "string") {
+        objectIn[keyIn] = Number(objectIn[keyIn]);
+      } else return;
+    }
+
+    if (!!objectIn[keyIn] && !!objectOut[keyOut] && typeof objectIn[keyIn] == "object" && typeof objectOut[keyOut] == "object") {
+      if (Array.isArray(objectOut[keyOut])) {
+        if (objectIn[keyIn].length == 0) return;
+      } else {
+        injectJSON(objectIn[keyIn], objectOut[keyOut]);
+      }
+    }
+
+    objectOut[keyOut] = objectIn[keyIn];
+  });
+
+  return objectOut;
+}
