@@ -23,3 +23,13 @@ export declare function getError(err: any): any;
  * @returns Texto sem a tag
  */
 export declare function replaceCommandTag(tag: string, text: string): string;
+export declare type ObjectJSON = {
+    [key: string]: any | ObjectJSON;
+};
+/**
+ * * Injeta valores de um objeto em outro
+ * @param object Objeto com novos valores
+ * @param injectableObject Objeto que receberá os novos valores
+ * @returns Retorna o objeto com os novos valores
+ */
+export declare function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut: T): T;

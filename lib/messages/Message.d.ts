@@ -16,6 +16,10 @@ export default class Message {
     id: string;
     /** * Mensagem enviada pelo bot */
     fromMe: boolean;
+    /** * Mensagem enviada pela api */
+    apiSend: boolean;
+    /** * Mensagem foi deletada */
+    isDeleted: boolean;
     /** * Opção selecionada */
     selected: string;
     /** * Usuários mencionados na mensagem */

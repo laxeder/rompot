@@ -29,5 +29,5 @@ export default class WaitCallBack {
      * @param fn
      * @returns
      */
-    waitCall<T extends () => any>(fn: T): Promise<ReturnType<T> | null>;
+    waitCall<T extends () => any>(fn: T): Promise<Awaited<ReturnType<T>> | null>;
 }
