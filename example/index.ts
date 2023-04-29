@@ -63,11 +63,11 @@ client.on("chat", (update) => {
 
 client.on("user", async (update) => {
   if (update.action == "join") {
-    await client.send(new Message(update.chat, `@${update.fromUser.id} entrou no grupo.`));
+    await client.send(new Message(update.chat, `@${update.user.id} entrou no grupo.`));
   }
 
   if (update.action == "leave") {
-    await client.send(new Message(update.chat, `@${update.fromUser.id} saiu do grupo...`));
+    await client.send(new Message(update.chat, `@${update.user.id} saiu do grupo...`));
   }
 
   if (update.action == "add") {
