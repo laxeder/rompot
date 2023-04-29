@@ -4,25 +4,26 @@ import { replaceCommandTag } from "@utils/Generic";
 
 export const DefaultCommandConfig: CommandConfig = {
   get(command: string, commands: Command[], ...args: any[]): Command | null {
-    var cmdResult: Command | null = null;
+    let cmdResult: Command | null = null;
 
     for (const cmd of commands) {
       let msg: string = command;
 
-      const textLow = msg.toLowerCase();
-
       if (!!cmd.prefix) {
-        if (!textLow.includes(cmd.prefix.toLowerCase())) continue;
+        const newMsg = replaceCommandTag(cmd.prefix, msg);
 
-        msg = replaceCommandTag(cmd.prefix, msg);
+        if (msg == newMsg) continue;
+
+        msg = newMsg;
       }
 
       let isCMD: boolean = true;
 
       for (const index in cmd.tags) {
         const tag = cmd.tags[index];
+        const newMsg = replaceCommandTag(tag, msg);
 
-        if (!textLow.includes(tag.toLowerCase())) {
+        if (msg == newMsg) {
           if (cmd.reqTags <= 0 || cmd.reqTags > Number(index)) {
             isCMD = false;
           }
@@ -30,18 +31,17 @@ export const DefaultCommandConfig: CommandConfig = {
           break;
         }
 
-        msg = replaceCommandTag(tag, msg);
+        msg = newMsg;
       }
 
       if (isCMD) {
+        if (!!cmdResult && cmdResult.tags > cmd.tags) continue;
+
         cmdResult = cmd;
-        break;
       }
     }
 
-    if (!!cmdResult) return cmdResult;
-
-    return null;
+    return cmdResult;
   },
 };
 
