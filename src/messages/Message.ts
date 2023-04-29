@@ -20,6 +20,10 @@ export default class Message {
   public id: string;
   /** * Mensagem enviada pelo bot */
   public fromMe: boolean;
+  /** * Mensagem enviada pela api */
+  public apiSend: boolean;
+  /** * Mensagem foi deletada */
+  public isDeleted: boolean;
   /** * Opção selecionada */
   public selected: string;
   /** * Usuários mencionados na mensagem */
@@ -47,6 +51,8 @@ export default class Message {
     this.id = id || "";
     this.text = text || "";
     this.fromMe = !!fromMe;
+    this.apiSend = false;
+    this.isDeleted = false;
     this.selected = selected || "";
     this.mentions = mentions || [];
     this.timestamp = timestamp || Date.now();

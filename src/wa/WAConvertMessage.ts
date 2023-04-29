@@ -37,6 +37,7 @@ export class WhatsAppConvertMessage {
 
   constructor(wa: WhatsAppBot, message: WAMessage, type?: MessageUpsertType) {
     this._wa = wa;
+
     this.set(message, type);
   }
 
@@ -80,14 +81,21 @@ export class WhatsAppConvertMessage {
       this._chat.id = id;
     }
 
-    if (chat?.id.includes("@g")) this._chat.type = "group";
-    if (chat?.id.includes("@s")) this._chat.type = "pv";
+    if (chat?.id.includes("@g")) {
+      this._chat.type = "group";
+    }
 
-    if (message.pushName) this._chat.name = message.pushName;
+    if (chat?.id.includes("@s") || !chat.id.includes("@")) {
+      this._chat.type = "pv";
+      this._chat.name = message.pushName;
+    }
 
     const userID = replaceID(message.key.fromMe ? this._wa.id : message.key.participant || message.participant || message.key.remoteJid || "");
-    this._user = chat?.users && chat?.users[userID] ? chat?.users[userID] : new User(userID);
-    this._user.name = message.pushName || "";
+    const user = chat.users[userID] || new User(userID);
+
+    user.name = message.pushName || "";
+
+    this._user = await this._wa.getUser(user, true);
 
     await this.convertContentMessage(message.message);
 
@@ -95,6 +103,8 @@ export class WhatsAppConvertMessage {
       this._convertedMessage.fromMe = message.key.fromMe;
       this._user.id = replaceID(this._wa.id);
     }
+
+    this._convertedMessage.apiSend = this._wa.sendedMessages.hasOwnProperty(message.key.id);
 
     if (message.messageTimestamp) this._convertedMessage.timestamp = message.messageTimestamp;
     if (message.key.id) this._convertedMessage.id = message.key.id;
@@ -168,6 +178,8 @@ export class WhatsAppConvertMessage {
     if (content.selectedId) {
       this._convertedMessage.selected = content.selectedId;
     }
+
+    if (contentType == "protocolMessage") this._convertedMessage.isDeleted = true;
   }
 
   /**
