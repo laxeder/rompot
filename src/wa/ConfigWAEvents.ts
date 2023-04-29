@@ -50,6 +50,8 @@ export default class ConfigWAEvents {
     this.wa.sock.ws.on("CB:notification,,add", async (data) => {
       for (const content of data.content[0]?.content || []) {
         try {
+          if (!data.attrs.participant) data.attrs.participant = content.attrs.jid;
+
           await this.wa.groupParticipantsUpdate(content.attrs.jid == data.attrs.participant ? "join" : "add", data.attrs.from, content.attrs.jid, data.attrs.participant);
         } catch (err) {
           this.wa.ev.emit("error", err);
