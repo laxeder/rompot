@@ -237,6 +237,11 @@ export interface IClient extends ClientEvents {
     setChatProfile(chat: Chat | string, profile: Buffer): Promise<void>;
     /**
      * @param chat Sala de bate-papo
+     * @returns Retorna os usuários de uma sala de bate-papo
+     */
+    getChatUsers(chat: Chat | string): Promise<Users>;
+    /**
+     * @param chat Sala de bate-papo
      * @returns Retorna os administradores de uma sala de bate-papo
      */
     getChatAdmins(chat: Chat | string): Promise<Users>;

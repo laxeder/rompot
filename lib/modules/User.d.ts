@@ -3,21 +3,13 @@ import Chat from "./Chat";
 import { ClientType } from "../types/Client";
 export default class User {
     #private;
+    /** * Nome do usuário */
+    name: string;
     /** * ID */
     id: string;
-    /** * Nome */
-    name: string;
-    /** * Descrição */
-    description: string;
-    /** * Foto de perfil */
-    profile: Buffer;
-    /** * É administrador */
-    isAdmin: boolean;
-    /** É líder */
-    isLeader: boolean;
     get client(): ClientType;
     set client(client: ClientType);
-    constructor(id: string, name?: string, description?: string, profile?: Buffer);
+    constructor(id: string, name?: string);
     /** * Bloqueia o usuário */
     blockUser(): Promise<void>;
     /** Desbloqueia o usuário */

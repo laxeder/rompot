@@ -12,15 +12,9 @@ export default class Chat {
     type: ChatType;
     /** * Nome */
     name: string;
-    /** * Descrição */
-    description: string;
-    /** * Foto de perfil */
-    profile: Buffer;
-    /** * Usuários da sala de bate-papo */
-    users: Users;
     get client(): ClientType;
     set client(client: ClientType);
-    constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: Users);
+    constructor(id: string, type?: ChatType, name?: string);
     /**
      * @returns Retorna o nome da sala de bate-papo
      */
@@ -62,6 +56,10 @@ export default class Chat {
      * @returns Retorna os administradores daquela sala de bate-papo
      */
     getAdmins(): Promise<Users>;
+    /**
+     * @returns Retorna os usuários da sala de bate-papo
+     */
+    getChatUsers(): Promise<Users>;
     /**
      * * Adiciona um usuário a sala de bate-papo
      * @param user Usuário que será adicionado

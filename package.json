@@ -1,13 +1,13 @@
 {
   "name": "rompot",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "Chatbot API em TypeScript",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "example": "node example/index.ts",
     "dev": "ts-node-dev -r tsconfig-paths/register example/index.ts",
-    "build": "npm i && npm run clean && npm ci && tsc && tsc-alias",
+    "build": "npm i && npm run clean && tsc && tsc-alias",
     "clean": "rimraf lib"
   },
   "repository": {

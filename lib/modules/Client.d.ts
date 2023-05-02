@@ -70,6 +70,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     demoteUserInChat(chat: Chat | string, user: User): Promise<void>;
     createChat(chat: Chat): Promise<void>;
     leaveChat(chat: Chat | string): Promise<void>;
+    getChatUsers(chat: Chat | string): Promise<Users>;
     getChatAdmins(chat: Chat | string): Promise<Users>;
     getChatLeader(chat: Chat | string): Promise<User>;
     getUser(user: User | string): Promise<User | null>;

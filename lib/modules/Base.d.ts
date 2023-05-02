@@ -48,6 +48,7 @@ export declare class BotBase implements IBot {
     setChatDescription(chat: Chat, description: string): Promise<void>;
     getChatProfile(chat: Chat): Promise<Buffer>;
     setChatProfile(chat: Chat, profile: Buffer): Promise<void>;
+    getChatUsers(chat: Chat): Promise<{}>;
     getChatAdmins(chat: Chat): Promise<Users>;
     getChatLeader(chat: Chat): Promise<User>;
     getChats(): Promise<Chats>;

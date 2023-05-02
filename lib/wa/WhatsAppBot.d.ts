@@ -1,22 +1,24 @@
 /// <reference types="node" />
 import { DisconnectReason, proto, MediaDownloadOptions, WASocket, SocketConfig } from "@adiwajshing/baileys";
 import ConfigWAEvents from "./ConfigWAEvents";
+import { WAChats, WAUsers } from "./WATypes";
+import { WAChat, WAUser } from "./WAModules";
 import IAuth from "../interfaces/IAuth";
 import IBot from "../interfaces/IBot";
 import PollMessage from "../messages/PollMessage";
 import Message from "../messages/Message";
-import User from "../modules/User";
 import Chat from "../modules/Chat";
+import User from "../modules/User";
 import { BotEvents } from "../utils/Emmiter";
 import WaitCallBack from "../utils/WaitCallBack";
-import { UserAction, Users } from "../types/User";
 import { ConnectionStatus } from "../types/Connection";
-import { Chats, ChatStatus } from "../types/Chat";
+import { UserAction } from "../types/User";
+import { ChatStatus } from "../types/Chat";
 import { Media } from "../types/Message";
 export default class WhatsAppBot implements IBot {
     sock: WASocket;
     DisconnectReason: typeof DisconnectReason;
-    users: Users;
+    users: WAUsers;
     ev: BotEvents;
     status: ConnectionStatus;
     id: string;
@@ -25,7 +27,7 @@ export default class WhatsAppBot implements IBot {
     wcb: WaitCallBack;
     config: Partial<SocketConfig>;
     configEvents: ConfigWAEvents;
-    chats: Chats;
+    chats: WAChats;
     polls: {
         [id: string]: PollMessage;
     };
@@ -86,13 +88,13 @@ export default class WhatsAppBot implements IBot {
      * * Lê o chat
      * @param chat Sala de bate-papo
      */
-    readChat(chat: any, save: boolean): Promise<Chat>;
+    readChat(chat: any): Promise<WAChat>;
     /**
      * * Lê o usuário
      * @param user Usuário
      * @param save Salva usuário lido
      */
-    readUser(user: any, save: boolean): Promise<User>;
+    readUser(user: any): Promise<WAUser>;
     /**
      * * Trata atualizações de participantes
      * @param action Ação realizada
@@ -101,14 +103,21 @@ export default class WhatsAppBot implements IBot {
      * @param fromId Usuário que realizou a ação
      */
     groupParticipantsUpdate(action: UserAction, chatId: string, userId: string, fromId: string): Promise<void>;
+    getChatName(chat: Chat): Promise<string>;
+    setChatName(chat: Chat, name: string): Promise<void>;
+    getChatDescription(chat: Chat): Promise<string>;
+    setChatDescription(chat: Chat, description: string): Promise<any>;
+    getChatProfile(chat: Chat): Promise<Buffer>;
+    setChatProfile(chat: Chat, image: Buffer): Promise<void>;
     addChat(chat: Chat): Promise<void>;
     removeChat(chat: Chat): Promise<void>;
-    getChat(chat: Chat, save?: boolean): Promise<Chat | null>;
+    getChat(chat: Chat): Promise<WAChat | null>;
     setChat(chat: Chat): Promise<void>;
-    getChats(): Promise<Chats>;
-    setChats(chats: Chats): Promise<void>;
-    getChatAdmins(chat: Chat): Promise<Users>;
-    getChatLeader(chat: Chat): Promise<User>;
+    getChats(): Promise<WAChats>;
+    setChats(chats: WAChats): Promise<void>;
+    getChatUsers(chat: Chat): Promise<WAUsers>;
+    getChatAdmins(chat: Chat): Promise<WAUsers>;
+    getChatLeader(chat: Chat): Promise<WAUser>;
     addUserInChat(chat: Chat, user: User): Promise<void>;
     removeUserInChat(chat: Chat, user: User): Promise<void>;
     promoteUserInChat(chat: Chat, user: User): Promise<void>;
@@ -116,32 +125,26 @@ export default class WhatsAppBot implements IBot {
     changeChatStatus(chat: Chat, status: ChatStatus): Promise<void>;
     createChat(chat: Chat): Promise<void>;
     leaveChat(chat: Chat): Promise<any>;
-    getUser(user: User, save?: boolean): Promise<User | null>;
+    getUserName(user: User): Promise<string>;
+    setUserName(user: User, name: string): Promise<void>;
+    getUserDescription(user: User): Promise<string>;
+    setUserDescription(user: User, description: string): Promise<any>;
+    getUserProfile(user: User, lowQuality?: boolean): Promise<Buffer>;
+    setUserProfile(user: User, image: Buffer): Promise<void>;
+    getUser(user: User): Promise<WAUser | null>;
     setUser(user: User): Promise<void>;
-    getUsers(): Promise<Users>;
-    setUsers(users: Users): Promise<void>;
+    getUsers(): Promise<WAUsers>;
+    setUsers(users: WAUsers): Promise<void>;
     addUser(user: User): Promise<void>;
     removeUser(user: User): Promise<void>;
     blockUser(user: User): Promise<void>;
     unblockUser(user: User): Promise<void>;
     getBotName(): Promise<string>;
     setBotName(name: string): Promise<void>;
-    getUserName(user: User): Promise<string>;
-    setUserName(user: User, name: string): Promise<void>;
-    getChatName(chat: Chat): Promise<string>;
-    setChatName(chat: Chat, name: string): Promise<void>;
-    getBotProfile(): Promise<Buffer>;
-    setBotProfile(image: Buffer): Promise<void>;
-    getUserProfile(user: User, lowQuality?: boolean): Promise<Buffer>;
-    setUserProfile(user: User, image: Buffer): Promise<void>;
-    getChatProfile(chat: Chat): Promise<Buffer>;
-    setChatProfile(chat: Chat, image: Buffer): Promise<void>;
     getBotDescription(): Promise<string>;
     setBotDescription(description: string): Promise<void>;
-    getUserDescription(user: User): Promise<string>;
-    setUserDescription(user: User, description: string): Promise<any>;
-    getChatDescription(chat: Chat): Promise<string>;
-    setChatDescription(chat: Chat, description: string): Promise<any>;
+    getBotProfile(): Promise<Buffer>;
+    setBotProfile(image: Buffer): Promise<void>;
     /**
      * * Adiciona uma mensagem na lista de mensagens enviadas
      * @param message Mensagem que será adicionada
@@ -188,4 +191,11 @@ export default class WhatsAppBot implements IBot {
      * @returns
      */
     groupAcceptInvite(code: string): Promise<string | undefined> | undefined;
+    /**
+     * * Gera a configuração de navegador
+     * @param name Nome da plataforma
+     * @param browser Nome do navegador
+     * @param version Versão do navegador
+     */
+    static Browser(name?: string, browser?: string, version?: string): [string, string, string];
 }
