@@ -6,18 +6,11 @@ import { ClientType } from "../types/Client";
 export default class User {
   #client: ClientType = ClientBase();
 
+  /** * Nome do usuário */
+  public name: string;
+
   /** * ID */
   public id: string;
-  /** * Nome */
-  public name: string;
-  /** * Descrição */
-  public description: string;
-  /** * Foto de perfil */
-  public profile: Buffer;
-  /** * É administrador */
-  public isAdmin: boolean;
-  /** É líder */
-  public isLeader: boolean;
 
   get client(): ClientType {
     return this.#client;
@@ -27,13 +20,9 @@ export default class User {
     this.#client = client;
   }
 
-  constructor(id: string, name?: string, description?: string, profile?: Buffer) {
+  constructor(id: string, name?: string) {
     this.id = id || "";
     this.name = name || "";
-    this.description = description || "";
-    this.profile = profile || Buffer.from("");
-    this.isAdmin = false;
-    this.isLeader = false;
   }
 
   /** * Bloqueia o usuário */

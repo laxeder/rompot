@@ -16,12 +16,6 @@ export default class Chat {
   public type: ChatType;
   /** * Nome */
   public name: string;
-  /** * Descrição */
-  public description: string;
-  /** * Foto de perfil */
-  public profile: Buffer;
-  /** * Usuários da sala de bate-papo */
-  public users: Users = {};
 
   get client(): ClientType {
     return this.#client;
@@ -29,22 +23,12 @@ export default class Chat {
 
   set client(client: ClientType) {
     this.#client = client;
-
-    for (const u in this.users) {
-      this.users[u].client = this.client;
-    }
   }
 
-  constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: Users) {
+  constructor(id: string, type?: ChatType, name?: string) {
     this.id = id || "";
     this.type = type || "pv";
     this.name = name || "";
-    this.description = description || "";
-    this.profile = profile || Buffer.from("");
-
-    for (const id in users) {
-      this.users[id] = User.Client(this.client, users[id]);
-    }
   }
 
   /**
@@ -59,8 +43,6 @@ export default class Chat {
    * @param name Nome da sala de bate-pao
    */
   public async setName(name: string): Promise<void> {
-    this.name = name;
-
     await this.client.setChatName(this, name);
   }
 
@@ -76,8 +58,6 @@ export default class Chat {
    * @param description Descrição da  sala de bate-pao
    */
   public async setDescription(description: string): Promise<void> {
-    this.description = description;
-
     return this.client.setChatDescription(this, description);
   }
 
@@ -93,8 +73,6 @@ export default class Chat {
    * @param image Foto de perfil da sala de bate-papo
    */
   public async setProfile(image: Buffer): Promise<void> {
-    this.profile = image;
-
     return this.client.setChatProfile(this, image);
   }
 
@@ -123,6 +101,13 @@ export default class Chat {
    */
   public async getAdmins(): Promise<Users> {
     return this.client.getChatAdmins(this);
+  }
+
+  /**
+   * @returns Retorna os usuários da sala de bate-papo
+   */
+  public async getChatUsers(): Promise<Users> {
+    return await this.client.getChatUsers(this);
   }
 
   /**
