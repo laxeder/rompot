@@ -106,7 +106,7 @@ export default class Chat {
   /**
    * @returns Retorna os usuários da sala de bate-papo
    */
-  public async getChatUsers(): Promise<Users> {
+  public async getUsers(): Promise<Users> {
     return await this.client.getChatUsers(this);
   }
 
