@@ -59,7 +59,7 @@ export default class Chat {
     /**
      * @returns Retorna os usuários da sala de bate-papo
      */
-    getChatUsers(): Promise<Users>;
+    getUsers(): Promise<Users>;
     /**
      * * Adiciona um usuário a sala de bate-papo
      * @param user Usuário que será adicionado

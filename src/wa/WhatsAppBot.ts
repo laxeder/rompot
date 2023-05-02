@@ -815,7 +815,7 @@ export default class WhatsAppBot implements IBot {
    * @param browser Nome do navegador
    * @param version Versão do navegador
    */
-  public static Browser(name: string = "Rompot", browser: string = "Chrome", version: string = "1.4.5") {
+  public static Browser(name: string = "Rompot", browser: string = "Chrome", version: string = "1.4.6") {
     return [name, browser, version] as [string, string, string];
   }
 }
