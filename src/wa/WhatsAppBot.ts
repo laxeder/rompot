@@ -55,7 +55,7 @@ export default class WhatsAppBot implements IBot {
       connectTimeoutMs: 2000,
       defaultQueryTimeoutMs: 30000,
       logger: this.logger,
-      browser: Browsers.appropriate("Rompot"),
+      browser: WhatsAppBot.Browser(),
       ...config,
     };
   }
@@ -811,9 +811,11 @@ export default class WhatsAppBot implements IBot {
 
   /**
    * * Gera a configuração de navegador
-   * @param name Nome do navegador
+   * @param name Nome da plataforma
+   * @param browser Nome do navegador
+   * @param version Versão do navegador
    */
-  public static Browser(name: string) {
-    return Browsers.appropriate(name);
+  public static Browser(name: string = "Rompot", browser: string = "Chrome", version: string = "1.4.5") {
+    return [name, browser, version] as [string, string, string];
   }
 }
