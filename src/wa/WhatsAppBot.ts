@@ -1,4 +1,4 @@
-import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, WASocket, SocketConfig, makeCacheableSignalKeyStore } from "@adiwajshing/baileys";
+import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, WASocket, SocketConfig, makeCacheableSignalKeyStore, Browsers } from "@adiwajshing/baileys";
 import internal from "stream";
 import pino from "pino";
 
@@ -53,6 +53,7 @@ export default class WhatsAppBot implements IBot {
       connectTimeoutMs: 2000,
       defaultQueryTimeoutMs: 30000,
       logger: this.logger,
+      browser: Browsers.appropriate("Rompot"),
       ...config,
     };
   }
@@ -798,5 +799,13 @@ export default class WhatsAppBot implements IBot {
    */
   public groupAcceptInvite(code: string): Promise<string | undefined> | undefined {
     return this.sock?.groupAcceptInvite(code);
+  }
+
+  /**
+   * * Gera a configuração de navegador
+   * @param name Nome do navegador
+   */
+  public static Browser(name: string) {
+    return Browsers.appropriate(name);
   }
 }
