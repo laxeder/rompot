@@ -408,8 +408,8 @@ client.demoteUserInChat(chat, user);
 
 Esse Software foi construído com:
 
-- [Baileys@5.0.0](https://github.com/adiwajshing/Baileys) - API para se conectar ao WhatsApp
+- [Baileys@5.0.0](https://github.com/WhiskeySockets/Baileys) - API para se conectar ao WhatsApp
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT - veja o arquivo [LICENSE.md](https://github.com/laxeder/multi-bot/LICENSE) para mais detalhes.
+Este projeto está sob a licença MIT - veja o arquivo [LICENSE.md](https://github.com/laxeder/rompot/LICENSE) para mais detalhes.
