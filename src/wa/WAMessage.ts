@@ -19,6 +19,7 @@ import WhatsAppBot from "@wa/WhatsAppBot";
 import { getID } from "@wa/ID";
 
 import { List, ListItem } from "../types/Message";
+import { WAUser } from "./WAModules";
 
 export class WhatsAppMessage {
   private _message: Message;
@@ -178,7 +179,8 @@ export class WhatsAppMessage {
     };
 
     message.contacts.forEach((user) => {
-      const vcard = "BEGIN:VCARD\n" + "VERSION:3.0\n" + `FN:${""}\n` + `ORG:${user.description};\n` + `TEL;type=CELL;type=VOICE;waid=${user.id}: ${getID(user.id)}\n` + "END:VCARD";
+      const vcard =
+        "BEGIN:VCARD\n" + "VERSION:3.0\n" + `FN:${""}\n` + (user instanceof WAUser ? `ORG:${user.description};\n` : "") + `TEL;type=CELL;type=VOICE;waid=${user.id}: ${getID(user.id)}\n` + "END:VCARD";
 
       if (message.contacts.length < 2) {
         this.message.contacts.contacts.push({ vcard });
