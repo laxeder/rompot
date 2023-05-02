@@ -11,6 +11,7 @@ import ButtonMessage from "@messages/ButtonMessage";
 import MediaMessage from "@messages/MediaMessage";
 import ImageMessage from "@messages/ImageMessage";
 import VideoMessage from "@messages/VideoMessage";
+import EmptyMessage from "@messages/EmptyMessage";
 import AudioMessage from "@messages/AudioMessage";
 import ListMessage from "@messages/ListMessage";
 import FileMessage from "@messages/FileMessage";
@@ -20,6 +21,7 @@ import Message from "@messages/Message";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 
+import { WAChat, WAUser } from "@wa/WAModules";
 import WhatsAppBot from "@wa/WhatsAppBot";
 import { getID, replaceID } from "@wa/ID";
 
@@ -59,8 +61,8 @@ export class WhatsAppConvertMessage {
 
     if (this._mention) this._convertedMessage.mention = this._mention;
 
-    this._convertedMessage.chat = this._chat;
-    this._convertedMessage.user = this._user;
+    this._convertedMessage.chat = new Chat(this._chat.id, this._chat.type, this._chat.name);
+    this._convertedMessage.user = new User(this._user.id, this._user.name);
 
     return this._convertedMessage;
   }
@@ -71,9 +73,15 @@ export class WhatsAppConvertMessage {
    * @param type
    */
   public async convertMessage(message: WAMessage, type?: MessageUpsertType) {
+    if (!!!message) {
+      this._convertedMessage = new EmptyMessage();
+
+      return;
+    }
+
     const id = replaceID(message?.key?.remoteJid || "");
 
-    const chat = this._wa.chats[id] ? this._wa.chats[id] : new Chat(id);
+    const chat = this._wa.chats[id] ? this._wa.chats[id] : new WAChat(id);
 
     if (id) {
       if (chat) this._chat = chat;
@@ -83,19 +91,33 @@ export class WhatsAppConvertMessage {
 
     if (chat?.id.includes("@g")) {
       this._chat.type = "group";
+      this._chat.name = this._wa.chats[chat.id]?.name || "";
     }
 
     if (chat?.id.includes("@s") || !chat.id.includes("@")) {
       this._chat.type = "pv";
-      this._chat.name = message.pushName;
+
+      if (!message.key.fromMe) {
+        this._chat.name = message.pushName;
+
+        //? O WhatsApp não envia o nome de um chat privado normalmente, então recolho ele da mensagem
+        if (!this._wa.chats.hasOwnProperty(id) || (!!this._chat.name && this._wa.users[id].name != this._chat.name)) {
+          await this._wa.addChat(this._chat);
+        }
+      }
     }
 
     const userID = replaceID(message.key.fromMe ? this._wa.id : message.key.participant || message.participant || message.key.remoteJid || "");
-    const user = chat.users[userID] || new User(userID);
+    const user = this._wa.users[userID] || new WAUser(userID);
 
-    user.name = message.pushName || "";
+    if (!!message.pushName) user.name = message.pushName;
 
-    this._user = await this._wa.getUser(user, true);
+    //? O WhatsApp não envia o nome do usuário normalmente, então recolho ele da mensagem
+    if (!this._wa.users.hasOwnProperty(userID) || (!!user.name && this._wa.users[userID].name != user.name)) {
+      await this._wa.addUser(user);
+    }
+
+    this._user = user;
 
     await this.convertContentMessage(message.message);
 
@@ -117,11 +139,19 @@ export class WhatsAppConvertMessage {
    * @returns
    */
   public async convertContentMessage(messageContent: WAMessageContent | undefined | null) {
-    if (!!!messageContent) return;
+    if (!!!messageContent) {
+      this._convertedMessage = new EmptyMessage();
+
+      return;
+    }
 
     const contentType = getContentType(messageContent);
 
-    if (!contentType) return;
+    if (!contentType || (contentType == "protocolMessage" && !!messageContent[contentType]?.historySyncNotification)) {
+      this._convertedMessage = new EmptyMessage();
+
+      return;
+    }
 
     let content: any = contentType === "conversation" ? { text: messageContent[contentType] } : messageContent[contentType];
 
@@ -226,7 +256,7 @@ export class WhatsAppConvertMessage {
     const msg = new ContactMessage(this._chat, content.displayName, []);
 
     const getContact = (vcard: string | any): User => {
-      const user = new User("");
+      const user = new WAUser("");
 
       if (typeof vcard == "object") {
         vcard = vcard.vcard;

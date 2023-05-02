@@ -1,11 +1,13 @@
 import { DisconnectReason, WAMessage } from "@adiwajshing/baileys";
 import { Boom } from "@hapi/boom";
 
-import User from "@modules/User";
+import EmptyMessage from "@messages/EmptyMessage";
+
 import Chat from "@modules/Chat";
 
 import { WhatsAppConvertMessage } from "./WAConvertMessage";
 import WhatsAppBot from "./WhatsAppBot";
+import { WAUser } from "./WAModules";
 import { replaceID } from "./ID";
 
 export default class ConfigWAEvents {
@@ -94,7 +96,19 @@ export default class ConfigWAEvents {
         if (message.key.remoteJid == "status@broadcast") return;
         if (!message.message) return;
 
+        const jid = replaceID(message.key.remoteJid);
+
+        if (!this.wa.chats[jid]) {
+          await this.wa.readChat({ id: jid });
+        } else if (!this.wa.chats[jid].users[this.wa.id]) {
+          this.wa.chats[jid].users[this.wa.id] = new WAUser(this.wa.id);
+
+          await this.wa.saveChats();
+        }
+
         const msg = await new WhatsAppConvertMessage(this.wa, message, m.type).get();
+
+        if (msg instanceof EmptyMessage) return;
 
         this.wa.ev.emit("message", msg);
       } catch (err) {
@@ -164,7 +178,7 @@ export default class ConfigWAEvents {
           update.id = replaceID(update.id);
 
           if (this.wa.users[update.id]?.name != update.notify || update.verifiedName) {
-            await this.wa.readUser(update, true);
+            await this.wa.readUser(update);
           }
         } catch (err) {
           this.wa.ev.emit("error", err);
@@ -180,9 +194,9 @@ export default class ConfigWAEvents {
           update.id = replaceID(update.id);
 
           if (!this.wa.chats[update.id]) {
-            this.wa.readChat(update, true);
+            this.wa.readChat(update);
           } else if (!this.wa.chats[update.id].users[this.wa.id]) {
-            this.wa.chats[update.id].users[this.wa.id] = new User(this.wa.id);
+            this.wa.chats[update.id].users[this.wa.id] = new WAUser(this.wa.id);
 
             await this.wa.saveChats();
           }
@@ -200,7 +214,7 @@ export default class ConfigWAEvents {
           update.id = replaceID(update.id);
 
           if (this.wa.chats[update.id]?.name != update.subject) {
-            await this.wa.readChat(update, true);
+            await this.wa.readChat(update);
           }
         } catch (err) {
           this.wa.ev.emit("error", err);
