@@ -467,6 +467,18 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return this.bot.leaveChat(Chat.get(chat));
   }
 
+  public async getChatUsers(chat: Chat | string) {
+    const users = await this.bot.getChatUsers(Chat.get(chat));
+
+    const usersModules: Users = {};
+
+    Object.keys(users).forEach((id) => {
+      usersModules[id] = User.Client(this, users[id]);
+    });
+
+    return usersModules;
+  }
+
   public async getChatAdmins(chat: Chat | string) {
     const admins = await this.bot.getChatAdmins(Chat.get(chat));
 

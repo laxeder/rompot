@@ -223,6 +223,12 @@ export default interface IBot {
 
   /**
    * @param chat Sala de bate-papo
+   * @returns Retorna os usuários de uma sala de bate-papo
+   */
+  getChatUsers(chat: Chat): Promise<Users>;
+
+  /**
+   * @param chat Sala de bate-papo
    * @returns Retorna os administradores de uma sala de bate-papo
    */
   getChatAdmins(chat: Chat): Promise<Users>;

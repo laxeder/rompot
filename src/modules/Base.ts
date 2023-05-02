@@ -108,6 +108,10 @@ export class BotBase implements IBot {
 
   async setChatProfile(chat: Chat, profile: Buffer): Promise<void> {}
 
+  async getChatUsers(chat: Chat) {
+    return {};
+  }
+
   async getChatAdmins(chat: Chat): Promise<Users> {
     return {};
   }
