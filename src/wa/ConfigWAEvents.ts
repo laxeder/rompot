@@ -1,4 +1,4 @@
-import { DisconnectReason, WAMessage } from "@adiwajshing/baileys";
+import { DisconnectReason, WAMessage } from "baileys";
 import { Boom } from "@hapi/boom";
 
 import EmptyMessage from "@messages/EmptyMessage";

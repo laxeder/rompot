@@ -1,4 +1,4 @@
-import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, WASocket, SocketConfig, makeCacheableSignalKeyStore, Browsers } from "@adiwajshing/baileys";
+import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, WASocket, SocketConfig, makeCacheableSignalKeyStore } from "baileys";
 import internal from "stream";
 import pino from "pino";
 

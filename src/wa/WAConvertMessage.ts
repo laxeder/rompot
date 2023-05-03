@@ -1,4 +1,4 @@
-import { decryptPollVote, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
+import { decryptPollVote, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "baileys";
 import { extractMetadata } from "@laxeder/wa-sticker/dist";
 import digestSync from "crypto-digest-sync";
 
@@ -101,7 +101,7 @@ export class WhatsAppConvertMessage {
         this._chat.name = message.pushName;
 
         //? O WhatsApp não envia o nome de um chat privado normalmente, então recolho ele da mensagem
-        if (!this._wa.chats.hasOwnProperty(id) || (!!this._chat.name && this._wa.users[id].name != this._chat.name)) {
+        if (!this._wa.chats.hasOwnProperty(id) || (!!this._chat.name && this._wa.chats[id].name != this._chat.name)) {
           await this._wa.addChat(this._chat);
         }
       }

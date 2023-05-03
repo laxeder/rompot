@@ -1,4 +1,4 @@
-import { SignalDataTypeMap, initAuthCreds, BufferJSON, proto } from "@adiwajshing/baileys";
+import { SignalDataTypeMap, initAuthCreds, BufferJSON, proto } from "baileys";
 import { mkdirSync, statSync, unlinkSync } from "fs";
 import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
