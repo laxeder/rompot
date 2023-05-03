@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { DisconnectReason, proto, MediaDownloadOptions, WASocket, SocketConfig } from "@adiwajshing/baileys";
+import { DisconnectReason, proto, MediaDownloadOptions, WASocket, SocketConfig } from "baileys";
 import ConfigWAEvents from "./ConfigWAEvents";
 import { WAChats, WAUsers } from "./WATypes";
 import { WAChat, WAUser } from "./WAModules";

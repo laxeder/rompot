@@ -1,4 +1,4 @@
-import { MiscMessageGenerationOptions } from "@adiwajshing/baileys";
+import { MiscMessageGenerationOptions } from "baileys";
 import ReactionMessage from "../messages/ReactionMessage";
 import LocationMessage from "../messages/LocationMessage";
 import ContactMessage from "../messages/ContactMessage";

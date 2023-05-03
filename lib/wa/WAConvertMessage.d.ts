@@ -1,4 +1,4 @@
-import { MessageUpsertType, proto, WAMessage, WAMessageContent } from "@adiwajshing/baileys";
+import { MessageUpsertType, proto, WAMessage, WAMessageContent } from "baileys";
 import Message from "../messages/Message";
 import WhatsAppBot from "./WhatsAppBot";
 export declare class WhatsAppConvertMessage {
