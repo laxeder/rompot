@@ -1,4 +1,4 @@
-import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, WASocket, SocketConfig, makeCacheableSignalKeyStore } from "baileys";
+import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, WASocket, SocketConfig } from "baileys";
 import internal from "stream";
 import pino from "pino";
 
@@ -72,10 +72,7 @@ export default class WhatsAppBot implements IBot {
         const { state, saveCreds } = await getBaileysAuth(this.auth);
 
         this.sock = makeWASocket({
-          auth: {
-            creds: state.creds,
-            keys: makeCacheableSignalKeyStore(state.keys, this.logger),
-          },
+          auth: state,
           ...this.config,
         });
 
