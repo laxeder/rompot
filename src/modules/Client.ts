@@ -248,13 +248,13 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     const stop = async (reactionStop?: string) => {
       if (isStoped) return;
 
+      isStoped = true;
+
       if (!!!reactionStop) {
         await this.removeReaction(message);
       } else {
         await this.addReaction(message, reactionStop);
       }
-
-      isStoped = true;
     };
 
     const addReaction = async (index: number) => {
