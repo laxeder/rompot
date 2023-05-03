@@ -38,6 +38,10 @@ client.on("reconnecting", () => {
 });
 
 client.on("message", async (message: Message) => {
+  if (message.chat.type == "pv") {
+    console.log(message);
+  }
+
   if (message.selected.includes("poll")) {
     const cmd = client.getCommand("/poll");
 
@@ -63,20 +67,25 @@ client.on("chat", (update) => {
 
 client.on("user", async (update) => {
   if (update.action == "join") {
-    await client.send(new Message(update.chat, `@${update.user.id} entrou no grupo.`));
+    // await client.send(new Message(update.chat, `@${update.user.id} entrou no grupo.`));
   }
+
   if (update.action == "leave") {
-    await client.send(new Message(update.chat, `@${update.user.id} saiu do grupo...`));
+    // await client.send(new Message(update.chat, `@${update.user.id} saiu do grupo...`));
   }
+
   if (update.action == "add") {
-    await client.send(new Message(update.chat, `Membro @${update.fromUser.id} adicionou o @${update.user.id} ao grupo!`));
+    // await client.send(new Message(update.chat, `Membro @${update.fromUser.id} adicionou o @${update.user.id} ao grupo!`));
   }
+
   if (update.action == "remove") {
-    client.send(new Message(update.chat, `Membro @${update.fromUser.id} removeu o @${update.user.id} do grupo.`));
+    // await client.send(new Message(update.chat, `Membro @${update.fromUser.id} removeu o @${update.user.id} do grupo.`));
   }
+
   if (update.action == "promote") {
-    client.send(new Message(update.chat, `Membro @${update.fromUser.id} promoveu o @${update.user.id} para admin!`));
+    // await client.send(new Message(update.chat, `Membro @${update.fromUser.id} promoveu o @${update.user.id} para admin!`));
   }
+
   if (update.action == "demote") {
     await client.send(new Message(update.chat, `Membro @${update.fromUser.id} removeu o admin do @${update.user.id}.`));
   }
