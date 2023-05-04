@@ -1,12 +1,22 @@
-import { SignalDataTypeMap, initAuthCreds, BufferJSON, proto } from "baileys";
-import { mkdirSync, statSync, unlinkSync } from "fs";
-import { readFile, writeFile } from "fs/promises";
+import { SignalDataTypeMap, initAuthCreds, BufferJSON, proto, AuthenticationState, AuthenticationCreds } from "baileys";
+import { readFile, writeFile, unlink } from "fs/promises";
+import { mkdirSync, statSync } from "fs";
 import { join } from "path";
 
 import IAuth from "@interfaces/IAuth";
 
 export class MultiFileAuthState implements IAuth {
   public folder: string;
+
+  public fixFileName = (file?: string) => file?.replace(/\//g, "__")?.replace(/:/g, "-");
+
+  public getStat(folder: string) {
+    try {
+      return statSync(folder);
+    } catch (err) {
+      return null;
+    }
+  }
 
   constructor(folder: string, autoCreateDir: boolean = true) {
     this.folder = folder;
@@ -22,61 +32,49 @@ export class MultiFileAuthState implements IAuth {
     }
   }
 
-  public fixFileName = (file?: string) => file?.replace(/\//g, "__")?.replace(/:/g, "-");
-
-  public getStat(folder: string) {
+  public async get(file: string) {
     try {
-      return statSync(folder);
-    } catch (err) {
-      return null;
-    }
-  }
+      const data = await readFile(join(this.folder, this.fixFileName(`${file}.json`)!), { encoding: "utf-8" });
 
-  public get = async (key: string) => {
-    return await this.readData(`${key}.json`);
-  };
-
-  public set = async (key: string, data: any) => {
-    if (!!!data) this.removeData(key);
-    else this.writeData(data, `${key}.json`);
-  };
-
-  public writeData = async (data: any, file: string) => {
-    return writeFile(join(this.folder, this.fixFileName(file)!), JSON.stringify(data, BufferJSON.replacer));
-  };
-
-  public readData = async (file: string) => {
-    try {
-      const data = await readFile(join(this.folder, this.fixFileName(file)!), { encoding: "utf-8" });
       return JSON.parse(data, BufferJSON.reviver);
     } catch (error) {
       return null;
     }
-  };
+  }
 
-  public removeData = async (file: string) => {
+  public async set(file: string, data: any) {
     try {
-      unlinkSync(join(this.folder, this.fixFileName(file)!));
+      if (!!!data) {
+        await unlink(join(this.folder, this.fixFileName(`${file}.json`)!));
+      } else {
+        await writeFile(join(this.folder, this.fixFileName(`${file}.json`)!), JSON.stringify(data, BufferJSON.replacer));
+      }
     } catch {}
-  };
+  }
 }
 
-export async function getBaileysAuth(auth: IAuth) {
-  const creds = DataReplacer(await auth.get("creds")) || initAuthCreds();
+export const getBaileysAuth = async (auth: IAuth): Promise<{ state: AuthenticationState; saveCreds: () => Promise<void> }> => {
+  const replacer = (data: any) => {
+    try {
+      const json = JSON.parse(JSON.stringify(data, BufferJSON.replacer), BufferJSON.reviver);
+      return json;
+    } catch (err) {
+      return data;
+    }
+  };
+
+  const creds: AuthenticationCreds = replacer(await auth.get("creds")) || initAuthCreds();
 
   return {
-    saveCreds: async () => {
-      return await auth.set("creds", creds);
-    },
     state: {
       creds,
       keys: {
         async get<T extends keyof SignalDataTypeMap>(type: T, ids: string[]): Promise<{ [id: string]: SignalDataTypeMap[T] }> {
-          const data: { [id: string]: SignalDataTypeMap[typeof type] } = {};
+          const data: { [_: string]: SignalDataTypeMap[typeof type] } = {};
 
           await Promise.all(
             ids.map(async (id) => {
-              var value = DataReplacer(await auth.get(`${type}-${id}`));
+              let value = await replacer(await auth.get(`${type}-${id}`));
 
               if (type === "app-state-sync-key" && value) {
                 value = proto.Message.AppStateSyncKeyData.fromObject(value);
@@ -88,8 +86,7 @@ export async function getBaileysAuth(auth: IAuth) {
 
           return data;
         },
-
-        set: async (data: any): Promise<void> => {
+        async set(data: any) {
           const tasks: Promise<void>[] = [];
 
           for (const category in data) {
@@ -102,14 +99,8 @@ export async function getBaileysAuth(auth: IAuth) {
         },
       },
     },
+    saveCreds: async () => {
+      return await auth.set("creds", creds);
+    },
   };
-}
-
-function DataReplacer(data: any) {
-  try {
-    const json = JSON.parse(JSON.stringify(data, BufferJSON.replacer), BufferJSON.reviver);
-    return json;
-  } catch (err) {
-    return data;
-  }
-}
+};
