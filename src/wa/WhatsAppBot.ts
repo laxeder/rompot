@@ -52,8 +52,6 @@ export default class WhatsAppBot implements IBot {
   constructor(config?: Partial<SocketConfig>) {
     this.config = {
       printQRInTerminal: true,
-      connectTimeoutMs: 2000,
-      defaultQueryTimeoutMs: 30000,
       logger: this.logger,
       browser: WhatsAppBot.Browser(),
       ...config,
