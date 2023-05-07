@@ -1,11 +1,11 @@
 # Rompot
 
-Um chatbot multi-plataforma em TypeScript.
+Uma API para desenvolvimento de ChatBot multi-plataforma em JavaScript/TypeScript
 
 ## 🛠 Recursos
 
 - Multi plataformas
-  - WhatsApp
+  - WhatsApp (baileys)
   - Telegram (Em breve)
 - Automatização de mensagem
 - Criação de comandos
@@ -47,7 +47,7 @@ client.on("qr", (qr) => {
 ```ts
 type ConnectionConfig = {
   /** * Configuração dos comandos */
-  commandConfig: CommandConfig;
+  commandConfig?: CommandConfig;
   /** * Desabilita comandos automaticos */
   disableAutoCommand?: boolean;
   /** * Desabilita escrevndo automatico */
@@ -66,7 +66,7 @@ client.config = config;
 ```ts
 import { Command, Message } from "rompot";
 
-// Cria um comando com o nome Hello
+// Cria um comando com o nome hello
 // Ao ser executado envia a mensagem "Hello World!"
 class HelloCommand extends Command {
   tags: string[] = ["hello"];
@@ -77,8 +77,6 @@ class HelloCommand extends Command {
   }
 }
 
-// Cria um comando com os nomes date, dt e data
-// Executa uma função quando chamado
 class DateCommand extends Command {
   tags: string[] = ["date"];
   prefix: string = "/";
@@ -220,7 +218,7 @@ const videoMessage = new VideoMessage(chat, "texto", Buffer.from(""));
 // Criar mensagem de audio
 const audioMessage = new AudioMessage(chat, "texto", Buffer.from(""));
 
-// Criar mensagem de arquivo (Beta)
+// Criar mensagem de arquivo
 const fileMessage = new FileMessage(chat, "texto", Buffer.from(""));
 
 // Criar mensagem de sticker
