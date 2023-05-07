@@ -1,6 +1,6 @@
 import { SignalDataTypeMap, initAuthCreds, BufferJSON, proto, AuthenticationState, AuthenticationCreds } from "baileys";
 import { readFile, writeFile, unlink } from "fs/promises";
-import { mkdirSync, statSync } from "fs";
+import { mkdirSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 
 import IAuth from "@interfaces/IAuth";
@@ -51,6 +51,20 @@ export class MultiFileAuthState implements IAuth {
       }
     } catch {}
   }
+
+  public async remove(file: string) {
+    try {
+      await unlink(join(this.folder, this.fixFileName(`${file}.json`)!));
+    } catch {}
+  }
+
+  public async listAll(file?: string) {
+    try {
+      return readdirSync(!!file ? join(this.folder, file) : this.folder);
+    } catch (err) {
+      return [];
+    }
+  }
 }
 
 export const getBaileysAuth = async (auth: IAuth): Promise<{ state: AuthenticationState; saveCreds: () => Promise<void> }> => {
@@ -91,7 +105,13 @@ export const getBaileysAuth = async (auth: IAuth): Promise<{ state: Authenticati
 
           for (const category in data) {
             for (const id in data[category]) {
-              tasks.push(auth.set(`${category}-${id}`, data[category][id]));
+              const value = data[category][id];
+
+              if (!!!value) {
+                tasks.push(auth.remove(`${category}-${id}`));
+              } else {
+                tasks.push(auth.set(`${category}-${id}`, value));
+              }
             }
           }
 
