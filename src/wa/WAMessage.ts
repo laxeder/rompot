@@ -116,6 +116,9 @@ export class WhatsAppMessage {
    */
   public async refactoryMediaMessage(message: MediaMessage) {
     this.message.caption = this.message.text;
+    this.message.mimetype = message.mimetype;
+    this.message.fileName = message.name;
+
     delete this.message.text;
 
     if (message instanceof ImageMessage) {
@@ -128,12 +131,10 @@ export class WhatsAppMessage {
 
     if (message instanceof AudioMessage) {
       this.message.audio = await message.getAudio();
-      this.message.mimetype = "audio/mp4";
     }
 
     if (message instanceof FileMessage) {
       this.message.document = await message.getFile();
-      this.message.mimetype = "application/octet-stream";
     }
 
     if (message instanceof StickerMessage) {
@@ -155,7 +156,7 @@ export class WhatsAppMessage {
         pack: message.pack,
         author: message.author,
         categories: message.categories,
-        id: message.id,
+        id: message.stickerId,
         type: StickerTypes.FULL,
         quality: 100,
       });

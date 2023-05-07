@@ -7,6 +7,8 @@ import User from "@modules/User";
 import { Media } from "../types/Message";
 
 export default class VideoMessage extends MediaMessage {
+  public mimetype: string = "video/mp4";
+
   constructor(
     chat: Chat | string,
     text: string,

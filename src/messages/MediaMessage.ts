@@ -10,6 +10,10 @@ export default class MediaMessage extends Message {
   public file: Media | Buffer | string;
   /** * O arquivo é um GIF */
   public isGIF: boolean = false;
+  /** * MimeType */
+  public mimetype: string = "application/octet-stream";
+  /** * Nome do arquivo */
+  public name: string = "";
 
   constructor(
     chat: Chat | string,
@@ -24,7 +28,6 @@ export default class MediaMessage extends Message {
     timestamp?: Number | Long
   ) {
     super(chat, text, mention, id, user, fromMe, selected, mentions, timestamp);
-
     this.file = file;
   }
 

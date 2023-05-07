@@ -291,6 +291,7 @@ export class WhatsAppConvertMessage {
    */
   public async convertMediaMessage(content: any, contentType: keyof proto.IMessage) {
     var msg = new MediaMessage(this._chat, "", Buffer.from(""));
+
     const file: Media = { stream: this._message };
 
     if (contentType == "documentMessage") {
@@ -317,7 +318,7 @@ export class WhatsAppConvertMessage {
           .then((data) => {
             if (msg instanceof StickerMessage) {
               msg.author = data["sticker-pack-publisher"] || "";
-              msg.id = data["sticker-pack-id"] || msg.id;
+              msg.stickerId = data["sticker-pack-id"] || "";
               msg.pack = data["sticker-pack-name"] || "";
             }
           })
@@ -331,6 +332,14 @@ export class WhatsAppConvertMessage {
 
     if (content.gifPlayback) {
       msg.isGIF = true;
+    }
+
+    if (!!content.mimetype) {
+      msg.mimetype = content.mimetype;
+    }
+
+    if (!!content.fileName) {
+      msg.name = content.fileName;
     }
 
     this._convertedMessage = msg;

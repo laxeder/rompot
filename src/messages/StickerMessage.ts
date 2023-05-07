@@ -15,6 +15,10 @@ export default class StickerMessage extends MediaMessage {
   public pack: string = "";
   /** * Categoria da figurinha */
   public categories: Categories[] = [];
+  /** * ID da figurinha */
+  public stickerId: string = "";
+
+  public mimetype: string = "image/webp";
 
   constructor(
     chat: Chat | string,
