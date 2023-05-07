@@ -13,6 +13,9 @@ export default class StickerMessage extends MediaMessage {
     pack: string;
     /** * Categoria da figurinha */
     categories: Categories[];
+    /** * ID da figurinha */
+    stickerId: string;
+    mimetype: string;
     constructor(chat: Chat | string, file: Media | Buffer | string, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
     /**
      * @returns Obter figurinha
