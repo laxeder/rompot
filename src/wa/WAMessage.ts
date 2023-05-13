@@ -1,4 +1,4 @@
-import { generateWAMessage, MiscMessageGenerationOptions } from "baileys";
+import { generateWAMessage, isJidGroup, MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
 import Sticker, { StickerTypes } from "@laxeder/wa-sticker/dist";
 
 import ReactionMessage from "@messages/ReactionMessage";
@@ -82,7 +82,9 @@ export class WhatsAppMessage {
 
     msg.text = message.text;
 
-    if (!!message.user.id) msg.participant = getID(message.user.id);
+    if (!!message.user.id && isJidGroup(message.chat.id)) {
+      msg.participant = getID(message.user.id);
+    }
 
     if (message.mentions) {
       msg.mentions = [];
