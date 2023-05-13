@@ -1,20 +1,19 @@
 import { MessageType } from "@enums/Message";
+import { IChat } from "@interfaces/IChat";
+
+import { ILocationMessage } from "@interfaces/IMessage";
 
 import Message from "@messages/Message";
 
-import Chat from "@modules/Chat";
-
 import { injectJSON } from "@utils/Generic";
 
-export default class LocationMessage extends Message {
-  public readonly type: MessageType = MessageType.Location;
+export default class LocationMessage extends Message implements ILocationMessage {
+  public readonly type = MessageType.Location;
 
-  /** * Latitude */
   public latitude: number;
-  /** * Longitude */
   public longitude: number;
 
-  constructor(chat: Chat | string, latitude: number, longitude: number, others: Partial<LocationMessage> = {}) {
+  constructor(chat: IChat | string, latitude: number, longitude: number, others: Partial<LocationMessage> = {}) {
     super(chat, "");
 
     injectJSON(others, this);

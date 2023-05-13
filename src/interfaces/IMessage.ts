@@ -1,11 +1,11 @@
-import type { Media } from "../types/Message";
+import type { Button, Media, PollAction, PollOption } from "../types/Message";
+import type { Categories } from "@laxeder/wa-sticker/dist";
 
 import { MessageType } from "@enums/Message";
 
 import { IClient } from "@interfaces/IClient";
-
-import User from "@modules/User";
-import Chat from "@modules/Chat";
+import { IUser } from "@interfaces/IUser";
+import { IChat } from "@interfaces/IChat";
 
 export interface IMessage {
   get client(): IClient;
@@ -15,9 +15,9 @@ export interface IMessage {
   /** * Tipo da mensagem */
   type: MessageType;
   /** * Sala de bate-papo que foi enviada a mensagem */
-  chat: Chat;
+  chat: IChat;
   /** * Usuário que mandou a mensagem */
-  user: User;
+  user: IUser;
   /** * Texto da mensagem */
   text: string;
   /** * Mensagem mencionada na mensagem */
@@ -68,6 +68,69 @@ export interface IMessage {
   read(): Promise<void>;
 }
 
+export interface IEmptyMessage extends IMessage {
+  readonly type: MessageType.Empty;
+}
+
+export interface IReactionMessage extends IMessage {
+  readonly type: MessageType.Reaction;
+}
+
+export interface IContactMessage extends IMessage {
+  readonly type: MessageType.Contact;
+
+  /** * Contatos da mensagem */
+  contacts: IUser[];
+}
+
+export interface ILocationMessage extends IMessage {
+  readonly type: MessageType.Location;
+
+  /** * Latitude */
+  latitude: number;
+  /** * Longitude */
+  longitude: number;
+}
+
+export interface IListMessage extends IMessage {
+  readonly type: MessageType.List;
+
+  /** * Texto do botão */
+  button: string;
+  /** * Rodapé da lista */
+  footer: string;
+  /** * Titulo da lista */
+  title: string;
+  /** * Lista */
+  list: List[];
+}
+
+export interface IButtonMessage extends IMessage {
+  /** * Tipo dos botões */
+  type: MessageType.Button | MessageType.TemplateButton;
+  /** * Rodapé da mensagem */
+  footer: string;
+  /** * Botões da mensagem */
+  buttons: Button[];
+}
+
+export interface IPollMessage extends IMessage {
+  readonly type: MessageType.Poll | MessageType.PollUpdate;
+
+  /** * Last hash votes */
+  votes: { [user: string]: string[] };
+  /** * Opções da enquete */
+  options: PollOption[];
+  /** * Chave secreta da enquete */
+  secretKey: Uint8Array;
+  /** * Ação da enquete */
+  action: PollAction;
+}
+
+export interface IPollUpdateMessage extends IPollMessage {
+  readonly type: MessageType.PollUpdate;
+}
+
 export interface IMediaMessage extends IMessage {
   /** * Arquivo da mensagem */
   file: Media | Buffer | string;
@@ -82,4 +145,66 @@ export interface IMediaMessage extends IMessage {
    * @returns Obter arquivo
    */
   getStream(): Promise<Buffer>;
+}
+
+export interface IFileMessage extends IMediaMessage {
+  readonly type: MessageType.File;
+}
+
+export interface IAudioMessage extends IMediaMessage {
+  readonly type: MessageType.Audio;
+}
+
+export interface IImageMessage extends IMediaMessage {
+  readonly type: MessageType.Image;
+}
+
+export interface IVideoMessage extends IMediaMessage {
+  readonly type: MessageType.Video;
+}
+
+export interface IStickerMessage extends IMediaMessage {
+  readonly type: MessageType.Sticker;
+
+  /** * Categoria da figurinha */
+  categories: Categories[];
+  /** * ID da figurinha */
+  stickerId: string;
+  /** * Criador da figurinha */
+  author: string;
+  /** * Pacote da figurinha */
+  pack: string;
+}
+
+export interface IVideoMessage extends IMediaMessage {
+  readonly type: MessageType.Video;
+}
+
+export interface List {
+  /**
+   * * Titulo da lista
+   */
+  title: string;
+
+  /**
+   * * Items da lista
+   */
+  items: ListItem[];
+}
+
+export interface ListItem {
+  /**
+   * * Titulo do item
+   */
+  title: string;
+
+  /**
+   * * Descrição do item
+   */
+  description: string;
+
+  /**
+   * * ID do item
+   */
+  id: string;
 }

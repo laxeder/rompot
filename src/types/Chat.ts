@@ -1,6 +1,6 @@
-import Chat from "@modules/Chat";
+import { IChat } from "@interfaces/IChat";
 
-export type Chats = { [id: string]: Chat };
+export type Chats = { [id: string]: IChat };
 
 export type ChatType = "community" | "chanel" | "group" | "chat" | "pv";
 

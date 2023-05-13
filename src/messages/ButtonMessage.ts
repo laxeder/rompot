@@ -2,22 +2,20 @@ import type { Button } from "../types/Message";
 
 import { MessageType } from "@enums/Message";
 
-import Message from "@messages/Message";
+import { IButtonMessage } from "@interfaces/IMessage";
+import { IChat } from "@interfaces/IChat";
 
-import Chat from "@modules/Chat";
+import Message from "@messages/Message";
 
 import { injectJSON } from "@utils/Generic";
 
-export default class ButtonMessage extends Message {
+export default class ButtonMessage extends Message implements IButtonMessage {
   public type: MessageType.Button | MessageType.TemplateButton = MessageType.TemplateButton;
 
-  /** * Rodapé */
   public footer: string;
-  /** * Botões */
   public buttons: Button[] = [];
-  /** * Tipo do botões */
 
-  constructor(chat: Chat | string, text: string, footer?: string, others: Partial<ButtonMessage> = {}) {
+  constructor(chat: IChat | string, text: string, footer?: string, others: Partial<ButtonMessage> = {}) {
     super(chat, text);
 
     this.footer = footer || "";

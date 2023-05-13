@@ -3,21 +3,20 @@ import type { Users } from "../types/User";
 
 import { IMessage } from "@interfaces/IMessage";
 import { IClient } from "@interfaces/IClient";
+import { IUser } from "@interfaces/IUser";
+import { IChat } from "@interfaces/IChat";
 
 import Message from "@messages/Message";
 
 import { ClientBase } from "@modules/Base";
 import User from "@modules/User";
 
-export default class Chat {
+export default class Chat implements IChat {
   #client: IClient = ClientBase();
 
-  /** * ID */
-  public id: string;
-  /** * Tipo */
   public type: ChatType;
-  /** * Nome */
   public name: string;
+  public id: string;
 
   get client(): IClient {
     return this.#client;
@@ -33,128 +32,70 @@ export default class Chat {
     this.name = name || "";
   }
 
-  /**
-   * @returns Retorna o nome da sala de bate-papo
-   */
   public async getName(): Promise<string> {
     return this.client.getChatName(this);
   }
 
-  /**
-   * * Define o nome da sala de bate-pao
-   * @param name Nome da sala de bate-pao
-   */
   public async setName(name: string): Promise<void> {
     await this.client.setChatName(this, name);
   }
 
-  /**
-   * @returns Retorna a descrição da sala de bate-papo
-   */
   public async getDescription(): Promise<string> {
     return this.client.getChatDescription(this);
   }
 
-  /**
-   * * Define a descrição da sala de bate-pao
-   * @param description Descrição da  sala de bate-pao
-   */
   public async setDescription(description: string): Promise<void> {
     return this.client.setChatDescription(this, description);
   }
 
-  /**
-   * @returns Retorna a imagem de perfil da sala de bate-papo
-   */
   public async getProfile(): Promise<Buffer> {
     return this.client.getChatProfile(this);
   }
 
-  /**
-   * * Define a foto de perfil da sala de bate-papo
-   * @param image Foto de perfil da sala de bate-papo
-   */
   public async setProfile(image: Buffer): Promise<void> {
     return this.client.setChatProfile(this, image);
   }
 
-  /**
-   * @param user Usuário que será verificado
-   * @returns Retorna se o usuário é administrador da sala de bate-papo
-   */
-  public async IsAdmin(user: User | string): Promise<boolean> {
+  public async IsAdmin(user: IUser | string): Promise<boolean> {
     const admins = await this.client.getChatAdmins(this);
 
     return admins.hasOwnProperty(User.getId(user));
   }
 
-  /**
-   * @param user Usuário que será verificado
-   * @returns Retorna se o usuário é lider da sala de bate-papo
-   */
-  public async IsLeader(user: User | string): Promise<boolean> {
+  public async IsLeader(user: IUser | string): Promise<boolean> {
     const leader = await this.client.getChatLeader(this);
 
     return leader.id == User.getId(user);
   }
 
-  /**
-   * @returns Retorna os administradores daquela sala de bate-papo
-   */
   public async getAdmins(): Promise<Users> {
     return this.client.getChatAdmins(this);
   }
 
-  /**
-   * @returns Retorna os usuários da sala de bate-papo
-   */
   public async getUsers(): Promise<Users> {
     return await this.client.getChatUsers(this);
   }
 
-  /**
-   * * Adiciona um usuário a sala de bate-papo
-   * @param user Usuário que será adicionado
-   */
-  public async addUser(user: User | string): Promise<void> {
+  public async addUser(user: IUser | string): Promise<void> {
     return this.client.addUserInChat(this, user);
   }
 
-  /**
-   * * Remove um usuário da sala de bate-papo
-   * @param user
-   */
-  public async removeUser(user: User | string): Promise<void> {
+  public async removeUser(user: IUser | string): Promise<void> {
     return this.client.removeUserInChat(this, user);
   }
 
-  /**
-   * * Promove a administrador um usuário da sala de bate-papo
-   * @param user Usuário que será promovido
-   */
-  public async promote(user: User | string): Promise<void> {
+  public async promote(user: IUser | string): Promise<void> {
     return this.client.promoteUserInChat(this, user);
   }
 
-  /**
-   * * Remove o administrador de um usuário da sala de bate-papo
-   * @param user Usuário que terá sua administração removida
-   */
-  public async demote(user: User | string): Promise<void> {
+  public async demote(user: IUser | string): Promise<void> {
     return this.client.demoteUserInChat(this, User.get(user));
   }
 
-  /**
-   * * Sai da sala de bate-papo
-   */
   public async leave(): Promise<void> {
     return this.client.leaveChat(this);
   }
 
-  /**
-   * * Envia uma mensagem na sala de bate-papo que a mensagem foi enviada
-   * @param message Mensagem que será enviada
-   */
   public async send(message: IMessage | string): Promise<IMessage> {
     const msg = Message.get(message);
 
@@ -164,10 +105,6 @@ export default class Chat {
     return this.client.send(msg);
   }
 
-  /**
-   * * Altera o status da sala de bate-pappo
-   * @param status Status da sala de bate-papo
-   */
   public async changeStatus(status: ChatStatus): Promise<void> {
     return this.client.changeChatStatus(this, status);
   }
@@ -176,7 +113,7 @@ export default class Chat {
    * @param chat Sala de bate-papo que será obtida
    * @returns Retorna a sala de bate-papo
    */
-  public static get<CHAT extends Chat>(chat: CHAT | string): CHAT | Chat {
+  public static get<CHAT extends IChat>(chat: CHAT | string): CHAT | Chat {
     if (typeof chat == "string") {
       return new Chat(chat);
     }
@@ -188,7 +125,7 @@ export default class Chat {
    * @param chat Sala de bate-papo
    * @returns Retorna o ID da sala de bate-papo
    */
-  public static getId(chat: Chat | string): string {
+  public static getId(chat: IChat | string): string {
     if (typeof chat == "string") {
       return String(chat || "");
     }
@@ -205,7 +142,7 @@ export default class Chat {
    * @param client Cliente
    * @param chat Sala de bate-papo
    */
-  public static Client<CHAT extends Chat>(client: IClient, chat: CHAT | string): CHAT | Chat {
+  public static Client<CHAT extends IChat>(client: IClient, chat: CHAT | string): CHAT | Chat {
     if (typeof chat == "string") return this.Client(client, new Chat(chat));
 
     chat.client = client;

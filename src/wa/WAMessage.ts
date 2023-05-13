@@ -1,11 +1,9 @@
-import type { List, ListItem } from "../types/Message";
-
 import { generateWAMessage, isJidGroup, MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
 import Sticker, { StickerTypes } from "@laxeder/wa-sticker/dist";
 
 import { MessageType } from "@enums/Message";
 
-import { IMediaMessage, IMessage } from "@interfaces/IMessage";
+import { IMediaMessage, IMessage, List, ListItem } from "@interfaces/IMessage";
 
 import { StickerMessage, LocationMessage, ContactMessage, ButtonMessage, ListMessage, PollMessage, ReactionMessage } from "@messages/index";
 

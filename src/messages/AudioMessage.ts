@@ -2,18 +2,19 @@ import type { Media } from "../types/Message";
 
 import { MessageType } from "@enums/Message";
 
-import MediaMessage from "@messages/MediaMessage";
+import { IAudioMessage } from "@interfaces/IMessage";
+import { IChat } from "@interfaces/IChat";
 
-import Chat from "@modules/Chat";
+import MediaMessage from "@messages/MediaMessage";
 
 import { injectJSON } from "@utils/Generic";
 
-export default class AudioMessage extends MediaMessage {
-  public readonly type: MessageType = MessageType.Audio;
+export default class AudioMessage extends MediaMessage implements IAudioMessage {
+  public readonly type = MessageType.Audio;
 
   public mimetype: string = "audio/mp4";
 
-  constructor(chat: Chat | string, file: Media | Buffer | string, others: Partial<AudioMessage> = {}) {
+  constructor(chat: IChat | string, file: Media | Buffer | string, others: Partial<AudioMessage> = {}) {
     super(chat, "", file);
 
     injectJSON(others, this);

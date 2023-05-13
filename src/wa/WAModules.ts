@@ -2,6 +2,7 @@ import type { ChatType } from "../types/Chat";
 import type { WAUsers } from "./WATypes";
 
 import Message from "@messages/Message";
+
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 

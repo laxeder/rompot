@@ -1,17 +1,16 @@
 import { MessageType } from "@enums/Message";
 
-import { IMessage } from "@interfaces/IMessage";
+import { IMessage, IReactionMessage } from "@interfaces/IMessage";
+import { IChat } from "@interfaces/IChat";
 
 import { Message } from "@messages/index";
 
-import Chat from "@modules/Chat";
-
 import { injectJSON } from "@utils/Generic";
 
-export default class ReactionMessage extends Message {
-  public readonly type: MessageType = MessageType.Reaction;
+export default class ReactionMessage extends Message implements IReactionMessage {
+  public readonly type = MessageType.Reaction;
 
-  constructor(chat: Chat | string, reaction: string, receive: IMessage | string, others: Partial<ReactionMessage> = {}) {
+  constructor(chat: IChat | string, reaction: string, receive: IMessage | string, others: Partial<ReactionMessage> = {}) {
     super(chat, reaction);
 
     if (typeof receive === "string") {

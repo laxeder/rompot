@@ -5,9 +5,8 @@ import type { ChatAction } from "../types/Chat";
 import EventEmitter from "events";
 
 import { IMessage } from "@interfaces/IMessage";
-
-import User from "@modules/User";
-import Chat from "@modules/Chat";
+import { IUser } from "@interfaces/IUser";
+import { IChat } from "@interfaces/IChat";
 
 export type EventsMap = {
   /**
@@ -46,14 +45,14 @@ export type EventsMap = {
    * @param user Usuário que sofreu a ação
    * @param fromUser Usuário que executou a ação
    */
-  user: { action: UserAction; event: UserEvent; chat: Chat; user: User; fromUser: User };
+  user: { action: UserAction; event: UserEvent; chat: IChat; user: IUser; fromUser: IUser };
 
   /**
    * * Sala de bate-papo alterado
    * @param action ação ocorrida
    * @param chat Sala de bate-papo que foi alterada
    */
-  chat: { action: ChatAction; chat: Chat };
+  chat: { action: ChatAction; chat: IChat };
 
   /** * Nova mensagem */
   message: IMessage;

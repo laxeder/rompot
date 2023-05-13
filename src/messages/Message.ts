@@ -9,14 +9,16 @@ import User from "@modules/User";
 import Chat from "@modules/Chat";
 
 import { injectJSON } from "@utils/Generic";
+import { IChat } from "@interfaces/IChat";
+import { IUser } from "@interfaces/IUser";
 
 export default class Message implements IMessage {
   #client: IClient = ClientBase();
 
   public readonly type: MessageType = MessageType.Text;
 
-  public chat: Chat = new Chat("");
-  public user: User = new User("");
+  public chat: IChat = new Chat("");
+  public user: IUser = new User("");
   public mention?: IMessage = undefined;
 
   public id: string = "";
@@ -43,13 +45,13 @@ export default class Message implements IMessage {
     if (this.mention) this.mention.client = client;
   }
 
-  constructor(chat: Chat | string, text: string, others: Partial<Message> = {}) {
+  constructor(chat: IChat | string, text: string, others: Partial<Message> = {}) {
     this.text = text || "";
 
     injectJSON(others, this);
 
     this.chat = Chat.Client(this.client, chat || "");
-    this.user = User.Client(this.client, this.user);
+    this.user = User.Client(this.client, this.user || "");
 
     if (this.mention) this.mention = Message.Client(this.client, this.mention);
   }

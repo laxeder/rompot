@@ -1,24 +1,23 @@
-import type { PollOption } from "../types/Message";
+import type { PollAction, PollOption } from "../types/Message";
 
 import { MessageType } from "@enums/Message";
 
-import Message from "@messages/Message";
+import { IPollMessage } from "@interfaces/IMessage";
+import { IChat } from "@interfaces/IChat";
 
-import Chat from "@modules/Chat";
+import Message from "@messages/Message";
 
 import { injectJSON } from "@utils/Generic";
 
-export default class PollMessage extends Message {
-  public readonly type: MessageType = MessageType.Poll;
+export default class PollMessage extends Message implements IPollMessage {
+  public readonly type: MessageType.Poll | MessageType.PollUpdate = MessageType.Poll;
 
-  /** * Opções da enquete */
-  public options: PollOption[] = [];
-  /** * Chave secreta da enquete */
-  public secretKey: Uint8Array = Buffer.from("");
-  /** * Last hash votes */
   public votes: { [user: string]: string[] } = {};
+  public secretKey: Uint8Array = Buffer.from("");
+  public options: PollOption[] = [];
+  public action: PollAction = "create";
 
-  constructor(chat: Chat | string, text: string, options?: PollOption[], others: Partial<PollMessage> = {}) {
+  constructor(chat: IChat | string, text: string, options?: PollOption[], others: Partial<PollMessage> = {}) {
     super(chat, text);
 
     this.options = options || [];

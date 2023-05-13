@@ -1,15 +1,14 @@
 import { IClient } from "@interfaces/IClient";
+import { IChat } from "@interfaces/IChat";
+import { IUser } from "@interfaces/IUser";
 
 import { ClientBase } from "@modules/Base";
 import Chat from "@modules/Chat";
 
-export default class User {
+export default class User implements IUser {
   #client: IClient = ClientBase();
 
-  /** * Nome do usuário */
   public name: string;
-
-  /** * ID */
   public id: string;
 
   get client(): IClient {
@@ -25,76 +24,45 @@ export default class User {
     this.name = name || "";
   }
 
-  /** * Bloqueia o usuário */
   async blockUser(): Promise<void> {
     return this.client.blockUser(this);
   }
 
-  /** Desbloqueia o usuário */
   async unblockUser(): Promise<void> {
     return this.client.unblockUser(this);
   }
 
-  /**
-   * @returns Retorna o nome do usuário
-   */
   async getName(): Promise<string> {
     return this.client.getUserName(this);
   }
 
-  /**
-   * * Define o nome do usuário
-   * @param name Nome do usuáro
-   */
   async setName(name: string): Promise<void> {
     return this.client.setUserName(this, name);
   }
 
-  /**
-   * @returns Retorna a descrição do usuário
-   */
   async getDescription(): Promise<string> {
     return this.client.getUserDescription(this);
   }
 
-  /**
-   * * Define a descrição do usuário
-   * @param description Descrição do usuário
-   */
   async setDescription(description: string): Promise<void> {
     return this.client.setUserDescription(this, description);
   }
 
-  /**
-   * @returns Retorna a imagem de perfil do usuário
-   */
   async getProfile(): Promise<Buffer> {
     return this.client.getUserProfile(this);
   }
 
-  /**
-   * * Define a foto de perfil do usuário
-   * @param image Foto de perfil do usuário
-   */
   async setProfile(image: Buffer): Promise<void> {
     return this.client.setUserProfile(this, image);
   }
 
-  /**
-   * @param chat Sala de bate-papo que está o usuário
-   * @returns Retorna se o usuário é administrador daquela sala de bate-papo
-   */
-  async IsAdmin(chat: Chat | string): Promise<boolean> {
+  async IsAdmin(chat: IChat | string): Promise<boolean> {
     const admins = await this.client.getChatAdmins(Chat.getId(chat));
 
     return admins.hasOwnProperty(this.id);
   }
 
-  /**
-   * @param chat Sala de bate-papo que está o usuário
-   * @returns Retorna se o usuário é lider daquela sala de bate-papo
-   */
-  async IsLeader(chat: Chat | string): Promise<boolean> {
+  async IsLeader(chat: IChat | string): Promise<boolean> {
     const leader = await this.client.getChatLeader(Chat.getId(chat));
 
     return leader.id == this.id;
@@ -104,7 +72,7 @@ export default class User {
    * @param user Usuário que será obtido
    * @returns Retorna o usuário
    */
-  public static get<USER extends User>(user: USER | string): USER | User {
+  public static get<USER extends IUser>(user: USER | string): USER | User {
     if (typeof user == "string") {
       return new User(user);
     }
@@ -116,7 +84,7 @@ export default class User {
    * @param user Usuário
    * @returns Retorna o ID do usuário
    */
-  public static getId(user: User | string) {
+  public static getId(user: IUser | string) {
     if (typeof user == "string") {
       return String(user || "");
     }
@@ -134,7 +102,7 @@ export default class User {
    * @param user Usuário
    * @returns
    */
-  public static Client<USER extends User>(client: IClient, user: USER | string): USER | User {
+  public static Client<USER extends IUser>(client: IClient, user: USER | string): USER | User {
     if (typeof user == "string") return this.Client(client, new User(user));
 
     user.client = client;

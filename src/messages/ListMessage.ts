@@ -1,26 +1,21 @@
-import type { List, ListItem } from "../types/Message";
-
 import { MessageType } from "@enums/Message";
+
+import { IListMessage, List, ListItem } from "@interfaces/IMessage";
+import { IChat } from "@interfaces/IChat";
 
 import Message from "@messages/Message";
 
-import Chat from "@modules/Chat";
-
 import { injectJSON } from "@utils/Generic";
 
-export default class ListMessage extends Message {
-  public readonly type: MessageType = MessageType.List;
+export default class ListMessage extends Message implements IListMessage {
+  public readonly type = MessageType.List;
 
-  /** * Botão */
-  public button: string;
-  /** * Rodapé */
-  public footer: string;
-  /** * Titulo */
-  public title: string;
-  /** * Lista */
   public list: List[] = [];
+  public button: string;
+  public footer: string;
+  public title: string;
 
-  constructor(chat: Chat | string, text: string, button: string, footer?: string, title?: string, others: Partial<ListMessage> = {}) {
+  constructor(chat: IChat | string, text: string, button: string, footer?: string, title?: string, others: Partial<ListMessage> = {}) {
     super(chat, text);
 
     this.button = button;

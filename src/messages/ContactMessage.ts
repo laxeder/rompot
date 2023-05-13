@@ -1,23 +1,24 @@
 import { MessageType } from "@enums/Message";
+import { IChat } from "@interfaces/IChat";
+
+import { IContactMessage } from "@interfaces/IMessage";
+import { IUser } from "@interfaces/IUser";
 
 import Message from "@messages/Message";
-
-import Chat from "@modules/Chat";
 import User from "@modules/User";
 
-import { injectJSON } from "@utils/Generic";
+import { ApplyClient, injectJSON } from "@utils/Generic";
 
-export default class ContactMessage extends Message {
-  public readonly type: MessageType = MessageType.Contact;
+export default class ContactMessage extends Message implements IContactMessage {
+  public readonly type = MessageType.Contact;
 
-  /** * Contatos */
-  public contacts: User[] = [];
+  public contacts: IUser[] = [];
 
-  constructor(chat: Chat | string, text: string, contacts: Array<User | string>, others: Partial<ContactMessage> = {}) {
+  constructor(chat: IChat | string, text: string, contacts: Array<IUser | string>, others: Partial<ContactMessage> = {}) {
     super(chat, text);
 
-    for (const contact in contacts) {
-      this.contacts.push(User.Client(this.client, User.get(contact)));
+    for (let contact in contacts) {
+      this.contacts.push(ApplyClient(User.get(contact), this.client));
     }
 
     injectJSON(others, this);

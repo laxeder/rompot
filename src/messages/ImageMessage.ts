@@ -2,16 +2,17 @@ import type { Media } from "../types/Message";
 
 import { MessageType } from "@enums/Message";
 
-import MediaMessage from "@messages/MediaMessage";
+import { IImageMessage } from "@interfaces/IMessage";
+import { IChat } from "@interfaces/IChat";
 
-import Chat from "@modules/Chat";
+import MediaMessage from "@messages/MediaMessage";
 
 import { injectJSON } from "@utils/Generic";
 
-export default class ImageMessage extends MediaMessage {
-  public readonly type: MessageType = MessageType.Image;
+export default class ImageMessage extends MediaMessage implements IImageMessage {
+  public readonly type = MessageType.Image;
 
-  constructor(chat: Chat | string, text: string, file: Media | Buffer | string, others: Partial<ImageMessage> = {}) {
+  constructor(chat: IChat | string, text: string, file: Media | Buffer | string, others: Partial<ImageMessage> = {}) {
     super(chat, text, file);
 
     injectJSON(others, this);

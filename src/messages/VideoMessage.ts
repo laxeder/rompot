@@ -2,18 +2,19 @@ import type { Media } from "../types/Message";
 
 import { MessageType } from "@enums/Message";
 
-import { MediaMessage } from "@messages/index";
+import { IVideoMessage } from "@interfaces/IMessage";
+import { IChat } from "@interfaces/IChat";
 
-import Chat from "@modules/Chat";
+import { MediaMessage } from "@messages/index";
 
 import { injectJSON } from "@utils/Generic";
 
-export default class VideoMessage extends MediaMessage {
-  public readonly type: MessageType = MessageType.Video;
+export default class VideoMessage extends MediaMessage implements IVideoMessage {
+  public readonly type = MessageType.Video;
 
   public mimetype: string = "video/mp4";
 
-  constructor(chat: Chat | string, text: string, file: Media | Buffer | string, others: Partial<VideoMessage> = {}) {
+  constructor(chat: IChat | string, text: string, file: Media | Buffer | string, others: Partial<VideoMessage> = {}) {
     super(chat, text, file);
 
     injectJSON(others, this);
