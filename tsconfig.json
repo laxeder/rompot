@@ -17,8 +17,8 @@
       "@messages/*": ["./src/messages/*"],
       "@modules/*": ["./src/modules/*"],
       "@config/*": ["./src/config/*"],
+      "@enums/*": ["./src/enums/*"],
       "@utils/*": ["./src/utils/*"],
-      "@types/*": ["./src/types/*"],
       "@wa/*": ["./src/wa/*"]
     }
   },
