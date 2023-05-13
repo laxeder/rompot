@@ -654,8 +654,8 @@ export default class WhatsAppBot implements IBot {
       remoteJid: getID(message.chat.id),
       id: message.id || "",
       fromMe: message.fromMe || message.user.id == this.id,
-      participant: message.chat.id.includes("@g") ? getID(message.user.id || this.id) : getID(this.id),
-      toJSON: () => message,
+      participant: message.chat.id.includes("@g") ? getID(message.user.id || this.id) : undefined,
+      toJSON: () => key,
     };
 
     return await this.wcb.waitCall(() => this.sock.readMessages([key]));
@@ -693,8 +693,6 @@ export default class WhatsAppBot implements IBot {
     const waMSG = new WhatsAppMessage(this, reactionMessage);
     await waMSG.refactory(reactionMessage);
 
-    console.log(waMSG.message)
-
     const msg = await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), waMSG.message));
 
     await this.addSendedMessage(msg);
@@ -706,8 +704,6 @@ export default class WhatsAppBot implements IBot {
 
     const waMSG = new WhatsAppMessage(this, reactionMessage);
     await waMSG.refactory(reactionMessage);
-
-    console.log(waMSG.message);
 
     const msg = await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), waMSG.message));
 
