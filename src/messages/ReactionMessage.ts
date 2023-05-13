@@ -1,26 +1,25 @@
-import Message from "@messages/Message";
+import { MessageType } from "@enums/Message";
+
+import { IMessage } from "@interfaces/IMessage";
+
+import { Message } from "@messages/index";
 
 import Chat from "@modules/Chat";
-import User from "@modules/User";
+
+import { injectJSON } from "@utils/Generic";
 
 export default class ReactionMessage extends Message {
-  constructor(
-    chat: Chat | string,
-    reaction: string,
-    receive: Message | string,
-    id?: string,
-    user?: User | string,
-    fromMe?: boolean,
-    selected?: string,
-    mentions?: string[],
-    timestamp?: Number | Long
-  ) {
-    super(chat, reaction, undefined, id, user, fromMe, selected, mentions, timestamp);
+  public readonly type: MessageType = MessageType.Reaction;
 
-    if (receive instanceof Message) {
-      this.id = receive.id;
-    } else {
+  constructor(chat: Chat | string, reaction: string, receive: IMessage | string, others: Partial<ReactionMessage> = {}) {
+    super(chat, reaction);
+
+    if (typeof receive === "string") {
       this.id = receive;
+    } else {
+      this.id = receive.id;
     }
+
+    injectJSON(others, this);
   }
 }

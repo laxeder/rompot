@@ -1,41 +1,40 @@
+import { MessageType } from "@enums/Message";
+
+import { IMessage } from "@interfaces/IMessage";
+import { IClient } from "@interfaces/IClient";
+
 import { ClientBase } from "@modules/Base";
 
 import User from "@modules/User";
 import Chat from "@modules/Chat";
 
-import { ClientType } from "../types/Client";
+import { injectJSON } from "@utils/Generic";
 
-export default class Message {
-  #client: ClientType = ClientBase();
+export default class Message implements IMessage {
+  #client: IClient = ClientBase();
 
-  /** * Sala de bate-papo que foi enviada a mensagem */
-  public chat: Chat;
-  /** * Usuário que mandou a mensagem */
-  public user: User;
-  /** * Texto da mensagem */
-  public text: string;
-  /** * Mensagem mencionada na mensagem */
-  public mention?: Message | undefined;
-  /** * ID da mensagem */
-  public id: string;
-  /** * Mensagem enviada pelo bot */
-  public fromMe: boolean;
-  /** * Mensagem enviada pela api */
-  public apiSend: boolean;
-  /** * Mensagem foi deletada */
-  public isDeleted: boolean;
-  /** * Opção selecionada */
-  public selected: string;
-  /** * Usuários mencionados na mensagem */
-  public mentions: string[];
-  /** * Tempo em que a mensagem foi enviada */
-  public timestamp: Number | Long;
+  public readonly type: MessageType = MessageType.Text;
 
-  get client(): ClientType {
+  public chat: Chat = new Chat("");
+  public user: User = new User("");
+  public mention?: IMessage = undefined;
+
+  public id: string = "";
+  public text: string = "";
+  public selected: string = "";
+
+  public fromMe: boolean = false;
+  public apiSend: boolean = false;
+  public isDeleted: boolean = false;
+
+  public mentions: string[] = [];
+  public timestamp: Number | Long = Date.now();
+
+  get client(): IClient {
     return this.#client;
   }
 
-  set client(client: ClientType) {
+  set client(client: IClient) {
     this.#client = client;
 
     this.chat.client = client;
@@ -44,65 +43,40 @@ export default class Message {
     if (this.mention) this.mention.client = client;
   }
 
-  constructor(chat: Chat | string, text: string, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long) {
-    this.chat = Chat.Client(this.client, chat || "");
-    this.user = User.Client(this.client, user || "");
-
-    this.id = id || "";
+  constructor(chat: Chat | string, text: string, others: Partial<Message> = {}) {
     this.text = text || "";
-    this.fromMe = !!fromMe;
-    this.apiSend = false;
-    this.isDeleted = false;
-    this.selected = selected || "";
-    this.mentions = mentions || [];
-    this.timestamp = timestamp || Date.now();
 
-    if (mention) this.mention = Message.Client(this.client, mention);
+    injectJSON(others, this);
+
+    this.chat = Chat.Client(this.client, chat || "");
+    this.user = User.Client(this.client, this.user);
+
+    if (this.mention) this.mention = Message.Client(this.client, this.mention);
   }
 
-  /**
-   * * Adiciona uma reação a mensagem
-   * @param reaction Reação
-   */
   public async addReaction(reaction: string): Promise<void> {
     return this.client.addReaction(this, reaction);
   }
 
-  /**
-   * * Remove a reação da mensagem
-   */
   public async removeReaction(): Promise<void> {
     return this.client.removeReaction(this);
   }
 
-  /**
-   * * Adiciona animações na reação da mensagem
-   * @param reactions Reações em sequência
-   * @param interval Intervalo entre cada reação
-   * @param maxTimeout Maximo de tempo reagindo
-   */
   public addAnimatedReaction(reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void> {
     return this.client.addAnimatedReaction(this, reactions, interval, maxTimeout);
   }
 
-  /**
-   * * Envia uma mensagem mencionando a mensagem atual
-   * @param message Mensagem que terá enviada
-   * @param mention Se verdadeiro a mensagem é mencionada
-   */
   public async reply(message: Message | string, mention: boolean = true) {
     const msg = Message.get(message);
 
     if (!!!msg.chat.id) msg.chat.id = this.chat.id;
     if (!!!msg.user.id) msg.user.id = this.client.id;
+
     if (mention) msg.mention = this;
 
     return this.client.send(msg);
   }
 
-  /**
-   * * Marca mensagem como visualizada
-   */
   public async read(): Promise<void> {
     return this.client.readMessage(this);
   }
@@ -111,7 +85,7 @@ export default class Message {
    * @param message Mensagem que será obtida
    * @returns Retorna a mensagem
    */
-  public static get<MSG extends Message>(message: MSG | string): MSG | Message {
+  public static get<MSG extends IMessage>(message: MSG | string): MSG | IMessage {
     if (typeof message == "string") {
       return new Message(new Chat(""), message);
     }
@@ -123,7 +97,7 @@ export default class Message {
    * @param message Mensagem
    * @returns Retorna o ID da mensagem
    */
-  public static getId(message: Message | string): string {
+  public static getId(message: IMessage | string): string {
     if (typeof message == "string") {
       return String(message || "");
     }
@@ -141,7 +115,7 @@ export default class Message {
    * @param msg Mensagem
    * @returns
    */
-  public static Client<MSG extends Message>(client: ClientType, message: MSG): MSG {
+  public static Client<MSG extends IMessage>(client: IClient, message: MSG): MSG {
     message.client = client;
 
     return message;

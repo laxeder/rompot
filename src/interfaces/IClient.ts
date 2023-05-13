@@ -1,8 +1,6 @@
-import ICommand from "@interfaces/ICommand";
-import IAuth from "@interfaces/IAuth";
-
-import MediaMessage from "@messages/MediaMessage";
-import Message from "@messages/Message";
+import { IMediaMessage, IMessage } from "@interfaces/IMessage";
+import { ICommand } from "@interfaces/ICommand";
+import { IAuth } from "@interfaces/IAuth";
 
 import User from "@modules/User";
 import Chat from "@modules/Chat";
@@ -13,6 +11,8 @@ import { Chats, ChatStatus } from "../types/Chat";
 import { Users } from "../types/User";
 
 export interface IClient extends ClientEvents {
+  id: string;
+
   /** * Comandos do cliente */
   commands: ICommand[];
 
@@ -76,13 +76,13 @@ export interface IClient extends ClientEvents {
    * @param message Mensagem
    * @param reaction Reação
    */
-  addReaction(message: Message, reaction?: string): Promise<void>;
+  addReaction(message: IMessage, reaction?: string): Promise<void>;
 
   /**
    * * Remove a reação da mensagem
    * @param message Mensagem que terá sua reação removida
    */
-  removeReaction(message: Message): Promise<void>;
+  removeReaction(message: IMessage): Promise<void>;
 
   /**
    * * Adiciona animações na reação da mensagem
@@ -91,20 +91,20 @@ export interface IClient extends ClientEvents {
    * @param interval Intervalo entre cada reação
    * @param maxTimeout Maximo de tempo reagindo
    */
-  addAnimatedReaction(message: Message, reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void>;
+  addAnimatedReaction(message: IMessage, reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void>;
 
   /**
    * * Marca uma mensagem como visualizada
    * @param message Mensagem que será visualizada
    */
-  readMessage(message: Message): Promise<void>;
+  readMessage(message: IMessage): Promise<void>;
 
   /**
    * * Envia um conteúdo
    * @param content
    * @returns Retorna o conteudo enviado
    */
-  send(message: Message): Promise<Message>;
+  send(message: IMessage): Promise<IMessage>;
 
   /**
    * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
@@ -114,7 +114,7 @@ export interface IClient extends ClientEvents {
    * @param ignoreMessages Não resolve a promessa se a mensagem recebida é a mesma escolhida
    * @returns
    */
-  awaitMessage(chat: Chat | string, ignoreMessageFromMe: boolean, stopRead: boolean, ...ignoreMessages: Message[]): Promise<Message>;
+  awaitMessage(chat: Chat | string, ignoreMessageFromMe: boolean, stopRead: boolean, ...ignoreMessages: IMessage[]): Promise<IMessage>;
 
   /**
    * * Automotiza uma mensagem
@@ -124,26 +124,26 @@ export interface IClient extends ClientEvents {
    * @param id
    * @returns
    */
-  addAutomate(message: Message, timeout: number, chats?: { [key: string]: Chat }, id?: string): Promise<any>;
+  addAutomate(message: IMessage, timeout: number, chats?: { [key: string]: Chat }, id?: string): Promise<any>;
 
   /**
    * * Remover mensagem
    * @param message Mensagem que será removida da sala de bate-papo
    */
-  removeMessage(message: Message): Promise<void>;
+  removeMessage(message: IMessage): Promise<void>;
 
   /**
    * * Deletar mensagem
    * @param message Mensagem que será deletada da sala de bate-papos
    */
-  deleteMessage(message: Message): Promise<void>;
+  deleteMessage(message: IMessage): Promise<void>;
 
   /**
    * * Retorna a stream da mídia
    * @param message Mídia que será baixada
    * @returns Stream da mídia
    */
-  downloadStreamMessage(message: MediaMessage): Promise<Buffer>;
+  downloadStreamMessage(message: IMediaMessage): Promise<Buffer>;
 
   //? *************** BOT ***************
 

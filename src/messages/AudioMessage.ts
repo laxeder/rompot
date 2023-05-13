@@ -1,26 +1,22 @@
+import type { Media } from "../types/Message";
+
+import { MessageType } from "@enums/Message";
+
 import MediaMessage from "@messages/MediaMessage";
-import Message from "@messages/Message";
 
 import Chat from "@modules/Chat";
-import User from "@modules/User";
 
-import { Media } from "../types/Message";
+import { injectJSON } from "@utils/Generic";
 
 export default class AudioMessage extends MediaMessage {
+  public readonly type: MessageType = MessageType.Audio;
+
   public mimetype: string = "audio/mp4";
 
-  constructor(
-    chat: Chat | string,
-    file: Media | Buffer | string,
-    mention?: Message,
-    id?: string,
-    user?: User | string,
-    fromMe?: boolean,
-    selected?: string,
-    mentions?: string[],
-    timestamp?: Number | Long
-  ) {
-    super(chat, "", file, mention, id, user, fromMe, selected, mentions, timestamp);
+  constructor(chat: Chat | string, file: Media | Buffer | string, others: Partial<AudioMessage> = {}) {
+    super(chat, "", file);
+
+    injectJSON(others, this);
   }
 
   /**

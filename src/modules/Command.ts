@@ -1,10 +1,8 @@
-import ICommand from "@interfaces/ICommand";
-
-import Message from "@messages/Message";
+import { ICommand } from "@interfaces/ICommand";
+import { IMessage } from "@interfaces/IMessage";
+import { IClient } from "@interfaces/IClient";
 
 import { ClientBase } from "@modules/Base";
-
-import { ClientType } from "../types/Client";
 
 export default class Command implements ICommand {
   public id: string = `${Date.now()}`;
@@ -16,19 +14,19 @@ export default class Command implements ICommand {
   public categories: string[] = [];
   public permissions: string[] = [];
 
-  #client: ClientType = ClientBase();
+  #client: IClient = ClientBase();
 
-  get client(): ClientType {
+  get client(): IClient {
     return this.#client;
   }
 
-  set client(c: ClientType) {
-    this.#client = c;
+  set client(client: IClient) {
+    this.#client = client;
   }
 
-  public async execute(message: Message): Promise<any> {}
+  public async execute(message: IMessage): Promise<any> {}
 
-  public async response(message: Message): Promise<any> {}
+  public async response(message: IMessage): Promise<any> {}
 
-  public async help(message: Message): Promise<any> {}
+  public async help(message: IMessage): Promise<any> {}
 }

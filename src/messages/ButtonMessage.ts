@@ -1,33 +1,28 @@
+import type { Button } from "../types/Message";
+
+import { MessageType } from "@enums/Message";
+
 import Message from "@messages/Message";
 
 import Chat from "@modules/Chat";
-import User from "@modules/User";
 
-import { Button } from "../types/Message";
+import { injectJSON } from "@utils/Generic";
 
 export default class ButtonMessage extends Message {
+  public type: MessageType.Button | MessageType.TemplateButton = MessageType.TemplateButton;
+
   /** * Rodapé */
   public footer: string;
   /** * Botões */
   public buttons: Button[] = [];
   /** * Tipo do botões */
-  public type: "template" | "plain" = "template";
 
-  constructor(
-    chat: Chat | string,
-    text: string,
-    footer?: string,
-    mention?: Message,
-    id?: string,
-    user?: User | string,
-    fromMe?: boolean,
-    selected?: string,
-    mentions?: string[],
-    timestamp?: Number | Long
-  ) {
-    super(chat, text, mention, id, user, fromMe, selected, mentions, timestamp);
+  constructor(chat: Chat | string, text: string, footer?: string, others: Partial<ButtonMessage> = {}) {
+    super(chat, text);
 
     this.footer = footer || "";
+
+    injectJSON(others, this);
   }
 
   /**

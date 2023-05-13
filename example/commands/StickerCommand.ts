@@ -1,4 +1,4 @@
-import { Command, MediaMessage, Message, StickerMessage } from "../../src";
+import { Command, Message, StickerMessage, isMediaMessage } from "../../src";
 
 export class StickerCommand extends Command {
   tags: string[] = ["s", "t", "i", "c", "k", "e", "r"];
@@ -8,7 +8,7 @@ export class StickerCommand extends Command {
   public async execute(message: Message): Promise<void> {
     const mediaMessage = message.mention || message;
 
-    if (!(mediaMessage instanceof MediaMessage)) {
+    if (!isMediaMessage(mediaMessage)) {
       await message.reply("Mencione uma imagem para transforma-la em sticker");
       return;
     }

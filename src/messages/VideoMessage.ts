@@ -1,27 +1,22 @@
-import MediaMessage from "@messages/MediaMessage";
-import Message from "@messages/Message";
+import type { Media } from "../types/Message";
+
+import { MessageType } from "@enums/Message";
+
+import { MediaMessage } from "@messages/index";
 
 import Chat from "@modules/Chat";
-import User from "@modules/User";
 
-import { Media } from "../types/Message";
+import { injectJSON } from "@utils/Generic";
 
 export default class VideoMessage extends MediaMessage {
+  public readonly type: MessageType = MessageType.Video;
+
   public mimetype: string = "video/mp4";
 
-  constructor(
-    chat: Chat | string,
-    text: string,
-    file: Media | Buffer | string,
-    mention?: Message,
-    id?: string,
-    user?: User | string,
-    fromMe?: boolean,
-    selected?: string,
-    mentions?: string[],
-    timestamp?: Number | Long
-  ) {
-    super(chat, text, file, mention, id, user, fromMe, selected, mentions, timestamp);
+  constructor(chat: Chat | string, text: string, file: Media | Buffer | string, others: Partial<VideoMessage> = {}) {
+    super(chat, text, file);
+
+    injectJSON(others, this);
   }
 
   /**

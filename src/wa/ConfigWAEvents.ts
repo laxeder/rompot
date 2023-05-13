@@ -1,9 +1,9 @@
 import { DisconnectReason, WAMessage } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 
-import EmptyMessage from "@messages/EmptyMessage";
-
 import Chat from "@modules/Chat";
+
+import { isEmptyMessage } from "@utils/Message";
 
 import { WhatsAppConvertMessage } from "./WAConvertMessage";
 import WhatsAppBot from "./WhatsAppBot";
@@ -108,7 +108,7 @@ export default class ConfigWAEvents {
 
         const msg = await new WhatsAppConvertMessage(this.wa, message, m.type).get();
 
-        if (msg instanceof EmptyMessage) return;
+        if (isEmptyMessage(msg)) return;
 
         this.wa.ev.emit("message", msg);
       } catch (err) {

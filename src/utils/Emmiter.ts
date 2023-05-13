@@ -1,13 +1,13 @@
+import type { UserAction, UserEvent } from "../types/User";
+import type { ConnectionType } from "../types/Connection";
+import type { ChatAction } from "../types/Chat";
+
 import EventEmitter from "events";
 
-import Message from "@messages/Message";
+import { IMessage } from "@interfaces/IMessage";
 
 import User from "@modules/User";
 import Chat from "@modules/Chat";
-
-import { UserAction, UserEvent } from "../types/User";
-import { ConnectionType } from "../types/Connection";
-import { ChatAction } from "../types/Chat";
 
 export type EventsMap = {
   /**
@@ -56,7 +56,7 @@ export type EventsMap = {
   chat: { action: ChatAction; chat: Chat };
 
   /** * Nova mensagem */
-  message: Message;
+  message: IMessage;
 
   /** * Erro ocorrido */
   error: Error;

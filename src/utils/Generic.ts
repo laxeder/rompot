@@ -1,6 +1,8 @@
 import { Transform } from "stream";
 import https from "https";
 
+import { IClient } from "@interfaces/IClient";
+
 /**
  * * Aguarda um determinado tempo
  * @param timeout
@@ -104,4 +106,16 @@ export function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut
   });
 
   return objectOut;
+}
+
+/**
+ * * Adiciona um cliente ao objeto
+ * @param obj Objeto
+ * @param client Cliente
+ * @returns Objeto com Cliente adicionado
+ */
+export function ApplyClient<T extends any>(obj: T, client: IClient): T {
+  obj["client"] = client;
+
+  return obj;
 }

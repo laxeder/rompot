@@ -1,10 +1,10 @@
+import { IClient } from "@interfaces/IClient";
+
 import { ClientBase } from "@modules/Base";
 import Chat from "@modules/Chat";
 
-import { ClientType } from "../types/Client";
-
 export default class User {
-  #client: ClientType = ClientBase();
+  #client: IClient = ClientBase();
 
   /** * Nome do usuário */
   public name: string;
@@ -12,11 +12,11 @@ export default class User {
   /** * ID */
   public id: string;
 
-  get client(): ClientType {
+  get client(): IClient {
     return this.#client;
   }
 
-  set client(client: ClientType) {
+  set client(client: IClient) {
     this.#client = client;
   }
 
@@ -134,7 +134,7 @@ export default class User {
    * @param user Usuário
    * @returns
    */
-  public static Client<USER extends User>(client: ClientType, user: USER | string): USER | User {
+  public static Client<USER extends User>(client: IClient, user: USER | string): USER | User {
     if (typeof user == "string") return this.Client(client, new User(user));
 
     user.client = client;

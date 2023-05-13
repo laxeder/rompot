@@ -1,25 +1,23 @@
+import type { Chats, ChatStatus } from "../types/Chat";
+import type { Users } from "../types/User";
+
 import { readFileSync } from "fs";
 
 import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
 import { DefaultCommandConfig } from "@config/CommandConfig";
 
+import { IMediaMessage, IMessage } from "@interfaces/IMessage";
 import { IClient } from "@interfaces/IClient";
+import { IAuth } from "@interfaces/IAuth";
+import { IBot } from "@interfaces/IBot";
+
 import Command from "@modules/Command";
-import IAuth from "@interfaces/IAuth";
-import IBot from "@interfaces/IBot";
-
-import MediaMessage from "@messages/MediaMessage";
-import Message from "@messages/Message";
-
 import User from "@modules/User";
 import Chat from "@modules/Chat";
 
+import { sleep, getError, ApplyClient } from "@utils/Generic";
 import PromiseMessages from "@utils/PromiseMessages";
-import { sleep, getError } from "@utils/Generic";
 import { ClientEvents } from "@utils/Emmiter";
-
-import { Chats, ChatStatus } from "../types/Chat";
-import { Users } from "../types/User";
 
 export default class Client<Bot extends IBot> extends ClientEvents implements IClient {
   public promiseMessages: PromiseMessages = new PromiseMessages();
@@ -54,17 +52,17 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
   }
 
   public configEvents() {
-    this.bot.ev.on("message", async (message: Message) => {
+    this.bot.ev.on("message", async (message: IMessage) => {
       try {
         if (!message.fromMe && !this.config.disableAutoRead) await this.readMessage(message);
 
         if (this.promiseMessages.resolvePromiseMessages(message)) return;
 
-        this.emit("message", Message.Client(this, message));
+        this.emit("message", ApplyClient(message, this));
 
         if (this.config.disableAutoCommand) return;
 
-        this.getCommand(message.text)?.execute(Message.Client(this, message));
+        this.getCommand(message.text)?.execute(ApplyClient(message, this));
       } catch (err) {
         this.emit("error", getError(err));
       }
@@ -225,23 +223,23 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
 
   //! <============================> MESSAGES <============================>
 
-  public deleteMessage(message: Message): Promise<void> {
+  public deleteMessage(message: IMessage): Promise<void> {
     return this.bot.removeMessage(message);
   }
 
-  public removeMessage(message: Message): Promise<void> {
+  public removeMessage(message: IMessage): Promise<void> {
     return this.bot.removeMessage(message);
   }
 
-  public addReaction(message: Message, reaction: string): Promise<void> {
+  public addReaction(message: IMessage, reaction: string): Promise<void> {
     return this.bot.addReaction(message, reaction);
   }
 
-  public removeReaction(message: Message): Promise<void> {
+  public removeReaction(message: IMessage): Promise<void> {
     return this.bot.removeReaction(message);
   }
 
-  public addAnimatedReaction(message: Message, reactions: string[], interval: number = 2000, maxTimeout: number = 60000): (reactionStop?: string) => Promise<void> {
+  public addAnimatedReaction(message: IMessage, reactions: string[], interval: number = 2000, maxTimeout: number = 60000): (reactionStop?: string) => Promise<void> {
     var isStoped: boolean = false;
     const now = Date.now();
 
@@ -276,29 +274,29 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return stop;
   }
 
-  public readMessage(message: Message) {
+  public readMessage(message: IMessage) {
     return this.bot.readMessage(message);
   }
 
-  public async send(message: Message): Promise<Message> {
+  public async send(message: IMessage): Promise<IMessage> {
     try {
       if (!this.config.disableAutoTyping) {
         await this.changeChatStatus(message.chat, "typing");
       }
 
-      return Message.Client(this, await this.bot.send(message));
+      return ApplyClient(await this.bot.send(message), this);
     } catch (err) {
       this.emit("error", getError(err));
     }
 
-    return Message.Client(this, message);
+    return ApplyClient(message, this);
   }
 
-  public async awaitMessage(chat: Chat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: Message[]): Promise<Message> {
-    return Message.Client(this, await this.promiseMessages.addPromiseMessage(Chat.getId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages));
+  public async awaitMessage(chat: Chat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: IMessage[]): Promise<IMessage> {
+    return ApplyClient(await this.promiseMessages.addPromiseMessage(Chat.getId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages), this);
   }
 
-  async addAutomate(message: Message, timeout: number, chats?: Chats, id: string = String(Date.now())): Promise<any> {
+  async addAutomate(message: IMessage, timeout: number, chats?: Chats, id: string = String(Date.now())): Promise<any> {
     try {
       const now = Date.now();
 
@@ -339,7 +337,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
    * @param message Mídia que será baixada
    * @returns Stream da mídia
    */
-  async downloadStreamMessage(message: MediaMessage): Promise<Buffer> {
+  async downloadStreamMessage(message: IMediaMessage): Promise<Buffer> {
     if (!!!message.file) return Buffer.from("");
 
     if (typeof message.file == "string") {

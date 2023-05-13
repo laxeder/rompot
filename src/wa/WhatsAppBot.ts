@@ -11,12 +11,12 @@ import { WAChat, WAUser } from "@wa/WAModules";
 import { getID, replaceID } from "@wa/ID";
 import { WAStatus } from "@wa/WAStatus";
 
-import IAuth from "@interfaces/IAuth";
-import IBot from "@interfaces/IBot";
+import { IMessage } from "@interfaces/IMessage";
+import { IAuth } from "@interfaces/IAuth";
+import { IBot } from "@interfaces/IBot";
 
 import ReactionMessage from "@messages/ReactionMessage";
 import PollMessage from "@messages/PollMessage";
-import Message from "@messages/Message";
 
 import Chat from "@modules/Chat";
 import User from "@modules/User";
@@ -30,6 +30,8 @@ import { ConnectionStatus } from "../types/Connection";
 import { UserAction, UserEvent } from "../types/User";
 import { ChatStatus } from "../types/Chat";
 import { Media } from "../types/Message";
+import Message from "@messages/Message";
+import { isPollMessage } from "@utils/Message";
 
 export default class WhatsAppBot implements IBot {
   //@ts-ignore
@@ -47,7 +49,7 @@ export default class WhatsAppBot implements IBot {
 
   public chats: WAChats = {};
   public polls: { [id: string]: PollMessage } = {};
-  public sendedMessages: { [id: string]: Message } = {};
+  public sendedMessages: { [id: string]: IMessage } = {};
 
   constructor(config?: Partial<SocketConfig>) {
     this.config = {
@@ -623,11 +625,7 @@ export default class WhatsAppBot implements IBot {
    * * Adiciona uma mensagem na lista de mensagens enviadas
    * @param message Mensagem que será adicionada
    */
-  public async addSendedMessage(message: any | Message) {
-    if (!(message instanceof Message)) {
-      message = await this.wcb.waitCall(() => new WhatsAppConvertMessage(this, message).get());
-    }
-
+  public async addSendedMessage(message: IMessage) {
     if (typeof message != "object" || !message || !!!message.id) return;
 
     message.apiSend = true;
@@ -641,7 +639,7 @@ export default class WhatsAppBot implements IBot {
    * * Remove uma mensagem da lista de mensagens enviadas
    * @param message Mensagem que será removida
    */
-  public async removeMessageIgnore(message: Message) {
+  public async removeMessageIgnore(message: IMessage) {
     if (this.sendedMessages.hasOwnProperty(message.id)) {
       delete this.sendedMessages[message.id];
     }
@@ -649,7 +647,7 @@ export default class WhatsAppBot implements IBot {
     await this.saveSendedMessages();
   }
 
-  public async readMessage(message: Message): Promise<void> {
+  public async readMessage(message: IMessage): Promise<void> {
     const key: proto.MessageKey = {
       remoteJid: getID(message.chat.id),
       id: message.id || "",
@@ -661,7 +659,7 @@ export default class WhatsAppBot implements IBot {
     return await this.wcb.waitCall(() => this.sock.readMessages([key]));
   }
 
-  public async removeMessage(message: Message) {
+  public async removeMessage(message: IMessage) {
     return await this.wcb.waitCall(() =>
       this.sock?.chatModify(
         {
@@ -672,7 +670,7 @@ export default class WhatsAppBot implements IBot {
     );
   }
 
-  public async deleteMessage(message: Message) {
+  public async deleteMessage(message: IMessage) {
     const key: any = { remoteJid: getID(message.chat.id), id: message.id };
 
     if (message.chat.id.includes("@g")) {
@@ -683,10 +681,10 @@ export default class WhatsAppBot implements IBot {
 
     const msg = await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), { delete: key }));
 
-    await this.addSendedMessage(msg);
+    await this.addSendedMessage(await new WhatsAppConvertMessage(this, msg).get());
   }
 
-  public async addReaction(message: Message, reaction: string): Promise<void> {
+  public async addReaction(message: IMessage, reaction: string): Promise<void> {
     const reactionMessage = new ReactionMessage(message.chat, reaction, message);
     reactionMessage.user = message.user;
 
@@ -695,10 +693,10 @@ export default class WhatsAppBot implements IBot {
 
     const msg = await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), waMSG.message));
 
-    await this.addSendedMessage(msg);
+    await this.addSendedMessage(await new WhatsAppConvertMessage(this, msg).get());
   }
 
-  public async removeReaction(message: Message): Promise<void> {
+  public async removeReaction(message: IMessage): Promise<void> {
     const reactionMessage = new ReactionMessage(message.chat, "", message);
     reactionMessage.user = message.user;
 
@@ -707,10 +705,10 @@ export default class WhatsAppBot implements IBot {
 
     const msg = await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), waMSG.message));
 
-    await this.addSendedMessage(msg);
+    await this.addSendedMessage(await new WhatsAppConvertMessage(this, msg).get());
   }
 
-  public async send(content: Message): Promise<Message> {
+  public async send(content: IMessage): Promise<IMessage> {
     const waMSG = new WhatsAppMessage(this, content);
     await waMSG.refactory(content);
 
@@ -722,15 +720,13 @@ export default class WhatsAppBot implements IBot {
       return content;
     }
 
-    console.log(waMSG.chat, waMSG.message, waMSG.options);
-
     const sendedMessage = await this.wcb.waitCall(() => this.sock?.sendMessage(waMSG.chat, waMSG.message, waMSG.options)).catch((err) => this.ev.emit("error", err));
 
     if (typeof sendedMessage == "boolean") return content;
 
     const msgRes = (await new WhatsAppConvertMessage(this, sendedMessage).get()) || content;
 
-    if (msgRes instanceof PollMessage && content instanceof PollMessage) {
+    if (isPollMessage(msgRes) && isPollMessage(content)) {
       msgRes.options = content.options;
       msgRes.secretKey = sendedMessage.message.messageContextInfo.messageSecret;
 

@@ -1,11 +1,16 @@
+import type { PollOption } from "../types/Message";
+
+import { MessageType } from "@enums/Message";
+
 import Message from "@messages/Message";
 
-import User from "@modules/User";
 import Chat from "@modules/Chat";
 
-import { PollOption } from "../types/Message";
+import { injectJSON } from "@utils/Generic";
 
 export default class PollMessage extends Message {
+  public readonly type: MessageType = MessageType.Poll;
+
   /** * Opções da enquete */
   public options: PollOption[] = [];
   /** * Chave secreta da enquete */
@@ -13,21 +18,12 @@ export default class PollMessage extends Message {
   /** * Last hash votes */
   public votes: { [user: string]: string[] } = {};
 
-  constructor(
-    chat: Chat | string,
-    text: string,
-    options?: PollOption[],
-    mention?: Message,
-    id?: string,
-    user?: User | string,
-    fromMe?: boolean,
-    selected?: string,
-    mentions?: string[],
-    timestamp?: Number | Long
-  ) {
-    super(chat, text, mention, id, user, fromMe, selected, mentions, timestamp);
+  constructor(chat: Chat | string, text: string, options?: PollOption[], others: Partial<PollMessage> = {}) {
+    super(chat, text);
 
     this.options = options || [];
+
+    injectJSON(others, this);
   }
 
   /**
@@ -71,18 +67,7 @@ export default class PollMessage extends Message {
 
   /** * Transforma um objeto em PollMessage */
   public static fromJSON(message: any) {
-    const pollMessage = new PollMessage(
-      message?.chat?.id || "",
-      message.text,
-      message.options,
-      message.mention,
-      message.id,
-      message.user.id,
-      message.fromMe,
-      message.selected,
-      message.mentions,
-      message.timestmap
-    );
+    const pollMessage = new PollMessage(message?.chat?.id || "", message?.text || "", message?.options || [], message || {});
 
     pollMessage.secretKey = Buffer.from(message?.secretKey || "");
     pollMessage.votes = message?.votes || [];

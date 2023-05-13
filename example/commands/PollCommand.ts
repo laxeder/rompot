@@ -1,4 +1,4 @@
-import { Command, Message, PollMessage, PollUpdateMessage } from "../../src";
+import { Command, Message, PollMessage, isPollUpdateMessage } from "../../src";
 
 export class PollCommand extends Command {
   tags: string[] = ["poll"];
@@ -15,7 +15,7 @@ export class PollCommand extends Command {
   }
 
   public async response(message: Message): Promise<void> {
-    if (message instanceof PollUpdateMessage && message.action == "remove") return;
+    if (isPollUpdateMessage(message) && message.action == "remove") return;
 
     await message.chat.send(`Opção ${message.text} (${message.selected}) foi selecionado!`);
   }

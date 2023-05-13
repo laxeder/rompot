@@ -1,30 +1,22 @@
-import Message from "@messages/Message";
+import type { PollOption } from "../types/Message";
 
-import PollMessage from "@messages/PollMessage";
+import { MessageType } from "@enums/Message";
 
-import User from "@modules/User";
+import { PollMessage } from "@messages/index";
+
 import Chat from "@modules/Chat";
 
-import { PollOption } from "../types/Message";
+import { injectJSON } from "@utils/Generic";
 
 export default class PollUpdateMessage extends PollMessage {
+  public readonly type: MessageType = MessageType.PollUpdate;
+
   /** * ação */
   public action?: "add" | "remove" | "create" = "create";
 
-  constructor(
-    chat: Chat | string,
-    text: string,
-    options?: PollOption[],
-    mention?: Message,
-    id?: string,
-    user?: User | string,
-    fromMe?: boolean,
-    selected?: string,
-    mentions?: string[],
-    timestamp?: Number | Long
-  ) {
-    super(chat, text, options, mention, id, user, fromMe, selected, mentions, timestamp);
+  constructor(chat: Chat | string, text: string, options?: PollOption[], others: Partial<PollUpdateMessage> = {}) {
+    super(chat, text, options);
 
-    this.options = options || [];
+    injectJSON(others, this);
   }
 }

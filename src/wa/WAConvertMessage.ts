@@ -2,21 +2,25 @@ import { decryptPollVote, getContentType, MessageUpsertType, proto, WAMessage, W
 import { extractMetadata } from "@laxeder/wa-sticker/dist";
 import digestSync from "crypto-digest-sync";
 
-import PollUpdateMessage from "@messages/PollUpdateMessage";
-import ReactionMessage from "@messages/ReactionMessage";
-import LocationMessage from "@messages/LocationMessage";
-import ContactMessage from "@messages/ContactMessage";
-import StickerMessage from "@messages/StickerMessage";
-import ButtonMessage from "@messages/ButtonMessage";
-import MediaMessage from "@messages/MediaMessage";
-import ImageMessage from "@messages/ImageMessage";
-import VideoMessage from "@messages/VideoMessage";
-import EmptyMessage from "@messages/EmptyMessage";
-import AudioMessage from "@messages/AudioMessage";
-import ListMessage from "@messages/ListMessage";
-import FileMessage from "@messages/FileMessage";
-import PollMessage from "@messages/PollMessage";
-import Message from "@messages/Message";
+import { IMessage } from "@interfaces/IMessage";
+
+import {
+  AudioMessage,
+  ButtonMessage,
+  ContactMessage,
+  EmptyMessage,
+  FileMessage,
+  ImageMessage,
+  ListMessage,
+  LocationMessage,
+  MediaMessage,
+  Message,
+  PollMessage,
+  PollUpdateMessage,
+  ReactionMessage,
+  StickerMessage,
+  VideoMessage,
+} from "@messages/index";
 
 import Chat from "@modules/Chat";
 import User from "@modules/User";
@@ -26,15 +30,17 @@ import WhatsAppBot from "@wa/WhatsAppBot";
 import { getID, replaceID } from "@wa/ID";
 
 import { Media, PollOption } from "../types/Message";
+import { MessageType } from "@enums/Message";
+import { isStickerMessage } from "@utils/Message";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;
   private _message: any = {};
 
-  private _convertedMessage: Message = new Message("", "");
+  private _convertedMessage: IMessage = new Message("", "");
   private _user: User = new User("");
   private _chat: Chat = new Chat("");
-  private _mention?: Message;
+  private _mention?: IMessage;
   private _wa: WhatsAppBot;
 
   constructor(wa: WhatsAppBot, message: WAMessage, type?: MessageUpsertType) {
@@ -316,7 +322,7 @@ export class WhatsAppConvertMessage {
       try {
         await extractMetadata(await this._wa.downloadStreamMessage(file))
           .then((data) => {
-            if (msg instanceof StickerMessage) {
+            if (isStickerMessage(msg)) {
               msg.author = data["sticker-pack-publisher"] || "";
               msg.stickerId = data["sticker-pack-id"] || "";
               msg.pack = data["sticker-pack-name"] || "";
@@ -461,7 +467,7 @@ export class WhatsAppConvertMessage {
     // buttonMSG.setType(buttonMessage.headerType || buttonMessage.hydratedHeaderType || 1)
 
     if (buttonMessage.buttons) {
-      buttonMSG.type = "plain";
+      buttonMSG.type = MessageType.Button;
 
       buttonMessage.buttons?.map((button: proto.Message.ButtonsMessage.IButton) => {
         buttonMSG.addReply(button?.buttonText?.displayText || "", button.buttonId || String(Date.now()));
@@ -469,7 +475,7 @@ export class WhatsAppConvertMessage {
     }
 
     if (buttonMessage.hydratedButtons) {
-      buttonMSG.type = "template";
+      buttonMSG.type = MessageType.TemplateButton;
 
       buttonMessage.hydratedButtons?.map((button: any) => {
         if (button.callButton) {

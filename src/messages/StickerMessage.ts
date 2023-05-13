@@ -1,14 +1,18 @@
+import type { Media } from "../types/Message";
+
 import { Categories } from "@laxeder/wa-sticker/dist";
 
-import MediaMessage from "@messages/MediaMessage";
-import Message from "@messages/Message";
+import { MessageType } from "@enums/Message";
+
+import { MediaMessage } from "@messages/index";
 
 import Chat from "@modules/Chat";
-import User from "@modules/User";
 
-import { Media } from "../types/Message";
+import { injectJSON } from "@utils/Generic";
 
 export default class StickerMessage extends MediaMessage {
+  public readonly type: MessageType = MessageType.Sticker;
+
   /** * Criador da figurinha */
   public author: string = "";
   /** * Pacote da figurinha */
@@ -20,18 +24,10 @@ export default class StickerMessage extends MediaMessage {
 
   public mimetype: string = "image/webp";
 
-  constructor(
-    chat: Chat | string,
-    file: Media | Buffer | string,
-    mention?: Message,
-    id?: string,
-    user?: User | string,
-    fromMe?: boolean,
-    selected?: string,
-    mentions?: string[],
-    timestamp?: Number | Long
-  ) {
-    super(chat, "", file, mention, id, user, fromMe, selected, mentions, timestamp);
+  constructor(chat: Chat | string, file: Media | Buffer | string, others: Partial<StickerMessage> = {}) {
+    super(chat, "", file);
+
+    injectJSON(others, this);
   }
 
   /**

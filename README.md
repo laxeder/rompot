@@ -64,7 +64,7 @@ client.config = config;
 ## ⚙️ Criando comandos
 
 ```ts
-import { Command, Message } from "rompot";
+import { Command, IMessage } from "rompot";
 
 // Cria um comando com o nome hello
 // Ao ser executado envia a mensagem "Hello World!"
@@ -72,7 +72,7 @@ class HelloCommand extends Command {
   tags: string[] = ["hello"];
   prefix: string = "/";
 
-  public async execute(message: Message) {
+  public async execute(message: IMessage) {
     await message.reply(`Hello World!`);
   }
 }
@@ -81,7 +81,7 @@ class DateCommand extends Command {
   tags: string[] = ["date"];
   prefix: string = "/";
 
-  public async execute(message: Message) {
+  public async execute(message: IMessage) {
     await message.reply(`Data: ${new Date()}`);
   }
 }
@@ -265,20 +265,20 @@ pollMessage.addOption("Hi", "id-hi-123");
 ## Lendo resposas de ButtonMessage, ListMessage e PollMessage
 
 ```ts
-import { Command, PollUpdateMessage } from "rompot";
+import { Command, IMessage, isPollMessage } from "rompot";
 
 class ButtonCommand extends Command {
   tags: string[] = ["cmd-button"];
 
-  public async response(message: Message) {
+  public async response(message: IMessage) {
     await message.reply(`Button Clicked!`);
   }
 }
 
 client.addCommand(new ButtonCommand());
 
-client.on("message", async (message: Message) => {
-  if (message instanceof PollUpdateMessage) {
+client.on("message", async (message: IMessage) => {
+  if (isPollMessage(message)) {
     // Não responde caso a votação da enquete foi removida
     if (message.action == "remove") return;
   }

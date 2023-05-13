@@ -1,34 +1,28 @@
-import Message from "@messages/Message";
+import type { Media } from "../types/Message";
+
+import { MessageType } from "@enums/Message";
+
+import { IMediaMessage } from "@interfaces/IMessage";
+
+import Message  from "@messages/Message";
 
 import Chat from "@modules/Chat";
-import User from "@modules/User";
 
-import { Media } from "../types/Message";
+import { injectJSON } from "@utils/Generic";
 
-export default class MediaMessage extends Message {
-  /** * Arquivo da mensagem */
-  public file: Media | Buffer | string;
-  /** * O arquivo é um GIF */
-  public isGIF: boolean = false;
-  /** * MimeType */
+export default class MediaMessage extends Message implements IMediaMessage {
+  public readonly type: MessageType = MessageType.Media;
+
   public mimetype: string = "application/octet-stream";
-  /** * Nome do arquivo */
+  public file: Media | Buffer | string;
+  public isGIF: boolean = false;
   public name: string = "";
 
-  constructor(
-    chat: Chat | string,
-    text: string,
-    file: Media | Buffer | string,
-    mention?: Message,
-    id?: string,
-    user?: User | string,
-    fromMe?: boolean,
-    selected?: string,
-    mentions?: string[],
-    timestamp?: Number | Long
-  ) {
-    super(chat, text, mention, id, user, fromMe, selected, mentions, timestamp);
+  constructor(chat: Chat | string, text: string, file: Media | Buffer | string, others: Partial<MediaMessage> = {}) {
+    super(chat, text);
     this.file = file;
+
+    injectJSON(others, this);
   }
 
   /**

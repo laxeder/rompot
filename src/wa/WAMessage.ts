@@ -1,28 +1,34 @@
+import type { List, ListItem } from "../types/Message";
+
 import { generateWAMessage, isJidGroup, MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
 import Sticker, { StickerTypes } from "@laxeder/wa-sticker/dist";
 
-import ReactionMessage from "@messages/ReactionMessage";
-import LocationMessage from "@messages/LocationMessage";
-import ContactMessage from "@messages/ContactMessage";
-import StickerMessage from "@messages/StickerMessage";
-import ButtonMessage from "@messages/ButtonMessage";
-import ImageMessage from "@messages/ImageMessage";
-import MediaMessage from "@messages/MediaMessage";
-import VideoMessage from "@messages/VideoMessage";
-import AudioMessage from "@messages/AudioMessage";
-import FileMessage from "@messages/FileMessage";
-import ListMessage from "@messages/ListMessage";
-import PollMessage from "@messages/PollMessage";
-import Message from "@messages/Message";
+import { MessageType } from "@enums/Message";
+
+import { IMediaMessage, IMessage } from "@interfaces/IMessage";
+
+import { StickerMessage, LocationMessage, ContactMessage, ButtonMessage, ListMessage, PollMessage, ReactionMessage } from "@messages/index";
 
 import WhatsAppBot from "@wa/WhatsAppBot";
+import { WAUser } from "@wa/WAModules";
 import { getID } from "@wa/ID";
-
-import { List, ListItem } from "../types/Message";
-import { WAUser } from "./WAModules";
+import {
+  isAudioMessage,
+  isButtonMessage,
+  isContactMessage,
+  isFileMessage,
+  isImageMessage,
+  isListMessage,
+  isLocationMessage,
+  isMediaMessage,
+  isPollMessage,
+  isReactionMessage,
+  isStickerMessage,
+  isVideoMessage,
+} from "@utils/Message";
 
 export class WhatsAppMessage {
-  private _message: Message;
+  private _message: IMessage;
   private _wa: WhatsAppBot;
 
   public chat: string = "";
@@ -30,7 +36,7 @@ export class WhatsAppMessage {
   public options: MiscMessageGenerationOptions = {};
   public isRelay: boolean = false;
 
-  constructor(wa: WhatsAppBot, message: Message) {
+  constructor(wa: WhatsAppBot, message: IMessage) {
     this._message = message;
     this._wa = wa;
   }
@@ -63,13 +69,13 @@ export class WhatsAppMessage {
       }
     }
 
-    if (message instanceof MediaMessage) await this.refactoryMediaMessage(message);
-    if (message instanceof LocationMessage) this.refactoryLocationMessage(message);
-    if (message instanceof ReactionMessage) this.refactoryReactionMessage(message);
-    if (message instanceof ContactMessage) this.refactoryContactMessage(message);
-    if (message instanceof ButtonMessage) this.refactoryButtonMessage(message);
-    if (message instanceof ListMessage) this.refactoryListMessage(message);
-    if (message instanceof PollMessage) this.refactoryPollMessage(message);
+    if (isMediaMessage(message)) await this.refactoryMediaMessage(message);
+    if (isLocationMessage(message)) this.refactoryLocationMessage(message);
+    if (isReactionMessage(message)) this.refactoryReactionMessage(message);
+    if (isContactMessage(message)) this.refactoryContactMessage(message);
+    if (isButtonMessage(message)) this.refactoryButtonMessage(message);
+    if (isListMessage(message)) this.refactoryListMessage(message);
+    if (isPollMessage(message)) this.refactoryPollMessage(message);
   }
 
   /**
@@ -77,7 +83,7 @@ export class WhatsAppMessage {
    * @param message
    * @returns
    */
-  public async refactoryMessage(message: Message) {
+  public async refactoryMessage(message: IMessage) {
     const msg: any = {};
 
     msg.text = message.text;
@@ -116,36 +122,38 @@ export class WhatsAppMessage {
    * * Refatora uma mensagem de midia
    * @param message
    */
-  public async refactoryMediaMessage(message: MediaMessage) {
-    this.message.caption = this.message.text;
-    this.message.mimetype = message.mimetype;
-    this.message.fileName = message.name;
+  public async refactoryMediaMessage(message: IMediaMessage) {
+    const stream = await message.getStream();
 
-    delete this.message.text;
-
-    if (message instanceof ImageMessage) {
-      this.message.image = await message.getImage();
+    if (isImageMessage(message)) {
+      this.message.image = stream;
     }
 
-    if (message instanceof VideoMessage) {
-      this.message.video = await message.getVideo();
+    if (isVideoMessage(message)) {
+      this.message.video = stream;
     }
 
-    if (message instanceof AudioMessage) {
-      this.message.audio = await message.getAudio();
+    if (isAudioMessage(message)) {
+      this.message.audio = stream;
     }
 
-    if (message instanceof FileMessage) {
-      this.message.document = await message.getFile();
+    if (isFileMessage(message)) {
+      this.message.file = stream;
     }
 
-    if (message instanceof StickerMessage) {
+    if (isStickerMessage(message)) {
       await this.refatoryStickerMessage(message);
     }
 
     if (message.isGIF) {
       this.message.gifPlayback = true;
     }
+
+    this.message.caption = this.message.text;
+    this.message.mimetype = message.mimetype;
+    this.message.fileName = message.name;
+
+    delete this.message.text;
   }
 
   public async refatoryStickerMessage(message: StickerMessage) {
@@ -240,7 +248,7 @@ export class WhatsAppMessage {
     this.message.footer = message.footer;
     this.message.viewOnce = true;
 
-    if (message.type == "template") {
+    if (message.type == MessageType.TemplateButton) {
       this.message.templateButtons = message.buttons.map((button) => {
         if (button.type == "reply") return { index: button.index, quickReplyButton: { displayText: button.text, id: button.content } };
         if (button.type == "call") return { index: button.index, callButton: { displayText: button.text, phoneNumber: button.content } };

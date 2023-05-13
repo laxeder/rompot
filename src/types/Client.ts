@@ -1,4 +1,4 @@
-import IBot from "@interfaces/IBot";
+import { IBot } from "@interfaces/IBot";
 
 import Client from "@modules/Client";
 

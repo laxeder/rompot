@@ -1,11 +1,16 @@
+import type { List, ListItem } from "../types/Message";
+
+import { MessageType } from "@enums/Message";
+
 import Message from "@messages/Message";
 
 import Chat from "@modules/Chat";
-import User from "@modules/User";
 
-import { List, ListItem } from "../types/Message";
+import { injectJSON } from "@utils/Generic";
 
 export default class ListMessage extends Message {
+  public readonly type: MessageType = MessageType.List;
+
   /** * Botão */
   public button: string;
   /** * Rodapé */
@@ -15,25 +20,14 @@ export default class ListMessage extends Message {
   /** * Lista */
   public list: List[] = [];
 
-  constructor(
-    chat: Chat | string,
-    text: string,
-    button: string,
-    footer?: string,
-    title?: string,
-    mention?: Message,
-    id?: string,
-    user?: User | string,
-    fromMe?: boolean,
-    selected?: string,
-    mentions?: string[],
-    timestamp?: Number | Long
-  ) {
-    super(chat, text, mention, id, user, fromMe, selected, mentions, timestamp);
+  constructor(chat: Chat | string, text: string, button: string, footer?: string, title?: string, others: Partial<ListMessage> = {}) {
+    super(chat, text);
 
     this.button = button;
     this.footer = footer || "";
     this.title = title || "";
+
+    injectJSON(others, this);
   }
 
   /**

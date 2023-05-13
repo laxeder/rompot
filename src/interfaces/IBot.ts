@@ -1,18 +1,17 @@
-import IAuth from "@interfaces/IAuth";
+import type { Chats, ChatStatus } from "../types/Chat";
+import type { BotStatus } from "../types/Bot";
+import type { Media } from "../types/Message";
+import type { Users } from "../types/User";
+import type { IMessage } from "./IMessage";
 
-import Message from "@messages/Message";
+import { IAuth } from "@interfaces/IAuth";
 
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 
 import { BotEvents } from "@utils/Emmiter";
 
-import { Chats, ChatStatus } from "../types/Chat";
-import { BotStatus } from "../types/Bot";
-import { Media } from "../types/Message";
-import { Users } from "../types/User";
-
-export default interface IBot {
+export interface IBot {
   //? ************** CONFIG **************
 
   /** ID do bot */
@@ -50,25 +49,25 @@ export default interface IBot {
    * * Marca uma mensagem como visualizada
    * @param message Mensagem que será visualizada
    */
-  readMessage(message: Message): Promise<void>;
+  readMessage(message: IMessage): Promise<void>;
 
   /**
    * * Enviar mensagem
    * @param message Mensagem que será enviada
    */
-  send(message: Message): Promise<Message>;
+  send(message: IMessage): Promise<IMessage>;
 
   /**
    * * Remover mensagem
    * @param message Mensagem que será removida da sala de bate-papo
    */
-  removeMessage(message: Message): Promise<void>;
+  removeMessage(message: IMessage): Promise<void>;
 
   /**
    * * Deletar mensagem
    * @param message Mensagem que será deletada da sala de bate-papos
    */
-  deleteMessage(message: Message): Promise<void>;
+  deleteMessage(message: IMessage): Promise<void>;
 
   /**
    * * Retorna a stream da mídia
@@ -342,11 +341,11 @@ export default interface IBot {
    * @param message Mensagem
    * @param reaction Reação
    */
-  addReaction(message: Message, reaction: string): Promise<void>;
+  addReaction(message: IMessage, reaction: string): Promise<void>;
 
   /**
    * * Remove a reação da mensagem
    * @param Mensagem que terá sua reação removida
    */
-  removeReaction(message: Message): Promise<void>;
+  removeReaction(message: IMessage): Promise<void>;
 }

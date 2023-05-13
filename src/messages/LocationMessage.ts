@@ -1,27 +1,24 @@
+import { MessageType } from "@enums/Message";
+
 import Message from "@messages/Message";
 
 import Chat from "@modules/Chat";
-import User from "@modules/User";
+
+import { injectJSON } from "@utils/Generic";
 
 export default class LocationMessage extends Message {
+  public readonly type: MessageType = MessageType.Location;
+
   /** * Latitude */
   public latitude: number;
   /** * Longitude */
   public longitude: number;
 
-  constructor(
-    chat: Chat | string,
-    latitude: number,
-    longitude: number,
-    mention?: Message,
-    id?: string,
-    user?: User | string,
-    fromMe?: boolean,
-    selected?: string,
-    mentions?: string[],
-    timestamp?: Number | Long
-  ) {
-    super(chat, "", mention, id, user, fromMe, selected, mentions, timestamp);
+  constructor(chat: Chat | string, latitude: number, longitude: number, others: Partial<LocationMessage> = {}) {
+    super(chat, "");
+
+    injectJSON(others, this);
+
     this.latitude = latitude;
     this.longitude = longitude;
   }

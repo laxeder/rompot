@@ -3,7 +3,7 @@ import { readFile, writeFile, unlink } from "fs/promises";
 import { mkdirSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 
-import IAuth from "@interfaces/IAuth";
+import { IAuth } from "@interfaces/IAuth";
 
 export class MultiFileAuthState implements IAuth {
   public folder: string;

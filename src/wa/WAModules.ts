@@ -1,10 +1,11 @@
+import type { ChatType } from "../types/Chat";
 import type { WAUsers } from "./WATypes";
 
 import Message from "@messages/Message";
 import Chat from "@modules/Chat";
 import User from "@modules/User";
 
-import { ChatType } from "../types/Chat";
+import { injectJSON } from "@utils/Generic";
 
 export class WAUser extends User {
   /** * Nome */
@@ -57,9 +58,9 @@ export class WAMessage extends Message {
   /** * Mensagem mencionada na mensagem */
   public mention?: WAMessage | undefined;
 
-  constructor(chat: WAChat | string, text: string, mention?: WAMessage, id?: string, user?: WAUser | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long) {
-    super(chat, text, mention, id, user, fromMe, selected, mentions, timestamp);
+  constructor(chat: WAChat | string, text: string, others: Partial<WAMessage>) {
+    super(chat, text);
 
-    if (mention) this.mention = WAMessage.Client(this.client, mention);
+    injectJSON(others, this);
   }
 }

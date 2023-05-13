@@ -1,14 +1,16 @@
+import type { ChatStatus, ChatType } from "../types/Chat";
+import type { Users } from "../types/User";
+
+import { IMessage } from "@interfaces/IMessage";
+import { IClient } from "@interfaces/IClient";
+
 import Message from "@messages/Message";
 
 import { ClientBase } from "@modules/Base";
 import User from "@modules/User";
 
-import { ChatStatus, ChatType } from "../types/Chat";
-import { ClientType } from "../types/Client";
-import { Users } from "../types/User";
-
 export default class Chat {
-  #client: ClientType = ClientBase();
+  #client: IClient = ClientBase();
 
   /** * ID */
   public id: string;
@@ -17,11 +19,11 @@ export default class Chat {
   /** * Nome */
   public name: string;
 
-  get client(): ClientType {
+  get client(): IClient {
     return this.#client;
   }
 
-  set client(client: ClientType) {
+  set client(client: IClient) {
     this.#client = client;
   }
 
@@ -153,7 +155,7 @@ export default class Chat {
    * * Envia uma mensagem na sala de bate-papo que a mensagem foi enviada
    * @param message Mensagem que será enviada
    */
-  public async send(message: Message | string): Promise<Message> {
+  public async send(message: IMessage | string): Promise<IMessage> {
     const msg = Message.get(message);
 
     if (!!!msg.chat.id) msg.chat.id = this.id;
@@ -203,7 +205,7 @@ export default class Chat {
    * @param client Cliente
    * @param chat Sala de bate-papo
    */
-  public static Client<CHAT extends Chat>(client: ClientType, chat: CHAT | string): CHAT | Chat {
+  public static Client<CHAT extends Chat>(client: IClient, chat: CHAT | string): CHAT | Chat {
     if (typeof chat == "string") return this.Client(client, new Chat(chat));
 
     chat.client = client;
