@@ -1,4 +1,4 @@
-import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, WASocket, SocketConfig } from "baileys";
+import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, WASocket, SocketConfig } from "@whiskeysockets/baileys";
 import internal from "stream";
 import pino from "pino";
 
@@ -693,6 +693,8 @@ export default class WhatsAppBot implements IBot {
     const waMSG = new WhatsAppMessage(this, reactionMessage);
     await waMSG.refactory(reactionMessage);
 
+    console.log(waMSG.message)
+
     const msg = await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), waMSG.message));
 
     await this.addSendedMessage(msg);
@@ -704,6 +706,8 @@ export default class WhatsAppBot implements IBot {
 
     const waMSG = new WhatsAppMessage(this, reactionMessage);
     await waMSG.refactory(reactionMessage);
+
+    console.log(waMSG.message);
 
     const msg = await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), waMSG.message));
 
@@ -721,6 +725,8 @@ export default class WhatsAppBot implements IBot {
 
       return content;
     }
+
+    console.log(waMSG.chat, waMSG.message, waMSG.options);
 
     const sendedMessage = await this.wcb.waitCall(() => this.sock?.sendMessage(waMSG.chat, waMSG.message, waMSG.options)).catch((err) => this.ev.emit("error", err));
 

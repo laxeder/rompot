@@ -1,4 +1,4 @@
-import { decryptPollVote, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "baileys";
+import { decryptPollVote, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@whiskeysockets/baileys";
 import { extractMetadata } from "@laxeder/wa-sticker/dist";
 import digestSync from "crypto-digest-sync";
 

@@ -1,4 +1,4 @@
-import { WAPresence } from "baileys";
+import { WAPresence } from "@whiskeysockets/baileys";
 
 export const WAStatus: { [s: string]: WAPresence } = {
   typing: "composing",
