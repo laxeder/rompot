@@ -17,7 +17,7 @@ export const DefaultCommandConfig: CommandConfig = {
         msg = newMsg;
       }
 
-      let isCMD: boolean = true;
+      let isCMD: boolean = false;
 
       for (const index in cmd.tags) {
         const tag = cmd.tags[index];
@@ -30,6 +30,8 @@ export const DefaultCommandConfig: CommandConfig = {
 
           break;
         }
+
+        isCMD = true;
 
         msg = newMsg;
       }
