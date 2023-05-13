@@ -1,11 +1,11 @@
 /// <reference types="node" />
+import type { UserAction, UserEvent } from "../types/User";
+import type { ConnectionType } from "../types/Connection";
+import type { ChatAction } from "../types/Chat";
 import EventEmitter from "events";
-import Message from "../messages/Message";
-import User from "../modules/User";
-import Chat from "../modules/Chat";
-import { UserAction, UserEvent } from "../types/User";
-import { ConnectionType } from "../types/Connection";
-import { ChatAction } from "../types/Chat";
+import { IMessage } from "../interfaces/IMessage";
+import { IUser } from "../interfaces/IUser";
+import { IChat } from "../interfaces/IChat";
 export declare type EventsMap = {
     /**
      * * Conexão alterada
@@ -45,9 +45,9 @@ export declare type EventsMap = {
     user: {
         action: UserAction;
         event: UserEvent;
-        chat: Chat;
-        user: User;
-        fromUser: User;
+        chat: IChat;
+        user: IUser;
+        fromUser: IUser;
     };
     /**
      * * Sala de bate-papo alterado
@@ -56,10 +56,10 @@ export declare type EventsMap = {
      */
     chat: {
         action: ChatAction;
-        chat: Chat;
+        chat: IChat;
     };
     /** * Nova mensagem */
-    message: Message;
+    message: IMessage;
     /** * Erro ocorrido */
     error: Error;
 };

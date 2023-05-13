@@ -1,13 +1,6 @@
-import { MiscMessageGenerationOptions } from "baileys";
-import ReactionMessage from "../messages/ReactionMessage";
-import LocationMessage from "../messages/LocationMessage";
-import ContactMessage from "../messages/ContactMessage";
-import StickerMessage from "../messages/StickerMessage";
-import ButtonMessage from "../messages/ButtonMessage";
-import MediaMessage from "../messages/MediaMessage";
-import ListMessage from "../messages/ListMessage";
-import PollMessage from "../messages/PollMessage";
-import Message from "../messages/Message";
+import { MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
+import { IMediaMessage, IMessage } from "../interfaces/IMessage";
+import { StickerMessage, LocationMessage, ContactMessage, ButtonMessage, ListMessage, PollMessage, ReactionMessage } from "../messages/index";
 import WhatsAppBot from "./WhatsAppBot";
 export declare class WhatsAppMessage {
     private _message;
@@ -16,23 +9,23 @@ export declare class WhatsAppMessage {
     message: any;
     options: MiscMessageGenerationOptions;
     isRelay: boolean;
-    constructor(wa: WhatsAppBot, message: Message);
+    constructor(wa: WhatsAppBot, message: IMessage);
     /**
      * * Refatora a mensagem
      * @param message
      */
-    refactory(message?: Message): Promise<void>;
+    refactory(message?: IMessage): Promise<void>;
     /**
      * * Refatora outras informações da mensagem
      * @param message
      * @returns
      */
-    refactoryMessage(message: Message): Promise<any>;
+    refactoryMessage(message: IMessage): Promise<any>;
     /**
      * * Refatora uma mensagem de midia
      * @param message
      */
-    refactoryMediaMessage(message: MediaMessage): Promise<void>;
+    refactoryMediaMessage(message: IMediaMessage): Promise<void>;
     refatoryStickerMessage(message: StickerMessage): Promise<void>;
     refactoryLocationMessage(message: LocationMessage): void;
     refactoryContactMessage(message: ContactMessage): void;

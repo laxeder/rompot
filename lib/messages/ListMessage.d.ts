@@ -1,18 +1,14 @@
-/// <reference types="long" />
+import { MessageType } from "../enums/Message";
+import { IListMessage, List, ListItem } from "../interfaces/IMessage";
+import { IChat } from "../interfaces/IChat";
 import Message from "./Message";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
-import { List, ListItem } from "../types/Message";
-export default class ListMessage extends Message {
-    /** * Botão */
-    button: string;
-    /** * Rodapé */
-    footer: string;
-    /** * Titulo */
-    title: string;
-    /** * Lista */
+export default class ListMessage extends Message implements IListMessage {
+    readonly type = MessageType.List;
     list: List[];
-    constructor(chat: Chat | string, text: string, button: string, footer?: string, title?: string, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
+    button: string;
+    footer: string;
+    title: string;
+    constructor(chat: IChat | string, text: string, button: string, footer?: string, title?: string, others?: Partial<ListMessage>);
     /**
      * * Adiciona uma seção
      * @param title Titulo da lista

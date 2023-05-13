@@ -1,13 +1,13 @@
 /// <reference types="node" />
-/// <reference types="long" />
-import MediaMessage from "./MediaMessage";
-import Message from "./Message";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
-import { Media } from "../types/Message";
-export default class VideoMessage extends MediaMessage {
+import type { Media } from "../types/Message";
+import { MessageType } from "../enums/Message";
+import { IVideoMessage } from "../interfaces/IMessage";
+import { IChat } from "../interfaces/IChat";
+import { MediaMessage } from "./index";
+export default class VideoMessage extends MediaMessage implements IVideoMessage {
+    readonly type = MessageType.Video;
     mimetype: string;
-    constructor(chat: Chat | string, text: string, file: Media | Buffer | string, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
+    constructor(chat: IChat | string, text: string, file: Media | Buffer | string, others?: Partial<VideoMessage>);
     /**
      * @returns Obter vídeo
      */

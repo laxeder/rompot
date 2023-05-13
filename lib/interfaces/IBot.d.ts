@@ -1,14 +1,14 @@
 /// <reference types="node" />
-import IAuth from "./IAuth";
-import Message from "../messages/Message";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
+import type { Chats, ChatStatus } from "../types/Chat";
+import type { BotStatus } from "../types/Bot";
+import type { Media } from "../types/Message";
+import type { Users } from "../types/User";
+import type { IMessage } from "./IMessage";
+import { IAuth } from "./IAuth";
+import { IUser } from "./IUser";
+import { IChat } from "./IChat";
 import { BotEvents } from "../utils/Emmiter";
-import { Chats, ChatStatus } from "../types/Chat";
-import { BotStatus } from "../types/Bot";
-import { Media } from "../types/Message";
-import { Users } from "../types/User";
-export default interface IBot {
+export interface IBot {
     /** ID do bot */
     id: string;
     status: BotStatus;
@@ -33,22 +33,22 @@ export default interface IBot {
      * * Marca uma mensagem como visualizada
      * @param message Mensagem que será visualizada
      */
-    readMessage(message: Message): Promise<void>;
+    readMessage(message: IMessage): Promise<void>;
     /**
      * * Enviar mensagem
      * @param message Mensagem que será enviada
      */
-    send(message: Message): Promise<Message>;
+    send(message: IMessage): Promise<IMessage>;
     /**
      * * Remover mensagem
      * @param message Mensagem que será removida da sala de bate-papo
      */
-    removeMessage(message: Message): Promise<void>;
+    removeMessage(message: IMessage): Promise<void>;
     /**
      * * Deletar mensagem
      * @param message Mensagem que será deletada da sala de bate-papos
      */
-    deleteMessage(message: Message): Promise<void>;
+    deleteMessage(message: IMessage): Promise<void>;
     /**
      * * Retorna a stream da mídia
      * @param message Mídia que será baixada
@@ -86,107 +86,107 @@ export default interface IBot {
      * * Adiciona uma sala de bate-papo
      * @param chat Sala de bate-papo
      */
-    addChat(chat: Chat): Promise<void>;
+    addChat(chat: IChat): Promise<void>;
     /**
      * * Remove uma sala de bate-papo
      * @param chat Sala de bate-papo
      */
-    removeChat(chat: Chat): Promise<void>;
+    removeChat(chat: IChat): Promise<void>;
     /**
      * * Adiciona um novo usuário a uma sala de bate-papo
      * @param chat Sala de bate-papo
      * @param user Usuário
      */
-    addUserInChat(chat: Chat, user: User): Promise<void>;
+    addUserInChat(chat: IChat, user: IUser): Promise<void>;
     /**
      * * Adiciona um novo usuário a uma sala de bate-papo
      * @param chat Sala de bate-papo
      * @param user Usuário
      */
-    removeUserInChat(chat: Chat, user: User): Promise<void>;
+    removeUserInChat(chat: IChat, user: IUser): Promise<void>;
     /**
      * * Promove há administrador um usuário da sala de bate-papo
      * @param chat Sala de bate-papo
      * @param user Usuário
      */
-    promoteUserInChat(chat: Chat, user: User): Promise<void>;
+    promoteUserInChat(chat: IChat, user: IUser): Promise<void>;
     /**
      * * Remove a administração um usuário da sala de bate-papo
      * @param chat Sala de bate-papo
      * @param user Usuário
      */
-    demoteUserInChat(chat: Chat, user: User): Promise<void>;
+    demoteUserInChat(chat: IChat, user: IUser): Promise<void>;
     /**
      * * Altera o status da sala de bate-papo
      * @param chat Sala de bate-papo
      * @param status Status da sala de bate-papo
      */
-    changeChatStatus(chat: Chat, status: ChatStatus): Promise<void>;
+    changeChatStatus(chat: IChat, status: ChatStatus): Promise<void>;
     /**
      * * Cria uma sala de bate-papo
      * @param chat Sala de bate-papo
      */
-    createChat(chat: Chat): Promise<void>;
+    createChat(chat: IChat): Promise<void>;
     /**
      * * Sai de uma sala de bate-papo
      * @param chat Sala de bate-papo
      */
-    leaveChat(chat: Chat): Promise<void>;
+    leaveChat(chat: IChat): Promise<void>;
     /**
      * @param chat Sala de bate-papo
      * @returns Retorna uma sala de bate-papo
      */
-    getChat(chat: Chat): Promise<Chat | null>;
+    getChat(chat: IChat): Promise<IChat | null>;
     /**
      * * Define uma sala de bate-papo
      * @param chat Sala de bate-papo
      */
-    setChat(chat: Chat): Promise<void>;
+    setChat(chat: IChat): Promise<void>;
     /**
      * @param chat Sala de bate-papo
      * @returns Retorna o nome da sala de bate-papo
      */
-    getChatName(chat: Chat): Promise<string>;
+    getChatName(chat: IChat): Promise<string>;
     /**
      * @param chat Sala de bate-papo
      * @param name Nome da sala de bate-papo
      */
-    setChatName(chat: Chat, name: string): Promise<void>;
+    setChatName(chat: IChat, name: string): Promise<void>;
     /**
      * @param chat Sala de bate-papo
      * @returns Retorna a descrição da sala de bate-papo
      */
-    getChatDescription(chat: Chat): Promise<string>;
+    getChatDescription(chat: IChat): Promise<string>;
     /**
      * @param chat Sala de bate-papo
      * @param description Descrição da sala de bate-papo
      */
-    setChatDescription(chat: Chat, description: string): Promise<void>;
+    setChatDescription(chat: IChat, description: string): Promise<void>;
     /**
      * @param chat Sala de bate-papo
      * @returns Retorna a imagem de perfil da sala de bate-papo
      */
-    getChatProfile(chat: Chat): Promise<Buffer>;
+    getChatProfile(chat: IChat): Promise<Buffer>;
     /**
      * @param chat Sala de bate-papo
      * @param profile Imagem de perfil da sala de bate-papo
      */
-    setChatProfile(chat: Chat, profile: Buffer): Promise<void>;
+    setChatProfile(chat: IChat, profile: Buffer): Promise<void>;
     /**
      * @param chat Sala de bate-papo
      * @returns Retorna os usuários de uma sala de bate-papo
      */
-    getChatUsers(chat: Chat): Promise<Users>;
+    getChatUsers(chat: IChat): Promise<Users>;
     /**
      * @param chat Sala de bate-papo
      * @returns Retorna os administradores de uma sala de bate-papo
      */
-    getChatAdmins(chat: Chat): Promise<Users>;
+    getChatAdmins(chat: IChat): Promise<Users>;
     /**
      * @param chat Sala de bate-papo
      * @returns Retorna o lider da sala de bate-papo
      */
-    getChatLeader(chat: Chat): Promise<User>;
+    getChatLeader(chat: IChat): Promise<IUser>;
     /**
      * @returns Retorna as sala de bate-papo que o bot está
      */
@@ -200,62 +200,62 @@ export default interface IBot {
      * * Adiciona um novo usuário
      * @param user Usuário
      */
-    addUser(user: User): Promise<void>;
+    addUser(user: IUser): Promise<void>;
     /**
      * * Remove um usuário
      * @param user Usuário
      */
-    removeUser(user: User): Promise<void>;
+    removeUser(user: IUser): Promise<void>;
     /**
      * @param user Usuário
      * @returns Retorna um usuário
      */
-    getUser(user: User): Promise<User | null>;
+    getUser(user: IUser): Promise<IUser | null>;
     /**
      * * Define um usuário
      * @param user Usuário
      */
-    setUser(user: User): Promise<void>;
+    setUser(user: IUser): Promise<void>;
     /**
      * @param user Usuário
      * @returns Retorna o nome do usuário
      */
-    getUserName(user: User): Promise<string>;
+    getUserName(user: IUser): Promise<string>;
     /**
      * @param user Usuário
      * @param name Nome do usuário
      */
-    setUserName(user: User, name: string): Promise<void>;
+    setUserName(user: IUser, name: string): Promise<void>;
     /**
      * @param user Usuário
      * @returns Retorna a descrição do usuário
      */
-    getUserDescription(user: User): Promise<string>;
+    getUserDescription(user: IUser): Promise<string>;
     /**
      * @param user Usuário
      * @param description Descrição do usuário
      */
-    setUserDescription(user: User, description: string): Promise<void>;
+    setUserDescription(user: IUser, description: string): Promise<void>;
     /**
      * @param user Usuário
      * @returns Retorna a foto de perfil do usuário
      */
-    getUserProfile(user: User): Promise<Buffer>;
+    getUserProfile(user: IUser): Promise<Buffer>;
     /**
      * @param user Usuário
      * @param profile Imagem de perfil do usuário
      */
-    setUserProfile(user: User, profile: Buffer): Promise<void>;
+    setUserProfile(user: IUser, profile: Buffer): Promise<void>;
     /**
      * * Desbloqueia um usuário
      * @param user Usuário
      */
-    unblockUser(user: User): Promise<void>;
+    unblockUser(user: IUser): Promise<void>;
     /**
      * * Bloqueia um usuário
      * @param user Usuário
      */
-    blockUser(user: User): Promise<void>;
+    blockUser(user: IUser): Promise<void>;
     /**
      * @returns Retorna a lista de usuários do bot
      */
@@ -270,10 +270,10 @@ export default interface IBot {
      * @param message Mensagem
      * @param reaction Reação
      */
-    addReaction(message: Message, reaction: string): Promise<void>;
+    addReaction(message: IMessage, reaction: string): Promise<void>;
     /**
      * * Remove a reação da mensagem
      * @param Mensagem que terá sua reação removida
      */
-    removeReaction(message: Message): Promise<void>;
+    removeReaction(message: IMessage): Promise<void>;
 }

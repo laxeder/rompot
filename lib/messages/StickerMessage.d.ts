@@ -1,22 +1,18 @@
 /// <reference types="node" />
-/// <reference types="long" />
+import type { Media } from "../types/Message";
 import { Categories } from "@laxeder/wa-sticker/dist";
-import MediaMessage from "./MediaMessage";
-import Message from "./Message";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
-import { Media } from "../types/Message";
-export default class StickerMessage extends MediaMessage {
-    /** * Criador da figurinha */
-    author: string;
-    /** * Pacote da figurinha */
-    pack: string;
-    /** * Categoria da figurinha */
-    categories: Categories[];
-    /** * ID da figurinha */
-    stickerId: string;
+import { MessageType } from "../enums/Message";
+import { IStickerMessage } from "../interfaces/IMessage";
+import { IChat } from "../interfaces/IChat";
+import { MediaMessage } from "./index";
+export default class StickerMessage extends MediaMessage implements IStickerMessage {
+    readonly type = MessageType.Sticker;
     mimetype: string;
-    constructor(chat: Chat | string, file: Media | Buffer | string, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
+    categories: Categories[];
+    stickerId: string;
+    author: string;
+    pack: string;
+    constructor(chat: IChat | string, file: Media | Buffer | string, others?: Partial<StickerMessage>);
     /**
      * @returns Obter figurinha
      */

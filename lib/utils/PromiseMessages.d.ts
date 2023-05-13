@@ -1,10 +1,10 @@
-import Message from "../messages/Message";
+import { IMessage } from "../interfaces/IMessage";
 export declare type PromiseMessage = {
     [chatId: string]: {
         stopRead: boolean;
         ignoreMessageFromMe: boolean;
-        ignoreMessages: Message[];
-        resolve(message: Message): void;
+        ignoreMessages: IMessage[];
+        resolve(message: IMessage): void;
     }[];
 };
 export default class PromiseMessages {
@@ -18,11 +18,11 @@ export default class PromiseMessages {
      * @param ignoreMessages Não resolve a promessa se a mensagem recebida é a mesma escolhida
      * @returns
      */
-    addPromiseMessage(chatId: string, ignoreMessageFromMe?: boolean, stopRead?: boolean, ...ignoreMessages: Message[]): Promise<Message>;
+    addPromiseMessage(chatId: string, ignoreMessageFromMe?: boolean, stopRead?: boolean, ...ignoreMessages: IMessage[]): Promise<IMessage>;
     /**
      * * Resolve promessas de mensagens que estão esperando ser recebidas
      * @param message
      * @returns Retorna se é para continuar a leitura da mensagem na sala de bate-papo ou não
      */
-    resolvePromiseMessages(message: Message): boolean;
+    resolvePromiseMessages(message: IMessage): boolean;
 }

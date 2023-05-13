@@ -1,18 +1,17 @@
-/// <reference types="long" />
+import type { PollAction, PollOption } from "../types/Message";
+import { MessageType } from "../enums/Message";
+import { IPollMessage } from "../interfaces/IMessage";
+import { IChat } from "../interfaces/IChat";
 import Message from "./Message";
-import User from "../modules/User";
-import Chat from "../modules/Chat";
-import { PollOption } from "../types/Message";
-export default class PollMessage extends Message {
-    /** * Opções da enquete */
-    options: PollOption[];
-    /** * Chave secreta da enquete */
-    secretKey: Uint8Array;
-    /** * Last hash votes */
+export default class PollMessage extends Message implements IPollMessage {
+    readonly type: MessageType.Poll | MessageType.PollUpdate;
     votes: {
         [user: string]: string[];
     };
-    constructor(chat: Chat | string, text: string, options?: PollOption[], mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
+    secretKey: Uint8Array;
+    options: PollOption[];
+    action: PollAction;
+    constructor(chat: IChat | string, text: string, options?: PollOption[], others?: Partial<PollMessage>);
     /**
      * * Adiciona uma opção a enquete
      * @param name Nome da opção

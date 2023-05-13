@@ -1,6 +1,6 @@
-import Chat from "../modules/Chat";
+import { IChat } from "../interfaces/IChat";
 export declare type Chats = {
-    [id: string]: Chat;
+    [id: string]: IChat;
 };
 export declare type ChatType = "community" | "chanel" | "group" | "chat" | "pv";
 export declare type ChatStatus = "recording" | "reading" | "offline" | "typing" | "online";

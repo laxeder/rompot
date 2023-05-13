@@ -1,19 +1,16 @@
 /// <reference types="node" />
-/// <reference types="long" />
+import type { Media } from "../types/Message";
+import { MessageType } from "../enums/Message";
+import { IMediaMessage } from "../interfaces/IMessage";
+import { IChat } from "../interfaces/IChat";
 import Message from "./Message";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
-import { Media } from "../types/Message";
-export default class MediaMessage extends Message {
-    /** * Arquivo da mensagem */
-    file: Media | Buffer | string;
-    /** * O arquivo é um GIF */
-    isGIF: boolean;
-    /** * MimeType */
+export default class MediaMessage extends Message implements IMediaMessage {
+    readonly type: MessageType;
     mimetype: string;
-    /** * Nome do arquivo */
+    file: Media | Buffer | string;
+    isGIF: boolean;
     name: string;
-    constructor(chat: Chat | string, text: string, file: Media | Buffer | string, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
+    constructor(chat: IChat | string, text: string, file: Media | Buffer | string, others?: Partial<MediaMessage>);
     /**
      * @returns Obter arquivo
      */

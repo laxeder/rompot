@@ -1,20 +1,20 @@
 /// <reference types="node" />
-import { DisconnectReason, proto, MediaDownloadOptions, WASocket, SocketConfig } from "baileys";
+import type { ConnectionStatus } from "../types/Connection";
+import type { UserAction } from "../types/User";
+import type { ChatStatus } from "../types/Chat";
+import type { Media } from "../types/Message";
+import { DisconnectReason, proto, MediaDownloadOptions, WASocket, SocketConfig } from "@whiskeysockets/baileys";
 import ConfigWAEvents from "./ConfigWAEvents";
 import { WAChats, WAUsers } from "./WATypes";
 import { WAChat, WAUser } from "./WAModules";
-import IAuth from "../interfaces/IAuth";
-import IBot from "../interfaces/IBot";
+import { IMessage } from "../interfaces/IMessage";
+import { IChat } from "../interfaces/IChat";
+import { IUser } from "../interfaces/IUser";
+import { IAuth } from "../interfaces/IAuth";
+import { IBot } from "../interfaces/IBot";
 import PollMessage from "../messages/PollMessage";
-import Message from "../messages/Message";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
 import { BotEvents } from "../utils/Emmiter";
 import WaitCallBack from "../utils/WaitCallBack";
-import { ConnectionStatus } from "../types/Connection";
-import { UserAction } from "../types/User";
-import { ChatStatus } from "../types/Chat";
-import { Media } from "../types/Message";
 export default class WhatsAppBot implements IBot {
     sock: WASocket;
     DisconnectReason: typeof DisconnectReason;
@@ -32,7 +32,7 @@ export default class WhatsAppBot implements IBot {
         [id: string]: PollMessage;
     };
     sendedMessages: {
-        [id: string]: Message;
+        [id: string]: IMessage;
     };
     constructor(config?: Partial<SocketConfig>);
     connect(auth?: string | IAuth): Promise<void>;
@@ -103,42 +103,42 @@ export default class WhatsAppBot implements IBot {
      * @param fromId Usuário que realizou a ação
      */
     groupParticipantsUpdate(action: UserAction, chatId: string, userId: string, fromId: string): Promise<void>;
-    getChatName(chat: Chat): Promise<string>;
-    setChatName(chat: Chat, name: string): Promise<void>;
-    getChatDescription(chat: Chat): Promise<string>;
-    setChatDescription(chat: Chat, description: string): Promise<any>;
-    getChatProfile(chat: Chat): Promise<Buffer>;
-    setChatProfile(chat: Chat, image: Buffer): Promise<void>;
-    addChat(chat: Chat): Promise<void>;
-    removeChat(chat: Chat): Promise<void>;
-    getChat(chat: Chat): Promise<WAChat | null>;
-    setChat(chat: Chat): Promise<void>;
+    getChatName(chat: IChat): Promise<string>;
+    setChatName(chat: IChat, name: string): Promise<void>;
+    getChatDescription(chat: IChat): Promise<string>;
+    setChatDescription(chat: IChat, description: string): Promise<any>;
+    getChatProfile(chat: IChat): Promise<Buffer>;
+    setChatProfile(chat: IChat, image: Buffer): Promise<void>;
+    addChat(chat: IChat): Promise<void>;
+    removeChat(chat: IChat): Promise<void>;
+    getChat(chat: IChat): Promise<WAChat | null>;
+    setChat(chat: IChat): Promise<void>;
     getChats(): Promise<WAChats>;
     setChats(chats: WAChats): Promise<void>;
-    getChatUsers(chat: Chat): Promise<WAUsers>;
-    getChatAdmins(chat: Chat): Promise<WAUsers>;
-    getChatLeader(chat: Chat): Promise<WAUser>;
-    addUserInChat(chat: Chat, user: User): Promise<void>;
-    removeUserInChat(chat: Chat, user: User): Promise<void>;
-    promoteUserInChat(chat: Chat, user: User): Promise<void>;
-    demoteUserInChat(chat: Chat, user: User): Promise<void>;
-    changeChatStatus(chat: Chat, status: ChatStatus): Promise<void>;
-    createChat(chat: Chat): Promise<void>;
-    leaveChat(chat: Chat): Promise<any>;
-    getUserName(user: User): Promise<string>;
-    setUserName(user: User, name: string): Promise<void>;
-    getUserDescription(user: User): Promise<string>;
-    setUserDescription(user: User, description: string): Promise<any>;
-    getUserProfile(user: User, lowQuality?: boolean): Promise<Buffer>;
-    setUserProfile(user: User, image: Buffer): Promise<void>;
-    getUser(user: User): Promise<WAUser | null>;
-    setUser(user: User): Promise<void>;
+    getChatUsers(chat: IChat): Promise<WAUsers>;
+    getChatAdmins(chat: IChat): Promise<WAUsers>;
+    getChatLeader(chat: IChat): Promise<WAUser>;
+    addUserInChat(chat: IChat, user: IUser): Promise<void>;
+    removeUserInChat(chat: IChat, user: IUser): Promise<void>;
+    promoteUserInChat(chat: IChat, user: IUser): Promise<void>;
+    demoteUserInChat(chat: IChat, user: IUser): Promise<void>;
+    changeChatStatus(chat: IChat, status: ChatStatus): Promise<void>;
+    createChat(chat: IChat): Promise<void>;
+    leaveChat(chat: IChat): Promise<any>;
+    getUserName(user: IUser): Promise<string>;
+    setUserName(user: IUser, name: string): Promise<void>;
+    getUserDescription(user: IUser): Promise<string>;
+    setUserDescription(user: IUser, description: string): Promise<any>;
+    getUserProfile(user: IUser, lowQuality?: boolean): Promise<Buffer>;
+    setUserProfile(user: IUser, image: Buffer): Promise<void>;
+    getUser(user: IUser): Promise<WAUser | null>;
+    setUser(user: IUser): Promise<void>;
     getUsers(): Promise<WAUsers>;
     setUsers(users: WAUsers): Promise<void>;
-    addUser(user: User): Promise<void>;
-    removeUser(user: User): Promise<void>;
-    blockUser(user: User): Promise<void>;
-    unblockUser(user: User): Promise<void>;
+    addUser(user: IUser): Promise<void>;
+    removeUser(user: IUser): Promise<void>;
+    blockUser(user: IUser): Promise<void>;
+    unblockUser(user: IUser): Promise<void>;
     getBotName(): Promise<string>;
     setBotName(name: string): Promise<void>;
     getBotDescription(): Promise<string>;
@@ -149,18 +149,18 @@ export default class WhatsAppBot implements IBot {
      * * Adiciona uma mensagem na lista de mensagens enviadas
      * @param message Mensagem que será adicionada
      */
-    addSendedMessage(message: any | Message): Promise<void>;
+    addSendedMessage(message: IMessage): Promise<void>;
     /**
      * * Remove uma mensagem da lista de mensagens enviadas
      * @param message Mensagem que será removida
      */
-    removeMessageIgnore(message: Message): Promise<void>;
-    readMessage(message: Message): Promise<void>;
-    removeMessage(message: Message): Promise<void>;
-    deleteMessage(message: Message): Promise<void>;
-    addReaction(message: Message, reaction: string): Promise<void>;
-    removeReaction(message: Message): Promise<void>;
-    send(content: Message): Promise<Message>;
+    removeMessageIgnore(message: IMessage): Promise<void>;
+    readMessage(message: IMessage): Promise<void>;
+    removeMessage(message: IMessage): Promise<void>;
+    deleteMessage(message: IMessage): Promise<void>;
+    addReaction(message: IMessage, reaction: string): Promise<void>;
+    removeReaction(message: IMessage): Promise<void>;
+    send(content: IMessage): Promise<IMessage>;
     downloadStreamMessage(media: Media): Promise<Buffer>;
     /**
      * * Faz o download de arquivos do WhatsApp

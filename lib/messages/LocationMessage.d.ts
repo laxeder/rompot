@@ -1,13 +1,12 @@
-/// <reference types="long" />
+import { MessageType } from "../enums/Message";
+import { IChat } from "../interfaces/IChat";
+import { ILocationMessage } from "../interfaces/IMessage";
 import Message from "./Message";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
-export default class LocationMessage extends Message {
-    /** * Latitude */
+export default class LocationMessage extends Message implements ILocationMessage {
+    readonly type = MessageType.Location;
     latitude: number;
-    /** * Longitude */
     longitude: number;
-    constructor(chat: Chat | string, latitude: number, longitude: number, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
+    constructor(chat: IChat | string, latitude: number, longitude: number, others?: Partial<LocationMessage>);
     /**
      * * Definir localização
      * @param latitude Latitude

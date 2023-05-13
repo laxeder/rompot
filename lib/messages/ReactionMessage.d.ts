@@ -1,7 +1,8 @@
-/// <reference types="long" />
-import Message from "./Message";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
-export default class ReactionMessage extends Message {
-    constructor(chat: Chat | string, reaction: string, receive: Message | string, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
+import { MessageType } from "../enums/Message";
+import { IMessage, IReactionMessage } from "../interfaces/IMessage";
+import { IChat } from "../interfaces/IChat";
+import { Message } from "./index";
+export default class ReactionMessage extends Message implements IReactionMessage {
+    readonly type = MessageType.Reaction;
+    constructor(chat: IChat | string, reaction: string, receive: IMessage | string, others?: Partial<ReactionMessage>);
 }

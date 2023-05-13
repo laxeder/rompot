@@ -1,5 +1,5 @@
-import { MessageUpsertType, proto, WAMessage, WAMessageContent } from "baileys";
-import Message from "../messages/Message";
+import { MessageUpsertType, proto, WAMessage, WAMessageContent } from "@whiskeysockets/baileys";
+import { IMessage } from "../interfaces/IMessage";
 import WhatsAppBot from "./WhatsAppBot";
 export declare class WhatsAppConvertMessage {
     private _type?;
@@ -19,7 +19,7 @@ export declare class WhatsAppConvertMessage {
     /**
      * * Retorna a mensagem convertida
      */
-    get(): Promise<Message>;
+    get(): Promise<IMessage>;
     /**
      * * Converte a mensagem
      * @param message

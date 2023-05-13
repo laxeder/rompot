@@ -1,6 +1,6 @@
-import ICommand from "../interfaces/ICommand";
-import Message from "../messages/Message";
-import { ClientType } from "../types/Client";
+import { ICommand } from "../interfaces/ICommand";
+import { IMessage } from "../interfaces/IMessage";
+import { IClient } from "../interfaces/IClient";
 export default class Command implements ICommand {
     #private;
     id: string;
@@ -11,9 +11,9 @@ export default class Command implements ICommand {
     description: string;
     categories: string[];
     permissions: string[];
-    get client(): ClientType;
-    set client(c: ClientType);
-    execute(message: Message): Promise<any>;
-    response(message: Message): Promise<any>;
-    help(message: Message): Promise<any>;
+    get client(): IClient;
+    set client(client: IClient);
+    execute(message: IMessage): Promise<any>;
+    response(message: IMessage): Promise<any>;
+    help(message: IMessage): Promise<any>;
 }

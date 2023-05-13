@@ -1,9 +1,10 @@
-/// <reference types="long" />
+import { MessageType } from "../enums/Message";
+import { IChat } from "../interfaces/IChat";
+import { IContactMessage } from "../interfaces/IMessage";
+import { IUser } from "../interfaces/IUser";
 import Message from "./Message";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
-export default class ContactMessage extends Message {
-    /** * Contatos */
-    contacts: User[];
-    constructor(chat: Chat | string, text: string, contacts: Array<User | string>, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
+export default class ContactMessage extends Message implements IContactMessage {
+    readonly type = MessageType.Contact;
+    contacts: IUser[];
+    constructor(chat: IChat | string, text: string, contacts: Array<IUser | string>, others?: Partial<ContactMessage>);
 }

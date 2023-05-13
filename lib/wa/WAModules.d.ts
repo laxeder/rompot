@@ -1,10 +1,9 @@
 /// <reference types="node" />
-/// <reference types="long" />
+import type { ChatType } from "../types/Chat";
 import type { WAUsers } from "./WATypes";
 import Message from "../messages/Message";
 import Chat from "../modules/Chat";
 import User from "../modules/User";
-import { ChatType } from "../types/Chat";
 export declare class WAUser extends User {
     /** * Nome */
     name: string;
@@ -36,5 +35,5 @@ export declare class WAMessage extends Message {
     user: WAUser;
     /** * Mensagem mencionada na mensagem */
     mention?: WAMessage | undefined;
-    constructor(chat: WAChat | string, text: string, mention?: WAMessage, id?: string, user?: WAUser | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
+    constructor(chat: WAChat | string, text: string, others: Partial<WAMessage>);
 }

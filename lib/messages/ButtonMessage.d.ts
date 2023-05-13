@@ -1,16 +1,13 @@
-/// <reference types="long" />
+import type { Button } from "../types/Message";
+import { MessageType } from "../enums/Message";
+import { IButtonMessage } from "../interfaces/IMessage";
+import { IChat } from "../interfaces/IChat";
 import Message from "./Message";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
-import { Button } from "../types/Message";
-export default class ButtonMessage extends Message {
-    /** * Rodapé */
+export default class ButtonMessage extends Message implements IButtonMessage {
+    type: MessageType.Button | MessageType.TemplateButton;
     footer: string;
-    /** * Botões */
     buttons: Button[];
-    /** * Tipo do botões */
-    type: "template" | "plain";
-    constructor(chat: Chat | string, text: string, footer?: string, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long);
+    constructor(chat: IChat | string, text: string, footer?: string, others?: Partial<ButtonMessage>);
     /**
      * * Adiciona um botão com uma url
      * @param text Texto da botão
