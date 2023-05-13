@@ -38,10 +38,10 @@ export default class Message {
   set client(client: ClientType) {
     this.#client = client;
 
-    this.chat.client = this.client;
-    this.user.client = this.client;
+    this.chat.client = client;
+    this.user.client = client;
 
-    if (this.mention) this.mention.client = this.client;
+    if (this.mention) this.mention.client = client;
   }
 
   constructor(chat: Chat | string, text: string, mention?: Message, id?: string, user?: User | string, fromMe?: boolean, selected?: string, mentions?: string[], timestamp?: Number | Long) {
