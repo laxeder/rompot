@@ -275,15 +275,15 @@ export default class WhatsAppBot implements IBot {
     const event: UserEvent = action == "join" ? "add" : action == "leave" ? "remove" : action;
 
     if (event == "remove" && replaceID(userId) == this.id) {
-      //? Obtem possíveis dados inexistentes
-      var chat = await this.getChat(new WAChat(replaceID(chatId)));
-      var user = await this.getUser(new WAUser(replaceID(userId)));
-      var fromUser = await this.getUser(new WAUser(replaceID(fromId)));
-    } else {
       //? Obtem dados já existentes
       var chat = this.chats[replaceID(chatId)] || new WAChat(replaceID(chatId), chatId.includes("@g") ? "group" : "pv");
       var fromUser = this.chats[replaceID(chatId)]?.users[replaceID(fromId)] || new WAUser(replaceID(fromId));
       var user = this.chats[replaceID(chatId)]?.users[replaceID(userId)] || new WAUser(replaceID(userId));
+    } else {
+      //? Obtem possíveis dados inexistentes
+      var chat = await this.getChat(new WAChat(replaceID(chatId)));
+      var user = await this.getUser(new WAUser(replaceID(userId)));
+      var fromUser = await this.getUser(new WAUser(replaceID(fromId)));
     }
 
     if (!this.chats.hasOwnProperty(chat.id)) this.chats[chat.id] = chat;
