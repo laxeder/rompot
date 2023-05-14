@@ -3,7 +3,7 @@ import WaitCallBack from "./WaitCallBack";
 
 export * from "./Generic";
 export * from "./Emmiter";
-export * from "./Message";
+export * from "./Verify";
 
 export { PromiseMessage, PromiseMessages };
 export { WaitCallBack };
