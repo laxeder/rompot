@@ -3,9 +3,7 @@ import Sticker, { StickerTypes } from "@laxeder/wa-sticker/dist";
 
 import { MessageType } from "@enums/Message";
 
-import { IMediaMessage, IMessage, List, ListItem } from "@interfaces/IMessage";
-
-import { StickerMessage, LocationMessage, ContactMessage, ButtonMessage, ListMessage, PollMessage, ReactionMessage } from "@messages/index";
+import { IButtonMessage, IContactMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IPollMessage, IReactionMessage, IStickerMessage, List, ListItem } from "@interfaces/IMessage";
 
 import WhatsAppBot from "@wa/WhatsAppBot";
 import { WAUser } from "@wa/WAModules";
@@ -23,7 +21,7 @@ import {
   isReactionMessage,
   isStickerMessage,
   isVideoMessage,
-} from "@utils/Message";
+} from "@utils/Verify";
 
 export class WhatsAppMessage {
   private _message: IMessage;
@@ -154,7 +152,7 @@ export class WhatsAppMessage {
     delete this.message.text;
   }
 
-  public async refatoryStickerMessage(message: StickerMessage) {
+  public async refatoryStickerMessage(message: IStickerMessage) {
     const stickerFile = await message.getSticker();
 
     this.message = { ...this.message, sticker: stickerFile };
@@ -175,13 +173,13 @@ export class WhatsAppMessage {
     }
   }
 
-  public refactoryLocationMessage(message: LocationMessage) {
+  public refactoryLocationMessage(message: ILocationMessage) {
     this.message.location = { degreesLatitude: message.latitude, degreesLongitude: message.longitude };
 
     delete this.message.text;
   }
 
-  public refactoryContactMessage(message: ContactMessage) {
+  public refactoryContactMessage(message: IContactMessage) {
     this.message.contacts = {
       displayName: message.text,
       contacts: [],
@@ -209,7 +207,7 @@ export class WhatsAppMessage {
    * * Refatora uma mensagem de reação
    * @param message
    */
-  public refactoryReactionMessage(message: ReactionMessage) {
+  public refactoryReactionMessage(message: IReactionMessage) {
     this.message = {
       react: {
         key: {
@@ -228,7 +226,7 @@ export class WhatsAppMessage {
    * * Refatora uma mensagem de enquete
    * @param message
    */
-  public refactoryPollMessage(message: PollMessage) {
+  public refactoryPollMessage(message: IPollMessage) {
     this.message = {
       poll: {
         name: message.text,
@@ -241,7 +239,7 @@ export class WhatsAppMessage {
    * * Refatora uma mensagem de botão
    * @param message
    */
-  public refactoryButtonMessage(message: ButtonMessage) {
+  public refactoryButtonMessage(message: IButtonMessage) {
     this.message.text = message.text;
     this.message.footer = message.footer;
     this.message.viewOnce = true;
@@ -263,7 +261,7 @@ export class WhatsAppMessage {
    * * Refatora uma mensagem de lista
    * @param message
    */
-  public refactoryListMessage(message: ListMessage) {
+  public refactoryListMessage(message: IListMessage) {
     this.message.buttonText = message.button;
     this.message.description = message.text;
     this.message.footer = message.footer;

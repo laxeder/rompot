@@ -72,7 +72,7 @@ export default class User implements IUser {
    * @param user Usuário que será obtido
    * @returns Retorna o usuário
    */
-  public static get<USER extends IUser>(user: USER | string): USER | User {
+  public static get<USER extends IUser>(user: USER | string): USER | IUser {
     if (typeof user == "string") {
       return new User(user);
     }
@@ -102,7 +102,7 @@ export default class User implements IUser {
    * @param user Usuário
    * @returns
    */
-  public static Client<USER extends IUser>(client: IClient, user: USER | string): USER | User {
+  public static Client<USER extends IUser>(client: IClient, user: USER | string): USER | IUser {
     if (typeof user == "string") return this.Client(client, new User(user));
 
     user.client = client;

@@ -16,7 +16,7 @@ import { WAChat, WAUser } from "@wa/WAModules";
 import { getID, replaceID } from "@wa/ID";
 import { WAStatus } from "@wa/WAStatus";
 
-import { IMessage } from "@interfaces/IMessage";
+import { IMessage, IPollMessage } from "@interfaces/IMessage";
 import { IChat } from "@interfaces/IChat";
 import { IUser } from "@interfaces/IUser";
 import { IAuth } from "@interfaces/IAuth";
@@ -29,7 +29,7 @@ import Message from "@messages/Message";
 import { getImageURL, injectJSON } from "@utils/Generic";
 import { BotEvents } from "@utils/Emmiter";
 
-import { isPollMessage } from "@utils/Message";
+import { isPollMessage } from "@utils/Verify";
 import WaitCallBack from "@utils/WaitCallBack";
 
 export default class WhatsAppBot implements IBot {
@@ -47,7 +47,7 @@ export default class WhatsAppBot implements IBot {
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
 
   public chats: WAChats = {};
-  public polls: { [id: string]: PollMessage } = {};
+  public polls: { [id: string]: IPollMessage } = {};
   public sendedMessages: { [id: string]: IMessage } = {};
 
   constructor(config?: Partial<SocketConfig>) {

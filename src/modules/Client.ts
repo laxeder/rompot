@@ -1,5 +1,5 @@
-import type { Chats, ChatStatus } from "../types/Chat";
-import type { Users } from "../types/User";
+import type { IChats, ChatStatus } from "../types/Chat";
+import type { IUsers } from "../types/User";
 
 import { readFileSync } from "fs";
 
@@ -298,7 +298,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return ApplyClient(await this.promiseMessages.addPromiseMessage(Chat.getId(chat), ignoreMessageFromMe, stopRead, ...ignoreMessages), this);
   }
 
-  async addAutomate(message: IMessage, timeout: number, chats?: Chats, id: string = String(Date.now())): Promise<any> {
+  async addAutomate(message: IMessage, timeout: number, chats?: IChats, id: string = String(Date.now())): Promise<any> {
     try {
       const now = Date.now();
 
@@ -312,7 +312,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
       if (this.autoMessages[id].updatedAt !== now) return;
 
       await Promise.all(
-        this.autoMessages[id].chats.map(async (chat: Chat) => {
+        this.autoMessages[id].chats.map(async (chat: IChat) => {
           const automated: any = this.autoMessages[id];
 
           if (automated.updatedAt !== now) return;
@@ -387,12 +387,12 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return Chat.Client(this, Chat.get(chat));
   }
 
-  public setChat(chat: Chat): Promise<void> {
+  public setChat(chat: IChat): Promise<void> {
     return this.bot.setChat(Chat.Client(this, chat));
   }
 
-  public async getChats(): Promise<Chats> {
-    const modules: Chats = {};
+  public async getChats(): Promise<IChats> {
+    const modules: IChats = {};
 
     const chats = await this.bot.getChats();
 
@@ -403,7 +403,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return modules;
   }
 
-  public setChats(chats: Chats): Promise<void> {
+  public setChats(chats: IChats): Promise<void> {
     return this.bot.setChats(chats);
   }
 
@@ -459,7 +459,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return this.bot.demoteUserInChat(Chat.get(chat), User.get(user));
   }
 
-  public createChat(chat: Chat) {
+  public createChat(chat: IChat) {
     return this.bot.createChat(Chat.get(chat));
   }
 
@@ -470,7 +470,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
   public async getChatUsers(chat: IChat | string) {
     const users = await this.bot.getChatUsers(Chat.get(chat));
 
-    const usersModules: Users = {};
+    const usersModules: IUsers = {};
 
     Object.keys(users).forEach((id) => {
       usersModules[id] = User.Client(this, users[id]);
@@ -482,7 +482,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
   public async getChatAdmins(chat: IChat | string) {
     const admins = await this.bot.getChatAdmins(Chat.get(chat));
 
-    const adminModules: Users = {};
+    const adminModules: IUsers = {};
 
     Object.keys(admins).forEach((id) => {
       adminModules[id] = User.Client(this, admins[id]);
@@ -511,8 +511,8 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return this.bot.setUser(User.Client(this, User.get(user)));
   }
 
-  public async getUsers(): Promise<Users> {
-    const modules: Users = {};
+  public async getUsers(): Promise<IUsers> {
+    const modules: IUsers = {};
 
     const users = await this.bot.getUsers();
 
@@ -523,7 +523,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return modules;
   }
 
-  public setUsers(users: Users) {
+  public setUsers(users: IUsers) {
     return this.bot.setUsers(users);
   }
 

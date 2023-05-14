@@ -1,7 +1,5 @@
 import { IBot } from "@interfaces/IBot";
 import Client from "@modules/Client";
 
-/** @deprecated use *RompotClient* */
+/** @deprecated use *IClient* */
 export type ClientType = Client<IBot>;
-
-export declare type RompotClient = Client<IBot>;

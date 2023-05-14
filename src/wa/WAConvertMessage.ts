@@ -1,6 +1,10 @@
+import type { Media, PollOption } from "../types/Message";
+
 import { decryptPollVote, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@whiskeysockets/baileys";
 import { extractMetadata } from "@laxeder/wa-sticker/dist";
 import digestSync from "crypto-digest-sync";
+
+import { MessageType } from "@enums/Message";
 
 import { IMessage } from "@interfaces/IMessage";
 
@@ -29,9 +33,7 @@ import { WAChat, WAUser } from "@wa/WAModules";
 import WhatsAppBot from "@wa/WhatsAppBot";
 import { getID, replaceID } from "@wa/ID";
 
-import { Media, PollOption } from "../types/Message";
-import { MessageType } from "@enums/Message";
-import { isStickerMessage } from "@utils/Message";
+import { isStickerMessage } from "@utils/Verify";
 
 export class WhatsAppConvertMessage {
   private _type?: MessageUpsertType;

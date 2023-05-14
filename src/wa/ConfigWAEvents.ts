@@ -3,7 +3,7 @@ import { Boom } from "@hapi/boom";
 
 import Chat from "@modules/Chat";
 
-import { isEmptyMessage } from "@utils/Message";
+import { isEmptyMessage } from "@utils/Verify";
 
 import { WhatsAppConvertMessage } from "./WAConvertMessage";
 import WhatsAppBot from "./WhatsAppBot";

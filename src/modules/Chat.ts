@@ -1,5 +1,5 @@
 import type { ChatStatus, ChatType } from "../types/Chat";
-import type { Users } from "../types/User";
+import type { IUsers } from "../types/User";
 
 import { IMessage } from "@interfaces/IMessage";
 import { IClient } from "@interfaces/IClient";
@@ -68,11 +68,11 @@ export default class Chat implements IChat {
     return leader.id == User.getId(user);
   }
 
-  public async getAdmins(): Promise<Users> {
+  public async getAdmins(): Promise<IUsers> {
     return this.client.getChatAdmins(this);
   }
 
-  public async getUsers(): Promise<Users> {
+  public async getUsers(): Promise<IUsers> {
     return await this.client.getChatUsers(this);
   }
 
@@ -113,7 +113,7 @@ export default class Chat implements IChat {
    * @param chat Sala de bate-papo que será obtida
    * @returns Retorna a sala de bate-papo
    */
-  public static get<CHAT extends IChat>(chat: CHAT | string): CHAT | Chat {
+  public static get<CHAT extends IChat>(chat: CHAT | string): CHAT | IChat {
     if (typeof chat == "string") {
       return new Chat(chat);
     }
@@ -142,7 +142,7 @@ export default class Chat implements IChat {
    * @param client Cliente
    * @param chat Sala de bate-papo
    */
-  public static Client<CHAT extends IChat>(client: IClient, chat: CHAT | string): CHAT | Chat {
+  public static Client<CHAT extends IChat>(client: IClient, chat: CHAT | string): CHAT | IChat {
     if (typeof chat == "string") return this.Client(client, new Chat(chat));
 
     chat.client = client;

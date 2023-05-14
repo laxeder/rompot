@@ -25,19 +25,10 @@ export default class PollMessage extends Message implements IPollMessage {
     injectJSON(others, this);
   }
 
-  /**
-   * * Adiciona uma opção a enquete
-   * @param name Nome da opção
-   * @param id ID da opção
-   */
   public addOption(name: string, id: string = `${Date.now()}`) {
     this.options.push({ name, id });
   }
 
-  /**
-   * * Remove uma opção
-   * @param option Opção que será removida
-   */
   public removeOption(option: PollOption) {
     const options: PollOption[] = [];
 
@@ -50,16 +41,10 @@ export default class PollMessage extends Message implements IPollMessage {
     this.options = options;
   }
 
-  /**
-   * * Obtem os votos de um usuário
-   */
   public getUserVotes(user: string) {
     return this.votes[user] || [];
   }
 
-  /**
-   * * Salva os votos de um usuário
-   */
   public setUserVotes(user: string, hashVotes: string[]) {
     this.votes[user] = hashVotes;
   }
