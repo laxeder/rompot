@@ -1,6 +1,5 @@
 import { MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
-import { IMediaMessage, IMessage } from "../interfaces/IMessage";
-import { StickerMessage, LocationMessage, ContactMessage, ButtonMessage, ListMessage, PollMessage, ReactionMessage } from "../messages/index";
+import { IButtonMessage, IContactMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IPollMessage, IReactionMessage, IStickerMessage } from "../interfaces/IMessage";
 import WhatsAppBot from "./WhatsAppBot";
 export declare class WhatsAppMessage {
     private _message;
@@ -26,27 +25,27 @@ export declare class WhatsAppMessage {
      * @param message
      */
     refactoryMediaMessage(message: IMediaMessage): Promise<void>;
-    refatoryStickerMessage(message: StickerMessage): Promise<void>;
-    refactoryLocationMessage(message: LocationMessage): void;
-    refactoryContactMessage(message: ContactMessage): void;
+    refatoryStickerMessage(message: IStickerMessage): Promise<void>;
+    refactoryLocationMessage(message: ILocationMessage): void;
+    refactoryContactMessage(message: IContactMessage): void;
     /**
      * * Refatora uma mensagem de reação
      * @param message
      */
-    refactoryReactionMessage(message: ReactionMessage): void;
+    refactoryReactionMessage(message: IReactionMessage): void;
     /**
      * * Refatora uma mensagem de enquete
      * @param message
      */
-    refactoryPollMessage(message: PollMessage): void;
+    refactoryPollMessage(message: IPollMessage): void;
     /**
      * * Refatora uma mensagem de botão
      * @param message
      */
-    refactoryButtonMessage(message: ButtonMessage): void;
+    refactoryButtonMessage(message: IButtonMessage): void;
     /**
      * * Refatora uma mensagem de lista
      * @param message
      */
-    refactoryListMessage(message: ListMessage): void;
+    refactoryListMessage(message: IListMessage): void;
 }

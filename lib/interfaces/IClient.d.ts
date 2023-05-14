@@ -1,6 +1,6 @@
 /// <reference types="node" />
-import type { Chats, ChatStatus } from "../types/Chat";
-import type { Users } from "../types/User";
+import type { IChats, ChatStatus } from "../types/Chat";
+import type { IUsers } from "../types/User";
 import { IMediaMessage, IMessage } from "./IMessage";
 import { ICommand } from "./ICommand";
 import { IAuth } from "./IAuth";
@@ -239,12 +239,12 @@ export interface IClient extends ClientEvents {
      * @param chat Sala de bate-papo
      * @returns Retorna os usuários de uma sala de bate-papo
      */
-    getChatUsers(chat: IChat | string): Promise<Users>;
+    getChatUsers(chat: IChat | string): Promise<IUsers>;
     /**
      * @param chat Sala de bate-papo
      * @returns Retorna os administradores de uma sala de bate-papo
      */
-    getChatAdmins(chat: IChat | string): Promise<Users>;
+    getChatAdmins(chat: IChat | string): Promise<IUsers>;
     /**
      * @param chat Sala de bate-papo
      * @returns Retorna o lider da sala de bate-papo
@@ -253,12 +253,12 @@ export interface IClient extends ClientEvents {
     /**
      * @returns Retorna as sala de bate-papo que o bot está
      */
-    getChats(): Promise<Chats>;
+    getChats(): Promise<IChats>;
     /**
      * * Define as salas de bate-papo que o bot está
      * @param chats Salas de bate-papo
      */
-    setChats(chats: Chats): Promise<void>;
+    setChats(chats: IChats): Promise<void>;
     /**
      * * Adiciona um novo usuário
      * @param user Usuário
@@ -322,10 +322,10 @@ export interface IClient extends ClientEvents {
     /**
      * @returns Retorna a lista de usuários do bot
      */
-    getUsers(): Promise<Users>;
+    getUsers(): Promise<IUsers>;
     /**
      * * Define a lista de usuários do bot
      * @param users Usuários
      */
-    setUsers(users: Users): Promise<void>;
+    setUsers(users: IUsers): Promise<void>;
 }

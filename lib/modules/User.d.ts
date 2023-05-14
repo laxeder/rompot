@@ -23,7 +23,7 @@ export default class User implements IUser {
      * @param user Usuário que será obtido
      * @returns Retorna o usuário
      */
-    static get<USER extends IUser>(user: USER | string): USER | User;
+    static get<USER extends IUser>(user: USER | string): USER | IUser;
     /**
      * @param user Usuário
      * @returns Retorna o ID do usuário
@@ -35,5 +35,5 @@ export default class User implements IUser {
      * @param user Usuário
      * @returns
      */
-    static Client<USER extends IUser>(client: IClient, user: USER | string): USER | User;
+    static Client<USER extends IUser>(client: IClient, user: USER | string): USER | IUser;
 }

@@ -1,5 +1,5 @@
 import { IChat } from "../interfaces/IChat";
-export declare type Chats = {
+export declare type IChats = {
     [id: string]: IChat;
 };
 export declare type ChatType = "community" | "chanel" | "group" | "chat" | "pv";

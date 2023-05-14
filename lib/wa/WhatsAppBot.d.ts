@@ -7,12 +7,11 @@ import { DisconnectReason, proto, MediaDownloadOptions, WASocket, SocketConfig }
 import ConfigWAEvents from "./ConfigWAEvents";
 import { WAChats, WAUsers } from "./WATypes";
 import { WAChat, WAUser } from "./WAModules";
-import { IMessage } from "../interfaces/IMessage";
+import { IMessage, IPollMessage } from "../interfaces/IMessage";
 import { IChat } from "../interfaces/IChat";
 import { IUser } from "../interfaces/IUser";
 import { IAuth } from "../interfaces/IAuth";
 import { IBot } from "../interfaces/IBot";
-import PollMessage from "../messages/PollMessage";
 import { BotEvents } from "../utils/Emmiter";
 import WaitCallBack from "../utils/WaitCallBack";
 export default class WhatsAppBot implements IBot {
@@ -29,7 +28,7 @@ export default class WhatsAppBot implements IBot {
     configEvents: ConfigWAEvents;
     chats: WAChats;
     polls: {
-        [id: string]: PollMessage;
+        [id: string]: IPollMessage;
     };
     sendedMessages: {
         [id: string]: IMessage;

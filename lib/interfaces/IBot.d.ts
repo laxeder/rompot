@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import type { Chats, ChatStatus } from "../types/Chat";
+import type { IChats, ChatStatus } from "../types/Chat";
 import type { BotStatus } from "../types/Bot";
 import type { Media } from "../types/Message";
-import type { Users } from "../types/User";
+import type { IUsers } from "../types/User";
 import type { IMessage } from "./IMessage";
 import { IAuth } from "./IAuth";
 import { IUser } from "./IUser";
@@ -176,12 +176,12 @@ export interface IBot {
      * @param chat Sala de bate-papo
      * @returns Retorna os usuários de uma sala de bate-papo
      */
-    getChatUsers(chat: IChat): Promise<Users>;
+    getChatUsers(chat: IChat): Promise<IUsers>;
     /**
      * @param chat Sala de bate-papo
      * @returns Retorna os administradores de uma sala de bate-papo
      */
-    getChatAdmins(chat: IChat): Promise<Users>;
+    getChatAdmins(chat: IChat): Promise<IUsers>;
     /**
      * @param chat Sala de bate-papo
      * @returns Retorna o lider da sala de bate-papo
@@ -190,12 +190,12 @@ export interface IBot {
     /**
      * @returns Retorna as sala de bate-papo que o bot está
      */
-    getChats(): Promise<Chats>;
+    getChats(): Promise<IChats>;
     /**
      * * Define as salas de bate-papo que o bot está
      * @param chats Salas de bate-papo
      */
-    setChats(chats: Chats): Promise<void>;
+    setChats(chats: IChats): Promise<void>;
     /**
      * * Adiciona um novo usuário
      * @param user Usuário
@@ -259,12 +259,12 @@ export interface IBot {
     /**
      * @returns Retorna a lista de usuários do bot
      */
-    getUsers(): Promise<Users>;
+    getUsers(): Promise<IUsers>;
     /**
      * * Define a lista de usuários do bot
      * @param users Usuários
      */
-    setUsers(users: Users): Promise<void>;
+    setUsers(users: IUsers): Promise<void>;
     /**
      * * Adiciona uma reação na mensagem
      * @param message Mensagem

@@ -1,6 +1,6 @@
 /// <reference types="node" />
-import type { Chats, ChatStatus } from "../types/Chat";
-import type { Users } from "../types/User";
+import type { IChats, ChatStatus } from "../types/Chat";
+import type { IUsers } from "../types/User";
 import { ConnectionConfig } from "../config/ConnectionConfig";
 import { IMediaMessage, IMessage } from "../interfaces/IMessage";
 import { IClient } from "../interfaces/IClient";
@@ -39,7 +39,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     readMessage(message: IMessage): Promise<void>;
     send(message: IMessage): Promise<IMessage>;
     awaitMessage(chat: IChat | string, ignoreMessageFromMe?: boolean, stopRead?: boolean, ...ignoreMessages: IMessage[]): Promise<IMessage>;
-    addAutomate(message: IMessage, timeout: number, chats?: Chats, id?: string): Promise<any>;
+    addAutomate(message: IMessage, timeout: number, chats?: IChats, id?: string): Promise<any>;
     /**
      * * Retorna a stream da mídia
      * @param message Mídia que será baixada
@@ -53,9 +53,9 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     getBotProfile(): Promise<Buffer>;
     setBotProfile(profile: Buffer): Promise<void>;
     getChat(chat: IChat | string): Promise<IChat | null>;
-    setChat(chat: Chat): Promise<void>;
-    getChats(): Promise<Chats>;
-    setChats(chats: Chats): Promise<void>;
+    setChat(chat: IChat): Promise<void>;
+    getChats(): Promise<IChats>;
+    setChats(chats: IChats): Promise<void>;
     addChat(chat: string | Chat): Promise<void>;
     removeChat(chat: string | Chat): Promise<void>;
     getChatName(chat: IChat | string): Promise<string>;
@@ -69,15 +69,15 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     removeUserInChat(chat: IChat | string, user: IUser | string): Promise<void>;
     promoteUserInChat(chat: IChat | string, user: IUser | string): Promise<void>;
     demoteUserInChat(chat: IChat | string, user: User): Promise<void>;
-    createChat(chat: Chat): Promise<void>;
+    createChat(chat: IChat): Promise<void>;
     leaveChat(chat: IChat | string): Promise<void>;
-    getChatUsers(chat: IChat | string): Promise<Users>;
-    getChatAdmins(chat: IChat | string): Promise<Users>;
+    getChatUsers(chat: IChat | string): Promise<IUsers>;
+    getChatAdmins(chat: IChat | string): Promise<IUsers>;
     getChatLeader(chat: IChat | string): Promise<IUser>;
     getUser(user: IUser | string): Promise<IUser | null>;
     setUser(user: IUser | string): Promise<void>;
-    getUsers(): Promise<Users>;
-    setUsers(users: Users): Promise<void>;
+    getUsers(): Promise<IUsers>;
+    setUsers(users: IUsers): Promise<void>;
     addUser(user: IUser | string): Promise<void>;
     removeUser(user: IUser | string): Promise<void>;
     getUserName(user: IUser | string): Promise<string>;

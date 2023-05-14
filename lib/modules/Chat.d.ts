@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import type { ChatStatus, ChatType } from "../types/Chat";
-import type { Users } from "../types/User";
+import type { IUsers } from "../types/User";
 import { IMessage } from "../interfaces/IMessage";
 import { IClient } from "../interfaces/IClient";
 import { IUser } from "../interfaces/IUser";
@@ -21,8 +21,8 @@ export default class Chat implements IChat {
     setProfile(image: Buffer): Promise<void>;
     IsAdmin(user: IUser | string): Promise<boolean>;
     IsLeader(user: IUser | string): Promise<boolean>;
-    getAdmins(): Promise<Users>;
-    getUsers(): Promise<Users>;
+    getAdmins(): Promise<IUsers>;
+    getUsers(): Promise<IUsers>;
     addUser(user: IUser | string): Promise<void>;
     removeUser(user: IUser | string): Promise<void>;
     promote(user: IUser | string): Promise<void>;
@@ -34,7 +34,7 @@ export default class Chat implements IChat {
      * @param chat Sala de bate-papo que será obtida
      * @returns Retorna a sala de bate-papo
      */
-    static get<CHAT extends IChat>(chat: CHAT | string): CHAT | Chat;
+    static get<CHAT extends IChat>(chat: CHAT | string): CHAT | IChat;
     /**
      * @param chat Sala de bate-papo
      * @returns Retorna o ID da sala de bate-papo
@@ -45,5 +45,5 @@ export default class Chat implements IChat {
      * @param client Cliente
      * @param chat Sala de bate-papo
      */
-    static Client<CHAT extends IChat>(client: IClient, chat: CHAT | string): CHAT | Chat;
+    static Client<CHAT extends IChat>(client: IClient, chat: CHAT | string): CHAT | IChat;
 }

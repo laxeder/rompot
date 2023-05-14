@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import type { ChatStatus, ChatType } from "../types/Chat";
-import type { Users } from "../types/User";
+import type { IUsers } from "../types/User";
 import { IMessage } from "./IMessage";
 import { IClient } from "./IClient";
 import { IUser } from "./IUser";
@@ -53,11 +53,11 @@ export interface IChat {
     /**
      * @returns Retorna os administradores daquela sala de bate-papo
      */
-    getAdmins(): Promise<Users>;
+    getAdmins(): Promise<IUsers>;
     /**
      * @returns Retorna os usuários da sala de bate-papo
      */
-    getUsers(): Promise<Users>;
+    getUsers(): Promise<IUsers>;
     /**
      * * Adiciona um usuário a sala de bate-papo
      * @param user Usuário que será adicionado

@@ -54,7 +54,7 @@ export interface IMessage {
      * @param message Mensagem que terá enviada
      * @param mention Se verdadeiro a mensagem é mencionada
      */
-    reply(message: IMessage | string, mention: boolean): Promise<IMessage>;
+    reply(message: IMessage | string, mention?: boolean): Promise<IMessage>;
     /**
      * * Marca mensagem como visualizada
      */
@@ -109,6 +109,25 @@ export interface IPollMessage extends IMessage {
     secretKey: Uint8Array;
     /** * Ação da enquete */
     action: PollAction;
+    /**
+     * * Adiciona uma opção a enquete
+     * @param name Nome da opção
+     * @param id ID da opção
+     */
+    addOption(name: string, id?: string): any;
+    /**
+     * * Remove uma opção
+     * @param option Opção que será removida
+     */
+    removeOption(option: PollOption): any;
+    /**
+     * * Obtem os votos de um usuário
+     */
+    getUserVotes(user: string): string[];
+    /**
+     * * Salva os votos de um usuário
+     */
+    setUserVotes(user: string, hashVotes: string[]): any;
 }
 export interface IPollUpdateMessage extends IPollMessage {
     readonly type: MessageType.PollUpdate;
@@ -129,15 +148,19 @@ export interface IMediaMessage extends IMessage {
 }
 export interface IFileMessage extends IMediaMessage {
     readonly type: MessageType.File;
+    getFile(): Promise<Buffer>;
 }
 export interface IAudioMessage extends IMediaMessage {
     readonly type: MessageType.Audio;
+    getAudio(): Promise<Buffer>;
 }
 export interface IImageMessage extends IMediaMessage {
     readonly type: MessageType.Image;
+    getImage(): Promise<Buffer>;
 }
 export interface IVideoMessage extends IMediaMessage {
     readonly type: MessageType.Video;
+    getVideo(): Promise<Buffer>;
 }
 export interface IStickerMessage extends IMediaMessage {
     readonly type: MessageType.Sticker;
@@ -149,9 +172,7 @@ export interface IStickerMessage extends IMediaMessage {
     author: string;
     /** * Pacote da figurinha */
     pack: string;
-}
-export interface IVideoMessage extends IMediaMessage {
-    readonly type: MessageType.Video;
+    getSticker(): Promise<Buffer>;
 }
 export interface List {
     /**
