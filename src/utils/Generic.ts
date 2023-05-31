@@ -3,6 +3,8 @@ import https from "https";
 
 import { IClient } from "@interfaces/IClient";
 
+export const ROMPOT_VERSION = "1.5.2";
+
 /**
  * * Aguarda um determinado tempo
  * @param timeout
@@ -118,4 +120,8 @@ export function ApplyClient<T extends any>(obj: T, client: IClient): T {
   obj["client"] = client;
 
   return obj;
+}
+
+export function getRompotVersion(): string {
+  return ROMPOT_VERSION;
 }
