@@ -27,6 +27,10 @@ export declare class WAChat extends Chat {
     /** * Usuários da sala de bate-papo */
     users: WAUsers;
     constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: WAUsers);
+    /**
+     @returns Retorna o tipo da sala de bate-papo
+     */
+    static getChatType(chat: Chat | string): ChatType;
 }
 export declare class WAMessage extends Message {
     /** * Sala de bate-papo que foi enviada a mensagem */

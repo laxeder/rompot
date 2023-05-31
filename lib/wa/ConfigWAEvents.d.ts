@@ -3,7 +3,7 @@ export default class ConfigWAEvents {
     wa: WhatsAppBot;
     connectionResolve: (...args: any[]) => any;
     constructor(wa: WhatsAppBot);
-    configure(): void;
+    configureAll(): void;
     configCBNotifications(): void;
     configCBNotificationRemove(): void;
     configCBNotificationAdd(): void;

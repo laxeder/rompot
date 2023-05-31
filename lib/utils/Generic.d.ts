@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { IClient } from "../interfaces/IClient";
+export declare const ROMPOT_VERSION = "1.5.2";
 /**
  * * Aguarda um determinado tempo
  * @param timeout
@@ -41,3 +42,4 @@ export declare function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, o
  * @returns Objeto com Cliente adicionado
  */
 export declare function ApplyClient<T extends any>(obj: T, client: IClient): T;
+export declare function getRompotVersion(): string;
