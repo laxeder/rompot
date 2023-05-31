@@ -134,7 +134,7 @@ export class WhatsAppConvertMessage {
       this._user.id = replaceID(this._wa.id);
     }
 
-    this._convertedMessage.apiSend = this._wa.sendedMessages.hasOwnProperty(message.key.id);
+    this._convertedMessage.apiSend = this._wa.apiMessagesId.includes(message.key.id);
 
     if (message.messageTimestamp) this._convertedMessage.timestamp = message.messageTimestamp;
     if (message.key.id) this._convertedMessage.id = message.key.id;
