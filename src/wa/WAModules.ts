@@ -49,6 +49,13 @@ export class WAChat extends Chat {
     this.profile = profile || Buffer.from("");
     this.users = users || {};
   }
+
+  /**
+   @returns Retorna o tipo da sala de bate-papo
+   */
+  public static getChatType(chat: Chat | string): ChatType {
+    return WAChat.get(chat).id.includes("@g") ? "group" : "pv";
+  }
 }
 
 export class WAMessage extends Message {
