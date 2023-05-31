@@ -19,14 +19,13 @@ export default class ConfigWAEvents {
     this.connectionResolve = () => undefined;
   }
 
-  public configure() {
-    this.configCBNotifications();
-    this.configConnectionUpdate();
+  public configureAll() {
     this.configContactsUpdate();
     this.configChatsUpsert();
     this.configGroupsUpdate();
     this.configChatsDelete();
     this.configMessagesUpsert();
+    this.configCBNotifications();
   }
 
   public configCBNotifications() {
@@ -100,7 +99,9 @@ export default class ConfigWAEvents {
 
         if (!this.wa.chats[jid]) {
           await this.wa.readChat({ id: jid });
-        } else if (!this.wa.chats[jid].users[this.wa.id]) {
+        }
+
+        if (!this.wa.chats[jid].users[this.wa.id]) {
           this.wa.chats[jid].users[this.wa.id] = new WAUser(this.wa.id);
 
           await this.wa.saveChats();
@@ -133,11 +134,6 @@ export default class ConfigWAEvents {
 
           this.wa.id = replaceID(this.wa.sock?.user?.id || "");
 
-          await this.wa.readChats();
-          await this.wa.readUsers();
-          await this.wa.readPolls();
-          await this.wa.readSendedMessages();
-
           this.wa.ev.emit("open", { isNewLogin: update.isNewLogin || false });
 
           this.connectionResolve();
@@ -146,7 +142,6 @@ export default class ConfigWAEvents {
         if (update.connection == "close") {
           // Client desligado
           const status = (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
-          const botStatus = String(this.wa.status);
 
           if (this.wa.status == "online") {
             this.wa.status = "offline";
@@ -163,7 +158,7 @@ export default class ConfigWAEvents {
             return this.connectionResolve(await this.wa.reconnect(false));
           }
 
-          setTimeout(async () => this.connectionResolve(await this.wa.reconnect(botStatus != "online")), 1000);
+          setTimeout(async () => this.connectionResolve(await this.wa.reconnect(this.wa.status != "online")), 1000);
         }
       } catch (err) {
         this.wa.ev.emit("error", err);
