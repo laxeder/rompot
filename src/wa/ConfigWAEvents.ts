@@ -12,11 +12,9 @@ import { replaceID } from "./ID";
 
 export default class ConfigWAEvents {
   public wa: WhatsAppBot;
-  public connectionResolve: (...args: any[]) => any;
 
   constructor(wa: WhatsAppBot) {
     this.wa = wa;
-    this.connectionResolve = () => undefined;
   }
 
   public configureAll() {
@@ -135,12 +133,9 @@ export default class ConfigWAEvents {
           this.wa.id = replaceID(this.wa.sock?.user?.id || "");
 
           this.wa.ev.emit("open", { isNewLogin: update.isNewLogin || false });
-
-          this.connectionResolve();
         }
 
         if (update.connection == "close") {
-          // Client desligado
           const status = (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
 
           if (this.wa.status == "online") {
@@ -149,16 +144,14 @@ export default class ConfigWAEvents {
             this.wa.ev.emit("close", { status: "offline" });
           }
 
-          if (status == DisconnectReason.badSession || status === DisconnectReason.loggedOut) {
-            this.wa.ev.emit("closed", { status: "offline" });
+          if (status === DisconnectReason.loggedOut) {
+            this.wa.ev.emit("stop", { status: "offline" });
             return;
           }
 
           if (status == DisconnectReason.restartRequired) {
-            return this.connectionResolve(await this.wa.reconnect(false));
+            return await this.wa.reconnect(false);
           }
-
-          setTimeout(async () => this.connectionResolve(await this.wa.reconnect(this.wa.status != "online")), 1000);
         }
       } catch (err) {
         this.wa.ev.emit("error", err);

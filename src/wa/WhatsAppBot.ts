@@ -58,37 +58,35 @@ export default class WhatsAppBot implements IBot {
   }
 
   public async connect(auth?: string | IAuth): Promise<void> {
-    await new Promise(async (resolve, reject) => {
-      try {
-        if (!!!auth) auth = String("./session");
+    try {
+      if (!!!auth) auth = String("./session");
 
-        if (typeof auth == "string") {
-          this.auth = new MultiFileAuthState(auth);
-        } else this.auth = auth;
+      if (typeof auth == "string") {
+        this.auth = new MultiFileAuthState(auth);
+      } else this.auth = auth;
 
-        const { state, saveCreds } = await getBaileysAuth(this.auth);
+      const { state, saveCreds } = await getBaileysAuth(this.auth);
 
-        this.sock = makeWASocket({
-          auth: state,
-          ...this.config,
-        });
+      this.sock = makeWASocket({
+        auth: state,
+        ...this.config,
+      });
 
-        this.sock.ev.on("creds.update", saveCreds);
+      this.sock.ev.on("creds.update", saveCreds);
 
-        this.configEvents.connectionResolve = resolve;
+      this.configEvents.configConnectionUpdate();
 
-        this.configEvents.configConnectionUpdate();
-      } catch (err) {
-        reject(err?.stack || err);
-      }
-    });
+      await this.sock.waitForSocketOpen();
 
-    await this.readChats();
-    await this.readUsers();
-    await this.readPolls();
-    await this.readApiMessagesId();
+      await this.readChats();
+      await this.readUsers();
+      await this.readPolls();
+      await this.readApiMessagesId();
 
-    this.configEvents.configureAll();
+      this.configEvents.configureAll();
+    } catch (err) {
+      this.ev.emit("error", err);
+    }
   }
 
   /**
