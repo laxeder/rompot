@@ -98,7 +98,7 @@ export class ClientEvents extends BotEvents {
     });
 
     this.on("stop", () => {
-      this.emit("stop", { action: "stop" });
+      this.emit("conn", { action: "stop" });
     });
 
     this.on("reconnecting", () => {
