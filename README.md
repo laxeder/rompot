@@ -98,23 +98,23 @@ client.setCommands(commands);
 
 ```ts
 client.on("open", (open) => {
-  console.log("Client conectado!");
+  console.log("Cliente conectado!");
 });
 
 client.on("close", (close) => {
-  console.log("Client desconectado!");
+  console.log("Cliente desconectado!");
 });
 
-client.on("closed", (closed) => {
-  console.log("Conexão com o bot encerrada!");
+client.on("stop", (closed) => {
+  console.log("Cliente parado!");
 });
 
 client.on("connecting", (conn) => {
-  console.log("Conectando bot");
+  console.log("Conectando cliente...");
 });
 
 client.on("reconnecting", (conn) => {
-  console.log("Reconectando bot");
+  console.log("Reconectando cliente...");
 });
 ```
 
@@ -209,14 +209,14 @@ msg.removeReaction();
 ```ts
 import { ImageMessage, VideoMessage, AudioMessage, FileMessage, StickerMessage, LocationMessage, ContactMessage } from "rompot";
 
+// Criar mensagem de audio
+const audioMessage = new AudioMessage(chat, Buffer.from(""));
+
 // Criar mensagem com imagem
 const imageMessage = new ImageMessage(chat, "texto", Buffer.from(""));
 
 // Criar mensagem com video
 const videoMessage = new VideoMessage(chat, "texto", Buffer.from(""));
-
-// Criar mensagem de audio
-const audioMessage = new AudioMessage(chat, "texto", Buffer.from(""));
 
 // Criar mensagem de arquivo
 const fileMessage = new FileMessage(chat, "texto", Buffer.from(""));
@@ -378,7 +378,7 @@ client.getChatDescription(chat);
 ```
 
 - Adicionar membro
-  - Você pode encontrar o user em `message.user` ou em `chat.getUser("id")`, o ID pode se encontrado em `message.user.id`
+  - Você pode encontrar o user em `message.user` ou em `chat.users["userId"]`, o ID pode se encontrado em `message.user.id`
 
 ```ts
 client.addUserInChat(chat, user);
@@ -406,7 +406,7 @@ client.demoteUserInChat(chat, user);
 
 Esse Software foi construído com:
 
-- [Baileys@5.0.0](https://github.com/WhiskeySockets/Baileys) - API para se conectar ao WhatsApp
+- [Baileys@6.1.0](https://github.com/WhiskeySockets/Baileys) - API para se conectar ao WhatsApp
 
 ## 📄 Licença
 
