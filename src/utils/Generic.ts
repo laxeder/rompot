@@ -1,9 +1,9 @@
 import { Transform } from "stream";
 import https from "https";
 
-import { IClient } from "@interfaces/IClient";
+import { ROMPOT_VERSION } from "@config/Api";
 
-export const ROMPOT_VERSION = "1.5.2";
+import { IClient } from "@interfaces/IClient";
 
 /**
  * * Aguarda um determinado tempo
