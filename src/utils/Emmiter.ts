@@ -28,8 +28,8 @@ export type EventsMap = {
   /** * Client conectando */
   connecting: {};
 
-  /** * Sessão do bot encerrada */
-  closed: {};
+  /** * Bot parado */
+  stop: {};
 
   /** * Conexão fechada */
   close: {};
@@ -97,8 +97,8 @@ export class ClientEvents extends BotEvents {
       this.emit("conn", { action: "qr", qr });
     });
 
-    this.on("closed", () => {
-      this.emit("conn", { action: "closed" });
+    this.on("stop", () => {
+      this.emit("stop", { action: "stop" });
     });
 
     this.on("reconnecting", () => {

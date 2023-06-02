@@ -29,8 +29,8 @@ client.on("connecting", () => {
   console.log("Tentando conectar cliente...");
 });
 
-client.on("closed", () => {
-  console.log(`A conexão desse cliente foi fechada`);
+client.on("stop", () => {
+  console.log(`Cliente parado!`);
 });
 
 client.on("reconnecting", () => {
