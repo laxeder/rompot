@@ -19,6 +19,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     bot: Bot;
     config: ConnectionConfig;
     commands: Command[];
+    reconnectTimes: number;
     get id(): string;
     get status(): import("..").BotStatus;
     constructor(bot: Bot, config?: Partial<ConnectionConfig>, commands?: Command[]);

@@ -28,8 +28,8 @@ export declare type EventsMap = {
     reconnecting: {};
     /** * Client conectando */
     connecting: {};
-    /** * Sessão do bot encerrada */
-    closed: {};
+    /** * Bot parado */
+    stop: {};
     /** * Conexão fechada */
     close: {};
     /** * QR code gerado */
