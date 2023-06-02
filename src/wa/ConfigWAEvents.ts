@@ -12,9 +12,11 @@ import { replaceID } from "./ID";
 
 export default class ConfigWAEvents {
   public wa: WhatsAppBot;
+  public connectionResolve: () => void;
 
   constructor(wa: WhatsAppBot) {
     this.wa = wa;
+    this.connectionResolve = () => {};
   }
 
   public configureAll() {
@@ -131,6 +133,8 @@ export default class ConfigWAEvents {
           this.wa.status = "online";
 
           this.wa.id = replaceID(this.wa.sock?.user?.id || "");
+
+          this.connectionResolve();
 
           this.wa.ev.emit("open", { isNewLogin: update.isNewLogin || false });
         }
