@@ -29,6 +29,8 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
   public config: ConnectionConfig;
   public commands: Command[];
 
+  public reconnectTimes: number = 0;
+
   get id() {
     return this.bot.id;
   }
@@ -48,6 +50,8 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
       disableAutoCommand: !!config.disableAutoCommand,
       disableAutoTyping: !!config.disableAutoTyping,
       disableAutoRead: !!config.disableAutoRead,
+      maxReconnectTimes: config.maxReconnectTimes || DefaultConnectionConfig.maxReconnectTimes,
+      reconnectTimeout: config.reconnectTimeout || DefaultConnectionConfig.reconnectTimeout,
     };
 
     this.configEvents();
@@ -80,6 +84,8 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
 
     this.bot.ev.on("open", (update) => {
       try {
+        this.reconnectTimes = 0;
+
         this.emit("open", update);
       } catch (err) {
         this.emit("error", getError(err));
@@ -102,17 +108,25 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
       }
     });
 
-    this.bot.ev.on("closed", (update) => {
+    this.bot.ev.on("close", async (update) => {
       try {
-        this.emit("closed", update);
+        this.emit("close", update);
+
+        if (this.reconnectTimes < this.config.maxReconnectTimes) {
+          this.reconnectTimes++;
+
+          await sleep(this.config.reconnectTimeout);
+
+          this.reconnect();
+        }
       } catch (err) {
         this.emit("error", getError(err));
       }
     });
 
-    this.bot.ev.on("close", (update) => {
+    this.bot.ev.on("stop", async (update) => {
       try {
-        this.emit("close", update);
+        this.emit("stop", update);
       } catch (err) {
         this.emit("error", getError(err));
       }
@@ -342,11 +356,11 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
   async downloadStreamMessage(message: IMediaMessage): Promise<Buffer> {
     if (!!!message.file) return Buffer.from("");
 
+    if (Buffer.isBuffer(message.file)) return message.file;
+
     if (typeof message.file == "string") {
       return readFileSync(message.file);
     }
-
-    if (Buffer.isBuffer(message.file)) return message.file;
 
     return this.bot.downloadStreamMessage(message.file);
   }

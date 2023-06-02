@@ -15,6 +15,9 @@ export interface IClient extends ClientEvents {
   /** * Comandos do cliente */
   commands: ICommand[];
 
+  /** * Vezes que o bot reconectou */
+  reconnectTimes: number;
+
   /** * Configura os eventos do cliente */
   configEvents(): void;
 
