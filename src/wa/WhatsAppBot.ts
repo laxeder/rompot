@@ -33,18 +33,21 @@ import { BotEvents } from "@utils/Emmiter";
 export default class WhatsAppBot implements IBot {
   //@ts-ignore
   public sock: WASocket = {};
+  public config: Partial<SocketConfig>;
   public DisconnectReason = DisconnectReason;
-  public users: WAUsers = {};
+  public logger: any = pino({ level: "silent" });
+
+  public id: string = "";
   public ev: BotEvents = new BotEvents();
   public status: ConnectionStatus = "offline";
-  public id: string = "";
   public auth: IAuth = new MultiFileAuthState("./session", false);
-  public logger: any = pino({ level: "silent" });
-  public wcb: WaitCallBack = new WaitCallBack((err: any) => this.ev.emit("error", err));
-  public config: Partial<SocketConfig>;
+
+  public connectionResolve: (() => void)[] = [];
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
+  public wcb: WaitCallBack = new WaitCallBack((err: any) => this.ev.emit("error", err));
 
   public chats: WAChats = {};
+  public users: WAUsers = {};
   public apiMessagesId: string[] = [];
   public polls: { [id: string]: IPollMessage } = {};
 
@@ -59,26 +62,15 @@ export default class WhatsAppBot implements IBot {
 
   public async connect(auth?: string | IAuth): Promise<void> {
     try {
-      await new Promise<void>(async (resolve) => {
-        if (!!!auth) auth = String("./session");
+      if (!!!auth || typeof auth == "string") {
+        this.auth = new MultiFileAuthState(`${auth || "./session"}`);
+      } else {
+        this.auth = auth;
+      }
 
-        if (typeof auth == "string") {
-          this.auth = new MultiFileAuthState(auth);
-        } else this.auth = auth;
+      await this.internalConnect();
 
-        const { state, saveCreds } = await getBaileysAuth(this.auth);
-
-        this.sock = makeWASocket({
-          auth: state,
-          ...this.config,
-        });
-
-        this.sock.ev.on("creds.update", saveCreds);
-
-        this.configEvents.connectionResolve = resolve;
-
-        this.configEvents.configConnectionUpdate();
-      });
+      await this.awaitConnectionOpen();
 
       await this.readChats();
       await this.readUsers();
@@ -86,6 +78,23 @@ export default class WhatsAppBot implements IBot {
       await this.readApiMessagesId();
 
       this.configEvents.configureAll();
+    } catch (err) {
+      this.ev.emit("error", err);
+    }
+  }
+
+  public async internalConnect(): Promise<void> {
+    try {
+      const { state, saveCreds } = await getBaileysAuth(this.auth);
+
+      this.sock = makeWASocket({
+        auth: state,
+        ...this.config,
+      });
+
+      this.sock.ev.on("creds.update", saveCreds);
+
+      this.configEvents.configConnectionUpdate();
     } catch (err) {
       this.ev.emit("error", err);
     }
@@ -101,7 +110,7 @@ export default class WhatsAppBot implements IBot {
 
     await this.stop();
 
-    return this.connect(this.auth);
+    return this.internalConnect();
   }
 
   /**
@@ -115,6 +124,22 @@ export default class WhatsAppBot implements IBot {
     }
 
     this.status = "offline";
+  }
+
+  /**
+   * * Aguarda o bot ficar online
+   */
+  public awaitConnectionOpen(): Promise<void> {
+    return new Promise<void>((res) => this.connectionResolve.push(res));
+  }
+
+  /**
+   * * Resolve conexões em espera
+   */
+  public resolveConnectionsAwait(): void {
+    for (const res of this.connectionResolve) {
+      res();
+    }
   }
 
   //! ********************************* AUTH *********************************
