@@ -86,30 +86,28 @@ export default class ConfigWAEvents {
   public configMessagesUpsert() {
     this.wa.sock.ev.on("messages.upsert", async (m) => {
       try {
-        if (m.messages.length <= 0) return;
+        for (const message of m.messages) {
+          if (message.key.remoteJid == "status@broadcast") return;
+          if (!message.message) return;
 
-        const message: WAMessage = m.messages[m.messages.length - 1];
+          const jid = replaceID(message.key.remoteJid);
 
-        if (message.key.remoteJid == "status@broadcast") return;
-        if (!message.message) return;
+          if (!this.wa.chats[jid]) {
+            await this.wa.readChat({ id: jid });
+          }
 
-        const jid = replaceID(message.key.remoteJid);
+          if (!this.wa.chats[jid].users[this.wa.id]) {
+            this.wa.chats[jid].users[this.wa.id] = new WAUser(this.wa.id);
 
-        if (!this.wa.chats[jid]) {
-          await this.wa.readChat({ id: jid });
+            await this.wa.saveChats();
+          }
+
+          const msg = await new WhatsAppConvertMessage(this.wa, message, m.type).get();
+
+          if (isEmptyMessage(msg)) return;
+
+          this.wa.ev.emit("message", msg);
         }
-
-        if (!this.wa.chats[jid].users[this.wa.id]) {
-          this.wa.chats[jid].users[this.wa.id] = new WAUser(this.wa.id);
-
-          await this.wa.saveChats();
-        }
-
-        const msg = await new WhatsAppConvertMessage(this.wa, message, m.type).get();
-
-        if (isEmptyMessage(msg)) return;
-
-        this.wa.ev.emit("message", msg);
       } catch (err) {
         this.wa.ev.emit("error", err);
       }
