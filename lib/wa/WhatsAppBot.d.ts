@@ -16,23 +16,25 @@ import WaitCallBack from "../utils/WaitCallBack";
 import { BotEvents } from "../utils/Emmiter";
 export default class WhatsAppBot implements IBot {
     sock: WASocket;
+    config: Partial<SocketConfig>;
     DisconnectReason: typeof DisconnectReason;
-    users: WAUsers;
+    logger: any;
+    id: string;
     ev: BotEvents;
     status: ConnectionStatus;
-    id: string;
     auth: IAuth;
-    logger: any;
-    wcb: WaitCallBack;
-    config: Partial<SocketConfig>;
+    connectionResolve: (() => void)[];
     configEvents: ConfigWAEvents;
+    wcb: WaitCallBack;
     chats: WAChats;
+    users: WAUsers;
     apiMessagesId: string[];
     polls: {
         [id: string]: IPollMessage;
     };
     constructor(config?: Partial<SocketConfig>);
     connect(auth?: string | IAuth): Promise<void>;
+    internalConnect(): Promise<void>;
     /**
      * * Reconecta ao servidor do WhatsApp
      * @param alert Avisa que está econectando
@@ -45,6 +47,14 @@ export default class WhatsAppBot implements IBot {
      * @returns
      */
     stop(reason?: any): Promise<void>;
+    /**
+     * * Aguarda o bot ficar online
+     */
+    awaitConnectionOpen(): Promise<void>;
+    /**
+     * * Resolve conexões em espera
+     */
+    resolveConnectionsAwait(): void;
     /**
      * * Salva os chats salvos
      * @param chats Sala de bate-papos

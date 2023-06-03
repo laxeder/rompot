@@ -1,7 +1,6 @@
 import WhatsAppBot from "./WhatsAppBot";
 export default class ConfigWAEvents {
     wa: WhatsAppBot;
-    connectionResolve: () => void;
     constructor(wa: WhatsAppBot);
     configureAll(): void;
     configCBNotifications(): void;
