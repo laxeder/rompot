@@ -1,1 +1,1 @@
-export const ROMPOT_VERSION = "1.5.3";
+export const ROMPOT_VERSION = "1.5.6";
