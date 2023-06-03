@@ -138,11 +138,7 @@ export default class ConfigWAEvents {
         if (update.connection == "close") {
           const status = (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
 
-          if (this.wa.status == "online") {
-            this.wa.status = "offline";
-
-            this.wa.ev.emit("close", { status: "offline" });
-          }
+          this.wa.status = "offline";
 
           if (status === DisconnectReason.loggedOut) {
             this.wa.ev.emit("stop", { status: "offline" });
@@ -150,8 +146,11 @@ export default class ConfigWAEvents {
           }
 
           if (status == DisconnectReason.restartRequired) {
-            return await this.wa.reconnect(false);
+            await this.wa.reconnect(false);
+            return;
           }
+
+          this.wa.ev.emit("close", { status: "offline" });
         }
       } catch (err) {
         this.wa.ev.emit("error", err);
