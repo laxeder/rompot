@@ -1,5 +1,8 @@
 import { IMessage } from "@interfaces/IMessage";
 import { IClient } from "@interfaces/IClient";
+import { IUser } from "./IUser";
+import Chat from "@modules/Chat";
+import { IChat } from "./IChat";
 
 export interface ICommand {
   /** * Cliente do modulo */
@@ -11,40 +14,10 @@ export interface ICommand {
   id: string;
 
   /**
-   * * Tags necessárias para executar o comando,
-   * 0 para todos
-   */
-  reqTags: number;
-
-  /**
    * * Tags do comando
    */
   tags: string[];
 
-  /**
-   * * prefixo do comando
-   */
-  prefix: string;
-
-  /**
-   * * Nome do comando
-   */
-  name: string;
-
-  /**
-   * * Descrição do comando
-   */
-  description: string;
-
-  /**
-   * * Categorias do comando
-   */
-  categories: string[];
-
-  /**
-   * * Permissões do comando
-   */
-  permissions: string[];
 
   /**
    * * Método chamado quando a função é executada
@@ -63,4 +36,10 @@ export interface ICommand {
    * @param message
    */
   help(message: IMessage): Promise<any>;
+
+  /** * Configuração do comando */
+  onConfig?: () => any;
+
+  /** * Verifica há permissão para executar o comando  */
+  checkPermissions?: (chat: IChat, user: IUser) => Promise<boolean> | boolean;
 }
