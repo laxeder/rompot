@@ -9,7 +9,7 @@ import { CommandControllerEvent } from "@utils/Command";
 export class CommandController extends CommandControllerEvent implements ICommandController {
   public client: IClient;
 
-  public config: ICommandControllerConfig = {};
+  public config: ICommandControllerConfig;
   public commands: ICommand[] = [];
 
   constructor(client: IClient, config: Partial<ICommandControllerConfig> = {}) {
@@ -113,4 +113,7 @@ export class CommandController extends CommandControllerEvent implements IComman
   }
 }
 
-export const DEFAULT_COMMAND_CONTROLLER_CONFIG: ICommandControllerConfig = {};
+export const DEFAULT_COMMAND_CONTROLLER_CONFIG: ICommandControllerConfig = {
+  prefix: "",
+  lowerCase: false,
+};

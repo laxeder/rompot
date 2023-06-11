@@ -1,6 +1,6 @@
 import { CMDKeyType } from "@enums/Command";
 
-import { ICommandKey } from "@interfaces/command";
+import { ICommandControllerConfig, ICommandKey } from "@interfaces/command";
 
 /** Chave do comando */
 export class CommandKey implements ICommandKey {
@@ -15,7 +15,21 @@ export class CommandKey implements ICommandKey {
    * Procura pela chave em um texto
    * @return retorna se a chave foi encontrada
    */
-  public static search(text: string, ...keys: ICommandKey[]): ICommandKey | null {
+  public static search(text: string, config: ICommandControllerConfig, ...keys: ICommandKey[]): ICommandKey | null {
+    if (!!config.prefix) {
+      if (!text.startsWith(config.prefix)) return null;
+
+      text = text.replace(config.prefix, "").trim();
+    }
+
+    if (!!config.lowerCase) {
+      text = text.toLowerCase();
+      keys = keys.map((key) => {
+        key.values = key.values.map((value) => value.toLowerCase());
+        return key;
+      });
+    }
+
     const result = keys.filter((key) => {
       if (key.type === CMDKeyType.Exact) {
         return CommandKey.verifyExact(text, key.values);

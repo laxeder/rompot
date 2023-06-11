@@ -97,6 +97,9 @@ client.on("error", (err: any) => {
 
   client.setCommands(commands);
 
+  client.commandController.config.prefix = "/";
+  client.commandController.config.lowerCase = true;
+
   client.commandController.on("no-allowed", async ({ message, command, permission }) => {
     if (permission.id == CMDPerms.BotChatAdmin) {
       await message.reply("Eu preciso de permissão de admin para executar esse comando!");

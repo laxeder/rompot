@@ -39,4 +39,9 @@ export interface ICommandController extends CommandControllerEvent {
 }
 
 /** Configuração do controlador de comandos */
-export interface ICommandControllerConfig {}
+export interface ICommandControllerConfig {
+  /** Prefixo necessário para procurar um comando */
+  prefix: string;
+  /** Procurar sem destinção de tamanho */
+  lowerCase: boolean;
+}

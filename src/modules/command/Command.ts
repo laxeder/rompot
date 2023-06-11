@@ -1,6 +1,4 @@
-import { CMDPerms } from "@enums/Command";
-
-import { ICommand, ICommandPermission } from "@interfaces/command";
+import { ICommand, ICommandControllerConfig, ICommandPermission } from "@interfaces/command";
 import { ICommandKey } from "@interfaces/command";
 import { IMessage } from "@interfaces/IMessage";
 import { IClient } from "@interfaces/IClient";
@@ -37,8 +35,8 @@ export class Command implements ICommand {
     return null;
   }
 
-  public onSearch(text: string): ICommandKey | null {
-    return CommandKey.search(text, ...this.keys);
+  public onSearch(text: string, config: ICommandControllerConfig): ICommandKey | null {
+    return CommandKey.search(text, config, ...this.keys);
   }
 
   public onRead(): any {}
