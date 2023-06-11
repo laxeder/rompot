@@ -1,4 +1,4 @@
-import { CMDKey, CMDKeyExact, Command, IMessage } from "../../src";
+import { CMDKey, Command, IMessage } from "../../src";
 
 export class HelloCommand extends Command {
   public onRead() {
