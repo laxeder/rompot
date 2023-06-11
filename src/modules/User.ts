@@ -2,7 +2,7 @@ import { IClient } from "@interfaces/IClient";
 import { IChat } from "@interfaces/IChat";
 import { IUser } from "@interfaces/IUser";
 
-import { ClientBase } from "@modules/Base";
+import { ClientBase } from "@modules/ClientBase";
 import Chat from "@modules/Chat";
 
 export default class User implements IUser {

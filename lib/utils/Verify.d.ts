@@ -1,4 +1,4 @@
-import { ICommand } from "../interfaces/ICommand";
+import { ICommand, ICommandKey } from "../interfaces/command";
 import { IChat } from "../interfaces/IChat";
 import { IUser } from "../interfaces/IUser";
 import { IAudioMessage, IButtonMessage, IContactMessage, IEmptyMessage, IFileMessage, IImageMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IPollMessage, IPollUpdateMessage, IReactionMessage, IStickerMessage, IVideoMessage } from "../interfaces/IMessage";
@@ -6,6 +6,7 @@ import { IAuth } from "../interfaces/IAuth";
 export declare function isChat(chat: any): chat is IChat;
 export declare function isUser(user: any): user is IUser;
 export declare function isCommand(command: any): command is ICommand;
+export declare function isCommandKey(commandKey: any): commandKey is ICommandKey;
 export declare function isAuth(auth: any): auth is IAuth;
 export declare function isMessage(message: any): message is IMessage;
 export declare function isTextMessage(message: any): message is IMessage;

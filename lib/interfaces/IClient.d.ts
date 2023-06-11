@@ -1,20 +1,39 @@
 /// <reference types="node" />
 import type { IChats, ChatStatus } from "../types/Chat";
+import type { BotStatus } from "../types/Bot";
 import type { IUsers } from "../types/User";
+import { ConnectionConfig } from "../config/ConnectionConfig";
+import { ICommand, ICommandController } from "./command";
 import { IMediaMessage, IMessage } from "./IMessage";
-import { ICommand } from "./ICommand";
 import { IAuth } from "./IAuth";
 import { IUser } from "./IUser";
 import { IChat } from "./IChat";
+import { IBot } from "./IBot";
+import PromiseMessages from "../utils/PromiseMessages";
 import { ClientEvents } from "../utils/Emmiter";
 export interface IClient extends ClientEvents {
-    id: string;
-    /** * Comandos do cliente */
-    commands: ICommand[];
+    /** Bot */
+    bot: IBot;
+    /** Configuração */
+    config: ConnectionConfig;
     /** * Vezes que o bot reconectou */
     reconnectTimes: number;
+    /** Espera de mensagens */
+    promiseMessages: PromiseMessages;
+    /** @deprecated Em desenvolvimento */
+    autoMessages: any;
+    /** Controlador de comandos  */
+    commandController: ICommandController;
+    get id(): string;
+    set id(id: string);
+    get status(): BotStatus;
+    set status(status: BotStatus);
     /** * Configura os eventos do cliente */
     configEvents(): void;
+    /** Obtem o controlador de comandos do bot */
+    getCommandController(): ICommandController;
+    /** Define o controlador de comandos do bot */
+    setCommandController(commandController: ICommandController): void;
     /**
      * * Define os comandos do bot
      * @param commands Comandos que será injetado
@@ -33,12 +52,11 @@ export interface IClient extends ClientEvents {
      * * Remove um comando na lista de comandos
      * @param command Comando que será removido
      */
-    removeCommand(command: ICommand): void;
-    /**
-     * @param command Comando que será procurado
-     * @returns Retorna um comando do bot
-     */
-    getCommand(command: string | ICommand): ICommand | null;
+    removeCommand(command: ICommand): boolean;
+    /** Procura um comando no texto */
+    searchCommand(text: string): ICommand | null;
+    /** Execução do comando */
+    runCommand(command: ICommand, message: IMessage, type?: string): any;
     /**
      * * Conectar bot
      * @param auth Autenticação do bot

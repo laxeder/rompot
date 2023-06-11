@@ -1,6 +1,6 @@
 import { MessageType } from "@enums/Message";
 
-import { ICommand } from "@interfaces/ICommand";
+import { ICommand, ICommandKey } from "@interfaces/command";
 import { IChat } from "@interfaces/IChat";
 import { IUser } from "@interfaces/IUser";
 
@@ -32,11 +32,15 @@ export function isUser(user: any): user is IUser {
 }
 
 export function isCommand(command: any): command is ICommand {
-  return typeof command === "object" && command.hasOwnProperty("execute") && command.hasOwnProperty("response");
+  return typeof command == "object" && command.hasOwnProperty("client") && command.hasOwnProperty("keys") && command.hasOwnProperty("permissions");
+}
+
+export function isCommandKey(commandKey: any): commandKey is ICommandKey {
+  return typeof commandKey == "object" && commandKey.hasOwnProperty("type") && commandKey.hasOwnProperty("values");
 }
 
 export function isAuth(auth: any): auth is IAuth {
-  return typeof auth === "object" && auth.hasOwnProperty("get") && auth.hasOwnProperty("set") && auth.hasOwnProperty("remove") && auth.hasOwnProperty("listAll");
+  return typeof auth == "object" && auth.hasOwnProperty("get") && auth.hasOwnProperty("set") && auth.hasOwnProperty("remove") && auth.hasOwnProperty("listAll");
 }
 
 export function isMessage(message: any): message is IMessage {

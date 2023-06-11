@@ -3,7 +3,7 @@ import { MessageType } from "@enums/Message";
 import { IMessage } from "@interfaces/IMessage";
 import { IClient } from "@interfaces/IClient";
 
-import { ClientBase } from "@modules/Base";
+import { ClientBase } from "@modules/ClientBase";
 
 import User from "@modules/User";
 import Chat from "@modules/Chat";

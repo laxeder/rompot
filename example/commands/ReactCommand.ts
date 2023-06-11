@@ -1,10 +1,11 @@
-import { Command, Message } from "../../src";
+import { CMDKeyExact, Command, IMessage } from "../../src";
 
 export class ReactCommand extends Command {
-  tags: string[] = ["react"];
-  prefix: string = "/";
+  public onRead() {
+    this.keys = [CMDKeyExact("react")];
+  }
 
-  public async execute(message: Message): Promise<void> {
-    await message.addAnimatedReaction(["❤️", "⏳"]);
+  public async onExec(message: IMessage) {
+    message.addAnimatedReaction(["❤️", "⏳"]);
   }
 }

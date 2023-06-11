@@ -8,7 +8,7 @@ import { IChat } from "@interfaces/IChat";
 
 import Message from "@messages/Message";
 
-import { ClientBase } from "@modules/Base";
+import { ClientBase } from "@modules/ClientBase";
 import User from "@modules/User";
 
 export default class Chat implements IChat {

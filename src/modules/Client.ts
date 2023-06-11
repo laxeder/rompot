@@ -1,11 +1,14 @@
 import type { IChats, ChatStatus } from "../types/Chat";
+import type { BotStatus } from "../types/Bot";
 import type { IUsers } from "../types/User";
 
 import { readFileSync } from "fs";
 
-import { ConnectionConfig, DefaultConnectionConfig } from "@config/ConnectionConfig";
-import { DefaultCommandConfig } from "@config/CommandConfig";
+import { ConnectionConfig, DEFAULT_CONNECTION_CONFIG } from "@config/index";
 
+import { CMDRunType } from "@enums/Command";
+
+import { ICommand, ICommandController } from "@interfaces/command";
 import { IMediaMessage, IMessage } from "@interfaces/IMessage";
 import { IClient } from "@interfaces/IClient";
 import { IAuth } from "@interfaces/IAuth";
@@ -13,7 +16,7 @@ import { IChat } from "@interfaces/IChat";
 import { IUser } from "@interfaces/IUser";
 import { IBot } from "@interfaces/IBot";
 
-import Command from "@modules/Command";
+import { CommandController } from "@modules/command";
 import User from "@modules/User";
 import Chat from "@modules/Chat";
 
@@ -27,7 +30,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
 
   public bot: Bot;
   public config: ConnectionConfig;
-  public commands: Command[];
+  public commandController: CommandController = new CommandController(this);
 
   public reconnectTimes: number = 0;
 
@@ -35,24 +38,24 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return this.bot.id;
   }
 
+  set id(id: string) {
+    this.bot.id = id;
+  }
+
   get status() {
     return this.bot.status;
   }
 
-  constructor(bot: Bot, config: Partial<ConnectionConfig> = DefaultConnectionConfig, commands: Command[] = []) {
+  set status(status: BotStatus) {
+    this.bot.status = status;
+  }
+
+  constructor(bot: Bot, config: Partial<ConnectionConfig> = {}) {
     super();
 
     this.bot = bot;
-    this.setCommands(commands);
 
-    this.config = {
-      commandConfig: config.commandConfig || DefaultCommandConfig,
-      disableAutoCommand: !!config.disableAutoCommand,
-      disableAutoTyping: !!config.disableAutoTyping,
-      disableAutoRead: !!config.disableAutoRead,
-      maxReconnectTimes: config.maxReconnectTimes || DefaultConnectionConfig.maxReconnectTimes,
-      reconnectTimeout: config.reconnectTimeout || DefaultConnectionConfig.reconnectTimeout,
-    };
+    this.config = { ...DEFAULT_CONNECTION_CONFIG, ...config };
 
     this.configEvents();
   }
@@ -64,11 +67,17 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
 
         if (this.promiseMessages.resolvePromiseMessages(message)) return;
 
-        this.emit("message", ApplyClient(message, this));
+        message = ApplyClient(message, this);
 
-        if (this.config.disableAutoCommand) return;
+        this.emit("message", message);
 
-        this.getCommand(message.text)?.execute(ApplyClient(message, this));
+        if (this.config.disableAutoCommand || message.apiSend) return;
+
+        const command = this.searchCommand(message.text);
+
+        if (command != null) {
+          this.runCommand(command, message, CMDRunType.Exec);
+        }
       } catch (err) {
         this.emit("error", getError(err));
       }
@@ -179,62 +188,44 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
 
   //! <============================> COMMANDS <============================>
 
-  public setCommands(commands: Command[]) {
-    const cmds: Command[] = [];
+  public getCommandController(): ICommandController {
+    return this.commandController;
+  }
 
-    for (const cmd of commands) {
-      cmd.client = this;
-      cmds.push(cmd);
-    }
+  public setCommandController(commandController: ICommandController) {
+    commandController.client = this;
 
-    this.commands = cmds;
+    this.commandController = commandController;
+  }
+
+  public setCommands(commands: ICommand[]) {
+    this.commandController.setCommands(commands);
   }
 
   public getCommands() {
-    return this.commands;
+    return this.commandController.getCommands();
   }
 
-  public addCommand(command: Command) {
+  public addCommand(command: ICommand): void {
+    this.commandController.addCommand(command);
+  }
+
+  public removeCommand(command: ICommand): boolean {
+    return this.commandController.removeCommand(command);
+  }
+
+  public searchCommand(text: string): ICommand | null {
+    const command = this.commandController.searchCommand(text);
+
+    if (command == null) return null;
+
     command.client = this;
-    this.commands.push(command);
+
+    return command;
   }
 
-  public removeCommand(command: Command) {
-    const cmds: Command[] = [];
-
-    for (const cmd of this.commands) {
-      if (!!cmd.id || cmd.id == command.id) continue;
-      if (!!cmd.tags || cmd.tags == command.tags) continue;
-      if (!!cmd.name || cmd.name == command.name) continue;
-      if (cmd === command) continue;
-
-      cmds.push(cmd);
-    }
-
-    this.commands = cmds;
-  }
-
-  public getCommand(command: string | Command): Command | null {
-    if (command instanceof Command) {
-      let cmd = command;
-
-      for (const c of this.commands) {
-        if (!!c.tags || c.tags == cmd.tags || !!c.name || c.name == cmd.name || !!c.id || c.id == cmd.id || c == cmd) {
-          cmd = c;
-          break;
-        }
-      }
-
-      cmd.client = this;
-
-      return cmd;
-    }
-
-    const cmd = this.config.commandConfig.get(command, this.commands);
-
-    if (!cmd) return null;
-
-    return cmd;
+  public runCommand(command: ICommand, message: IMessage, type?: string) {
+    return this.commandController.runCommand(command, message, type);
   }
 
   //! <============================> MESSAGES <============================>

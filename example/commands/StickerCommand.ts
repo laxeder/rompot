@@ -1,11 +1,11 @@
-import { Command, Message, StickerMessage, isMediaMessage } from "../../src";
+import { Command, StickerMessage, isMediaMessage, CMDKeyExact, IMessage } from "../../src";
 
 export class StickerCommand extends Command {
-  tags: string[] = ["s", "t", "i", "c", "k", "e", "r"];
-  reqTags: number = 1;
-  prefix: string = "/";
+  public onRead() {
+    this.keys = [CMDKeyExact(..."sticker")];
+  }
 
-  public async execute(message: Message): Promise<void> {
+  public async onExec(message: IMessage) {
     const mediaMessage = message.mention || message;
 
     if (!isMediaMessage(mediaMessage)) {

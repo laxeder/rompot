@@ -1,35 +1,20 @@
-import { Command, Message } from "../../src";
+import { CMDKeyExact, CMDPerms, Command, IMessage } from "../../src";
 
 export class RemoveUserInChatCommand extends Command {
-  tags: string[] = ["ban"];
-  prefix: string = "/";
-  name: string = "Ban User";
-  description: string = "Ban user in chat";
-  categories: string[] = ["admin", "group"];
-  permissions: string[] = ["chat-admin"];
+  public onRead() {
+    this.keys = [CMDKeyExact("ban")];
+    this.permissions = [CMDPerms.ChatGroup, CMDPerms.UserChatAdmin, CMDPerms.BotChatAdmin];
+  }
 
-  public async execute(message: Message): Promise<void> {
-    if (message.chat.type !== "group") {
-      await message.reply("Apenas é possível banir membros em grupos");
-      return;
-    }
+  public async onExec(message: IMessage) {
+    const userId = message.mentions[0] || !!message.mention ? message.mention.user.id : message.text.replace(/\D+/g, "");
 
-    if (!(await message.chat.IsAdmin(message.user))) {
-      await message.reply("Vocẽ não tem permissão para executar esse comando");
-      return;
-    }
-
-    if (!(await message.chat.IsAdmin(this.client.id))) {
-      await message.reply("Eu não tenho permissão para executar esse comando");
-      return;
-    }
-
-    if (message.mentions.length < 1) {
+    if (!!!userId) {
       await message.reply("Vocẽ precisa mencionar alguem para que ela possa ser banida");
       return;
     }
 
-    await message.chat.removeUser(message.mentions[0]);
+    await this.client.removeUserInChat(message.chat, userId);
 
     await message.chat.send("Usuário removido com sucesso!!");
   }

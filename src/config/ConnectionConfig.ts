@@ -1,19 +1,12 @@
-import CommandConfig, { DefaultCommandConfig } from "@config/CommandConfig";
-
 export interface ConnectionConfig {
-  commandConfig: CommandConfig;
+  /** Desativar execução de comando automatico */
   disableAutoCommand: boolean;
+  /** Desativar a digitação automatica */
   disableAutoTyping: boolean;
+  /** Desativar a leitura automatica de uma mensagem */
   disableAutoRead: boolean;
+  /** Máximo de reconexões possíveis */
   maxReconnectTimes: number;
+  /** Tempo de aguarde para se reconectar */
   reconnectTimeout: number;
 }
-
-export const DefaultConnectionConfig: ConnectionConfig = {
-  commandConfig: DefaultCommandConfig,
-  disableAutoCommand: false,
-  disableAutoTyping: false,
-  disableAutoRead: false,
-  maxReconnectTimes: 12,
-  reconnectTimeout: 1000,
-};

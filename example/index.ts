@@ -1,12 +1,9 @@
-import Client, { WhatsAppBot, Message, IMessage, DefaultCommandConfig } from "../src";
-
-import { getCommands } from "./commands";
+import Client, { WhatsAppBot, Message, IMessage, Command, CMDRunType, CMDPerms } from "../src";
 
 const client = new Client(new WhatsAppBot(), {
   disableAutoCommand: false,
   disableAutoTyping: false,
   disableAutoRead: false,
-  commandConfig: DefaultCommandConfig,
 });
 
 client.on("open", (open: { isNewLogin: boolean }) => {
@@ -43,9 +40,9 @@ client.on("message", async (message: IMessage) => {
   }
 
   if (message.selected.includes("poll")) {
-    const cmd = client.getCommand("/poll");
+    const cmd = client.searchCommand("/poll");
 
-    if (!!cmd) cmd.response(message);
+    if (!!cmd) client.runCommand(cmd, message, CMDRunType.Reply);
   }
 
   if (message.fromMe) {
@@ -95,5 +92,20 @@ client.on("error", (err: any) => {
   console.log("Um erro ocorreu:", err);
 });
 
-client.setCommands(getCommands());
-client.connect("./example/auth");
+(async () => {
+  const commands = await Command.readCommands(`${__dirname}/commands`);
+
+  client.setCommands(commands);
+
+  client.commandController.on("no-allowed", async ({ message, command, permission }) => {
+    if (permission.id == CMDPerms.BotChatAdmin) {
+      await message.reply("Eu preciso de permissão de admin para executar esse comando!");
+    }
+
+    if (permission.id == CMDPerms.UserChatAdmin) {
+      await message.reply("Somente admins podem usar esse comando!");
+    }
+  });
+
+  client.connect("./example/auth");
+})();

@@ -1,10 +1,11 @@
-import { Command, Message, PollMessage, isPollUpdateMessage } from "../../src";
+import { Command, Message, PollMessage, isPollUpdateMessage, CMDKeyExact, IMessage } from "../../src";
 
 export class PollCommand extends Command {
-  tags: string[] = ["poll"];
-  prefix: string = "/";
+  public onRead() {
+    this.keys = [CMDKeyExact("poll")];
+  }
 
-  public async execute(message: Message): Promise<void> {
+  public async onExec(message: IMessage) {
     const msg = new PollMessage(message.chat, "Enquete");
 
     msg.addOption("op1", "poll-id1");
@@ -14,7 +15,7 @@ export class PollCommand extends Command {
     await this.client.send(msg);
   }
 
-  public async response(message: Message): Promise<void> {
+  public async onReply(message: Message): Promise<void> {
     if (isPollUpdateMessage(message) && message.action == "remove") return;
 
     await message.chat.send(`Opção ${message.text} (${message.selected}) foi selecionado!`);

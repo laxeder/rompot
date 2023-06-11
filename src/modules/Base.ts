@@ -1,158 +1,178 @@
+import type { ChatStatus, IChats, IUsers, Media } from "../types";
 import type { BotStatus } from "../types/Bot";
 
+import { IMessage } from "@interfaces/IMessage";
+import { IAuth } from "@interfaces/IAuth";
+import { IChat } from "@interfaces/IChat";
+import { IUser } from "@interfaces/IUser";
 import { IBot } from "@interfaces/IBot";
 
-import Client from "@modules/Client";
 import User from "@modules/User";
 
 import { BotEvents } from "@utils/Emmiter";
 
-export function ClientBase() {
-  return new Client<BotBase>(new BotBase());
-}
-
 export class BotBase implements IBot {
-  id = "";
-  status: BotStatus = "offline";
-  ev: BotEvents = new BotEvents();
+  public id: string = "";
+  public status: BotStatus = "offline";
+  public ev: BotEvents = new BotEvents();
 
-  async connect(auth) {}
+  //! #################################################################
+  //! ########## MÉTODOS DE CONEXÃO
+  //! #################################################################
 
-  async reconnect(alert?) {}
+  public async connect(auth: IAuth): Promise<void> {}
 
-  async stop(reason) {}
+  public async reconnect(alert?: boolean): Promise<void> {}
 
-  async addReaction(message, reaction) {}
+  public async stop(reason: any): Promise<void> {}
 
-  async removeReaction(message) {}
+  //! #################################################################
+  //! ########## MÉTODOS DE MENSAGEM
+  //! #################################################################
 
-  async readMessage(message) {}
-
-  async send(message) {
+  public async send(message: IMessage): Promise<IMessage> {
     return message;
   }
 
-  async removeMessage(message) {}
+  public async addReaction(message: IMessage, reaction: string): Promise<void> {}
 
-  async deleteMessage(message) {}
+  public async removeReaction(message: IMessage): Promise<void> {}
 
-  async downloadStreamMessage(media) {
+  public async readMessage(message: IMessage): Promise<void> {}
+
+  public async removeMessage(message: IMessage): Promise<void> {}
+
+  public async deleteMessage(message: IMessage): Promise<void> {}
+
+  public async downloadStreamMessage(media: Media): Promise<Buffer> {
     return Buffer.from("");
   }
 
-  async getBotName() {
+  //! #################################################################
+  //! ########## MÉTODOS DO BOT
+  //! #################################################################
+
+  public async getBotName(): Promise<string> {
     return "";
   }
 
-  async setBotName(name) {}
+  public async setBotName(name: string): Promise<void> {}
 
-  async getBotDescription() {
+  public async getBotDescription(): Promise<string> {
     return "";
   }
 
-  async setBotDescription(description) {}
+  public async setBotDescription(description: string): Promise<void> {}
 
-  async getBotProfile() {
+  public async getBotProfile(): Promise<Buffer> {
     return Buffer.from("");
   }
 
-  async setBotProfile(image) {}
+  public async setBotProfile(image: Buffer): Promise<void> {}
 
-  async addChat(chat) {}
+  //! #################################################################
+  //! ########## MÉTODOS DO CHAT
+  //! #################################################################
 
-  async removeChat(chat) {}
+  public async getChats(): Promise<IChats> {
+    return {};
+  }
 
-  async addUserInChat(chat, user) {}
+  public async setChats(chats: IChats): Promise<void> {}
 
-  async removeUserInChat(chat, user) {}
-
-  async promoteUserInChat(chat, user) {}
-
-  async demoteUserInChat(chat, user) {}
-
-  async changeChatStatus(chat, status) {}
-
-  async createChat(chat) {}
-
-  async leaveChat(chat) {}
-
-  async getChat(chat) {
+  public async getChat(chat: IChat): Promise<IChat | null> {
     return null;
   }
 
-  async setChat(chat) {}
+  public async setChat(chat: IChat): Promise<void> {}
 
-  async getChatName(chat) {
-    return "";
-  }
+  public async addChat(chat: IChat): Promise<void> {}
 
-  async setChatName(chat, name) {}
+  public async removeChat(chat: IChat): Promise<void> {}
 
-  async getChatDescription(chat) {
-    return "";
-  }
+  public async createChat(chat: IChat): Promise<void> {}
 
-  async setChatDescription(chat, description) {}
+  public async leaveChat(chat: IChat): Promise<void> {}
 
-  async getChatProfile(chat) {
-    return Buffer.from("");
-  }
+  public async addUserInChat(chat: IChat, user: IUser): Promise<void> {}
 
-  async setChatProfile(chat, profile) {}
+  public async removeUserInChat(chat: IChat, user: IUser): Promise<void> {}
 
-  async getChatUsers(chat) {
+  public async promoteUserInChat(chat: IChat, user: IUser): Promise<void> {}
+
+  public async demoteUserInChat(chat: IChat, user: IUser): Promise<void> {}
+
+  public async changeChatStatus(chat: IChat, status: ChatStatus): Promise<void> {}
+
+  public async getChatUsers(chat: IChat): Promise<IUsers> {
     return {};
   }
 
-  async getChatAdmins(chat) {
+  public async getChatAdmins(chat: IChat): Promise<IUsers> {
     return {};
   }
 
-  async getChatLeader(chat) {
+  public async getChatLeader(chat: IChat): Promise<IUser> {
     return new User("");
   }
 
-  async getChats() {
-    return {};
-  }
-
-  async setChats(chats) {}
-
-  async addUser(user) {}
-
-  async removeUser(user) {}
-
-  async getUser(user) {
-    return null;
-  }
-
-  async setUser(user) {}
-
-  async getUserName(user) {
+  public async getChatName(chat: IChat): Promise<string> {
     return "";
   }
 
-  async setUserName(user, name) {}
+  public async setChatName(chat: IChat, name: string): Promise<void> {}
 
-  async getUserDescription(user) {
+  public async getChatDescription(chat: IChat): Promise<string> {
     return "";
   }
 
-  async setUserDescription(user, description) {}
+  public async setChatDescription(chat: IChat, description: string): Promise<void> {}
 
-  async getUserProfile(user) {
+  public async getChatProfile(chat: IChat): Promise<Buffer> {
     return Buffer.from("");
   }
 
-  async setUserProfile(user, profile) {}
+  public async setChatProfile(chat: IChat, profile: Buffer): Promise<void> {}
 
-  async unblockUser(user) {}
+  //! #################################################################
+  //! ########## MÉTODOS DO USUÁRIO
+  //! #################################################################
 
-  async blockUser(user) {}
-
-  async getUsers() {
+  public async getUsers(): Promise<IUsers> {
     return {};
   }
 
-  async setUsers(users) {}
+  public async setUsers(users: IUsers): Promise<void> {}
+
+  public async getUser(user: IUser): Promise<IUser | null> {
+    return null;
+  }
+
+  public async setUser(user: IUser): Promise<void> {}
+
+  public async addUser(user: IUser): Promise<void> {}
+
+  public async removeUser(user: IUser): Promise<void> {}
+
+  public async unblockUser(user: IUser): Promise<void> {}
+
+  public async blockUser(user: IUser): Promise<void> {}
+
+  public async getUserName(user: IUser): Promise<string> {
+    return "";
+  }
+
+  public async setUserName(user: IUser, name: string): Promise<void> {}
+
+  public async getUserDescription(user: IUser): Promise<string> {
+    return "";
+  }
+
+  public async setUserDescription(user: IUser, description: string): Promise<void> {}
+
+  public async getUserProfile(user: IUser): Promise<Buffer> {
+    return Buffer.from("");
+  }
+
+  public async setUserProfile(user: IUser, profile: Buffer): Promise<void> {}
 }

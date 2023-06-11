@@ -1,7 +1,9 @@
+import { readdirSync, statSync } from "fs";
+import { parse, resolve } from "path";
 import { Transform } from "stream";
 import https from "https";
 
-import { ROMPOT_VERSION } from "@config/Api";
+import { ROMPOT_VERSION } from "@config/Defaults";
 
 import { IClient } from "@interfaces/IClient";
 
@@ -122,6 +124,33 @@ export function ApplyClient<T extends any>(obj: T, client: IClient): T {
   return obj;
 }
 
+/** Retorna a versão do Rompot */
 export function getRompotVersion(): string {
   return ROMPOT_VERSION;
+}
+
+/** Lê um diretório recursivamente */
+export async function readRecursiveDir<Callback extends (fileptah: string, filename: string, ext: string) => any>(dir: string, callback: Callback): Promise<ReturnType<Awaited<Callback>>[]> {
+  const files: any[] = [];
+  const rtn: ReturnType<Awaited<Callback>>[] = [];
+
+  try {
+    await Promise.all(
+      readdirSync(dir).map(async (filename) => {
+        const filepath = resolve(dir, filename);
+        const stat = statSync(filepath);
+        const isFile = stat.isFile();
+
+        if (!isFile) {
+          files.push(...(await readRecursiveDir(filepath, callback)));
+
+          return;
+        }
+
+        rtn.push(await callback(filepath, filename, parse(filename).ext));
+      })
+    );
+  } catch (err) {}
+
+  return rtn;
 }

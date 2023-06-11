@@ -41,4 +41,7 @@ export declare function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, o
  * @returns Objeto com Cliente adicionado
  */
 export declare function ApplyClient<T extends any>(obj: T, client: IClient): T;
+/** Retorna a versão do Rompot */
 export declare function getRompotVersion(): string;
+/** Lê um diretório recursivamente */
+export declare function readRecursiveDir<Callback extends (fileptah: string, filename: string, ext: string) => any>(dir: string, callback: Callback): Promise<ReturnType<Awaited<Callback>>[]>;

@@ -1,14 +1,11 @@
-import { Command, Message } from "../../src";
+import { CMDKey, CMDKeyExact, Command, IMessage } from "../../src";
 
 export class HelloCommand extends Command {
-  tags: string[] = ["h", "e", "l", "l", "o"];
-  reqTags: number = 3;
-  prefix: string = "/";
-  name: string = "Olá!";
-  description: string = "Reply hello";
-  categories: string[] = ["dev"];
+  public onRead() {
+    this.keys = [CMDKey("hello")];
+  }
 
-  public async execute(message: Message): Promise<void> {
-    await message.reply(`Hello World`);
+  public async onExec(message: IMessage) {
+    await message.reply(`Hello World!`);
   }
 }
