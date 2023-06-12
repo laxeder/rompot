@@ -16,13 +16,12 @@ import { WAChat, WAUser } from "@wa/WAModules";
 import { getID, replaceID } from "@wa/ID";
 import { WAStatus } from "@wa/WAStatus";
 
-import { IMessage, IPollMessage } from "@interfaces/IMessage";
+import { IMessage, IPollMessage, IReactionMessage } from "@interfaces/IMessage";
 import { IChat } from "@interfaces/IChat";
 import { IUser } from "@interfaces/IUser";
 import { IAuth } from "@interfaces/IAuth";
 import { IBot } from "@interfaces/IBot";
 
-import ReactionMessage from "@messages/ReactionMessage";
 import PollMessage from "@messages/PollMessage";
 
 import { getImageURL, getRompotVersion, injectJSON } from "@utils/Generic";
@@ -663,16 +662,16 @@ export default class WhatsAppBot implements IBot {
     await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), { delete: key }));
   }
 
-  public async addReaction(message: IMessage, reaction: string): Promise<void> {
-    const reactionMessage = new ReactionMessage(message.chat, reaction, message, { user: message.user });
-
-    await this.send(reactionMessage);
+  public async addReaction(message: IReactionMessage): Promise<void> {
+    await this.send(message);
   }
 
-  public async removeReaction(message: IMessage): Promise<void> {
-    const reactionMessage = new ReactionMessage(message.chat, "", message, { user: message.user });
+  public async removeReaction(message: IReactionMessage): Promise<void> {
+    await this.send(message);
+  }
 
-    await this.send(reactionMessage);
+  public async editMessage(message: IMessage): Promise<void> {
+    await this.send(message);
   }
 
   public async send(content: IMessage): Promise<IMessage> {

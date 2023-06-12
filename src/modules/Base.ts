@@ -1,7 +1,7 @@
 import type { ChatStatus, IChats, IUsers, Media } from "../types";
 import type { BotStatus } from "../types/Bot";
 
-import { IMessage } from "@interfaces/IMessage";
+import { IMessage, IReactionMessage } from "@interfaces/IMessage";
 import { IAuth } from "@interfaces/IAuth";
 import { IChat } from "@interfaces/IChat";
 import { IUser } from "@interfaces/IUser";
@@ -34,9 +34,11 @@ export class BotBase implements IBot {
     return message;
   }
 
-  public async addReaction(message: IMessage, reaction: string): Promise<void> {}
+  public async editMessage(message: IMessage): Promise<void> {}
 
-  public async removeReaction(message: IMessage): Promise<void> {}
+  public async addReaction(message: IReactionMessage): Promise<void> {}
+
+  public async removeReaction(message: IReactionMessage): Promise<void> {}
 
   public async readMessage(message: IMessage): Promise<void> {}
 

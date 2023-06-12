@@ -28,9 +28,10 @@ export default class Message implements IMessage {
   public fromMe: boolean = false;
   public apiSend: boolean = false;
   public isDeleted: boolean = false;
+  public isEdited: boolean = false;
 
   public mentions: string[] = [];
-  public timestamp: Number | Long = Date.now();
+  public timestamp: Number = Date.now();
 
   get client(): IClient {
     return this.#client;

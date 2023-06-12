@@ -111,6 +111,16 @@ export class WhatsAppMessage {
     if (message.fromMe) msg.fromMe = message.fromMe;
     if (message.id) msg.id = message.id;
 
+    if (message.isEdited) {
+      msg.edit = {
+        remoteJid: getID(message.chat.id) || "",
+        id: message.id || "",
+        fromMe: message.fromMe || message.user.id == this._wa.id,
+        participant: isJidGroup(message.chat.id) ? getID(message.user.id || this._wa.id) : undefined,
+        toJSON: () => this,
+      };
+    }
+
     return msg;
   }
 

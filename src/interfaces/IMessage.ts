@@ -12,30 +12,32 @@ export interface IMessage {
 
   set client(client: IClient);
 
-  /** * Tipo da mensagem */
+  /** Tipo da mensagem */
   type: MessageType;
-  /** * Sala de bate-papo que foi enviada a mensagem */
+  /** Sala de bate-papo que foi enviada a mensagem */
   chat: IChat;
-  /** * Usuário que mandou a mensagem */
+  /** Usuário que mandou a mensagem */
   user: IUser;
-  /** * Texto da mensagem */
+  /** Texto da mensagem */
   text: string;
-  /** * Mensagem mencionada na mensagem */
+  /** Mensagem mencionada na mensagem */
   mention?: IMessage | undefined;
-  /** * ID da mensagem */
+  /** ID da mensagem */
   id: string;
-  /** * Mensagem enviada pelo bot */
+  /** Mensagem enviada pelo bot */
   fromMe: boolean;
-  /** * Mensagem enviada pela api */
-  apiSend: boolean;
-  /** * Mensagem foi deletada */
-  isDeleted: boolean;
-  /** * Opção selecionada */
+  /** Opção selecionada */
   selected: string;
-  /** * Usuários mencionados na mensagem */
+  /** Usuários mencionados na mensagem */
   mentions: string[];
-  /** * Tempo em que a mensagem foi enviada */
-  timestamp: Number | Long;
+  /** Tempo em que a mensagem foi enviada */
+  timestamp: Number;
+  /** A mensagem é editada */
+  isEdited: boolean;
+  /** A Mensagem foi deletada */
+  isDeleted: boolean;
+  /** A mensagem foi enviada pela api */
+  apiSend: boolean;
 
   /**
    * * Adiciona uma reação a mensagem

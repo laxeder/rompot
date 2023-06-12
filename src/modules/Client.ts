@@ -16,6 +16,8 @@ import { IChat } from "@interfaces/IChat";
 import { IUser } from "@interfaces/IUser";
 import { IBot } from "@interfaces/IBot";
 
+import ReactionMessage from "@messages/ReactionMessage";
+
 import { CommandController } from "@modules/command";
 import User from "@modules/User";
 import Chat from "@modules/Chat";
@@ -238,12 +240,23 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return this.bot.removeMessage(message);
   }
 
+  public readMessage(message: IMessage) {
+    return this.bot.readMessage(message);
+  }
+
+  public editMessage(message: IMessage, text: string): Promise<void> {
+    message.text = text;
+    message.isEdited = true;
+
+    return this.bot.editMessage(message);
+  }
+
   public addReaction(message: IMessage, reaction: string): Promise<void> {
-    return this.bot.addReaction(message, reaction);
+    return this.bot.addReaction(new ReactionMessage(message.chat, reaction, message));
   }
 
   public removeReaction(message: IMessage): Promise<void> {
-    return this.bot.removeReaction(message);
+    return this.bot.removeReaction(new ReactionMessage(message.chat, "", message));
   }
 
   public addAnimatedReaction(message: IMessage, reactions: string[], interval: number = 2000, maxTimeout: number = 60000): (reactionStop?: string) => Promise<void> {
@@ -279,10 +292,6 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     addReaction(0);
 
     return stop;
-  }
-
-  public readMessage(message: IMessage) {
-    return this.bot.readMessage(message);
   }
 
   public async send(message: IMessage): Promise<IMessage> {
