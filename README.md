@@ -404,7 +404,7 @@ client.demoteUserInChat(chat, user);
 
 Esse Software foi construído com:
 
-- [Baileys@6.2.1](https://github.com/WhiskeySockets/Baileys) - API para se conectar ao WhatsApp
+- [Baileys@6.1.0](https://github.com/WhiskeySockets/Baileys) - API para se conectar ao WhatsApp
 
 ## 📄 Licença
 
