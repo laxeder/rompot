@@ -3,7 +3,7 @@ import { MessageType } from "@enums/Message";
 import { IMessage, IReactionMessage } from "@interfaces/IMessage";
 import { IChat } from "@interfaces/IChat";
 
-import { Message } from "@messages/index";
+import Message from "@messages/Message";
 
 import { injectJSON } from "@utils/Generic";
 
