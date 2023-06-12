@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import type { ChatStatus, IChats, IUsers, Media } from "../types";
 import type { BotStatus } from "../types/Bot";
-import { IMessage } from "../interfaces/IMessage";
+import { IMessage, IReactionMessage } from "../interfaces/IMessage";
 import { IAuth } from "../interfaces/IAuth";
 import { IChat } from "../interfaces/IChat";
 import { IUser } from "../interfaces/IUser";
@@ -15,8 +15,9 @@ export declare class BotBase implements IBot {
     reconnect(alert?: boolean): Promise<void>;
     stop(reason: any): Promise<void>;
     send(message: IMessage): Promise<IMessage>;
-    addReaction(message: IMessage, reaction: string): Promise<void>;
-    removeReaction(message: IMessage): Promise<void>;
+    editMessage(message: IMessage): Promise<void>;
+    addReaction(message: IReactionMessage): Promise<void>;
+    removeReaction(message: IReactionMessage): Promise<void>;
     readMessage(message: IMessage): Promise<void>;
     removeMessage(message: IMessage): Promise<void>;
     deleteMessage(message: IMessage): Promise<void>;

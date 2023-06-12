@@ -1,4 +1,4 @@
-import { ICommandKey } from "../../interfaces/command";
+import { ICommandControllerConfig, ICommandKey } from "../../interfaces/command";
 /** Chave do comando */
 export declare class CommandKey implements ICommandKey {
     type: string;
@@ -8,7 +8,7 @@ export declare class CommandKey implements ICommandKey {
      * Procura pela chave em um texto
      * @return retorna se a chave foi encontrada
      */
-    static search(text: string, ...keys: ICommandKey[]): ICommandKey | null;
+    static search(text: string, config: ICommandControllerConfig, ...keys: ICommandKey[]): ICommandKey | null;
     /** Verifica se o texto contem as chaves */
     static verify(text: string, keys: string[]): boolean;
     /** Verifica se o texto tem as chaves exatas */

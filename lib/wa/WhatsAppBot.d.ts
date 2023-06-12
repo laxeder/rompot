@@ -7,7 +7,7 @@ import { DisconnectReason, proto, MediaDownloadOptions, WASocket, SocketConfig }
 import ConfigWAEvents from "./ConfigWAEvents";
 import { WAChats, WAUsers } from "./WATypes";
 import { WAChat, WAUser } from "./WAModules";
-import { IMessage, IPollMessage } from "../interfaces/IMessage";
+import { IMessage, IPollMessage, IReactionMessage } from "../interfaces/IMessage";
 import { IChat } from "../interfaces/IChat";
 import { IUser } from "../interfaces/IUser";
 import { IAuth } from "../interfaces/IAuth";
@@ -165,8 +165,9 @@ export default class WhatsAppBot implements IBot {
     readMessage(message: IMessage): Promise<void>;
     removeMessage(message: IMessage): Promise<void>;
     deleteMessage(message: IMessage): Promise<void>;
-    addReaction(message: IMessage, reaction: string): Promise<void>;
-    removeReaction(message: IMessage): Promise<void>;
+    addReaction(message: IReactionMessage): Promise<void>;
+    removeReaction(message: IReactionMessage): Promise<void>;
+    editMessage(message: IMessage): Promise<void>;
     send(content: IMessage): Promise<IMessage>;
     downloadStreamMessage(media: Media): Promise<Buffer>;
     /**

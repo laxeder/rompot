@@ -1,4 +1,3 @@
-/// <reference types="long" />
 import { MessageType } from "../enums/Message";
 import { IMessage } from "../interfaces/IMessage";
 import { IClient } from "../interfaces/IClient";
@@ -16,8 +15,9 @@ export default class Message implements IMessage {
     fromMe: boolean;
     apiSend: boolean;
     isDeleted: boolean;
+    isEdited: boolean;
     mentions: string[];
-    timestamp: Number | Long;
+    timestamp: Number;
     get client(): IClient;
     set client(client: IClient);
     constructor(chat: IChat | string, text: string, others?: Partial<Message>);

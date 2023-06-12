@@ -41,10 +41,11 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     runCommand(command: ICommand, message: IMessage, type?: string): Promise<any>;
     deleteMessage(message: IMessage): Promise<void>;
     removeMessage(message: IMessage): Promise<void>;
+    readMessage(message: IMessage): Promise<void>;
+    editMessage(message: IMessage, text: string): Promise<void>;
     addReaction(message: IMessage, reaction: string): Promise<void>;
     removeReaction(message: IMessage): Promise<void>;
     addAnimatedReaction(message: IMessage, reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void>;
-    readMessage(message: IMessage): Promise<void>;
     send(message: IMessage): Promise<IMessage>;
     awaitMessage(chat: IChat | string, ignoreMessageFromMe?: boolean, stopRead?: boolean, ...ignoreMessages: IMessage[]): Promise<IMessage>;
     addAutomate(message: IMessage, timeout: number, chats?: IChats, id?: string): Promise<any>;

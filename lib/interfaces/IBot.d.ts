@@ -1,9 +1,9 @@
 /// <reference types="node" />
+import type { IMessage, IReactionMessage } from "./IMessage";
 import type { IChats, ChatStatus } from "../types/Chat";
 import type { BotStatus } from "../types/Bot";
 import type { Media } from "../types/Message";
 import type { IUsers } from "../types/User";
-import type { IMessage } from "./IMessage";
 import { IAuth } from "./IAuth";
 import { IUser } from "./IUser";
 import { IChat } from "./IChat";
@@ -34,6 +34,22 @@ export interface IBot {
      * @param message Mensagem que será visualizada
      */
     readMessage(message: IMessage): Promise<void>;
+    /**
+     * * Adiciona uma reação na mensagem
+     * @param message Mensagem
+     * @param reaction Reação
+     */
+    addReaction(message: IReactionMessage): Promise<void>;
+    /**
+     * * Remove a reação da mensagem
+     * @param Mensagem que terá sua reação removida
+     */
+    removeReaction(message: IReactionMessage): Promise<void>;
+    /**
+     * * Edita o texto de uma mensagem enviada
+     * @param message Mensagem com o texto editado
+     */
+    editMessage(message: IMessage): Promise<void>;
     /**
      * * Enviar mensagem
      * @param message Mensagem que será enviada
@@ -265,15 +281,4 @@ export interface IBot {
      * @param users Usuários
      */
     setUsers(users: IUsers): Promise<void>;
-    /**
-     * * Adiciona uma reação na mensagem
-     * @param message Mensagem
-     * @param reaction Reação
-     */
-    addReaction(message: IMessage, reaction: string): Promise<void>;
-    /**
-     * * Remove a reação da mensagem
-     * @param Mensagem que terá sua reação removida
-     */
-    removeReaction(message: IMessage): Promise<void>;
 }

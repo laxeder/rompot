@@ -2,13 +2,13 @@ import { MessageUpsertType, proto, WAMessage, WAMessageContent } from "@whiskeys
 import { IMessage } from "../interfaces/IMessage";
 import WhatsAppBot from "./WhatsAppBot";
 export declare class WhatsAppConvertMessage {
-    private _type?;
-    private _message;
-    private _convertedMessage;
-    private _user;
-    private _chat;
-    private _mention?;
-    private _wa;
+    private type?;
+    private message;
+    private convertedMessage;
+    private user;
+    private chat;
+    private mention?;
+    private wa;
     constructor(wa: WhatsAppBot, message: WAMessage, type?: MessageUpsertType);
     /**
      * * Define a mensagem a ser convertida
@@ -59,6 +59,11 @@ export declare class WhatsAppConvertMessage {
      * @param content
      */
     convertReactionMessage(content: any): void;
+    /**
+     * * Converte uma mensagem editada
+     * @param content
+     */
+    convertEditedMessage(content: any): Promise<void>;
     /**
      * * Converte uma mensagem de enquete
      * @param content

@@ -1,4 +1,4 @@
-import { ICommand, ICommandPermission } from "../../interfaces/command";
+import { ICommand, ICommandControllerConfig, ICommandPermission } from "../../interfaces/command";
 import { ICommandKey } from "../../interfaces/command";
 import { IMessage } from "../../interfaces/IMessage";
 import { IClient } from "../../interfaces/IClient";
@@ -7,7 +7,7 @@ export declare class Command implements ICommand {
     keys: ICommandKey[];
     permissions: string[];
     checkPerms(message: IMessage): Promise<ICommandPermission | null>;
-    onSearch(text: string): ICommandKey | null;
+    onSearch(text: string, config: ICommandControllerConfig): ICommandKey | null;
     onRead(): any;
     onConfig(): any;
     onExec(message: IMessage): any;

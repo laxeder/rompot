@@ -97,6 +97,12 @@ export interface IClient extends ClientEvents {
      */
     readMessage(message: IMessage): Promise<void>;
     /**
+     * * Edita o texto de uma mensagem enviada
+     * @param message Mensagem que será editada
+     * @param text Novo texto da mensagem
+     */
+    editMessage(message: IMessage, text: string): Promise<void>;
+    /**
      * * Envia um conteúdo
      * @param content
      * @returns Retorna o conteudo enviado
