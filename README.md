@@ -46,17 +46,17 @@ client.on("qr", (qr) => {
 
 ```ts
 type ConnectionConfig = {
-  /** * Configuração dos comandos */
-  commandConfig?: CommandConfig;
-  /** * Desabilita comandos automaticos */
-  disableAutoCommand?: boolean;
-  /** * Desabilita escrevndo automatico */
-  disableAutoTyping?: boolean;
-  /** * Desabilita a visualização automatica das mensagem recebidas */
-  disableAutoRead?: boolean;
+  /** Desativar execução de comando automatico */
+  disableAutoCommand: boolean;
+  /** Desativar a digitação automatica */
+  disableAutoTyping: boolean;
+  /** Desativar a leitura automatica de uma mensagem */
+  disableAutoRead: boolean;
+  /** Máximo de reconexões possíveis */
+  maxReconnectTimes: number;
+  /** Tempo de aguarde para se reconectar */
+  reconnectTimeout: number;
 };
-
-const config: ConnectionConfig = {};
 
 client.config = config;
 ```
@@ -64,25 +64,17 @@ client.config = config;
 ## ⚙️ Criando comandos
 
 ```ts
-import { Command, IMessage } from "rompot";
+import { CMDKey, Command, IMessage } from "../../src";
 
 // Cria um comando com o nome hello
 // Ao ser executado envia a mensagem "Hello World!"
 class HelloCommand extends Command {
-  tags: string[] = ["hello"];
-  prefix: string = "/";
-
-  public async execute(message: IMessage) {
-    await message.reply(`Hello World!`);
+  public onRead() {
+    this.keys = [CMDKey("hello")];
   }
-}
 
-class DateCommand extends Command {
-  tags: string[] = ["date"];
-  prefix: string = "/";
-
-  public async execute(message: IMessage) {
-    await message.reply(`Data: ${new Date()}`);
+  public async onExec(message: IMessage) {
+    await message.reply(`Hello World!`);
   }
 }
 
@@ -180,7 +172,10 @@ const chat = new Chat("id12345");
 const msg = new Message(chat, "texto");
 
 // Enviar mensagem
-client.send(msg);
+const saveMsg = await client.send(msg);
+
+// Edita uma mensagem enviada
+await client.editMessage(saveMsg, "novo texto");
 
 // Mencionar usuário
 msg.mentions.push("userId");
@@ -200,7 +195,7 @@ msg.read();
 // Reage a mensagem
 msg.addReaction("❤");
 
-// remove a reação de uma mensagem
+// Remove a reação de uma mensagem
 msg.removeReaction();
 ```
 
@@ -265,12 +260,15 @@ pollMessage.addOption("Hi", "id-hi-123");
 ## Lendo resposas de ButtonMessage, ListMessage e PollMessage
 
 ```ts
-import { Command, IMessage, isPollMessage } from "rompot";
+import { Command, IMessage, CMDKey, CMDRunType, isPollMessage } from "rompot";
 
 class ButtonCommand extends Command {
-  tags: string[] = ["cmd-button"];
+  public onRead() {
+    this.keys = [CMDKey("cmd-button")];
+  }
 
-  public async response(message: IMessage) {
+  // Recebe uma resposta ao comando
+  public async onReply(message: IMessage) {
     await message.reply(`Button Clicked!`);
   }
 }
@@ -288,7 +286,7 @@ client.on("message", async (message: IMessage) => {
     const cmd = client.getCommand("cmd-button");
 
     // Manda a resposta ao comando
-    if (cmd) cmd.response(message);
+    if (cmd) client.runCommand(cmd, message, CMDRunType.Reply);
   }
 }):
 ```
@@ -406,7 +404,7 @@ client.demoteUserInChat(chat, user);
 
 Esse Software foi construído com:
 
-- [Baileys@6.1.0](https://github.com/WhiskeySockets/Baileys) - API para se conectar ao WhatsApp
+- [Baileys@6.2.1](https://github.com/WhiskeySockets/Baileys) - API para se conectar ao WhatsApp
 
 ## 📄 Licença
 
