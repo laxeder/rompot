@@ -47,6 +47,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     removeReaction(message: IMessage): Promise<void>;
     addAnimatedReaction(message: IMessage, reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void>;
     send(message: IMessage): Promise<IMessage>;
+    sendMessage(chat: IChat | string, message: string | IMessage, mention?: IMessage): Promise<IMessage>;
     awaitMessage(chat: IChat | string, ignoreMessageFromMe?: boolean, stopRead?: boolean, ...ignoreMessages: IMessage[]): Promise<IMessage>;
     addAutomate(message: IMessage, timeout: number, chats?: IChats, id?: string): Promise<any>;
     /**

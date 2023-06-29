@@ -15,6 +15,7 @@ export declare class BotBase implements IBot {
     reconnect(alert?: boolean): Promise<void>;
     stop(reason: any): Promise<void>;
     send(message: IMessage): Promise<IMessage>;
+    sendMessage(chat: IChat | string, message: string | IMessage, mention?: IMessage): Promise<IMessage>;
     editMessage(message: IMessage): Promise<void>;
     addReaction(message: IReactionMessage): Promise<void>;
     removeReaction(message: IReactionMessage): Promise<void>;

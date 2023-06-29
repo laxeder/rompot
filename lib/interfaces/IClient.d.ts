@@ -109,6 +109,13 @@ export interface IClient extends ClientEvents {
      */
     send(message: IMessage): Promise<IMessage>;
     /**
+     * * Envia uma mensagem
+     * @param chat Sala de bate-papo onde irá ser enviado a mensagem
+     * @param message Mensagem que será enviada
+     * @param mention Mensagem que será mencionada
+     */
+    sendMessage(chat: IChat | string, message: string | IMessage, mention?: IMessage): Promise<IMessage>;
+    /**
      * * Aguarda uma mensagem ser recebida em uma sala de bate-papo
      * @param chatId Sala de bate-papo que irá receber a mensagem
      * @param ignoreMessageFromMe Ignora a mensagem se quem enviou foi o próprio bot

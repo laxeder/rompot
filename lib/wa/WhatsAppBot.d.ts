@@ -26,6 +26,8 @@ export default class WhatsAppBot implements IBot {
     connectionResolve: (() => void)[];
     configEvents: ConfigWAEvents;
     wcb: WaitCallBack;
+    chatWCB: WaitCallBack;
+    msgWCB: WaitCallBack;
     chats: WAChats;
     users: WAUsers;
     apiMessagesId: string[];
