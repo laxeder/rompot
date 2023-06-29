@@ -24,7 +24,7 @@
   "dependencies": {
     "@adiwajshing/keyed-db": "0.2.4",
     "@laxeder/wa-sticker": "4.4.4",
-    "@whiskeysockets/baileys": "6.1.0",
+    "@whiskeysockets/baileys": "6.3.0",
     "crypto-digest-sync": "1.0.0",
     "jimp": "0.16.2",
     "link-preview-js": "3.0.0",
