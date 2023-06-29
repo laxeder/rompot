@@ -44,6 +44,8 @@ export default class WhatsAppBot implements IBot {
   public connectionResolve: (() => void)[] = [];
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
   public wcb: WaitCallBack = new WaitCallBack((err: any) => this.ev.emit("error", err));
+  public chatWCB: WaitCallBack = new WaitCallBack((err: any) => this.ev.emit("error", err));
+  public msgWCB: WaitCallBack = new WaitCallBack((err: any) => this.ev.emit("error", err));
 
   public chats: WAChats = {};
   public users: WAUsers = {};
@@ -54,6 +56,7 @@ export default class WhatsAppBot implements IBot {
     this.config = {
       printQRInTerminal: true,
       logger: this.logger,
+      defaultQueryTimeoutMs: 10000,
       browser: WhatsAppBot.Browser(),
       ...config,
     };
@@ -245,7 +248,7 @@ export default class WhatsAppBot implements IBot {
     const newChat = this.chats[chat.id] || new WAChat(chat.id);
 
     if (newChat.id.includes("@g")) {
-      const metadata = await this.wcb.waitCall(() => this.sock?.groupMetadata(getID(newChat.id)));
+      const metadata = await this.chatWCB.waitCall(() => this.sock?.groupMetadata(getID(newChat.id)));
 
       for (const p of metadata?.participants || []) {
         const user = this.users[replaceID(p.id)] || new WAUser(replaceID(p.id));
@@ -347,7 +350,7 @@ export default class WhatsAppBot implements IBot {
   }
 
   public async getChatProfile(chat: IChat) {
-    const uri = await this.wcb.waitCall(() => this.sock.profilePictureUrl(getID(chat.id), "image"));
+    const uri = await this.chatWCB.waitCall(() => this.sock.profilePictureUrl(getID(chat.id), "image"));
 
     return await getImageURL(uri);
   }
@@ -512,7 +515,7 @@ export default class WhatsAppBot implements IBot {
   }
 
   public async getUserDescription(user: IUser): Promise<string> {
-    return this.wcb.waitCall(async () => (await this.sock.fetchStatus(String(getID(user.id))))?.status || "");
+    return this.chatWCB.waitCall(async () => (await this.sock.fetchStatus(String(getID(user.id))))?.status || "");
   }
 
   public async setUserDescription(user: IUser, description: string): Promise<void> {
@@ -522,7 +525,7 @@ export default class WhatsAppBot implements IBot {
   }
 
   public async getUserProfile(user: IUser, lowQuality?: boolean) {
-    const uri = await this.wcb.waitCall(() => this.sock.profilePictureUrl(getID(user.id), !!lowQuality ? "preview" : "image"));
+    const uri = await this.chatWCB.waitCall(() => this.sock.profilePictureUrl(getID(user.id), !!lowQuality ? "preview" : "image"));
 
     return await getImageURL(uri);
   }
@@ -636,11 +639,11 @@ export default class WhatsAppBot implements IBot {
       toJSON: () => key,
     };
 
-    return await this.wcb.waitCall(() => this.sock.readMessages([key]));
+    return await this.msgWCB.waitCall(() => this.sock.readMessages([key]));
   }
 
   public async removeMessage(message: IMessage) {
-    return await this.wcb.waitCall(() =>
+    return await this.msgWCB.waitCall(() =>
       this.sock?.chatModify(
         {
           clear: { messages: [{ id: message.id || "", fromMe: message.user.id == this.id, timestamp: Number(message.timestamp || Date.now()) }] },
@@ -659,7 +662,7 @@ export default class WhatsAppBot implements IBot {
       key.participant = getID(message.user.id);
     }
 
-    await this.wcb.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), { delete: key }));
+    await this.msgWCB.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), { delete: key }));
   }
 
   public async addReaction(message: IReactionMessage): Promise<void> {
@@ -679,14 +682,14 @@ export default class WhatsAppBot implements IBot {
     await waMSG.refactory(content);
 
     if (waMSG.isRelay) {
-      const id = await this.wcb.waitCall(() => this.sock?.relayMessage(waMSG.chat, waMSG.message, { ...waMSG.options, messageId: waMSG.chat })).catch((err) => this.ev.emit("error", err));
+      const id = await this.msgWCB.waitCall(() => this.sock?.relayMessage(waMSG.chat, waMSG.message, { ...waMSG.options, messageId: waMSG.chat })).catch((err) => this.ev.emit("error", err));
 
       if (!!id && typeof id == "string") content.id = id;
 
       return content;
     }
 
-    const sendedMessage = await this.wcb.waitCall(() => this.sock?.sendMessage(waMSG.chat, waMSG.message, waMSG.options)).catch((err) => this.ev.emit("error", err));
+    const sendedMessage = await this.msgWCB.waitCall(() => this.sock?.sendMessage(waMSG.chat, waMSG.message, waMSG.options)).catch((err) => this.ev.emit("error", err));
 
     if (typeof sendedMessage == "boolean") return content;
 
