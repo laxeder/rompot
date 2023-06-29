@@ -90,6 +90,10 @@ export function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut
 
     if (!objectOut.hasOwnProperty(keyOut)) return;
 
+    if (typeof objectOut[keyOut] == "undefined") {
+      objectOut[keyOut] = objectIn[keyIn];
+    }
+
     if (typeof objectOut[keyOut] != typeof objectIn[keyIn]) {
       if (typeof objectOut[keyOut] == "string" && typeof objectIn[keyIn] == "number") {
         objectIn[keyIn] = String(objectIn[keyIn]);
@@ -105,8 +109,6 @@ export function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut
         injectJSON(objectIn[keyIn], objectOut[keyOut]);
       }
     }
-
-    objectOut[keyOut] = objectIn[keyIn];
   });
 
   return objectOut;
