@@ -7,6 +7,8 @@ import { IChat } from "@interfaces/IChat";
 import { IUser } from "@interfaces/IUser";
 import { IBot } from "@interfaces/IBot";
 
+import Message from "@messages/Message";
+
 import User from "@modules/User";
 
 import { BotEvents } from "@utils/Emmiter";
@@ -32,6 +34,10 @@ export class BotBase implements IBot {
 
   public async send(message: IMessage): Promise<IMessage> {
     return message;
+  }
+
+  public async sendMessage(chat: IChat | string, message: string | IMessage, mention?: IMessage): Promise<IMessage> {
+    return new Message(chat, "");
   }
 
   public async editMessage(message: IMessage): Promise<void> {}

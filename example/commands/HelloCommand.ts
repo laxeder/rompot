@@ -6,7 +6,7 @@ export class HelloCommand extends Command {
   }
 
   public async onExec(message: IMessage) {
-    const msg = await message.reply(`Hello...`);
+    const msg = await this.client.sendMessage(message.chat, `Hello...`, message);
 
     await sleep(3000);
 

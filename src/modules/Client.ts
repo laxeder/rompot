@@ -17,6 +17,7 @@ import { IUser } from "@interfaces/IUser";
 import { IBot } from "@interfaces/IBot";
 
 import ReactionMessage from "@messages/ReactionMessage";
+import Message from "@messages/Message";
 
 import { CommandController } from "@modules/command";
 import User from "@modules/User";
@@ -25,6 +26,7 @@ import Chat from "@modules/Chat";
 import { sleep, getError, ApplyClient } from "@utils/Generic";
 import PromiseMessages from "@utils/PromiseMessages";
 import { ClientEvents } from "@utils/Emmiter";
+import { isMessage } from "@utils/Verify";
 
 export default class Client<Bot extends IBot> extends ClientEvents implements IClient {
   public promiseMessages: PromiseMessages = new PromiseMessages();
@@ -306,6 +308,17 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     }
 
     return ApplyClient(message, this);
+  }
+
+  public async sendMessage(chat: IChat | string, message: string | IMessage, mention?: IMessage): Promise<IMessage> {
+    if (isMessage(message)) {
+      message.chat = Chat.get(chat);
+      message.mention = mention;
+
+      return await this.send(message);
+    }
+
+    return await this.send(new Message(chat, message, { mention }));
   }
 
   public async awaitMessage(chat: IChat | string, ignoreMessageFromMe: boolean = true, stopRead: boolean = true, ...ignoreMessages: IMessage[]): Promise<IMessage> {
