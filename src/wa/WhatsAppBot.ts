@@ -112,7 +112,9 @@ export default class WhatsAppBot implements IBot {
 
     await this.stop();
 
-    return this.internalConnect();
+    await this.internalConnect();
+
+    this.configEvents.configureAll();
   }
 
   /**
