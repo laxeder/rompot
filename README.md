@@ -38,7 +38,7 @@ const client = new Client(new WhatsAppBot())
 client.connect("./path-to-auth");
 
 client.on("qr", (qr) => {
-  console.log("Scan QR:" qr)
+  console.log("Scan QR:", qr)
 })
 ```
 
