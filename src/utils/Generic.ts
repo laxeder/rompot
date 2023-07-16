@@ -5,8 +5,6 @@ import https from "https";
 
 import { ROMPOT_VERSION } from "@config/Defaults";
 
-import { IClient } from "@interfaces/IClient";
-
 /**
  * * Aguarda um determinado tempo
  * @param timeout
@@ -112,18 +110,6 @@ export function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut
   });
 
   return objectOut;
-}
-
-/**
- * * Adiciona um cliente ao objeto
- * @param obj Objeto
- * @param client Cliente
- * @returns Objeto com Cliente adicionado
- */
-export function ApplyClient<T extends any>(obj: T, client: IClient): T {
-  obj["client"] = client;
-
-  return obj;
 }
 
 /** Retorna a versão do Rompot */

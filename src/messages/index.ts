@@ -1,18 +1,19 @@
-import AudioMessage from "@messages/AudioMessage";
-import ButtonMessage from "@messages/ButtonMessage";
-import ContactMessage from "@messages/ContactMessage";
-import EmptyMessage from "@messages/EmptyMessage";
-import FileMessage from "@messages/FileMessage";
-import ImageMessage from "@messages/ImageMessage";
-import ListMessage from "@messages/ListMessage";
-import LocationMessage from "@messages/LocationMessage";
-import MediaMessage from "@messages/MediaMessage";
-import Message from "@messages/Message";
-import PollMessage from "@messages/PollMessage";
-import PollUpdateMessage from "@messages/PollUpdateMessage";
-import ReactionMessage from "@messages/ReactionMessage";
-import StickerMessage from "@messages/StickerMessage";
-import VideoMessage from "@messages/VideoMessage";
+import AudioMessage from "./AudioMessage";
+import ButtonMessage from "./ButtonMessage";
+import ContactMessage from "./ContactMessage";
+import EmptyMessage from "./EmptyMessage";
+import FileMessage from "./FileMessage";
+import ImageMessage from "./ImageMessage";
+import ListMessage from "./ListMessage";
+import LocationMessage from "./LocationMessage";
+import MediaMessage from "./MediaMessage";
+import Message from "./Message";
+import PollMessage from "./PollMessage";
+import PollUpdateMessage from "./PollUpdateMessage";
+import ReactionMessage from "./ReactionMessage";
+import StickerMessage from "./StickerMessage";
+import TextMessage from "./TextMessage";
+import VideoMessage from "./VideoMessage";
 
 export {
   AudioMessage,
@@ -29,5 +30,6 @@ export {
   PollUpdateMessage,
   ReactionMessage,
   StickerMessage,
+  TextMessage,
   VideoMessage,
 };

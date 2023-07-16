@@ -1,11 +1,5 @@
-import type { Media } from "../types/Message";
-
+import { IChat, IStickerMessage, Media, MessageType } from "rompot-base";
 import { Categories } from "@laxeder/wa-sticker/dist";
-
-import { MessageType } from "@enums/Message";
-
-import { IStickerMessage } from "@interfaces/IMessage";
-import { IChat } from "@interfaces/IChat";
 
 import { MediaMessage } from "@messages/index";
 

@@ -1,12 +1,10 @@
-import { MessageType } from "@enums/Message";
-
-import { ICommand, ICommandKey } from "@interfaces/command";
-import { IChat } from "@interfaces/IChat";
-import { IUser } from "@interfaces/IUser";
-
 import {
   IAudioMessage,
+  IAuth,
   IButtonMessage,
+  IChat,
+  ICommand,
+  ICommandKey,
   IContactMessage,
   IEmptyMessage,
   IFileMessage,
@@ -19,9 +17,10 @@ import {
   IPollUpdateMessage,
   IReactionMessage,
   IStickerMessage,
+  IUser,
   IVideoMessage,
-} from "@interfaces/IMessage";
-import { IAuth } from "@interfaces/IAuth";
+  MessageType,
+} from "rompot-base";
 
 export function isChat(chat: any): chat is IChat {
   return typeof chat === "object" && chat.hasOwnProperty("id") && chat.hasOwnProperty("type");

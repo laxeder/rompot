@@ -1,24 +1,23 @@
-import { MessageType } from "@enums/Message";
-import { IChat } from "@interfaces/IChat";
-
-import { IContactMessage } from "@interfaces/IMessage";
-import { IUser } from "@interfaces/IUser";
+import { IChat, IContactMessage, IUser, MessageType } from "rompot-base";
 
 import Message from "@messages/Message";
-import User from "@modules/User";
 
-import { ApplyClient, injectJSON } from "@utils/Generic";
+import { UserUtils } from "@modules/user";
+
+import { injectJSON } from "@utils/Generic";
 
 export default class ContactMessage extends Message implements IContactMessage {
   public readonly type = MessageType.Contact;
 
-  public contacts: IUser[] = [];
+  public contacts: Record<string, IUser> = {};
 
   constructor(chat: IChat | string, text: string, contacts: Array<IUser | string>, others: Partial<ContactMessage> = {}) {
     super(chat, text);
 
     for (let contact in contacts) {
-      this.contacts.push(ApplyClient(User.get(contact), this.client));
+      const user = UserUtils.applyClient(this.client, contact);
+
+      this.contacts[user.id] = user;
     }
 
     injectJSON(others, this);

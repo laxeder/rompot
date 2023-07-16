@@ -1,9 +1,4 @@
-import type { Media } from "../types/Message";
-
-import { MessageType } from "@enums/Message";
-
-import { IFileMessage } from "@interfaces/IMessage";
-import { IChat } from "@interfaces/IChat";
+import { IChat, IFileMessage, Media, MessageType } from "rompot-base";
 
 import MediaMessage from "@messages/MediaMessage";
 

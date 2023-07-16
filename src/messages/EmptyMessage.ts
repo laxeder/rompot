@@ -1,6 +1,4 @@
-import { MessageType } from "@enums/Message";
-
-import { IEmptyMessage } from "@interfaces/IMessage";
+import { IEmptyMessage, MessageType } from "rompot-base";
 
 import Message from "@messages/Message";
 

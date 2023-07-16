@@ -1,7 +1,4 @@
-import { MessageType } from "@enums/Message";
-import { IChat } from "@interfaces/IChat";
-
-import { ILocationMessage } from "@interfaces/IMessage";
+import { IChat, ILocationMessage, MessageType } from "rompot-base";
 
 import Message from "@messages/Message";
 

@@ -1,9 +1,4 @@
-import type { PollAction, PollOption } from "../types/Message";
-
-import { MessageType } from "@enums/Message";
-
-import { IPollUpdateMessage } from "@interfaces/IMessage";
-import { IChat } from "@interfaces/IChat";
+import { IChat, IPollUpdateMessage, MessageType, PollAction, PollOption } from "rompot-base";
 
 import { PollMessage } from "@messages/index";
 

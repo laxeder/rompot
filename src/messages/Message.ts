@@ -1,20 +1,13 @@
-import { MessageType } from "@enums/Message";
+import { IChat, IMessage, IUser, MessageType } from "rompot-base";
 
-import { IMessage } from "@interfaces/IMessage";
-import { IClient } from "@interfaces/IClient";
+import { Chat, ChatUtils } from "@modules/chat";
+import { User, UserUtils } from "@modules/user";
+import { ClientModule } from "@modules/client";
 
-import { ClientBase } from "@modules/ClientBase";
-
-import User from "@modules/User";
-import Chat from "@modules/Chat";
-
+import MessageUtils from "@utils/MessageUtils";
 import { injectJSON } from "@utils/Generic";
-import { IChat } from "@interfaces/IChat";
-import { IUser } from "@interfaces/IUser";
 
-export default class Message implements IMessage {
-  #client: IClient = ClientBase();
-
+export default class Message extends ClientModule implements IMessage {
   public readonly type: MessageType = MessageType.Text;
 
   public chat: IChat = new Chat("");
@@ -33,28 +26,17 @@ export default class Message implements IMessage {
   public mentions: string[] = [];
   public timestamp: Number = Date.now();
 
-  get client(): IClient {
-    return this.#client;
-  }
-
-  set client(client: IClient) {
-    this.#client = client;
-
-    this.chat.client = client;
-    this.user.client = client;
-
-    if (this.mention) this.mention.client = client;
-  }
-
   constructor(chat: IChat | string, text: string, others: Partial<Message> = {}) {
+    super();
+
     this.text = text || "";
 
     injectJSON(others, this);
 
-    this.chat = Chat.Client(this.client, chat || "");
-    this.user = User.Client(this.client, this.user || "");
+    this.chat = ChatUtils.applyClient(this.client, chat || "");
+    this.user = UserUtils.applyClient(this.client, this.user || "");
 
-    if (this.mention) this.mention = Message.Client(this.client, this.mention);
+    if (this.mention) this.mention = MessageUtils.applyClient(this.client, this.mention);
   }
 
   public async addReaction(reaction: string): Promise<void> {
@@ -70,7 +52,7 @@ export default class Message implements IMessage {
   }
 
   public async reply(message: Message | string, mention: boolean = true) {
-    const msg = Message.get(message);
+    const msg = MessageUtils.get(message);
 
     if (!!!msg.chat.id) msg.chat.id = this.chat.id;
     if (!!!msg.user.id) msg.user.id = this.client.id;
@@ -82,45 +64,5 @@ export default class Message implements IMessage {
 
   public async read(): Promise<void> {
     return this.client.readMessage(this);
-  }
-
-  /**
-   * @param message Mensagem que será obtida
-   * @returns Retorna a mensagem
-   */
-  public static get<MSG extends IMessage>(message: MSG | string): MSG | IMessage {
-    if (typeof message == "string") {
-      return new Message(new Chat(""), message);
-    }
-
-    return message;
-  }
-
-  /**
-   * @param message Mensagem
-   * @returns Retorna o ID da mensagem
-   */
-  public static getId(message: IMessage | string): string {
-    if (typeof message == "string") {
-      return String(message || "");
-    }
-
-    if (typeof message == "object" && !Array.isArray(message) && message?.id) {
-      return String(message.id);
-    }
-
-    return String(message || "");
-  }
-
-  /**
-   * * Cria uma mensagem com cliente instanciado
-   * @param client Cliente
-   * @param msg Mensagem
-   * @returns
-   */
-  public static Client<MSG extends IMessage>(client: IClient, message: MSG): MSG {
-    message.client = client;
-
-    return message;
   }
 }
