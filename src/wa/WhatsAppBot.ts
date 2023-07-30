@@ -1,5 +1,5 @@
+import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, WASocket, SocketConfig, makeInMemoryStore } from "@whiskeysockets/baileys";
 import { BotStatus, ChatStatus, IAuth, IBot, IChat, IMessage, IPollMessage, IReactionMessage, IUser, Media, UserAction, UserEvent } from "rompot-base";
-import makeWASocket, { DisconnectReason, downloadMediaMessage, proto, MediaDownloadOptions, WASocket, SocketConfig } from "@whiskeysockets/baileys";
 import internal from "stream";
 import pino from "pino";
 
@@ -24,6 +24,8 @@ export default class WhatsAppBot implements IBot {
   //@ts-ignore
   public sock: WASocket = {};
   public config: Partial<SocketConfig>;
+  public store: ReturnType<typeof makeInMemoryStore>;
+
   public DisconnectReason = DisconnectReason;
   public logger: any = pino({ level: "silent" });
 
@@ -48,8 +50,13 @@ export default class WhatsAppBot implements IBot {
       logger: this.logger,
       defaultQueryTimeoutMs: 10000,
       browser: WhatsAppBot.Browser(),
+      async getMessage(key) {
+        return (await this.store.loadMessage(key.remoteJid!, key.id!))?.message || undefined;
+      },
       ...config,
     };
+
+    this.store = makeInMemoryStore({ logger: this.config.logger });
   }
 
   public async connect(auth?: string | IAuth): Promise<void> {
@@ -84,6 +91,8 @@ export default class WhatsAppBot implements IBot {
       });
 
       this.sock.ev.on("creds.update", saveCreds);
+
+      this.store.bind(this.sock.ev);
 
       this.configEvents.configConnectionUpdate();
     } catch (err) {
