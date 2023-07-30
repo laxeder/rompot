@@ -41,6 +41,10 @@ export default class MessageUtils {
    */
   public static applyClient<MSG extends IMessage>(client: IClient, message: MSG): MSG {
     message.client = client;
+    message.chat.client = client;
+    message.user.client = client;
+
+    if (message.mention) MessageUtils.applyClient(client, message.mention);
 
     return message;
   }
