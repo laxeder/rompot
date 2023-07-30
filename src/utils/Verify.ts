@@ -31,7 +31,7 @@ export function isUser(user: any): user is IUser {
 }
 
 export function isCommand(command: any): command is ICommand {
-  return typeof command == "object" && command.hasOwnProperty("client") && command.hasOwnProperty("keys") && command.hasOwnProperty("permissions");
+  return typeof command == "object" && command.hasOwnProperty("keys") && command.hasOwnProperty("permissions");
 }
 
 export function isCommandKey(commandKey: any): commandKey is ICommandKey {
