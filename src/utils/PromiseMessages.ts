@@ -1,7 +1,6 @@
-import IPromiseMessages from "rompot-base/lib/interfaces/client/IPromiseMessage";
-import { IMessage, PromiseMessage, PromiseMessageConfig } from "rompot-base";
+import { IMessage, PromiseMessage, PromiseMessageConfig, IPromiseMessage } from "rompot-base";
 
-export default class PromiseMessages implements IPromiseMessages {
+export default class PromiseMessages implements IPromiseMessage {
   public promisses: PromiseMessage = {};
 
   constructor(promisses: PromiseMessage = {}) {
