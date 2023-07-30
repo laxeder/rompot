@@ -1,8 +1,8 @@
-import { IUser } from "rompot-base";
+import { IChat, IUser } from "rompot-base";
 
-import UserController from "@modules/user/controllers/UserController";
+import { ClientModule } from "@modules/client";
 
-export default class User extends UserController implements IUser {
+export default class User extends ClientModule implements IUser {
   public name: string = "";
   public id: string = "";
 
@@ -11,7 +11,49 @@ export default class User extends UserController implements IUser {
 
     this.id = id || "";
     this.name = name || "";
+  }
 
-    this.user = this;
+  async blockUser(): Promise<void> {
+    return this.client.blockUser(this);
+  }
+
+  async unblockUser(): Promise<void> {
+    return this.client.unblockUser(this);
+  }
+
+  async getName(): Promise<string> {
+    return this.client.getUserName(this);
+  }
+
+  async setName(name: string): Promise<void> {
+    return this.client.setUserName(this, name);
+  }
+
+  async getDescription(): Promise<string> {
+    return this.client.getUserDescription(this);
+  }
+
+  async setDescription(description: string): Promise<void> {
+    return this.client.setUserDescription(this, description);
+  }
+
+  async getProfile(): Promise<Buffer> {
+    return this.client.getUserProfile(this);
+  }
+
+  async setProfile(image: Buffer): Promise<void> {
+    return this.client.setUserProfile(this, image);
+  }
+
+  async isAdmin(chat: IChat | string): Promise<boolean> {
+    const admins = await this.client.getChatAdmins(chat);
+
+    return admins.hasOwnProperty(this.id);
+  }
+
+  async isLeader(chat: IChat | string): Promise<boolean> {
+    const leader = await this.client.getChatLeader(chat);
+
+    return leader.id == this.id;
   }
 }
