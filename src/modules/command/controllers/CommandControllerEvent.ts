@@ -1,7 +1,9 @@
 import { CommandControllerEventsMap, ICommandControllerEvent } from "rompot-base";
 import EventEmitter from "events";
 
-export default class CommandControllerEvent implements ICommandControllerEvent {
+import { ClientModule } from "@modules/client";
+
+export default class CommandControllerEvent extends ClientModule implements ICommandControllerEvent {
   public ev = new EventEmitter();
 
   on<T extends keyof CommandControllerEventsMap>(eventName: T, listener: (arg: CommandControllerEventsMap[T]) => void) {

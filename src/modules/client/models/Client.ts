@@ -34,12 +34,16 @@ import MessageUtils from "@utils/MessageUtils";
 import { isMessage } from "@utils/Verify";
 
 export default class Client<Bot extends IBot> extends ClientEvents implements IClient {
+  //! =================================================================
+  //! ========== CONFIGURAÇÃO
+  //! =================================================================
+
   public promiseMessages: IPromiseMessage = new PromiseMessages();
   public autoMessages: any = {};
 
   public bot: Bot;
   public config: ConnectionConfig;
-  public commandController: ICommandController = new CommandController(this);
+  public commandController: ICommandController = new CommandController();
 
   public reconnectTimes: number = 0;
 
@@ -68,6 +72,10 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
 
     this.configEvents();
   }
+
+  //! =================================================================
+  //! ========== CONFIGURAÇÃO DOS EVENTOS
+  //! =================================================================
 
   public configEvents() {
     this.bot.ev.on("message", async (message: IMessage) => {
@@ -181,7 +189,9 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     });
   }
 
-  //! <===========================> CONNECTION <===========================>
+  //! =================================================================
+  //! ========== CONEXÃO
+  //! =================================================================
 
   public connect(auth: IAuth | string) {
     return this.bot.connect(auth);
@@ -195,7 +205,23 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     return this.bot.stop(reason);
   }
 
-  //! <============================> COMMANDS <============================>
+  //! =================================================================
+  //! ========== COMANDO
+  //! =================================================================
+
+  public getCommandController(): ICommandController {
+    if (this.commandController.clientId != this.id) {
+      this.commandController.clientId = this.id;
+    }
+
+    return this.commandController;
+  }
+
+  public setCommandController(controller: ICommandController): void {
+    controller.clientId = this.id;
+
+    this.commandController = controller;
+  }
 
   public setCommands(commands: ICommand[]) {
     this.commandController.setCommands(commands);

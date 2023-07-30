@@ -1,15 +1,14 @@
-import { IClient, ICommand, ICommandControllerConfig, ICommandKey, ICommandPermission, IMessage } from "rompot-base";
+import { ICommand, ICommandControllerConfig, ICommandKey, ICommandPermission, IMessage } from "rompot-base";
 
 import CommandPermission from "@modules/command/models/CommandPermission";
 import CommandKey from "@modules/command/models/CommandKey";
-import ClientBase from "@modules/client/models/ClientBase";
 import { CMDPerm } from "@modules/command/utils/perms";
+import { ClientModule } from "@modules/client";
 
 import { readRecursiveDir } from "@utils/Generic";
 import { isCommand } from "@utils/Verify";
 
-export default class Command implements ICommand {
-  public client: IClient = ClientBase();
+export default class Command extends ClientModule implements ICommand {
   public keys: ICommandKey[] = [];
   public permissions: string[] = [];
 

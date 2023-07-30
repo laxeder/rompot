@@ -1,17 +1,14 @@
-import { CMDRunType, IClient, ICommand, ICommandController, ICommandControllerConfig, ICommandKey, IMessage } from "rompot-base";
+import { CMDRunType, ICommand, ICommandController, ICommandControllerConfig, ICommandKey, IMessage } from "rompot-base";
 
 import CommandControllerEvent from "@modules/command/controllers/CommandControllerEvent";
 import { DEFAULT_COMMAND_CONTROLLER_CONFIG } from "@modules/command/utils/defaults";
 
 export default class CommandController extends CommandControllerEvent implements ICommandController {
-  public client: IClient;
-
   public config: ICommandControllerConfig;
   public commands: ICommand[] = [];
 
-  constructor(client: IClient, config: Partial<ICommandControllerConfig> = {}) {
+  constructor(config: Partial<ICommandControllerConfig> = {}) {
     super();
-    this.client = client;
 
     this.config = { ...DEFAULT_COMMAND_CONTROLLER_CONFIG, ...config };
   }
