@@ -1,9 +1,8 @@
 import { SignalDataTypeMap, initAuthCreds, BufferJSON, proto, AuthenticationState, AuthenticationCreds } from "@whiskeysockets/baileys";
 import { readFile, writeFile, unlink } from "fs/promises";
 import { mkdirSync, readdirSync, statSync } from "fs";
+import { IAuth } from "rompot-base";
 import { join } from "path";
-
-import { IAuth } from "@interfaces/IAuth";
 
 export class MultiFileAuthState implements IAuth {
   public folder: string;
