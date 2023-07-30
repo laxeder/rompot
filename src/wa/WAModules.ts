@@ -1,10 +1,9 @@
-import type { ChatType } from "../types/Chat";
-import type { WAUsers } from "./WATypes";
+import { ChatType } from "rompot-base";
 
+import ChatUtils from "@modules/chat/utils/ChatUtils";
+import Chat from "@modules/chat/models/Chat";
+import User from "@modules/user/models/User";
 import Message from "@messages/Message";
-
-import Chat from "@modules/Chat";
-import User from "@modules/User";
 
 import { injectJSON } from "@utils/Generic";
 
@@ -16,9 +15,9 @@ export class WAUser extends User {
   /** * Foto de perfil */
   public profile: Buffer;
   /** * É administrador */
-  public isAdmin: boolean;
+  public isChatAdmin: boolean;
   /** É líder */
-  public isLeader: boolean;
+  public isChatLeader: boolean;
 
   constructor(id: string, name?: string, description?: string, profile?: Buffer) {
     super(id);
@@ -26,8 +25,8 @@ export class WAUser extends User {
     this.name = name || "";
     this.description = description || "";
     this.profile = profile || Buffer.from("");
-    this.isAdmin = false;
-    this.isLeader = false;
+    this.isChatAdmin = false;
+    this.isChatLeader = false;
   }
 }
 
@@ -39,9 +38,9 @@ export class WAChat extends Chat {
   /** * Foto de perfil */
   public profile: Buffer;
   /** * Usuários da sala de bate-papo */
-  public users: WAUsers = {};
+  public users: Record<string, WAUser> = {};
 
-  constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: WAUsers) {
+  constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: Record<string, WAUser>) {
     super(id, type);
 
     this.name = name || "";
@@ -54,7 +53,7 @@ export class WAChat extends Chat {
    @returns Retorna o tipo da sala de bate-papo
    */
   public static getChatType(chat: Chat | string): ChatType {
-    return WAChat.get(chat).id.includes("@g") ? "group" : "pv";
+    return ChatUtils.get(chat).id.includes("@g") ? "group" : "pv";
   }
 }
 
