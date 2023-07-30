@@ -24,6 +24,7 @@ import ReactionMessage from "@messages/ReactionMessage";
 import Message from "@messages/Message";
 
 import ClientEvents from "@modules/client/events/ClientEvents";
+import ClientUtils from "@modules/client/utils/ClientUtils";
 import { CommandController } from "@modules/command";
 import { ChatUtils } from "@modules/chat";
 import { UserUtils } from "@modules/user";
@@ -193,12 +194,16 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
   //! ========== CONEXÃO
   //! =================================================================
 
-  public connect(auth: IAuth | string) {
-    return this.bot.connect(auth);
+  public async connect(auth: IAuth | string) {
+    await this.bot.connect(auth);
+
+    ClientUtils.setClient(this);
   }
 
-  public reconnect(alert?: boolean) {
-    return this.bot.reconnect(alert);
+  public async reconnect(alert?: boolean) {
+    await this.bot.reconnect(alert);
+
+    ClientUtils.setClient(this);
   }
 
   public stop(reason?: any) {
