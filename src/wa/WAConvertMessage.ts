@@ -1,13 +1,8 @@
-import type { Media, PollOption } from "../types/Message";
-
 import { decryptPollVote, getContentType, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@whiskeysockets/baileys";
+import { IMessage, Media, MessageType, PollOption } from "rompot-base";
 import { extractMetadata } from "@laxeder/wa-sticker/dist";
 import digestSync from "crypto-digest-sync";
 import Long from "long";
-
-import { MessageType } from "@enums/Message";
-
-import { IMessage } from "@interfaces/IMessage";
 
 import {
   AudioMessage,
@@ -24,11 +19,12 @@ import {
   PollUpdateMessage,
   ReactionMessage,
   StickerMessage,
+  TextMessage,
   VideoMessage,
 } from "@messages/index";
 
-import Chat from "@modules/Chat";
-import User from "@modules/User";
+import User from "@modules/user/models/User";
+import Chat from "@modules/chat/models/Chat";
 
 import { WAChat, WAUser } from "@wa/WAModules";
 import WhatsAppBot from "@wa/WhatsAppBot";
@@ -110,8 +106,12 @@ export class WhatsAppConvertMessage {
         this.chat.name = message.pushName;
 
         //? O WhatsApp não envia o nome de um chat privado normalmente, então recolho ele da mensagem
-        if (!this.wa.chats.hasOwnProperty(id) || (!!this.chat.name && this.wa.chats[id].name != this.chat.name)) {
-          await this.wa.addChat(this.chat);
+        if (!!this.chat.name && this.wa.chats[id]?.name != this.chat.name) {
+          if (this.wa.chats.hasOwnProperty(id)) {
+            await this.wa.setChat(this.chat);
+          } else {
+            await this.wa.addChat(this.chat);
+          }
         }
       }
     }
@@ -123,7 +123,7 @@ export class WhatsAppConvertMessage {
 
     //? O WhatsApp não envia o nome do usuário normalmente, então recolho ele da mensagem
     if (!this.wa.users.hasOwnProperty(userID) || (!!user.name && this.wa.users[userID].name != user.name)) {
-      await this.wa.addUser(user);
+      await this.wa.setUser(user);
     }
 
     this.user = user;
@@ -135,15 +135,14 @@ export class WhatsAppConvertMessage {
       this.user.id = replaceID(this.wa.id);
     }
 
-    this.convertedMessage.apiSend = this.wa.apiMessagesId.includes(this.message.key.id);
+    this.convertedMessage.id = this.message.key.id || "";
+    this.convertedMessage.apiSend = message.key.id.length < 20;
 
     if (Long.isLong(this.message.messageTimestamp)) {
-      this.message.messageTimestamp = this.message.messageTimestamp.toNumber();
+      this.message.messageTimestamp = this.message.messageTimestamp.toNumber() * 1000;
+    } else if (this.message.messageTimestamp) {
+      this.convertedMessage.timestamp = this.message.messageTimestamp * 1000;
     }
-
-    if (this.message.messageTimestamp) this.convertedMessage.timestamp = this.message.messageTimestamp;
-    if (this.message.key.id) this.convertedMessage.id = this.message.key.id;
-    // if (type) this.convertedMessage.isOld = type !== "notify";
   }
 
   /**
@@ -158,37 +157,36 @@ export class WhatsAppConvertMessage {
       return;
     }
 
-    const contentType = getContentType(messageContent);
+    let contentType = getContentType(messageContent);
 
     if (!contentType) {
       this.convertedMessage = new EmptyMessage();
       return;
     }
 
-    if (contentType == "protocolMessage") {
-      if (!!messageContent[contentType]?.historySyncNotification) {
-        this.convertedMessage = new EmptyMessage();
-        return;
-      }
-
-      if (!!messageContent[contentType].editedMessage) {
-        await this.convertEditedMessage(messageContent[contentType]);
-        return;
-      }
-
-      this.convertedMessage.isDeleted = true;
+    if (contentType == "conversation") {
+      this.convertConversationMessage(messageContent[contentType]);
+      return;
     }
 
-    let content: any = contentType === "conversation" ? { text: messageContent[contentType] } : messageContent[contentType];
+    if (contentType == "extendedTextMessage") {
+      this.convertExtendedTextMessage(messageContent[contentType]);
+    }
+
+    const content: any = messageContent[contentType];
 
     if (content.message) {
       await this.convertContentMessage(content.message);
       return;
     }
 
+    if (contentType == "protocolMessage") {
+      await this.convertProtocolMessage(messageContent[contentType]);
+      return;
+    }
+
     if (contentType == "editedMessage") {
       await this.convertEditedMessage(messageContent[contentType].message);
-      return;
     }
 
     if (contentType == "imageMessage" || contentType == "videoMessage" || contentType == "audioMessage" || contentType == "stickerMessage" || contentType == "documentMessage") {
@@ -223,9 +221,8 @@ export class WhatsAppConvertMessage {
       await this.convertPollUpdateMessage(content);
     }
 
-    if (!!!this.convertedMessage.text) {
-      this.convertedMessage.text =
-        content.text || content.caption || content.buttonText || content.hydratedTemplate?.hydratedContentText || content.displayName || content.contentText || this.convertedMessage.text || "";
+    if (!this.convertedMessage.text) {
+      this.convertedMessage.text = content.text || content.caption || content.buttonText || content.hydratedTemplate?.hydratedContentText || content.displayName || content.contentText || "";
     }
 
     if (content.contextInfo) {
@@ -270,6 +267,38 @@ export class WhatsAppConvertMessage {
   }
 
   /**
+   * * Converte mensagem de conversa
+   * @param content
+   */
+  public convertConversationMessage(content: proto.IMessage["conversation"]) {
+    this.convertedMessage = new TextMessage(this.chat, content);
+  }
+
+  /**
+   * * Converte mensagem de texto
+   * @param content
+   */
+  public convertExtendedTextMessage(content: proto.IMessage["extendedTextMessage"]) {
+    this.convertedMessage = new TextMessage(this.chat, content.text);
+  }
+
+  /**
+   * * Converte mensagem de protocolo
+   * @param content
+   */
+  public async convertProtocolMessage(content: proto.IMessage["protocolMessage"]) {
+    if (content.type == 0) {
+      this.convertedMessage.isDeleted = true;
+    }
+
+    if (content.type == 14) {
+      await this.convertEditedMessage(content);
+    }
+
+    this.convertedMessage = new EmptyMessage();
+  }
+
+  /**
    * * Converte mensagem de localização
    * @param content
    */
@@ -302,12 +331,16 @@ export class WhatsAppConvertMessage {
 
     if (content.contacts) {
       content.contacts.forEach((vcard: string) => {
-        msg.contacts.push(getContact(vcard));
+        const contact = getContact(vcard);
+
+        msg.contacts[contact.id] = contact;
       });
     }
 
     if (content.vcard) {
-      msg.contacts.push(getContact(content.vcard));
+      const contact = getContact(content.vcard);
+
+      msg.contacts = { [contact.id]: contact };
     }
 
     this.convertedMessage = msg;

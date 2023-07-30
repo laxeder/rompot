@@ -1,9 +1,7 @@
 import { generateWAMessage, isJidGroup, MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
-import Sticker, { StickerTypes } from "@laxeder/wa-sticker/dist";
+import Sticker, { Categories, StickerTypes } from "@laxeder/wa-sticker/dist";
 
-import { MessageType } from "@enums/Message";
-
-import { IButtonMessage, IContactMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IPollMessage, IReactionMessage, IStickerMessage, List, ListItem } from "@interfaces/IMessage";
+import { IButtonMessage, IContactMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IPollMessage, IReactionMessage, IStickerMessage, List, ListItem, MessageType } from "rompot-base";
 
 import WhatsAppBot from "@wa/WhatsAppBot";
 import { WAUser } from "@wa/WAModules";
@@ -171,7 +169,7 @@ export class WhatsAppMessage {
       const sticker = new Sticker(stickerFile, {
         pack: message.pack,
         author: message.author,
-        categories: message.categories,
+        categories: message.categories as Categories[],
         id: message.stickerId,
         type: StickerTypes.FULL,
         quality: 100,
@@ -195,11 +193,13 @@ export class WhatsAppMessage {
       contacts: [],
     };
 
-    message.contacts.forEach((user) => {
+    for (const id of Object.keys(message.contacts)) {
+      const user = message.contacts[id];
+
       const vcard =
         "BEGIN:VCARD\n" + "VERSION:3.0\n" + `FN:${""}\n` + (user instanceof WAUser ? `ORG:${user.description};\n` : "") + `TEL;type=CELL;type=VOICE;waid=${user.id}: ${getID(user.id)}\n` + "END:VCARD";
 
-      if (message.contacts.length < 2) {
+      if (Object.keys(message.contacts).length < 2) {
         this.message.contacts.contacts.push({ vcard });
         return;
       }
@@ -208,7 +208,7 @@ export class WhatsAppMessage {
         displayName: "",
         vcard,
       });
-    });
+    }
 
     delete this.message.text;
   }
