@@ -108,6 +108,10 @@ client.on("error", (err: any) => {
     if (permission.id == CMDPerms.UserChatAdmin) {
       await message.reply("Somente admins podem usar esse comando!");
     }
+
+    if (permission.id == CMDPerms.ChatGroup) {
+      await message.chat.send("Somente grupos podem usar esse comando!");
+    }
   });
 
   client.connect("./example/auth");
