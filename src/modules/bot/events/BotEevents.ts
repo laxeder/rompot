@@ -1,5 +1,5 @@
 import { BotEventsMap, IBotEvents } from "rompot-base";
-import EventEmitter from "events";
+import { EventEmitter } from "events";
 
 export default class BotEvents implements IBotEvents {
   public ev = new EventEmitter();

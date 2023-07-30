@@ -1,5 +1,4 @@
-import IClientModule from "rompot-base/lib/interfaces/client/IClientModule";
-import { IClient } from "rompot-base";
+import { IClient, IClientModule } from "rompot-base";
 
 import ClientUtils from "@modules/client/utils/ClientUtils";
 
@@ -28,5 +27,13 @@ export default class ClientModule implements IClientModule {
 
   get client(): IClient {
     return ClientUtils.getClient(this.#clientId);
+  }
+
+  set clientId(clientId: string) {
+    this.clientId = clientId;
+  }
+
+  get clientId(): string {
+    return this.#clientId;
   }
 }

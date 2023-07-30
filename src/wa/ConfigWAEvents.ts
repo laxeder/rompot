@@ -1,7 +1,7 @@
-import { DisconnectReason, WAMessage } from "@whiskeysockets/baileys";
+import { DisconnectReason } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 
-import Chat from "@modules/Chat";
+import Chat from "@modules/chat/models/Chat";
 
 import { isEmptyMessage } from "@utils/Verify";
 
