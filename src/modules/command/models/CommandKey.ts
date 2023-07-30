@@ -63,25 +63,14 @@ export default class CommandKey implements ICommandKey {
 
   /** Verifica se o texto tem as chaves exatas */
   public static verifyExact(text: string, keys: string[]): boolean {
-    let totalKey = "";
+    let result = `${text}`;
 
-    const result = keys.filter((key) => {
-      totalKey += key;
+    for (const key of keys) {
+      if (!result.startsWith(key)) return false;
 
-      if (text.indexOf(totalKey) != 0) return false;
+      result = result.replace(key, "").trim();
+    }
 
-      const totalSplited = totalKey.split(/\s+/);
-      const textSplited = text.split(/\s+/);
-
-      for (const index in totalSplited) {
-        if (totalSplited[index] == textSplited[index]) continue;
-
-        return false;
-      }
-
-      return true;
-    });
-
-    return result.length > 0;
+    return true;
   }
 }
