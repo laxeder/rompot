@@ -92,20 +92,16 @@ export function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut
       objectOut[keyOut] = objectIn[keyIn];
     }
 
-    if (typeof objectOut[keyOut] != typeof objectIn[keyIn]) {
-      if (typeof objectOut[keyOut] == "string" && typeof objectIn[keyIn] == "number") {
-        objectIn[keyIn] = String(objectIn[keyIn]);
-      } else if (typeof objectOut[keyOut] == "number" && typeof objectIn[keyIn] == "string") {
-        objectIn[keyIn] = Number(objectIn[keyIn]);
-      } else return;
+    if (typeof objectOut[keyOut] == typeof objectIn[keyIn]) {
+      objectOut[keyOut] = objectIn[keyIn];
     }
 
-    if (!!objectIn[keyIn] && !!objectOut[keyOut] && typeof objectIn[keyIn] == "object" && typeof objectOut[keyOut] == "object") {
-      if (Array.isArray(objectOut[keyOut])) {
-        if (objectIn[keyIn].length == 0) return;
-      } else {
-        injectJSON(objectIn[keyIn], objectOut[keyOut]);
-      }
+    if (typeof objectOut[keyOut] == "string" && typeof objectIn[keyIn] == "number") {
+      objectIn[keyIn] = String(objectIn[keyIn]);
+    }
+
+    if (typeof objectOut[keyOut] == "number" && typeof objectIn[keyIn] == "string") {
+      objectIn[keyIn] = Number(objectIn[keyIn]);
     }
   });
 
