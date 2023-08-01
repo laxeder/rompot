@@ -7,7 +7,7 @@ import { isEmptyMessage } from "@utils/Verify";
 
 import { WhatsAppConvertMessage } from "./WAConvertMessage";
 import WhatsAppBot from "./WhatsAppBot";
-import { WAUser } from "./WAModules";
+import { WAChat, WAUser } from "./WAModules";
 import { replaceID } from "./ID";
 
 export default class ConfigWAEvents {
@@ -18,6 +18,8 @@ export default class ConfigWAEvents {
   }
 
   public configureAll() {
+    this.configConnectionUpdate();
+    this.configHistorySet();
     this.configContactsUpdate();
     this.configChatsUpsert();
     this.configGroupsUpdate();
@@ -155,6 +157,40 @@ export default class ConfigWAEvents {
       } catch (err) {
         this.wa.ev.emit("error", err);
       }
+    });
+  }
+
+  public configHistorySet() {
+    this.wa.sock.ev.on("messaging-history.set", async (update) => {
+      const readed: string[] = [];
+
+      await Promise.all(
+        update.chats.map(async (chat) => {
+          try {
+            if (!chat.id.includes("@g") || readed.includes(chat.id)) return;
+
+            readed.push(chat.id);
+
+            await this.wa.readChat(chat);
+          } catch (err) {
+            this.wa.ev.emit("error", err);
+          }
+        })
+      );
+
+      await Promise.all(
+        update.contacts.map(async (user) => {
+          try {
+            if (!user.id.includes("@s") || readed.includes(user.id)) return;
+
+            readed.push(user.id);
+
+            await this.wa.readUser(user);
+          } catch (err) {
+            this.wa.ev.emit("error", err);
+          }
+        })
+      );
     });
   }
 
