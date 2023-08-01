@@ -84,7 +84,7 @@ client.on("user", async (update) => {
   }
 
   if (update.action == "demote") {
-    await client.send(new Message(update.chat, `Membro @${update.fromUser.id} removeu o admin do @${update.user.id}.`));
+    // await client.send(new Message(update.chat, `Membro @${update.fromUser.id} removeu o admin do @${update.user.id}.`));
   }
 });
 
