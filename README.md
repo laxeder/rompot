@@ -42,6 +42,15 @@ client.on("qr", (qr) => {
 })
 ```
 
+## Parear código
+```ts
+const phoneNumber = 1234567890;
+
+const code = await client.connectByCode(phoneNumber, "./path-to-auth");
+
+console.log("Code:", code);
+```
+
 ## Configurações
 
 ```ts
