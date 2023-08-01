@@ -132,8 +132,6 @@ export default class ConfigWAEvents {
 
           this.wa.id = replaceID(this.wa.sock?.user?.id || "");
 
-          this.wa.resolveConnectionsAwait();
-
           this.wa.ev.emit("open", { isNewLogin: update.isNewLogin || false });
         }
 
@@ -148,7 +146,10 @@ export default class ConfigWAEvents {
           }
 
           if (status == DisconnectReason.restartRequired) {
+            this.wa.saveCreds(this.wa.sock.authState.creds);
+
             await this.wa.reconnect(false);
+
             return;
           }
 
