@@ -277,7 +277,7 @@ client.addCommand(new ButtonCommand());
 
 client.on("message", async (message: IMessage) => {
   if (isPollMessage(message)) {
-    // Não responde caso a votação da enquete foi removida
+    // Não responde caso a votação da enquete for removida
     if (message.action == "remove") return;
   }
 
