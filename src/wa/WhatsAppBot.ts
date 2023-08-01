@@ -23,7 +23,7 @@ import { isPollMessage } from "@utils/Verify";
 export default class WhatsAppBot implements IBot {
   //@ts-ignore
   public sock: WASocket = {};
-  public config: Partial<SocketConfig>;
+  public config: Partial<SocketConfig & { usePairingCode: boolean }>;
   public store: ReturnType<typeof makeInMemoryStore>;
 
   public DisconnectReason = DisconnectReason;
@@ -37,14 +37,14 @@ export default class WhatsAppBot implements IBot {
   public connectionResolve: (() => void)[] = [];
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
   public wcb: WaitCallBack = new WaitCallBack((err: any) => this.ev.emit("error", err));
-  public chatWCB: WaitCallBack = new WaitCallBack((err: any) => this.ev.emit("error", err));
+  public chatWCB: WaitCallBack = new WaitCallBack((err: any) => {});
   public msgWCB: WaitCallBack = new WaitCallBack((err: any) => this.ev.emit("error", err));
 
   public chats: Record<string, WAChat> = {};
   public users: Record<string, WAUser> = {};
   public polls: { [id: string]: IPollMessage } = {};
 
-  constructor(config?: Partial<SocketConfig>) {
+  constructor(config?: Partial<SocketConfig & { usePairingCode: boolean }>) {
     this.config = {
       printQRInTerminal: true,
       logger: this.logger,
@@ -74,11 +74,27 @@ export default class WhatsAppBot implements IBot {
       await this.readChats();
       await this.readUsers();
       await this.readPolls();
-
-      this.configEvents.configureAll();
     } catch (err) {
       this.ev.emit("error", err);
     }
+  }
+
+  public async connectByCode(phoneNumber: string, auth: string | IAuth): Promise<string> {
+    return new Promise(async (res) => {
+      await this.internalConnect();
+
+      const code = await this.sock.requestPairingCode(phoneNumber);
+
+      res(code);
+
+      await this.internalConnect();
+
+      await this.awaitConnectionOpen();
+
+      await this.readChats();
+      await this.readUsers();
+      await this.readPolls();
+    });
   }
 
   public async internalConnect(): Promise<void> {
@@ -94,7 +110,7 @@ export default class WhatsAppBot implements IBot {
 
       this.store.bind(this.sock.ev);
 
-      this.configEvents.configConnectionUpdate();
+      this.configEvents.configureAll();
     } catch (err) {
       this.ev.emit("error", err);
     }
@@ -111,8 +127,6 @@ export default class WhatsAppBot implements IBot {
     await this.stop();
 
     await this.internalConnect();
-
-    this.configEvents.configureAll();
   }
 
   /**
@@ -236,8 +250,12 @@ export default class WhatsAppBot implements IBot {
 
     const newChat = this.chats[chat.id] || new WAChat(chat.id);
 
+    if (newChat.id.includes("@l")) return newChat;
+
     if (newChat.id.includes("@g")) {
       const metadata = await this.chatWCB.waitCall(() => this.sock?.groupMetadata(getID(newChat.id)));
+
+      if (!metadata || !metadata?.participants) return newChat;
 
       for (const p of metadata?.participants || []) {
         const user = this.users[replaceID(p.id)] || new WAUser(replaceID(p.id));
@@ -248,6 +266,7 @@ export default class WhatsAppBot implements IBot {
         newChat.users[user.id] = user;
       }
 
+      newChat.type = "group";
       newChat.name = metadata?.subject || newChat.name || "";
       newChat.description = metadata?.desc || newChat.description || "";
     } else {

@@ -200,6 +200,10 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
     ClientUtils.setClient(this);
   }
 
+  public async connectByCode(phoneNumber: number | string, auth: string | IAuth): Promise<string> {
+    return await this.bot.connectByCode(String(phoneNumber).replace(/\D+/g, ""), auth);
+  }
+
   public async reconnect(alert?: boolean) {
     await this.bot.reconnect(alert);
 
