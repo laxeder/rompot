@@ -191,6 +191,8 @@ export default class WhatsAppBot implements IBot {
         this.chats[id].users[userId] = injectJSON(user, new WAUser(user.id));
       }
     }
+
+    this.chats[this.id] = new WAChat(this.id, "pv", this.sock.user.name || this.sock.user.notify || this.sock.user.verifiedName || "");
   }
 
   /**
@@ -206,6 +208,8 @@ export default class WhatsAppBot implements IBot {
 
       this.users[id] = injectJSON(user, new WAUser(user.id));
     }
+
+    this.users[this.id] = new WAUser(this.id, this.sock.user.name || this.sock.user.notify || this.sock.user.verifiedName || "");
   }
 
   /**
