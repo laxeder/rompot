@@ -1,5 +1,5 @@
 import { MessageUpsertType, proto, WAMessage, WAMessageContent } from "@whiskeysockets/baileys";
-import { IMessage } from "../interfaces/IMessage";
+import { IMessage } from "rompot-base";
 import WhatsAppBot from "./WhatsAppBot";
 export declare class WhatsAppConvertMessage {
     private type?;
@@ -38,6 +38,21 @@ export declare class WhatsAppConvertMessage {
      * @returns
      */
     convertContextMessage(context: proto.ContextInfo): Promise<void>;
+    /**
+     * * Converte mensagem de conversa
+     * @param content
+     */
+    convertConversationMessage(content: proto.IMessage["conversation"]): void;
+    /**
+     * * Converte mensagem de texto
+     * @param content
+     */
+    convertExtendedTextMessage(content: proto.IMessage["extendedTextMessage"]): void;
+    /**
+     * * Converte mensagem de protocolo
+     * @param content
+     */
+    convertProtocolMessage(content: proto.IMessage["protocolMessage"]): Promise<void>;
     /**
      * * Converte mensagem de localização
      * @param content

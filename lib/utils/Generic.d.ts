@@ -1,5 +1,4 @@
 /// <reference types="node" />
-import { IClient } from "../interfaces/IClient";
 /**
  * * Aguarda um determinado tempo
  * @param timeout
@@ -34,13 +33,6 @@ export declare type ObjectJSON = {
  * @returns Retorna o objeto com os novos valores
  */
 export declare function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut: T): T;
-/**
- * * Adiciona um cliente ao objeto
- * @param obj Objeto
- * @param client Cliente
- * @returns Objeto com Cliente adicionado
- */
-export declare function ApplyClient<T extends any>(obj: T, client: IClient): T;
 /** Retorna a versão do Rompot */
 export declare function getRompotVersion(): string;
 /** Lê um diretório recursivamente */

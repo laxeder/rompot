@@ -1,9 +1,8 @@
 /// <reference types="node" />
-import type { ChatType } from "../types/Chat";
-import type { WAUsers } from "./WATypes";
+import { ChatType } from "rompot-base";
+import Chat from "../modules/chat/models/Chat";
+import User from "../modules/user/models/User";
 import Message from "../messages/Message";
-import Chat from "../modules/Chat";
-import User from "../modules/User";
 export declare class WAUser extends User {
     /** * Nome */
     name: string;
@@ -12,9 +11,9 @@ export declare class WAUser extends User {
     /** * Foto de perfil */
     profile: Buffer;
     /** * É administrador */
-    isAdmin: boolean;
+    isChatAdmin: boolean;
     /** É líder */
-    isLeader: boolean;
+    isChatLeader: boolean;
     constructor(id: string, name?: string, description?: string, profile?: Buffer);
 }
 export declare class WAChat extends Chat {
@@ -25,8 +24,8 @@ export declare class WAChat extends Chat {
     /** * Foto de perfil */
     profile: Buffer;
     /** * Usuários da sala de bate-papo */
-    users: WAUsers;
-    constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: WAUsers);
+    users: Record<string, WAUser>;
+    constructor(id: string, type?: ChatType, name?: string, description?: string, profile?: Buffer, users?: Record<string, WAUser>);
     /**
      @returns Retorna o tipo da sala de bate-papo
      */

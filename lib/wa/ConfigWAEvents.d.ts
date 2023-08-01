@@ -10,6 +10,7 @@ export default class ConfigWAEvents {
     configCBNotificationDemote(): void;
     configMessagesUpsert(): void;
     configConnectionUpdate(): void;
+    configHistorySet(): void;
     configContactsUpdate(): void;
     configChatsUpsert(): void;
     configGroupsUpdate(): void;

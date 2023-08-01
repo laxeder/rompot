@@ -1,8 +1,5 @@
 /// <reference types="node" />
-import type { Media } from "../types/Message";
-import { MessageType } from "../enums/Message";
-import { IVideoMessage } from "../interfaces/IMessage";
-import { IChat } from "../interfaces/IChat";
+import { IChat, IVideoMessage, Media, MessageType } from "rompot-base";
 import { MediaMessage } from "./index";
 export default class VideoMessage extends MediaMessage implements IVideoMessage {
     readonly type = MessageType.Video;

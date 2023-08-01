@@ -1,8 +1,4 @@
-import { ICommand, ICommandKey } from "../interfaces/command";
-import { IChat } from "../interfaces/IChat";
-import { IUser } from "../interfaces/IUser";
-import { IAudioMessage, IButtonMessage, IContactMessage, IEmptyMessage, IFileMessage, IImageMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IPollMessage, IPollUpdateMessage, IReactionMessage, IStickerMessage, IVideoMessage } from "../interfaces/IMessage";
-import { IAuth } from "../interfaces/IAuth";
+import { IAudioMessage, IAuth, IButtonMessage, IChat, ICommand, ICommandKey, IContactMessage, IEmptyMessage, IFileMessage, IImageMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IPollMessage, IPollUpdateMessage, IReactionMessage, IStickerMessage, IUser, IVideoMessage } from "rompot-base";
 export declare function isChat(chat: any): chat is IChat;
 export declare function isUser(user: any): user is IUser;
 export declare function isCommand(command: any): command is ICommand;

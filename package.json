@@ -1,6 +1,6 @@
 {
   "name": "rompot",
-  "version": "1.5.9",
+  "version": "1.6.0",
   "description": "Chatbot API em TypeScript",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -24,13 +24,13 @@
   "dependencies": {
     "@adiwajshing/keyed-db": "0.2.4",
     "@laxeder/wa-sticker": "4.4.4",
-    "@whiskeysockets/baileys": "6.3.0",
+    "@whiskeysockets/baileys": "6.4.0",
     "crypto-digest-sync": "1.0.0",
     "jimp": "0.16.2",
     "link-preview-js": "3.0.0",
     "pino": "8.7.0",
     "qrcode-terminal": "0.12.0",
-    "rompot-base": "1.0.2"
+    "rompot-base": "1.0.4"
   },
   "files": [
     "lib/**/*"

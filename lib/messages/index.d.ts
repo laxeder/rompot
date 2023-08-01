@@ -12,5 +12,6 @@ import PollMessage from "./PollMessage";
 import PollUpdateMessage from "./PollUpdateMessage";
 import ReactionMessage from "./ReactionMessage";
 import StickerMessage from "./StickerMessage";
+import TextMessage from "./TextMessage";
 import VideoMessage from "./VideoMessage";
-export { AudioMessage, ButtonMessage, ContactMessage, EmptyMessage, FileMessage, ImageMessage, ListMessage, LocationMessage, MediaMessage, Message, PollMessage, PollUpdateMessage, ReactionMessage, StickerMessage, VideoMessage, };
+export { AudioMessage, ButtonMessage, ContactMessage, EmptyMessage, FileMessage, ImageMessage, ListMessage, LocationMessage, MediaMessage, Message, PollMessage, PollUpdateMessage, ReactionMessage, StickerMessage, TextMessage, VideoMessage, };

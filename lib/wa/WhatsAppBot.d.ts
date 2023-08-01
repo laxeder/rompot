@@ -1,41 +1,37 @@
 /// <reference types="node" />
-import type { ConnectionStatus } from "../types/Connection";
-import type { UserAction } from "../types/User";
-import type { ChatStatus } from "../types/Chat";
-import type { Media } from "../types/Message";
-import { DisconnectReason, proto, MediaDownloadOptions, WASocket, SocketConfig } from "@whiskeysockets/baileys";
+import { DisconnectReason, proto, MediaDownloadOptions, WASocket, SocketConfig, makeInMemoryStore, AuthenticationCreds, WAConnectionState, ConnectionState } from "@whiskeysockets/baileys";
+import { BotStatus, ChatStatus, IAuth, IBot, IChat, IMessage, IPollMessage, IReactionMessage, IUser, Media, UserAction } from "rompot-base";
 import ConfigWAEvents from "./ConfigWAEvents";
-import { WAChats, WAUsers } from "./WATypes";
 import { WAChat, WAUser } from "./WAModules";
-import { IMessage, IPollMessage, IReactionMessage } from "../interfaces/IMessage";
-import { IChat } from "../interfaces/IChat";
-import { IUser } from "../interfaces/IUser";
-import { IAuth } from "../interfaces/IAuth";
-import { IBot } from "../interfaces/IBot";
+import { BotEvents } from "../modules/bot";
 import WaitCallBack from "../utils/WaitCallBack";
-import { BotEvents } from "../utils/Emmiter";
 export default class WhatsAppBot implements IBot {
     sock: WASocket;
-    config: Partial<SocketConfig>;
+    config: Partial<SocketConfig & {
+        usePairingCode: boolean;
+    }>;
+    store: ReturnType<typeof makeInMemoryStore>;
+    saveCreds: (creds: Partial<AuthenticationCreds>) => Promise<void>;
     DisconnectReason: typeof DisconnectReason;
     logger: any;
     id: string;
+    status: BotStatus;
     ev: BotEvents;
-    status: ConnectionStatus;
     auth: IAuth;
-    connectionResolve: (() => void)[];
     configEvents: ConfigWAEvents;
     wcb: WaitCallBack;
     chatWCB: WaitCallBack;
     msgWCB: WaitCallBack;
-    chats: WAChats;
-    users: WAUsers;
-    apiMessagesId: string[];
+    chats: Record<string, WAChat>;
+    users: Record<string, WAUser>;
     polls: {
         [id: string]: IPollMessage;
     };
-    constructor(config?: Partial<SocketConfig>);
+    constructor(config?: Partial<SocketConfig & {
+        usePairingCode: boolean;
+    }>);
     connect(auth?: string | IAuth): Promise<void>;
+    connectByCode(phoneNumber: string, auth: string | IAuth): Promise<string>;
     internalConnect(): Promise<void>;
     /**
      * * Reconecta ao servidor do WhatsApp
@@ -50,13 +46,9 @@ export default class WhatsAppBot implements IBot {
      */
     stop(reason?: any): Promise<void>;
     /**
-     * * Aguarda o bot ficar online
+     * * Aguarda um status de conexão
      */
-    awaitConnectionOpen(): Promise<void>;
-    /**
-     * * Resolve conexões em espera
-     */
-    resolveConnectionsAwait(): void;
+    awaitConnectionState(connection: WAConnectionState): Promise<ConnectionState>;
     /**
      * * Salva os chats salvos
      * @param chats Sala de bate-papos
@@ -73,11 +65,6 @@ export default class WhatsAppBot implements IBot {
      */
     savePolls(polls?: any): Promise<void>;
     /**
-     * * Salva as mensagens enviadas salvas
-     * @param messages Mensagens enviadas
-     */
-    saveApiMessagesId(messages?: any): Promise<void>;
-    /**
      * * Obtem os chats salvos
      */
     readChats(): Promise<void>;
@@ -89,10 +76,6 @@ export default class WhatsAppBot implements IBot {
      * * Obtem as mensagem de enquete salvas
      */
     readPolls(): Promise<void>;
-    /**
-     * * Obtem as mensagem enviadas salvas
-     */
-    readApiMessagesId(): Promise<void>;
     /**
      * * Lê o chat
      * @param chat Sala de bate-papo
@@ -122,10 +105,10 @@ export default class WhatsAppBot implements IBot {
     removeChat(chat: IChat): Promise<void>;
     getChat(chat: IChat): Promise<WAChat | null>;
     setChat(chat: IChat): Promise<void>;
-    getChats(): Promise<WAChats>;
-    setChats(chats: WAChats): Promise<void>;
-    getChatUsers(chat: IChat): Promise<WAUsers>;
-    getChatAdmins(chat: IChat): Promise<WAUsers>;
+    getChats(): Promise<Record<string, WAChat>>;
+    setChats(chats: Record<string, WAChat>): Promise<void>;
+    getChatUsers(chat: IChat): Promise<Record<string, WAUser>>;
+    getChatAdmins(chat: IChat): Promise<Record<string, WAUser>>;
     getChatLeader(chat: IChat): Promise<WAUser>;
     addUserInChat(chat: IChat, user: IUser): Promise<void>;
     removeUserInChat(chat: IChat, user: IUser): Promise<void>;
@@ -142,8 +125,8 @@ export default class WhatsAppBot implements IBot {
     setUserProfile(user: IUser, image: Buffer): Promise<void>;
     getUser(user: IUser): Promise<WAUser | null>;
     setUser(user: IUser): Promise<void>;
-    getUsers(): Promise<WAUsers>;
-    setUsers(users: WAUsers): Promise<void>;
+    getUsers(): Promise<Record<string, WAUser>>;
+    setUsers(users: Record<string, WAUser>): Promise<void>;
     addUser(user: IUser): Promise<void>;
     removeUser(user: IUser): Promise<void>;
     blockUser(user: IUser): Promise<void>;
@@ -154,16 +137,6 @@ export default class WhatsAppBot implements IBot {
     setBotDescription(description: string): Promise<void>;
     getBotProfile(): Promise<Buffer>;
     setBotProfile(image: Buffer): Promise<void>;
-    /**
-     * * Adiciona uma mensagem na lista de mensagens enviadas
-     * @param msgId ID da mensagem que será adicionada
-     */
-    addApiMessageId(msgId: string): Promise<void>;
-    /**
-     * * Remove uma mensagem da lista de mensagens enviadas
-     * @param message Mensagem que será removida
-     */
-    removeMessageIgnore(msgId: string): Promise<void>;
     readMessage(message: IMessage): Promise<void>;
     removeMessage(message: IMessage): Promise<void>;
     deleteMessage(message: IMessage): Promise<void>;

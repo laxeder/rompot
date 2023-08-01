@@ -1,8 +1,5 @@
 /// <reference types="node" />
-import type { Media } from "../types/Message";
-import { MessageType } from "../enums/Message";
-import { IFileMessage } from "../interfaces/IMessage";
-import { IChat } from "../interfaces/IChat";
+import { IChat, IFileMessage, Media, MessageType } from "rompot-base";
 import MediaMessage from "./MediaMessage";
 export default class FileMessage extends MediaMessage implements IFileMessage {
     readonly type = MessageType.File;

@@ -1,5 +1,5 @@
 import { MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
-import { IButtonMessage, IContactMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IPollMessage, IReactionMessage, IStickerMessage } from "../interfaces/IMessage";
+import { IButtonMessage, IContactMessage, IListMessage, ILocationMessage, IMediaMessage, IMessage, IPollMessage, IReactionMessage, IStickerMessage } from "rompot-base";
 import WhatsAppBot from "./WhatsAppBot";
 export declare class WhatsAppMessage {
     private _message;

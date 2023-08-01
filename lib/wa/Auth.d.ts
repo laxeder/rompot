@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { AuthenticationState } from "@whiskeysockets/baileys";
-import { IAuth } from "../interfaces/IAuth";
+import { IAuth } from "rompot-base";
 export declare class MultiFileAuthState implements IAuth {
     folder: string;
     fixFileName: (file?: string) => string;

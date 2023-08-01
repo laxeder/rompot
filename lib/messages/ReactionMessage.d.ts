@@ -1,6 +1,4 @@
-import { MessageType } from "../enums/Message";
-import { IMessage, IReactionMessage } from "../interfaces/IMessage";
-import { IChat } from "../interfaces/IChat";
+import { IChat, IMessage, IReactionMessage, MessageType } from "rompot-base";
 import Message from "./Message";
 export default class ReactionMessage extends Message implements IReactionMessage {
     readonly type = MessageType.Reaction;

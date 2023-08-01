@@ -1,7 +1,4 @@
-import type { Button } from "../types/Message";
-import { MessageType } from "../enums/Message";
-import { IButtonMessage } from "../interfaces/IMessage";
-import { IChat } from "../interfaces/IChat";
+import { Button, IButtonMessage, IChat, MessageType } from "rompot-base";
 import Message from "./Message";
 export default class ButtonMessage extends Message implements IButtonMessage {
     type: MessageType.Button | MessageType.TemplateButton;
