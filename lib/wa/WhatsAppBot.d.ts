@@ -3,7 +3,7 @@ import { DisconnectReason, proto, MediaDownloadOptions, WASocket, SocketConfig, 
 import { BotStatus, ChatStatus, IAuth, IBot, IChat, IMessage, IPollMessage, IReactionMessage, IUser, Media, UserAction } from "rompot-base";
 import ConfigWAEvents from "./ConfigWAEvents";
 import { WAChat, WAUser } from "./WAModules";
-import { BotEvents } from "../modules/bot";
+import BotEvents from "../modules/bot/events/BotEvents";
 import WaitCallBack from "../utils/WaitCallBack";
 export default class WhatsAppBot implements IBot {
     sock: WASocket;

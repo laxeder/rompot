@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { IChat, IUser } from "rompot-base";
-import { ClientModule } from "../../client";
+import ClientModule from "../../client/models/ClientModule";
 export default class User extends ClientModule implements IUser {
     name: string;
     id: string;

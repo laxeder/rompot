@@ -1,5 +1,5 @@
 import { ICommand, ICommandControllerConfig, ICommandKey, ICommandPermission, IMessage } from "rompot-base";
-import { ClientModule } from "../../client";
+import ClientModule from "../../client/models/ClientModule";
 export default class Command extends ClientModule implements ICommand {
     keys: ICommandKey[];
     permissions: string[];

@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { IChat, ChatType, IUser, IMessage, ChatStatus } from "rompot-base";
-import { ClientModule } from "../../client";
+import ClientModule from "../../client/models/ClientModule";
 export default class Chat extends ClientModule implements IChat {
     id: string;
     type: ChatType;

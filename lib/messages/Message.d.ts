@@ -1,5 +1,5 @@
 import { IChat, IMessage, IUser, MessageType } from "rompot-base";
-import { ClientModule } from "../modules/client";
+import ClientModule from "../modules/client/models/ClientModule";
 export default class Message extends ClientModule implements IMessage {
     readonly type: MessageType;
     chat: IChat;
