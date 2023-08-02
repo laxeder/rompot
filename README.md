@@ -26,7 +26,7 @@ Importando API
 import Client, { WhatsAppBot } from "rompot";
 
 // Javascript
-const { default: Client, WhatsAppBot } = require("rompot");
+const { Client, WhatsAppBot } = require("rompot");
 ```
 
 ## WhatsApp
@@ -34,15 +34,16 @@ const { default: Client, WhatsAppBot } = require("rompot");
 Após iniciar o bot um QR Code será emprimido no terminal, escane-o com seu WhatsApp para gerar uma nova conexão entre seu número e o Client. Essa conexão será guardada em `./path-to-auth`, para gerar uma nova delete-o ou se conecte com um novo caminho de sessão.
 
 ```ts
-const client = new Client(new WhatsAppBot())
+const client = new Client(new WhatsAppBot());
 client.connect("./path-to-auth");
 
 client.on("qr", (qr) => {
-  console.log("Scan QR:", qr)
-})
+  console.log("Scan QR:", qr);
+});
 ```
 
 ## Parear código
+
 ```ts
 const phoneNumber = 1234567890;
 
