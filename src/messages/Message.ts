@@ -1,8 +1,8 @@
 import { IChat, IMessage, IUser, MessageType } from "rompot-base";
 
+import ClientModule from "@modules/client/models/ClientModule";
 import { Chat, ChatUtils } from "@modules/chat";
 import { User, UserUtils } from "@modules/user";
-import { ClientModule } from "@modules/client";
 
 import MessageUtils from "@utils/MessageUtils";
 import { injectJSON } from "@utils/Generic";

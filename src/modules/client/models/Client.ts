@@ -23,11 +23,11 @@ import { DEFAULT_CONNECTION_CONFIG } from "@config/Defaults";
 import ReactionMessage from "@messages/ReactionMessage";
 import Message from "@messages/Message";
 
+import CommandController from "@modules/command/controllers/CommandController";
 import ClientEvents from "@modules/client/events/ClientEvents";
 import ClientUtils from "@modules/client/utils/ClientUtils";
-import { CommandController } from "@modules/command";
-import { ChatUtils } from "@modules/chat";
-import { UserUtils } from "@modules/user";
+import ChatUtils from "@modules/chat/utils/ChatUtils";
+import UserUtils from "@modules/user/utils/UserUtils";
 
 import PromiseMessages from "@utils/PromiseMessages";
 import { sleep, getError } from "@utils/Generic";

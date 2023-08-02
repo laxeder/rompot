@@ -1,6 +1,6 @@
 import { IChat, IUser } from "rompot-base";
 
-import { ClientModule } from "@modules/client";
+import ClientModule from "@modules/client/models/ClientModule";
 
 export default class User extends ClientModule implements IUser {
   public name: string = "";

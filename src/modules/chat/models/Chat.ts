@@ -1,7 +1,7 @@
 import { IChat, ChatType, IUser, IMessage, ChatStatus } from "rompot-base";
 
+import ClientModule from "@modules/client/models/ClientModule";
 import UserUtils from "@modules/user/utils/UserUtils";
-import { ClientModule } from "@modules/client";
 
 import MessageUtils from "@utils/MessageUtils";
 

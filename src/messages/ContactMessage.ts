@@ -2,7 +2,7 @@ import { IChat, IContactMessage, IUser, MessageType } from "rompot-base";
 
 import Message from "@messages/Message";
 
-import { UserUtils } from "@modules/user";
+import UserUtils from "@modules/user/utils/UserUtils";
 
 import { injectJSON } from "@utils/Generic";
 

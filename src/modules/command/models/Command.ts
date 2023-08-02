@@ -1,9 +1,9 @@
 import { ICommand, ICommandControllerConfig, ICommandKey, ICommandPermission, IMessage } from "rompot-base";
 
 import CommandPermission from "@modules/command/models/CommandPermission";
+import ClientModule from "@modules/client/models/ClientModule";
 import CommandKey from "@modules/command/models/CommandKey";
 import { CMDPerm } from "@modules/command/utils/perms";
-import { ClientModule } from "@modules/client";
 
 import { readRecursiveDir } from "@utils/Generic";
 import { isCommand } from "@utils/Verify";

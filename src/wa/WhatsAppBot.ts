@@ -24,8 +24,8 @@ import { WAStatus } from "@wa/WAStatus";
 
 import PollMessage from "@messages/PollMessage";
 
-import { UserUtils } from "@modules/user";
-import { BotEvents } from "@modules/bot";
+import UserUtils from "@modules/user/utils/UserUtils";
+import BotEvents from "@modules/bot/events/BotEvents";
 
 import { getImageURL, getRompotVersion, injectJSON } from "@utils/Generic";
 import WaitCallBack from "@utils/WaitCallBack";

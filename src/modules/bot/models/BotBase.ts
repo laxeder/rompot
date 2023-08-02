@@ -1,9 +1,6 @@
 import { BotStatus, ChatStatus, IAuth, IBot, IBotEvents, IChat, IMessage, IReactionMessage, IUser, Media } from "rompot-base";
 
-import Message from "@messages/Message";
-
-import BotEvents from "@modules/bot/events/BotEevents";
-import User from "@modules/user/models/User";
+import BotEvents from "@modules/bot/events/BotEvents";
 
 export default class BotBase implements IBot {
   public id: string = "";
@@ -33,7 +30,7 @@ export default class BotBase implements IBot {
   }
 
   public async sendMessage(chat: IChat | string, message: string | IMessage, mention?: IMessage): Promise<IMessage> {
-    return new Message(chat, "");
+    return new Promise<IMessage>(() => {});
   }
 
   public async editMessage(message: IMessage): Promise<void> {}
@@ -117,7 +114,7 @@ export default class BotBase implements IBot {
   }
 
   public async getChatLeader(chat: IChat): Promise<IUser> {
-    return new User("");
+    return new Promise<IUser>(() => {});
   }
 
   public async getChatName(chat: IChat): Promise<string> {
