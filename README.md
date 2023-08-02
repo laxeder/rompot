@@ -23,10 +23,10 @@ Importando API
 
 ```ts
 // TypeScript
-import { Client, WhatsAppBot } from "rompot";
+import Client, { WhatsAppBot } from "rompot";
 
 // Javascript
-const { Client, WhatsAppBot } = require("rompot");
+const { default: Client, WhatsAppBot } = require("rompot");
 ```
 
 ## WhatsApp
