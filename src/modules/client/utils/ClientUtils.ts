@@ -22,7 +22,7 @@ export default class ClientUtils {
       return clients[id];
     }
 
-    return ClientBase();
+    return new ClientBase();
   }
 
   public static setClient(client: IClient): void {
