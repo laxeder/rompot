@@ -1,1 +1,0 @@
-{"version":3,"file":"TextMessage.js","sourceRoot":"","sources":["../../src/messages/TextMessage.ts"],"names":[],"mappings":";;;;;AAAA,6CAA+D;AAE/D,gEAAwC;AAExC,MAAqB,WAAY,SAAQ,iBAAO;IAG9C,YAAY,IAAoB,EAAE,IAAY,EAAE,SAAgC,EAAE;QAChF,KAAK,CAAC,IAAI,EAAE,IAAI,EAAE,MAAM,CAAC,CAAC;QAHZ,SAAI,GAAqB,yBAAW,CAAC,IAAI,CAAC;IAI1D,CAAC;CACF;AAND,8BAMC"}
