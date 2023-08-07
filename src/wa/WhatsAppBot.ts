@@ -37,6 +37,7 @@ export default class WhatsAppBot implements IBot {
   public config: Partial<SocketConfig & { usePairingCode: boolean }>;
   public store: ReturnType<typeof makeInMemoryStore>;
   public saveCreds = (creds: Partial<AuthenticationCreds>) => new Promise<void>((res) => res);
+  public connectionListeners: ((update: Partial<ConnectionState>) => boolean)[] = [];
 
   public DisconnectReason = DisconnectReason;
   public logger: any = pino({ level: "silent" });
@@ -180,17 +181,15 @@ export default class WhatsAppBot implements IBot {
   /**
    * * Aguarda um status de conexão
    */
-  public awaitConnectionState(connection: WAConnectionState): Promise<ConnectionState> {
-    return new Promise<ConnectionState>((res) => {
-      const listener = (update: ConnectionState) => {
-        if (update.connection != connection) return;
+  public async awaitConnectionState(connection: WAConnectionState): Promise<Partial<ConnectionState>> {
+    return new Promise<Partial<ConnectionState>>((res) => {
+      this.connectionListeners.push((update: Partial<ConnectionState>) => {
+        if (update.connection != connection) return false;
 
         res(update);
 
-        this.sock.ev.off("connection.update", listener);
-      };
-
-      this.sock.ev.on("connection.update", listener);
+        return true;
+      });
     });
   }
 

@@ -119,6 +119,8 @@ export default class ConfigWAEvents {
   public configConnectionUpdate() {
     this.wa.sock.ev.on("connection.update", async (update) => {
       try {
+        this.wa.connectionListeners = this.wa.connectionListeners.filter((listener) => !listener(update));
+
         if (update.connection == "connecting") {
           this.wa.ev.emit("connecting", { action: "connecting" });
         }
