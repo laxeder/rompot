@@ -30,7 +30,7 @@ export default class ClientModule implements IClientModule {
   }
 
   set clientId(clientId: string) {
-    this.clientId = clientId;
+    this.#clientId = clientId;
   }
 
   get clientId(): string {
