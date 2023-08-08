@@ -320,7 +320,9 @@ export default class WhatsAppBot implements IBot {
    * @param save Salva usuário lido
    */
   public async readUser(user: any) {
-    const newUser = new WAUser(user?.id || user?.newJID || user || "", user?.name || user?.verifiedName || user?.notify || "");
+    user.id = replaceID(user?.id || user?.newJID || `${user}` || "");
+
+    const newUser = new WAUser(user.id, user?.name || user?.verifiedName || user?.notify || "");
 
     await this.addUser(newUser);
 
