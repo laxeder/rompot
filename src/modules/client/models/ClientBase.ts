@@ -1,4 +1,5 @@
 import { BotStatus, ChatStatus, ConnectionConfig, IAuth, IChat, IClient, ICommand, ICommandController, IMediaMessage, IMessage, IPromiseMessage, IUser, PromiseMessageConfig } from "rompot-base";
+import { readFileSync } from "fs";
 
 import BotBase from "@modules/bot/models/BotBase";
 
@@ -106,6 +107,14 @@ export default class ClientBase extends ClientEvents implements IClient {
   }
 
   public async downloadStreamMessage(message: IMediaMessage): Promise<Buffer> {
+    if (!message.file) return Buffer.from("");
+
+    if (Buffer.isBuffer(message.file)) return message.file;
+
+    if (typeof message.file == "string") {
+      return readFileSync(message.file);
+    }
+
     return Buffer.from("");
   }
 
