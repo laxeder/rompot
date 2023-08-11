@@ -259,6 +259,8 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
   }
 
   public runCommand(command: ICommand, message: IMessage, type?: string) {
+    message = MessageUtils.applyClient(this, message);
+
     return this.commandController.runCommand(command, message, type);
   }
 
@@ -342,6 +344,7 @@ export default class Client<Bot extends IBot> extends ClientEvents implements IC
 
   public async sendMessage(chat: IChat | string, message: string | IMessage, mention?: IMessage): Promise<IMessage> {
     if (isMessage(message)) {
+      message = MessageUtils.applyClient(this, message);
       message.chat = ChatUtils.get(chat);
       message.mention = mention;
 
