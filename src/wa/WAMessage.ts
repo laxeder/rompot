@@ -142,7 +142,7 @@ export class WhatsAppMessage {
     }
 
     if (isFileMessage(message)) {
-      this.message.file = stream;
+      this.message.document = stream;
     }
 
     if (isStickerMessage(message)) {
