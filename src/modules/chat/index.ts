@@ -1,4 +1,5 @@
-import ChatUtils from "./utils/ChatUtils";
-import Chat from "./models/Chat";
+import { ChatStatus } from "./ChatStatus";
+import { ChatType } from "./ChatType";
+import Chat from "./Chat";
 
-export { Chat, ChatUtils };
+export { Chat, ChatType, ChatStatus };
