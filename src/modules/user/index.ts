@@ -1,4 +1,3 @@
-import UserUtils from "./utils/UserUtils";
-import User from "./models/User";
+import User from "./User";
 
-export { User, UserUtils };
+export { User };
