@@ -1,4 +1,4 @@
-import ClientUtils from "@modules/client/utils/ClientUtils";
+import Client from "@modules/client/Client";
 import Chat from "@modules/chat/Chat";
 
 import { injectJSON } from "@utils/Generic";
@@ -26,7 +26,7 @@ export default class User {
    * @returns Uma Promise que resolve quando o usuário é bloqueado com sucesso.
    */
   public async blockUser(): Promise<void> {
-    return ClientUtils.getClient(this.botId).blockUser(this);
+    return Client.getClient(this.botId).blockUser(this);
   }
 
   /**
@@ -34,7 +34,7 @@ export default class User {
    * @returns Uma Promise que resolve quando o usuário é desbloqueado com sucesso.
    */
   public async unblockUser(): Promise<void> {
-    return ClientUtils.getClient(this.botId).unblockUser(this);
+    return Client.getClient(this.botId).unblockUser(this);
   }
 
   /**
@@ -42,7 +42,7 @@ export default class User {
    * @returns Uma string representando o nome do usuário.
    */
   public async getName(): Promise<string> {
-    return ClientUtils.getClient(this.botId).getUserName(this);
+    return Client.getClient(this.botId).getUserName(this);
   }
 
   /**
@@ -51,7 +51,7 @@ export default class User {
    * @returns Uma Promise que resolve quando o nome do usuário é definido com sucesso.
    */
   public async setName(name: string): Promise<void> {
-    return ClientUtils.getClient(this.botId).setUserName(this, name);
+    return Client.getClient(this.botId).setUserName(this, name);
   }
 
   /**
@@ -59,7 +59,7 @@ export default class User {
    * @returns Uma string representando a descrição do usuário.
    */
   public async getDescription(): Promise<string> {
-    return ClientUtils.getClient(this.botId).getUserDescription(this);
+    return Client.getClient(this.botId).getUserDescription(this);
   }
 
   /**
@@ -68,7 +68,7 @@ export default class User {
    * @returns Uma Promise que resolve quando a descrição do usuário é definida com sucesso.
    */
   public async setDescription(description: string): Promise<void> {
-    return ClientUtils.getClient(this.botId).setUserDescription(this, description);
+    return Client.getClient(this.botId).setUserDescription(this, description);
   }
 
   /**
@@ -76,7 +76,7 @@ export default class User {
    * @returns Um Buffer representando o perfil do usuário.
    */
   public async getProfile(): Promise<Buffer> {
-    return ClientUtils.getClient(this.botId).getUserProfile(this);
+    return Client.getClient(this.botId).getUserProfile(this);
   }
 
   /**
@@ -85,7 +85,7 @@ export default class User {
    * @returns Uma Promise que resolve quando o perfil do usuário é definido com sucesso.
    */
   public async setProfile(image: Buffer): Promise<void> {
-    return ClientUtils.getClient(this.botId).setUserProfile(this, image);
+    return Client.getClient(this.botId).setUserProfile(this, image);
   }
 
   /**
@@ -94,7 +94,7 @@ export default class User {
    * @returns Verdadeiro se o usuário é um administrador do chat, caso contrário, falso.
    */
   public async isAdmin(chat: Chat | string): Promise<boolean> {
-    return (await ClientUtils.getClient(this.botId).getChatAdmins(chat)).includes(this.id);
+    return (await Client.getClient(this.botId).getChatAdmins(chat)).includes(this.id);
   }
 
   /**
@@ -103,7 +103,7 @@ export default class User {
    * @returns Verdadeiro se o usuário é o líder do chat, caso contrário, falso.
    */
   public async isLeader(chat: Chat | string): Promise<boolean> {
-    return (await ClientUtils.getClient(this.botId).getChatLeader(chat))?.id == this.id;
+    return (await Client.getClient(this.botId).getChatLeader(chat))?.id == this.id;
   }
 
   /**
@@ -130,12 +130,19 @@ export default class User {
   /**
    * Obtém uma instância de User com base em um ID ou retorna uma nova instância vazia se o parâmetro for uma string vazia.
    * @param user - O ID do usuário ou uma instância existente de User.
+   * @param botId - O ID do bot associado ao usuário.
    * @returns Uma instância de User com base no ID fornecido ou uma nova instância vazia se o ID for uma string vazia.
    */
-  public static get<T extends User>(user: T | string): T | User {
+  public static get<T extends User>(user: T | string, botId?: string): T | User {
     if (typeof user == "string") {
-      return new User(user);
+      const u = new User(user);
+
+      if (botId) u.botId = botId;
+
+      return u;
     }
+
+    if (botId) user.botId = botId;
 
     return user;
   }

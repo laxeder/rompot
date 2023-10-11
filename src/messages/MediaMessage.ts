@@ -1,4 +1,4 @@
-import ClientUtils from "@modules/client/utils/ClientUtils";
+import Client from "@modules/client/Client";
 import Message, { MessageType } from "@messages/Message";
 import Chat from "@modules/chat/Chat";
 
@@ -41,7 +41,7 @@ export default class MediaMessage extends Message {
    * @returns Um Buffer contendo os dados da mídia.
    */
   public async getStream(): Promise<Buffer> {
-    return await ClientUtils.getClient(this.botId).downloadStreamMessage(this);
+    return await Client.getClient(this.botId).downloadStreamMessage(this);
   }
 
   /**

@@ -1,10 +1,12 @@
-import { ClientUtils } from "@modules/client";
+import Client from "@modules/client/Client";
 import Chat from "@modules/chat/Chat";
 import User from "@modules/user/User";
 
-import MessageUtils from "@utils/MessageUtils";
 import { injectJSON } from "@utils/Generic";
 
+/**
+ * Tipo da mensagem
+ */
 export enum MessageType {
   Empty = "empty",
   Text = "text",
@@ -51,8 +53,8 @@ export default class Message {
   public isEdited: boolean = false;
   /** A Mensagem foi deletada */
   public isDeleted: boolean = false;
-  /** A mensagem foi enviada pela api */
-  public apiSend: boolean = false;
+  /** A mensagem foi enviada por uma API não oficial */
+  public isUnofficial: boolean = false;
 
   constructor(chat: Chat | string = "", text: string = "", others: Partial<Message> = {}) {
     this.text = text || "";
@@ -66,14 +68,14 @@ export default class Message {
    * @param emoji - Emoji que será adicionado na reação.
    */
   public async addReaction(emoji: string): Promise<void> {
-    return ClientUtils.getClient(this.botId).addReaction(this, emoji);
+    return Client.getClient(this.botId).addReaction(this, emoji);
   }
 
   /**
    * * Remove uma reação da mensagem.
    */
   public async removeReaction(): Promise<void> {
-    return ClientUtils.getClient(this.botId).removeReaction(this);
+    return Client.getClient(this.botId).removeReaction(this);
   }
 
   /**
@@ -83,7 +85,7 @@ export default class Message {
    * @param maxTimeout Maximo de tempo reagindo.
    */
   public addAnimatedReaction(reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void> {
-    return ClientUtils.getClient(this.botId).addAnimatedReaction(this, reactions, interval, maxTimeout);
+    return Client.getClient(this.botId).addAnimatedReaction(this, reactions, interval, maxTimeout);
   }
 
   /** Envia uma mensagem mencionando a mensagem atual.
@@ -91,20 +93,20 @@ export default class Message {
    * @param isMention Se verdadeiro a mensagem atual é mencionada na mensagem enviada.
    */
   public async reply(message: Message | string, isMention: boolean = true) {
-    const msg = MessageUtils.get(message);
+    const msg = Message.get(message);
 
     msg.chat.id = msg.chat.id || this.chat.id;
     msg.user.id = msg.chat.id || this.botId;
     msg.mention = isMention ? this : msg.mention;
 
-    return ClientUtils.getClient(this.botId).send(msg);
+    return Client.getClient(this.botId).send(msg);
   }
 
   /**
    * * Marca mensagem como visualizada.
    */
   public async read(): Promise<void> {
-    return ClientUtils.getClient(this.botId).readMessage(this);
+    return Client.getClient(this.botId).readMessage(this);
   }
 
   /**
@@ -122,6 +124,26 @@ export default class Message {
    */
   public static fromJSON(data: any): Message {
     return !data || typeof data != "object" ? new Message() : injectJSON(data, new Message());
+  }
+
+  /**
+   * Obtem a mensagem apartir de um texto ou Message.
+   * @param message - Mensagem que será obtida.
+   * @param botId - ID do bot associado a mensagem.
+   * @returns A mensagem
+   */
+  public static get<T extends Message>(message: T | string, botId?: string): T | Message {
+    if (typeof message == "string") {
+      const m = new Message(message);
+
+      if (botId) m.botId = botId;
+
+      return m;
+    }
+
+    if (botId) message.botId = botId;
+
+    return message;
   }
 
   /**
