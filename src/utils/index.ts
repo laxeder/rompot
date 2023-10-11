@@ -1,6 +1,6 @@
-import PromiseMessages from "./PromiseMessages";
+import MessageHandler, { MessageHandlerConfig } from "./MessageHandler";
 import WaitCallBack from "./WaitCallBack";
-export * from "./Generic";
-export * from "./Verify";
 
-export { PromiseMessages, WaitCallBack };
+export * from "./Generic";
+
+export { MessageHandler, MessageHandlerConfig, WaitCallBack };
