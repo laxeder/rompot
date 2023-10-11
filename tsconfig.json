@@ -16,7 +16,7 @@
       "@services/*": ["./src/services/*"],
       "@messages/*": ["./src/messages/*"],
       "@modules/*": ["./src/modules/*"],
-      "@config/*": ["./src/config/*"],
+      "@configs/*": ["src/configs/*"],
       "@enums/*": ["./src/enums/*"],
       "@utils/*": ["./src/utils/*"],
       "@wa/*": ["./src/wa/*"]

@@ -3,7 +3,7 @@ import { parse, resolve } from "path";
 import { Transform } from "stream";
 import https from "https";
 
-import { ROMPOT_VERSION } from "@config/Defaults";
+import { ROMPOT_VERSION } from "@configs/Defaults";
 
 /**
  * * Aguarda um determinado tempo
