@@ -1,31 +1,70 @@
-import { IChat, ILocationMessage, MessageType } from "rompot-base";
-
-import Message from "@messages/Message";
+import Message, { MessageType } from "@messages/Message";
+import Chat from "@modules/chat/Chat";
 
 import { injectJSON } from "@utils/Generic";
 
-export default class LocationMessage extends Message implements ILocationMessage {
+/**
+ * Representa uma mensagem de localização.
+ */
+export default class LocationMessage extends Message {
+  /** O tipo da mensagem é sempre MessageType.Location. */
   public readonly type = MessageType.Location;
 
+  /** A latitude da localização. */
   public latitude: number;
+
+  /** A longitude da localização. */
   public longitude: number;
 
-  constructor(chat: IChat | string, latitude: number, longitude: number, others: Partial<LocationMessage> = {}) {
-    super(chat, "");
+  /**
+   * Cria uma nova instância de LocationMessage.
+   * @param latitude - A latitude da localização (padrão é 0).
+   * @param longitude - A longitude da localização (padrão é 0).
+   * @param chat - O chat associado à mensagem de localização (opcional).
+   * @param others - Outras propriedades da mensagem de localização (opcional).
+   */
+  constructor(latitude: number = 0, longitude: number = 0, chat?: Chat | string, others: Partial<LocationMessage> = {}) {
+    super(chat);
+
+    this.latitude = latitude;
+    this.longitude = longitude;
 
     injectJSON(others, this);
+  }
 
+  /**
+   * Define a localização da mensagem.
+   * @param latitude - A nova latitude.
+   * @param longitude - A nova longitude.
+   */
+  public setLocation(latitude: number, longitude: number) {
     this.latitude = latitude;
     this.longitude = longitude;
   }
 
   /**
-   * * Definir localização
-   * @param latitude Latitude
-   * @param longitude Longitude
+   * Converte o objeto atual para uma representação em formato JSON.
+   * @returns Um objeto JSON que representa o estado atual do objeto.
    */
-  public setLocation(latitude: number, longitude: number) {
-    this.latitude = latitude;
-    this.longitude = longitude;
+  public toJSON(): any {
+    return JSON.parse(JSON.stringify(this));
+  }
+
+  /**
+   * Desserializa um objeto JSON em uma instância de LocationMessage.
+   * @param data - O objeto JSON a ser desserializado.
+   * @returns Uma instância de LocationMessage.
+   */
+  public static fromJSON(data: any): LocationMessage {
+    return !data || typeof data != "object" ? new LocationMessage() : injectJSON(data, new LocationMessage());
+  }
+
+  /**
+   * Verifica se um objeto é uma instância válida de LocationMessage.
+   * @param message - O objeto a ser verificado como uma instância de LocationMessage.
+   * @returns Verdadeiro se o objeto for uma instância válida de LocationMessage, caso contrário, falso.
+   */
+  public static isValid(message: any): message is LocationMessage {
+    return typeof message === "object" && Object.keys(new LocationMessage()).every((key) => message?.hasOwnProperty(key));
   }
 }

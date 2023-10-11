@@ -1,68 +1,135 @@
-import { IChat, IMessage, IUser, MessageType } from "rompot-base";
-
-import ClientModule from "@modules/client/models/ClientModule";
-import { Chat, ChatUtils } from "@modules/chat";
-import { User, UserUtils } from "@modules/user";
+import { ClientUtils } from "@modules/client";
+import Chat from "@modules/chat/Chat";
+import User from "@modules/user/User";
 
 import MessageUtils from "@utils/MessageUtils";
 import { injectJSON } from "@utils/Generic";
 
-export default class Message extends ClientModule implements IMessage {
-  public readonly type: MessageType = MessageType.Text;
+export enum MessageType {
+  Empty = "empty",
+  Text = "text",
+  Media = "media",
+  File = "file",
+  Video = "video",
+  Image = "image",
+  Audio = "audio",
+  Sticker = "sticker",
+  Reaction = "reaction",
+  Contact = "contact",
+  Location = "location",
+  Poll = "poll",
+  PollUpdate = "pollUpdate",
+  List = "list",
+  Button = "button",
+  TemplateButton = "templateButton",
+}
 
-  public chat: IChat = new Chat("");
-  public user: IUser = new User("");
-  public mention?: IMessage = undefined;
-
-  public id: string = "";
+export default class Message {
+  /** ID do bot associado a esta mensagem */
+  public botId: string = "";
+  /** Tipo da mensagem */
+  public type: MessageType = MessageType.Text;
+  /** Sala de bate-papo que foi enviada a mensagem */
+  public chat: Chat = new Chat("");
+  /** Usuário que mandou a mensagem */
+  public user: User = new User("");
+  /** Texto da mensagem */
   public text: string = "";
-  public selected: string = "";
-
+  /** Mensagem mencionada na mensagem */
+  public mention?: Message | undefined = undefined;
+  /** ID da mensagem */
+  public id: string = "";
+  /** Mensagem enviada pelo bot */
   public fromMe: boolean = false;
-  public apiSend: boolean = false;
-  public isDeleted: boolean = false;
-  public isEdited: boolean = false;
-
+  /** Opção selecionada */
+  public selected: string = "";
+  /** Usuários mencionados na mensagem */
   public mentions: string[] = [];
-  public timestamp: Number = Date.now();
+  /** Tempo em que a mensagem foi enviada */
+  public timestamp: Number = 0;
+  /** A mensagem é editada */
+  public isEdited: boolean = false;
+  /** A Mensagem foi deletada */
+  public isDeleted: boolean = false;
+  /** A mensagem foi enviada pela api */
+  public apiSend: boolean = false;
 
-  constructor(chat: IChat | string, text: string, others: Partial<Message> = {}) {
-    super();
-
+  constructor(chat: Chat | string = "", text: string = "", others: Partial<Message> = {}) {
     this.text = text || "";
+    this.chat = Chat.get(chat || "");
 
     injectJSON(others, this);
-
-    this.chat = ChatUtils.applyClient(this.client, chat || "");
-    this.user = UserUtils.applyClient(this.client, this.user || "");
-
-    if (this.mention) this.mention = MessageUtils.applyClient(this.client, this.mention);
   }
 
-  public async addReaction(reaction: string): Promise<void> {
-    return this.client.addReaction(this, reaction);
+  /**
+   * * Adiciona uma reação a mensagem.
+   * @param emoji - Emoji que será adicionado na reação.
+   */
+  public async addReaction(emoji: string): Promise<void> {
+    return ClientUtils.getClient(this.botId).addReaction(this, emoji);
   }
 
+  /**
+   * * Remove uma reação da mensagem.
+   */
   public async removeReaction(): Promise<void> {
-    return this.client.removeReaction(this);
+    return ClientUtils.getClient(this.botId).removeReaction(this);
   }
 
+  /**
+   * * Adiciona animações na reação da mensagem.
+   * @param reactions Reações em sequência.
+   * @param interval Intervalo entre cada reação.
+   * @param maxTimeout Maximo de tempo reagindo.
+   */
   public addAnimatedReaction(reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void> {
-    return this.client.addAnimatedReaction(this, reactions, interval, maxTimeout);
+    return ClientUtils.getClient(this.botId).addAnimatedReaction(this, reactions, interval, maxTimeout);
   }
 
-  public async reply(message: Message | string, mention: boolean = true) {
+  /** Envia uma mensagem mencionando a mensagem atual.
+   * @param message Mensagem que será enviada.
+   * @param isMention Se verdadeiro a mensagem atual é mencionada na mensagem enviada.
+   */
+  public async reply(message: Message | string, isMention: boolean = true) {
     const msg = MessageUtils.get(message);
 
-    if (!!!msg.chat.id) msg.chat.id = this.chat.id;
-    if (!!!msg.user.id) msg.user.id = this.client.id;
+    msg.chat.id = msg.chat.id || this.chat.id;
+    msg.user.id = msg.chat.id || this.botId;
+    msg.mention = isMention ? this : msg.mention;
 
-    if (mention) msg.mention = this;
-
-    return this.client.send(msg);
+    return ClientUtils.getClient(this.botId).send(msg);
   }
 
+  /**
+   * * Marca mensagem como visualizada.
+   */
   public async read(): Promise<void> {
-    return this.client.readMessage(this);
+    return ClientUtils.getClient(this.botId).readMessage(this);
+  }
+
+  /**
+   * Converte o objeto atual para uma representação em formato JSON.
+   * @returns Um objeto JSON que representa o estado atual do objeto.
+   */
+  public toJSON(): any {
+    return JSON.parse(JSON.stringify(this));
+  }
+
+  /**
+   * Cria uma instância de Message a partir de uma representação em formato JSON.
+   * @param data - Os dados JSON a serem usados para criar a instância.
+   * @returns Uma instância de Message criada a partir dos dados JSON.
+   */
+  public static fromJSON(data: any): Message {
+    return !data || typeof data != "object" ? new Message() : injectJSON(data, new Message());
+  }
+
+  /**
+   * Verifica se um objeto é uma instância válida de Message.
+   * @param message - O objeto a ser verificado.
+   * @returns Verdadeiro se o objeto for uma instância válida de Message, caso contrário, falso.
+   */
+  public static isValid(message: any): message is Message {
+    return typeof message === "object" && Object.keys(new Message()).every((key) => message?.hasOwnProperty(key));
   }
 }
