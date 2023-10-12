@@ -9,18 +9,7 @@
     "strict": false,
     "declaration": true,
     "baseUrl": ".",
-    "moduleResolution": "node",
-    "paths": {
-      "@controllers/*": ["./src/controllers/*"],
-      "@interfaces/*": ["./src/interfaces/*"],
-      "@services/*": ["./src/services/*"],
-      "@messages/*": ["./src/messages/*"],
-      "@modules/*": ["./src/modules/*"],
-      "@configs/*": ["src/configs/*"],
-      "@enums/*": ["./src/enums/*"],
-      "@utils/*": ["./src/utils/*"],
-      "@wa/*": ["./src/wa/*"]
-    }
+    "moduleResolution": "node"
   },
   "include": ["src"]
 }
