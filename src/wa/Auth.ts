@@ -1,8 +1,9 @@
 import { SignalDataTypeMap, initAuthCreds, BufferJSON, proto, AuthenticationState, AuthenticationCreds } from "@whiskeysockets/baileys";
 import { readFile, writeFile, unlink } from "fs/promises";
 import { mkdirSync, readdirSync, statSync } from "fs";
-import { IAuth } from "rompot-base";
 import { join } from "path";
+
+import IAuth from "../client/IAuth";
 
 export class MultiFileAuthState implements IAuth {
   public folder: string;
@@ -57,10 +58,10 @@ export class MultiFileAuthState implements IAuth {
     } catch {}
   }
 
-  public async listAll(file?: string) {
+  public async listAll(pattern?: string) {
     try {
-      return readdirSync(!!file ? join(this.folder, file) : this.folder);
-    } catch (err) {
+      return readdirSync(join(this.folder)).filter((file) => file.startsWith(pattern));
+    } catch (error) {
       return [];
     }
   }
