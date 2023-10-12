@@ -1,6 +1,6 @@
 import MediaMessage, { Media } from "@messages/MediaMessage";
 import { MessageType } from "@messages/Message";
-import Chat from "@modules/chat/Chat";
+import Chat from "@src/chat/Chat";
 
 import { injectJSON } from "@utils/Generic";
 

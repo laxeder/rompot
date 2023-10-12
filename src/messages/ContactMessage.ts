@@ -1,6 +1,6 @@
 import Message, { MessageType } from "@messages/Message";
-import User from "@modules/user/User";
-import Chat from "@modules/chat/Chat";
+import User from "@src/user/User";
+import Chat from "@src/chat/Chat";
 
 import { injectJSON } from "@utils/Generic";
 
