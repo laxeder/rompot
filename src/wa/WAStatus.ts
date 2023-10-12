@@ -1,8 +1,10 @@
 import { WAPresence } from "@whiskeysockets/baileys";
 
-export const WAStatus: { [s: string]: WAPresence } = {
-  typing: "composing",
-  recording: "recording",
-  online: "available",
-  offline: "unavailable",
+import { ChatStatus } from "../chat/ChatStatus";
+
+export const WAStatus: Record<ChatStatus, WAPresence> = {
+  [ChatStatus.Typing]: "composing",
+  [ChatStatus.Recording]: "recording",
+  [ChatStatus.Online]: "available",
+  [ChatStatus.Offline]: "unavailable",
 };
