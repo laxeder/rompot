@@ -7,6 +7,8 @@ export default class User {
   public botId: string = "";
   /** Nome do usuário */
   public name: string = "";
+  /** Descrição do usuário */
+  public description: string = "";
   /** ID do usuário */
   public id: string = "";
 
