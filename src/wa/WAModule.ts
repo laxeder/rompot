@@ -1,5 +1,5 @@
-import Client from "@modules/client/models/Client";
+import Client from "../client/Client";
 
-import WhatsAppBot from "@wa/WhatsAppBot";
+import WhatsAppBot from "./WhatsAppBot";
 
 export type WAClient = Client<WhatsAppBot>;
