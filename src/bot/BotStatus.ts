@@ -1,1 +1,4 @@
-export type BotStatus = "online" | "offline";
+export enum BotStatus {
+  Online = "online",
+  Offline = "offline",
+}
