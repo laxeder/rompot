@@ -10,7 +10,7 @@ import { injectJSON } from "@utils/Generic";
 export default class ContactMessage extends Message {
   /** O tipo da mensagem é sempre MessageType.Contact. */
   public readonly type = MessageType.Contact;
-  EmptyMessage;
+
   /** Lista de contatos associados à mensagem. */
   public contacts: Array<User> = [];
 
@@ -21,7 +21,7 @@ export default class ContactMessage extends Message {
    * @param text - O texto da mensagem (opcional).
    * @param others - Outras propriedades da mensagem de contato (opcional).
    */
-  constructor(contacts: Array<User | string> = [], chat?: Chat | string, text?: string, others: Partial<ContactMessage> = {}) {
+  constructor(chat?: Chat | string, text?: string, contacts: Array<User | string> = [], others: Partial<ContactMessage> = {}) {
     super(chat, text);
 
     this.contacts = contacts.map((contact) => User.get(contact));

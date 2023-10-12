@@ -23,7 +23,7 @@ export default class LocationMessage extends Message {
    * @param chat - O chat associado à mensagem de localização (opcional).
    * @param others - Outras propriedades da mensagem de localização (opcional).
    */
-  constructor(latitude: number = 0, longitude: number = 0, chat?: Chat | string, others: Partial<LocationMessage> = {}) {
+  constructor(chat?: Chat | string, latitude: number = 0, longitude: number = 0, others: Partial<LocationMessage> = {}) {
     super(chat);
 
     this.latitude = latitude;
