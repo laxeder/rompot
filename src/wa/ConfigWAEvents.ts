@@ -1,14 +1,12 @@
 import { DisconnectReason } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 
-import Chat from "@modules/chat/models/Chat";
-
-import { isEmptyMessage } from "@utils/Verify";
-
-import { WhatsAppConvertMessage } from "./WAConvertMessage";
+import { ConvertWAMessage } from "./ConvertWAMessage";
+import { BotStatus } from "../bot/BotStatus";
 import WhatsAppBot from "./WhatsAppBot";
-import { WAChat, WAUser } from "./WAModules";
 import { replaceID } from "./ID";
+import Chat from "../chat/Chat";
+import User from "../user/User";
 
 export default class ConfigWAEvents {
   public wa: WhatsAppBot;
@@ -41,7 +39,7 @@ export default class ConfigWAEvents {
         try {
           await this.wa.groupParticipantsUpdate(content.attrs.jid == data.attrs.participant ? "leave" : "remove", data.attrs.from, content.attrs.jid, data.attrs.participant);
         } catch (err) {
-          this.wa.ev.emit("error", err);
+          this.wa.emit("error", err);
         }
       }
     });
@@ -55,7 +53,7 @@ export default class ConfigWAEvents {
 
           await this.wa.groupParticipantsUpdate(content.attrs.jid == data.attrs.participant ? "join" : "add", data.attrs.from, content.attrs.jid, data.attrs.participant);
         } catch (err) {
-          this.wa.ev.emit("error", err);
+          this.wa.emit("error", err);
         }
       }
     });
@@ -67,7 +65,7 @@ export default class ConfigWAEvents {
         try {
           await this.wa.groupParticipantsUpdate("promote", data.attrs.from, content.attrs.jid, data.attrs.participant);
         } catch (err) {
-          this.wa.ev.emit("error", err);
+          this.wa.emit("error", err);
         }
       }
     });
@@ -79,7 +77,7 @@ export default class ConfigWAEvents {
         try {
           await this.wa.groupParticipantsUpdate("demote", data.attrs.from, content.attrs.jid, data.attrs.participant);
         } catch (err) {
-          this.wa.ev.emit("error", err);
+          this.wa.emit("error", err);
         }
       }
     });
@@ -92,26 +90,12 @@ export default class ConfigWAEvents {
           if (message.key.remoteJid == "status@broadcast") return;
           if (!message.message) return;
 
-          const jid = replaceID(message.key.remoteJid);
+          const msg = await new ConvertWAMessage(this.wa, message, m.type).get();
 
-          if (!this.wa.chats[jid]) {
-            await this.wa.readChat({ id: jid });
-          }
-
-          if (!this.wa.chats[jid].users[this.wa.id]) {
-            this.wa.chats[jid].users[this.wa.id] = new WAUser(this.wa.id);
-
-            await this.wa.saveChats();
-          }
-
-          const msg = await new WhatsAppConvertMessage(this.wa, message, m.type).get();
-
-          if (isEmptyMessage(msg)) return;
-
-          this.wa.ev.emit("message", msg);
+          this.wa.emit("message", msg);
         }
       } catch (err) {
-        this.wa.ev.emit("error", err);
+        this.wa.emit("error", err);
       }
     });
   }
@@ -122,43 +106,38 @@ export default class ConfigWAEvents {
         this.wa.connectionListeners = this.wa.connectionListeners.filter((listener) => !listener(update));
 
         if (update.connection == "connecting") {
-          this.wa.ev.emit("connecting", { action: "connecting" });
+          this.wa.emit("connecting", { action: "connecting" });
         }
 
         if (update.qr) {
-          this.wa.ev.emit("qr", update.qr);
+          this.wa.emit("qr", update.qr);
         }
 
         if (update.connection == "open") {
-          this.wa.status = "online";
+          this.wa.status = BotStatus.Online;
 
           this.wa.id = replaceID(this.wa.sock?.user?.id || "");
 
-          this.wa.ev.emit("open", { isNewLogin: update.isNewLogin || false });
+          this.wa.emit("open", { isNewLogin: update.isNewLogin || false });
         }
 
         if (update.connection == "close") {
+          this.wa.status = BotStatus.Offline;
+
           const status = (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
 
-          this.wa.status = "offline";
-
           if (status === DisconnectReason.loggedOut) {
-            this.wa.ev.emit("stop", { status: "offline" });
-            return;
-          }
-
-          if (status == DisconnectReason.restartRequired) {
+            this.wa.emit("stop", { status: "offline" });
+          } else if (status == DisconnectReason.restartRequired) {
             this.wa.saveCreds(this.wa.sock.authState.creds);
 
             await this.wa.reconnect(false);
-
-            return;
+          } else {
+            this.wa.emit("close", { status: "offline" });
           }
-
-          this.wa.ev.emit("close", { status: "offline" });
         }
       } catch (err) {
-        this.wa.ev.emit("error", err);
+        this.wa.emit("error", err);
       }
     });
   }
@@ -176,7 +155,7 @@ export default class ConfigWAEvents {
 
             await this.wa.readChat(chat);
           } catch (err) {
-            this.wa.ev.emit("error", err);
+            this.wa.emit("error", err);
           }
         })
       );
@@ -188,9 +167,9 @@ export default class ConfigWAEvents {
 
             readed.push(user.id);
 
-            await this.wa.readUser(user);
+            await this.wa.setUser((await this.wa.getUser(new User(user.id))) || new User(user.id, user.name || user.notify || user.notify));
           } catch (err) {
-            this.wa.ev.emit("error", err);
+            this.wa.emit("error", err);
           }
         })
       );
@@ -201,13 +180,14 @@ export default class ConfigWAEvents {
     this.wa.sock.ev.on("contacts.update", async (updates) => {
       for (const update of updates) {
         try {
-          update.id = replaceID(update.id);
+          const user = (await this.wa.getUser(new User(update.id))) || new User(replaceID(update.id));
+          const name = update.notify || update.name || update.verifiedName;
 
-          if (this.wa.users[update.id]?.name != update.notify || update.verifiedName) {
-            await this.wa.readUser(update);
+          if (name && user.name != name) {
+            await this.wa.setUser(User.fromJSON({ ...user, name }));
           }
         } catch (err) {
-          this.wa.ev.emit("error", err);
+          this.wa.emit("error", err);
         }
       }
     });
@@ -217,17 +197,14 @@ export default class ConfigWAEvents {
     this.wa.sock.ev.on("chats.upsert", async (updates) => {
       for (const update of updates) {
         try {
-          update.id = replaceID(update.id);
+          const chat = (await this.wa.getChat(new Chat(update.id))) || new Chat(replaceID(update.id));
+          const name = update.name;
 
-          if (!this.wa.chats[update.id]) {
-            this.wa.readChat(update);
-          } else if (!this.wa.chats[update.id].users[this.wa.id]) {
-            this.wa.chats[update.id].users[this.wa.id] = new WAUser(this.wa.id);
-
-            await this.wa.saveChats();
+          if (name && chat.name != name) {
+            await this.wa.readChat(update);
           }
         } catch (err) {
-          this.wa.ev.emit("error", err);
+          this.wa.emit("error", err);
         }
       }
     });
@@ -237,13 +214,9 @@ export default class ConfigWAEvents {
     this.wa.sock.ev.on("groups.update", async (updates) => {
       for (const update of updates) {
         try {
-          update.id = replaceID(update.id);
-
-          if (this.wa.chats[update.id]?.name != update.subject) {
-            await this.wa.readChat(update);
-          }
+          await this.wa.readChat(update);
         } catch (err) {
-          this.wa.ev.emit("error", err);
+          this.wa.emit("error", err);
         }
       }
     });
@@ -255,7 +228,7 @@ export default class ConfigWAEvents {
         try {
           await this.wa.removeChat(new Chat(id));
         } catch (err) {
-          this.wa.ev.emit("error", err);
+          this.wa.emit("error", err);
         }
       }
     });
