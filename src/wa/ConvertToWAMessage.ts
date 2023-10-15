@@ -172,7 +172,7 @@ export class ConvertToWAMessage {
 
       this.waMessage = { ...this.waMessage, ...(await sticker.toMessage()) };
     } catch (err) {
-      this.bot.ev.emit("error", err);
+      this.bot.emit("error", err);
     }
   }
 

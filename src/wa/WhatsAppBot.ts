@@ -9,19 +9,28 @@ import makeWASocket, {
   AuthenticationCreds,
   WAConnectionState,
   ConnectionState,
+  isJidGroup,
+  Browsers,
 } from "@whiskeysockets/baileys";
 import internal from "stream";
 import pino from "pino";
 
-import { getBaileysAuth, MultiFileAuthState } from "@wa/Auth";
-import ConfigWAEvents from "@wa/ConfigWAEvents";
-import { getID, replaceID } from "@wa/ID";
-import { WAStatus } from "@wa/WAStatus";
-
-import { getImageURL, getRompotVersion, injectJSON } from "@utils/Generic";
-import WaitCallBack from "@utils/WaitCallBack";
+import { PollMessage, PollUpdateMessage, ReactionMessage } from "../messages";
+import { getBaileysAuth, MultiFileAuthState } from "./Auth";
+import Message, { MessageType } from "../messages/Message";
+import { ConvertToWAMessage } from "./ConvertToWAMessage";
+import { ConvertWAMessage } from "./ConvertWAMessage";
+import { Media } from "../messages/MediaMessage";
+import WaitCallBack from "../utils/WaitCallBack";
+import { UserAction, UserEvent } from "../user";
+import { getImageURL } from "../utils/Generic";
+import ConfigWAEvents from "./ConfigWAEvents";
 import { BotStatus } from "../bot/BotStatus";
+import { ChatType } from "../chat/ChatType";
 import BotEvents from "../bot/BotEvents";
+import { getID, replaceID } from "./ID";
+import { WAStatus } from "./WAStatus";
+import { ChatStatus } from "../chat";
 import IAuth from "../client/IAuth";
 import User from "../user/User";
 import Chat from "../chat/Chat";
@@ -75,10 +84,6 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       await this.internalConnect();
 
       await this.awaitConnectionState("open");
-
-      await this.readChats();
-      await this.readUsers();
-      await this.readPolls();
     } catch (err) {
       this.ev.emit("error", err);
     }
@@ -108,10 +113,6 @@ export default class WhatsAppBot extends BotEvents implements IBot {
         }
 
         await this.awaitConnectionState("open");
-
-        await this.readChats();
-        await this.readUsers();
-        await this.readPolls();
       } catch (err) {
         this.ev.emit("error", err);
       }
@@ -188,101 +189,40 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     });
   }
 
-  //! ********************************* AUTH *********************************
-
-  /**
-   * * Obtem os chats salvos
-   */
-  // public async readChats() {
-  //   const chats: Chat = (await this.auth.get(`chats`)) || {};
-
-  //   for (const id of Object.keys(chats || {})) {
-  //     const chat = chats[id];
-
-  //     if (!!!chat) continue;
-
-  //     this.chats[id] = injectJSON(chat, new Chat(chat.id));
-
-  //     for (const userId of Object.keys(chat.users || {})) {
-  //       const user = chat.users[userId];
-
-  //       if (!!!user) continue;
-
-  //       this.chats[id].users[userId] = injectJSON(user, new User(user.id));
-  //     }
-  //   }
-
-  //   this.chats[this.id] = new Chat(this.id, "pv", this.sock.user.name || this.sock.user.notify || this.sock.user.verifiedName || "");
-  // }
-
-  // /**
-  //  * * Obtem os usuários salvos
-  //  */
-  // public async readUsers() {
-  //   const users: Record<string, User> = (await this.auth.get(`users`)) || {};
-
-  //   for (const id of Object.keys(users || {})) {
-  //     const user = users[id];
-
-  //     if (!!!user) continue;
-
-  //     this.users[id] = injectJSON(user, new User(user.id));
-  //   }
-
-  //   this.users[this.id] = new User(this.id, this.sock.user.name || this.sock.user.notify || this.sock.user.verifiedName || "");
-  // }
-
-  // /**
-  //  * * Obtem as mensagem de enquete salvas
-  //  */
-  // public async readPolls() {
-  //   const polls: { [id: string]: PollMessage } = (await this.auth.get(`polls`)) || {};
-
-  //   for (const id of Object.keys(polls || {})) {
-  //     const poll = polls[id];
-
-  //     if (!!!poll) continue;
-
-  //     this.polls[id] = PollMessage.fromJSON(poll);
-  //   }
-  // }
-
   /**
    * * Lê o chat
    * @param chat Sala de bate-papo
    */
-  public async readChat(chat: any) {
-    chat.id = replaceID(chat.id || chat.newJID);
+  public async readChat(chat: Chat) {
+    if (chat.id.includes("@l")) return chat;
 
-    const newChat = this.chats[chat.id] || new Chat(chat.id);
+    chat.id = replaceID(chat.id);
+    chat.type = isJidGroup(chat.id) ? ChatType.Group : ChatType.PV;
 
-    if (newChat.id.includes("@l")) return newChat;
+    if (chat.type == ChatType.Group) {
+      const metadata = await this.chatWCB.waitCall(async () => await this.sock?.groupMetadata(getID(chat.id)));
 
-    if (newChat.id.includes("@g")) {
-      const metadata = await this.chatWCB.waitCall(() => this.sock?.groupMetadata(getID(newChat.id)));
-
-      if (!metadata || !metadata?.participants) return newChat;
+      if (!metadata || !metadata?.participants) return chat;
 
       for (const p of metadata?.participants || []) {
-        const user = this.users[replaceID(p.id)] || new User(replaceID(p.id));
+        chat.users.push(p.id);
 
-        user.isChatAdmin = p.admin == "admin" || p.isAdmin || p.isSuperAdmin || false;
-        user.isChatLeader = p.admin == "superadmin" || p.isSuperAdmin || false;
+        if (p.admin == "admin" || p.isAdmin || p.isSuperAdmin) {
+          chat.admins.push(replaceID(p.id));
+        }
 
-        newChat.users[user.id] = user;
+        if (p.admin == "superadmin" || p.isSuperAdmin || metadata?.owner == p.id) {
+          chat.leader = replaceID(p.id);
+        }
       }
 
-      newChat.type = "group";
-      newChat.name = metadata?.subject || newChat.name || "";
-      newChat.description = metadata?.desc || newChat.description || "";
-    } else {
-      newChat.name = chat?.subject || chat?.name || chat?.verifiedName || chat?.notify || newChat.name || "";
-      newChat.description = chat?.desc || chat.description || newChat.description || "";
+      chat.name = metadata?.subject || chat.name || "";
+      chat.description = metadata?.desc || chat.description || "";
     }
 
-    await this.addChat(newChat);
+    await this.addChat(chat);
 
-    return newChat;
+    return chat;
   }
 
   /**
@@ -290,14 +230,37 @@ export default class WhatsAppBot extends BotEvents implements IBot {
    * @param user Usuário
    * @param save Salva usuário lido
    */
-  public async readUser(user: any) {
-    user.id = replaceID(user?.id || user?.newJID || `${user}` || "");
+  public async readUser(user: User) {
+    user.id = replaceID(user.id || "");
 
-    const newUser = new User(user.id, user?.name || user?.verifiedName || user?.notify || "");
+    await this.addUser(user);
 
-    await this.addUser(newUser);
+    return user;
+  }
 
-    return newUser;
+  /**
+   * Obtem uma mensagem de enquete.
+   * @param pollMessageId - ID da mensagem de enquete que será obtida.
+   * @returns A mensagem de enquete salva.
+   */
+  public async getPollMessage(pollMessageId: string): Promise<PollMessage | PollUpdateMessage> {
+    const pollMessage = await this.auth.get(`polls-${pollMessageId}`);
+
+    if (!pollMessage || !PollMessage.isValid(pollMessage)) return PollMessage.fromJSON({ id: pollMessageId });
+
+    if (pollMessage.type == MessageType.PollUpdate) {
+      return PollUpdateMessage.fromJSON(pollMessage);
+    }
+
+    return PollMessage.fromJSON(pollMessage);
+  }
+
+  /**
+   * Salva a mensagem de enquete.
+   * @param pollMessage - Mensagem de enquete que será salva.
+   */
+  public async savePollMessage(pollMessage: PollMessage | PollUpdateMessage): Promise<void> {
+    await this.auth.set(`polls-${pollMessage.id}`, pollMessage.toJSON());
   }
 
   /**
@@ -310,26 +273,20 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async groupParticipantsUpdate(action: UserAction, chatId: string, userId: string, fromId: string) {
     const event: UserEvent = action == "join" ? "add" : action == "leave" ? "remove" : action;
 
-    const chat = this.chats[replaceID(chatId)] || new Chat(replaceID(chatId), chatId.includes("@g") ? "group" : "pv");
-    const fromUser = this.users[replaceID(fromId)] || new User(replaceID(fromId));
-    const user = this.users[replaceID(userId)] || new User(replaceID(userId));
+    const chat = (await this.getChat(new Chat(chatId))) || new Chat(replaceID(chatId), ChatType.Group);
+    const fromUser = (await this.getUser(new User(fromId))) || new User(replaceID(fromId));
+    const user = (await this.getUser(new User(userId))) || new User(replaceID(userId));
 
-    if (!this.chats.hasOwnProperty(chat.id)) this.chats[chat.id] = chat;
-
-    if (!this.chats[chat.id]?.users?.hasOwnProperty(user.id)) {
-      this.chats[chat.id].users[user.id] = user;
-    }
-
-    if (event == "add") this.chats[chat.id].users[user.id] = user;
-    if (event == "promote") this.chats[chat.id].users[user.id].isChatAdmin = true;
-    if (event == "demote") this.chats[chat.id].users[user.id].isChatAdmin = false;
-    if (event == "remove") delete this.chats[chat.id].users[user.id];
+    if (event == "add") chat.users.push(user.id);
+    if (event == "remove") chat.users = chat.users.filter((u) => u != user.id);
+    if (event == "demote") chat.admins = chat.admins.filter((admin) => admin != user.id);
+    if (event == "promote") chat.admins.push(user.id);
 
     if (user.id == this.id) {
       if (event == "remove") await this.removeChat(chat);
       if (event == "add") await this.addChat(chat);
     } else {
-      await this.saveChats();
+      await this.setChat(chat);
     }
 
     this.ev.emit("user", { action, event, user, fromUser, chat });
@@ -338,198 +295,138 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   //! ********************************* CHAT *********************************
 
   public async getChatName(chat: Chat) {
-    return this.chats[replaceID(chat.id)]?.name || "";
+    return (await this.getChat(chat))?.name || "";
   }
 
   public async setChatName(chat: Chat, name: string) {
-    if (!chat.id.includes("@g")) return;
+    if (!isJidGroup(chat.id)) return;
 
-    const admins = await this.getChatAdmins(chat);
+    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    if (!admins.hasOwnProperty(this.id)) return;
-
-    return this.wcb.waitCall(() => this.sock.groupUpdateSubject(getID(chat.id), name));
+    return this.wcb.waitCall(async () => await this.sock.groupUpdateSubject(getID(chat.id), name));
   }
 
   public async getChatDescription(chat: Chat) {
-    return this.chats[replaceID(chat.id)]?.description || "";
+    return (await this.getChat(chat))?.description || "";
   }
 
   public async setChatDescription(chat: Chat, description: string): Promise<any> {
-    if (!chat.id.includes("@g")) return;
+    if (!isJidGroup(chat.id)) return;
 
-    const admins = await this.getChatAdmins(chat);
+    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    if (!admins.hasOwnProperty(this.id)) return;
-
-    return this.wcb.waitCall(() => this.sock.groupUpdateDescription(getID(chat.id), description));
+    return this.wcb.waitCall(async () => await this.sock.groupUpdateDescription(getID(chat.id), description));
   }
 
   public async getChatProfile(chat: Chat) {
-    const uri = await this.chatWCB.waitCall(() => this.sock.profilePictureUrl(getID(chat.id), "image"));
+    const uri = await this.chatWCB.waitCall(async () => await this.sock.profilePictureUrl(getID(chat.id), "image"));
 
     return await getImageURL(uri);
   }
 
   public async setChatProfile(chat: Chat, image: Buffer) {
-    if (!chat.id.includes("@g")) return;
+    if (!isJidGroup(chat.id)) return;
 
-    const admins = await this.getChatAdmins(chat);
+    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    if (!admins.hasOwnProperty(this.id)) return;
-
-    return this.wcb.waitCall(() => this.sock.updateProfilePicture(getID(chat.id), image));
+    return this.wcb.waitCall(async () => await this.sock.updateProfilePicture(getID(chat.id), image));
   }
 
   public async addChat(chat: Chat) {
     await this.setChat(chat);
 
-    this.ev.emit("chat", { action: "add", chat: this.chats[replaceID(chat.id)] || chat });
+    this.ev.emit("chat", { action: "add", chat: (await this.getChat(chat)) || chat });
   }
 
-  public async removeChat(chat: Chat) {
-    delete this.chats[chat.id];
+  public async removeChat(chat: Chat): Promise<void> {
+    await this.auth.remove(`chats-${replaceID(chat.id)}`);
 
     this.ev.emit("chat", { action: "remove", chat });
-
-    this.saveChats();
   }
 
   public async getChat(chat: Chat): Promise<Chat | null> {
-    const userData = await this.auth.get(`chats-${chat.id}`);
+    const userData = await this.auth.get(`chats-${replaceID(chat.id)}`);
 
     if (!userData) return null;
 
-    return injectJSON(userData, new Chat(""));
+    return Chat.fromJSON(userData);
   }
 
   public async setChat(chat: Chat) {
     if (chat.id.includes("status")) return;
 
     chat.id = replaceID(chat.id);
-    chat.type = Chat.getChatType(chat.id);
+    chat.type = isJidGroup(chat.id) ? ChatType.Group : ChatType.PV;
 
     await this.auth.set(`chats-${chat.id}`, chat);
   }
 
-  public async getChats(): Promise<Record<string, Chat>> {
-    const ids = await this.auth.listAll("chats-");
-
-    const chats: Record<string, Chat> = {};
-
-    await Promise.all(
-      ids.map(async (id) => {
-        const chat = await this.getChat(ChatUtils.get(id));
-
-        if (chat == null) return;
-
-        chats[id] = chat;
-      })
-    );
-
-    return chats;
+  public async getChats(): Promise<string[]> {
+    return await this.auth.listAll("chats-");
   }
 
-  public async setChats(chats: Record<string, Chat>) {
-    await Promise.all(Object.values(chats).map(async (chat) => this.setChat(chat)));
+  public async setChats(chats: Chat[]): Promise<void> {
+    await Promise.all(chats.map(async (chat) => await this.setChat(chat)));
   }
 
-  public async getChatUsers(chat: Chat): Promise<Record<string, User>> {
-    const chatData = await this.getChat(chat);
-
-    if (!chatData) return {};
-
-    return chatData?.users || {};
+  public async getChatUsers(chat: Chat): Promise<string[]> {
+    return (await this.getChat(chat))?.users || [];
   }
 
-  public async getChatAdmins(chat: Chat): Promise<Record<string, User>> {
-    const users: Record<string, User> = {};
-
-    if (!this.chats.hasOwnProperty(chat.id)) return users;
-
-    for (const id in this.chats[chat.id].users) {
-      const user = this.chats[chat.id].users[id];
-
-      if (user.isChatAdmin || user.isChatLeader) {
-        users[id] = user;
-      }
-    }
-
-    return users;
+  public async getChatAdmins(chat: Chat): Promise<string[]> {
+    return (await this.getChat(chat))?.admins || [];
   }
 
-  public async getChatLeader(chat: Chat): Promise<User> {
-    let user: User = new User("");
-
-    if (!this.chats.hasOwnProperty(chat.id)) return user;
-
-    for (const id in this.chats[chat.id].users) {
-      if (this.chats[chat.id].users[id].isChatLeader) {
-        user = this.chats[chat.id].users[id];
-      }
-    }
-
-    return user;
+  public async getChatLeader(chat: Chat): Promise<string> {
+    return (await this.getChat(chat))?.leader || "";
   }
 
   public async addUserInChat(chat: Chat, user: User) {
-    if (!chat.id.includes("@g")) return;
+    if (!isJidGroup(chat.id)) return;
 
-    const admins = await this.getChatAdmins(chat);
+    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    if (!admins.hasOwnProperty(this.id)) return;
-
-    await this.wcb.waitCall(() => this.sock?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "add"));
+    await this.wcb.waitCall(async () => await this.sock?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "add"));
   }
 
   public async removeUserInChat(chat: Chat, user: User) {
-    if (!chat.id.includes("@g")) return;
+    if (!isJidGroup(chat.id)) return;
 
-    const admins = await this.getChatAdmins(chat);
+    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    if (!admins.hasOwnProperty(this.id)) return;
-
-    await this.wcb.waitCall(() => this.sock?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "remove"));
+    await this.wcb.waitCall(async () => await this.sock?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "remove"));
   }
 
   public async promoteUserInChat(chat: Chat, user: User): Promise<void> {
-    if (!chat.id.includes("@g")) return;
+    if (!isJidGroup(chat.id)) return;
 
-    const admins = await this.getChatAdmins(chat);
+    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    if (!admins.hasOwnProperty(this.id)) return;
-
-    await this.wcb.waitCall(() => this.sock?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "promote"));
+    await this.wcb.waitCall(async () => await this.sock?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "promote"));
   }
 
   public async demoteUserInChat(chat: Chat, user: User): Promise<void> {
-    if (!chat.id.includes("@g")) return;
+    if (!isJidGroup(chat.id)) return;
 
-    const admins = await this.getChatAdmins(chat);
+    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    if (!admins.hasOwnProperty(this.id)) return;
-
-    await this.wcb.waitCall(() => this.sock?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "demote"));
+    await this.wcb.waitCall(async () => await this.sock?.groupParticipantsUpdate(getID(chat.id), [getID(user.id)], "demote"));
   }
 
   public async changeChatStatus(chat: Chat, status: ChatStatus): Promise<void> {
-    await this.wcb.waitCall(() => this.sock.sendPresenceUpdate(WAStatus[status] || "available", getID(chat.id)));
+    await this.wcb.waitCall(async () => await this.sock.sendPresenceUpdate(WAStatus[status] || "available", getID(chat.id)));
   }
 
   public async createChat(chat: Chat) {
-    await this.wcb.waitCall(() => this.sock.groupCreate(chat.name || "", [getID(this.id)]));
+    await this.wcb.waitCall(async () => await this.sock.groupCreate(chat.name || "", [getID(this.id)]));
   }
 
   public async leaveChat(chat: Chat): Promise<void> {
-    if (!chat.id.includes("@g")) return;
+    if (!isJidGroup(chat.id)) return;
 
-    if (!this.chats.hasOwnProperty(replaceID(chat.id))) return;
+    if ((await this.getChat(chat)) == null) return;
 
-    const admins = await this.getChatAdmins(chat);
-
-    if (!admins.hasOwnProperty(this.id)) return;
-
-    await this.wcb.waitCall(() => this.sock.groupLeave(getID(chat.id)));
+    await this.wcb.waitCall(async () => await this.sock.groupLeave(getID(chat.id)));
 
     await this.removeChat(chat);
   }
@@ -557,100 +454,100 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async getUserProfile(user: User, lowQuality?: boolean) {
-    const uri = await this.chatWCB.waitCall(() => this.sock.profilePictureUrl(getID(user.id), !!lowQuality ? "preview" : "image"));
+    const uri = await this.chatWCB.waitCall(async () => await this.sock.profilePictureUrl(getID(user.id), !!lowQuality ? "preview" : "image"));
 
     return await getImageURL(uri);
   }
 
   public async setUserProfile(user: User, image: Buffer) {
-    if (getID(user.id) != this.id) return;
+    if (replaceID(user.id) != this.id) return;
 
-    return this.setBotProfile(image);
+    return await this.setBotProfile(image);
   }
 
   public async getUser(user: User): Promise<User | null> {
-    let usr: User | User | Chat = this.chats[replaceID(user.id)] || this.users[replaceID(user.id)];
+    const userData = await this.auth.get(`users-${replaceID(user.id)}`);
 
-    if (!usr) return null;
+    if (!userData) return null;
 
-    return injectJSON(usr, new User(replaceID(user.id)));
+    return User.fromJSON(userData);
   }
 
   public async setUser(user: User): Promise<void> {
-    this.users[replaceID(user.id)] = injectJSON(user, new User(replaceID(user.id)));
+    user.id = replaceID(user.id);
 
-    await this.saveUsers();
+    await this.auth.set(`users-${user.id}`, user);
   }
 
-  public async getUsers(): Promise<Record<string, User>> {
-    return this.users;
+  public async getUsers(): Promise<string[]> {
+    return await this.auth.listAll("users-");
   }
 
-  public async setUsers(users: Record<string, User>): Promise<void> {
-    await Promise.all(Object.keys(users).map(async (id) => await this.setUser(users[id])));
+  public async setUsers(users: User[]): Promise<void> {
+    await Promise.all(users.map(async (user) => await this.setUser(user)));
   }
 
   public async addUser(user: User) {
     await this.setUser(user);
   }
 
-  public async removeUser(user: User) {
-    delete this.chats[user.id];
+  public async removeUser(user: User): Promise<void> {
+    await this.auth.remove(`users-${user.id}`);
   }
 
   public async blockUser(user: User) {
     if (replaceID(user.id) == this.id) return;
 
-    await this.wcb.waitCall(() => this.sock?.updateBlockStatus(getID(user.id), "block"));
+    await this.wcb.waitCall(async () => await this.sock?.updateBlockStatus(getID(user.id), "block"));
   }
 
   public async unblockUser(user: User) {
     if (replaceID(user.id) == this.id) return;
 
-    await this.wcb.waitCall(() => this.sock?.updateBlockStatus(getID(user.id), "unblock"));
+    await this.wcb.waitCall(async () => await this.sock?.updateBlockStatus(getID(user.id), "unblock"));
   }
 
   //! ******************************** BOT ********************************
 
   public async getBotName() {
-    return this.getUserName(UserUtils.get(this.id));
+    return await this.getUserName(new User(this.id));
   }
 
   public async setBotName(name: string) {
-    return this.wcb.waitCall(() => this.sock.updateProfileName(name));
+    return await this.wcb.waitCall(async () => await this.sock.updateProfileName(name));
   }
 
   public async getBotDescription() {
-    return this.getUserDescription(UserUtils.get(this.id));
+    return await this.getUserDescription(new User(this.id));
   }
 
   public async setBotDescription(description: string) {
-    return this.wcb.waitCall(() => this.sock.updateProfileStatus(description));
+    return await this.wcb.waitCall(async () => await this.sock.updateProfileStatus(description));
   }
 
   public async getBotProfile() {
-    return this.getUserProfile(UserUtils.get(this.id));
+    return await this.getUserProfile(new User(this.id));
   }
 
   public async setBotProfile(image: Buffer) {
-    return this.wcb.waitCall(() => this.sock.updateProfilePicture(getID(this.id), image));
+    return await this.wcb.waitCall(async () => await this.sock.updateProfilePicture(getID(this.id), image));
   }
 
   //! ******************************* MESSAGE *******************************
 
-  public async readMessage(message: IMessage): Promise<void> {
+  public async readMessage(message: Message): Promise<void> {
     const key: proto.MessageKey = {
       remoteJid: getID(message.chat.id),
       id: message.id || "",
       fromMe: message.fromMe || message.user.id == this.id,
-      participant: message.chat.id.includes("@g") ? getID(message.user.id || this.id) : undefined,
+      participant: isJidGroup(message.chat.id) ? getID(message.user.id || this.id) : undefined,
       toJSON: () => key,
     };
 
-    return await this.msgWCB.waitCall(() => this.sock.readMessages([key]));
+    return await this.msgWCB.waitCall(async () => await this.sock.readMessages([key]));
   }
 
-  public async removeMessage(message: IMessage) {
+  public async removeMessage(message: Message) {
     return await this.msgWCB.waitCall(() =>
       this.sock?.chatModify(
         {
@@ -661,55 +558,55 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     );
   }
 
-  public async deleteMessage(message: IMessage) {
+  public async deleteMessage(message: Message) {
     const key: any = { remoteJid: getID(message.chat.id), id: message.id };
 
-    if (message.chat.id.includes("@g")) {
-      if (message.user.id != this.id && !(await this.getChatAdmins(message.chat)).hasOwnProperty(this.id)) return;
+    if (isJidGroup(message.chat.id)) {
+      if (message.user.id != this.id && !(await this.getChatAdmins(message.chat)).includes(this.id)) return;
 
       key.participant = getID(message.user.id);
     }
 
-    await this.msgWCB.waitCall(() => this.sock?.sendMessage(getID(message.chat.id), { delete: key }));
+    await this.msgWCB.waitCall(async () => await this.sock?.sendMessage(getID(message.chat.id), { delete: key }));
   }
 
-  public async addReaction(message: IReactionMessage): Promise<void> {
+  public async addReaction(message: ReactionMessage): Promise<void> {
     await this.send(message);
   }
 
-  public async removeReaction(message: IReactionMessage): Promise<void> {
+  public async removeReaction(message: ReactionMessage): Promise<void> {
     await this.send(message);
   }
 
-  public async editMessage(message: IMessage): Promise<void> {
+  public async editMessage(message: Message): Promise<void> {
     await this.send(message);
   }
 
-  public async send(content: IMessage): Promise<IMessage> {
-    const waMSG = new WhatsAppMessage(this, content);
+  public async send(content: Message): Promise<Message> {
+    const waMSG = new ConvertToWAMessage(this, content);
     await waMSG.refactory(content);
 
     if (waMSG.isRelay) {
-      const id = await this.msgWCB.waitCall(() => this.sock?.relayMessage(waMSG.chat, waMSG.message, { ...waMSG.options, messageId: waMSG.chat })).catch((err) => this.ev.emit("error", err));
+      const id = await this.msgWCB
+        .waitCall(async () => await this.sock?.relayMessage(getID(waMSG.chatId), waMSG.message, { ...waMSG.options, messageId: getID(waMSG.chatId) }))
+        .catch((err) => this.ev.emit("error", err));
 
       if (!!id && typeof id == "string") content.id = id;
 
       return content;
     }
 
-    const sendedMessage = await this.msgWCB.waitCall(() => this.sock?.sendMessage(waMSG.chat, waMSG.message, waMSG.options)).catch((err) => this.ev.emit("error", err));
+    const sendedMessage = await this.msgWCB.waitCall(async () => await this.sock?.sendMessage(getID(waMSG.chatId), waMSG.message, waMSG.options)).catch((err) => this.ev.emit("error", err));
 
     if (typeof sendedMessage == "boolean") return content;
 
-    const msgRes = (await new WhatsAppConvertMessage(this, sendedMessage).get()) || content;
+    const msgRes = (await new ConvertWAMessage(this, sendedMessage).get()) || content;
 
-    if (isPollMessage(msgRes) && isPollMessage(content)) {
+    if (PollMessage.isValid(msgRes) && PollMessage.isValid(content)) {
       msgRes.options = content.options;
       msgRes.secretKey = sendedMessage.message.messageContextInfo.messageSecret;
 
-      this.polls[msgRes.id] = msgRes;
-
-      await this.savePolls(this.polls);
+      await this.savePollMessage(msgRes);
     }
 
     return msgRes;
@@ -752,7 +649,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
    * @returns
    */
   public async onExists(id: string): Promise<{ exists: boolean; id: string }> {
-    const user = await this.wcb.waitCall(() => this.sock?.onWhatsApp(getID(id)));
+    const user = await this.wcb.waitCall(async () => await this.sock?.onWhatsApp(getID(id)));
 
     if (user && user.length > 0) return { exists: user[0].exists, id: replaceID(user[0].jid) };
 
@@ -779,11 +676,13 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
   /**
    * * Gera a configuração de navegador
-   * @param name Nome da plataforma
+   * @param plataform Nome da plataforma
    * @param browser Nome do navegador
    * @param version Versão do navegador
    */
-  public static Browser(name: string = "Rompot", browser: string = "Chrome", version: string = getRompotVersion()) {
-    return [name, browser, version] as [string, string, string];
+  public static Browser(plataform?: string, browser?: string, version?: string): [string, string, string] {
+    const browserAppropriated = Browsers.appropriate(browser);
+
+    return [plataform || browserAppropriated[0], browser || browserAppropriated[1], version || browserAppropriated[2]];
   }
 }

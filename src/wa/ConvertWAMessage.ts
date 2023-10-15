@@ -100,6 +100,7 @@ export class ConvertWAMessage {
     }
 
     this.user.name = waMessage.pushName || this.user.name;
+    this.message.id = this.waMessage.key.id || "";
 
     await this.convertContentMessage(waMessage.message);
 
@@ -385,8 +386,8 @@ export class ConvertWAMessage {
    * * Converte uma mensagem de enquete
    * @param content
    */
-  public convertPollCreationMessage(content: proto.Message.PollCreationMessage) {
-    const pollCreation = this.bot.polls[this.chat.id];
+  public async convertPollCreationMessage(content: proto.Message.PollCreationMessage) {
+    const pollCreation = await this.bot.getPollMessage(this.message.id);
 
     const pollMessage = new PollMessage(this.chat, content.name);
 
@@ -406,7 +407,7 @@ export class ConvertWAMessage {
    * @param content
    */
   public async convertPollUpdateMessage(content: proto.Message.PollUpdateMessage) {
-    const pollCreation = this.bot.polls[content.pollCreationMessageKey.id];
+    const pollCreation = await this.bot.getPollMessage(this.message.id);
     const pollUpdate = new PollUpdateMessage(this.chat, pollCreation?.text || "");
 
     if (pollCreation) {
@@ -465,9 +466,7 @@ export class ConvertWAMessage {
 
       pollCreation.setUserVotes(userId, nowVotes);
 
-      this.bot.polls[pollCreation.id] = pollCreation;
-
-      await this.bot.savePolls(this.bot.polls);
+      await this.bot.savePollMessage(pollCreation);
     }
 
     this.message = pollUpdate;
