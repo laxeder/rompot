@@ -4,13 +4,14 @@ import { DEFAULT_CONNECTION_CONFIG } from "../configs/Defaults";
 import ConnectionConfig from "../configs/ConnectionConfig";
 
 import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
-// import CommandController from "@src/command/controllers/CommandController";
+import CommandController from "../command/CommandController";
 import ReactionMessage from "../messages/ReactionMessage";
 import MediaMessage from "../messages/MediaMessage";
 import { sleep, getError } from "../utils/Generic";
 import { ChatStatus } from "../chat/ChatStatus";
 import { BotStatus } from "../bot/BotStatus";
 import ClientEvents from "./ClientEvents";
+import Command from "../command/Command";
 import Message from "../messages/Message";
 import BotBase from "../bot/BotBase";
 import Chat from "../chat/Chat";
@@ -21,7 +22,7 @@ import IAuth from "./IAuth";
 export default class Client<Bot extends IBot> extends ClientEvents {
   public messageHandler: MessageHandler = new MessageHandler();
 
-  // public commandController: ICommandController = new CommandController();
+  public commandController: CommandController = new CommandController();
   public config: ConnectionConfig;
   public bot: Bot;
 
@@ -197,49 +198,49 @@ export default class Client<Bot extends IBot> extends ClientEvents {
   //! ========== COMANDO
   //! =================================================================
 
-  // public getCommandController(): ICommandController {
-  //   if (this.commandController.clientId != this.id) {
-  //     this.commandController.clientId = this.id;
-  //   }
+  public getCommandController(): CommandController {
+    if (this.commandController.botId != this.id) {
+      this.commandController.botId = this.id;
+    }
 
-  //   return this.commandController;
-  // }
+    return this.commandController;
+  }
 
-  // public setCommandController(controller: ICommandController): void {
-  //   controller.clientId = this.id;
+  public setCommandController(controller: CommandController): void {
+    controller.botId = this.id;
 
-  //   this.commandController = controller;
-  // }
+    this.commandController = controller;
+  }
 
-  // public setCommands(commands: ICommand[]) {
-  //   this.commandController.setCommands(commands);
-  // }
+  public setCommands(commands: Command[]) {
+    this.commandController.setCommands(commands);
+  }
 
-  // public getCommands() {
-  //   return this.commandController.getCommands();
-  // }
+  public getCommands() {
+    return this.commandController.getCommands();
+  }
 
-  // public addCommand(command: ICommand): void {
-  //   this.commandController.addCommand(command);
-  // }
+  public addCommand(command: Command): void {
+    this.commandController.addCommand(command);
+  }
 
-  // public removeCommand(command: ICommand): boolean {
-  //   return this.commandController.removeCommand(command);
-  // }
+  public removeCommand(command: Command): boolean {
+    return this.commandController.removeCommand(command);
+  }
 
-  // public searchCommand(text: string): ICommand | null {
-  //   const command = this.commandController.searchCommand(text);
+  public searchCommand(text: string): Command | null {
+    const command = this.commandController.searchCommand(text);
 
-  //   if (command == null) return null;
+    if (command == null) return null;
 
-  //   command.botId = this.id;
+    command.botId = this.id;
 
-  //   return command;
-  // }
+    return command;
+  }
 
-  // public runCommand(command: ICommand, message: Message, type?: string) {
-  //   return this.commandController.runCommand(command, message, type);
-  // }
+  public runCommand(command: Command, message: Message, type?: string) {
+    return this.commandController.runCommand(command, message, type);
+  }
 
   //! <============================> MESSAGES <============================>
 
