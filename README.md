@@ -74,7 +74,7 @@ client.config = config;
 ## ⚙️ Criando comandos
 
 ```ts
-import { CMDKey, Command, IMessage } from "../../src";
+import { CMDKey, Command, Message } from "../../src";
 
 // Cria um comando com o nome hello
 // Ao ser executado envia a mensagem "Hello World!"
@@ -83,7 +83,7 @@ class HelloCommand extends Command {
     this.keys = [CMDKey("hello")];
   }
 
-  public async onExec(message: IMessage) {
+  public async onExec(message: Message) {
     await message.reply(`Hello World!`);
   }
 }
@@ -270,7 +270,7 @@ pollMessage.addOption("Hi", "id-hi-123");
 ## Lendo resposas de ButtonMessage, ListMessage e PollMessage
 
 ```ts
-import { Command, IMessage, CMDKey, CMDRunType, isPollMessage } from "rompot";
+import { Command, Message, CMDKey, CMDRunType, isPollMessage } from "rompot";
 
 class ButtonCommand extends Command {
   public onRead() {
@@ -278,14 +278,14 @@ class ButtonCommand extends Command {
   }
 
   // Recebe uma resposta ao comando
-  public async onReply(message: IMessage) {
+  public async onReply(message: Message) {
     await message.reply(`Button Clicked!`);
   }
 }
 
 client.addCommand(new ButtonCommand());
 
-client.on("message", async (message: IMessage) => {
+client.on("message", async (message: Message) => {
   if (isPollMessage(message)) {
     // Não responde caso a votação da enquete for removida
     if (message.action == "remove") return;
