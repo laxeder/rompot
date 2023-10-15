@@ -1,4 +1,4 @@
-import Message from "@messages/Message";
+import Message from "../messages/Message";
 
 /**
  * Mensagem a ser tratada

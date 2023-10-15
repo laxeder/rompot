@@ -1,8 +1,7 @@
-import PollMessage, { PollAction, PollOption } from "@messages/PollMessage";
-import { MessageType } from "@messages/Message";
-import Chat from "@src/chat/Chat";
-
-import { injectJSON } from "@utils/Generic";
+import PollMessage, { PollAction, PollOption } from "./PollMessage";
+import { injectJSON } from "../utils/Generic";
+import { MessageType } from "./Message";
+import Chat from "../chat/Chat";
 
 /**
  * Representa uma mensagem de atualização de enquete, que é uma extensão da mensagem de enquete.

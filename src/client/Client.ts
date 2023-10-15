@@ -1,24 +1,22 @@
-import { BotStatus, IAuth } from "rompot-base";
-
 import { readFileSync } from "fs";
 
 import { DEFAULT_CONNECTION_CONFIG } from "../configs/Defaults";
 import ConnectionConfig from "../configs/ConnectionConfig";
 
+import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
+// import CommandController from "@src/command/controllers/CommandController";
 import ReactionMessage from "../messages/ReactionMessage";
 import MediaMessage from "../messages/MediaMessage";
+import { sleep, getError } from "../utils/Generic";
 import { ChatStatus } from "../chat/ChatStatus";
+import { BotStatus } from "../bot/BotStatus";
+import ClientEvents from "./ClientEvents";
 import Message from "../messages/Message";
+import BotBase from "../bot/BotBase";
+import Chat from "../chat/Chat";
+import User from "../user/User";
 import IBot from "../bot/IBot";
-
-// import CommandController from "@src/command/controllers/CommandController";
-import ClientEvents from "@src/client/ClientEvents";
-import BotBase from "@src/bot/BotBase";
-import Chat from "@src/chat/Chat";
-import User from "@src/user/User";
-
-import MessageHandler, { MessageHandlerConfig } from "@utils/MessageHandler";
-import { sleep, getError } from "@utils/Generic";
+import IAuth from "./IAuth";
 
 export default class Client<Bot extends IBot> extends ClientEvents {
   public messageHandler: MessageHandler = new MessageHandler();
@@ -394,17 +392,24 @@ export default class Client<Bot extends IBot> extends ClientEvents {
     return this.bot.setChat(chat);
   }
 
-  public async getChats(): Promise<Record<string, Chat>> {
-    const chats: Record<string, Chat> = {};
+  public async getChats(): Promise<Chat[]> {
+    const ids: string[] = await this.bot.getChats();
+    const chats: Chat[] = [];
 
-    for (const chat of Object.values(await this.bot.getChats())) {
-      chats[chat.id] = Chat.get(chat, this.id);
-    }
+    await Promise.all(
+      ids.map(async (id) => {
+        const chat = await this.bot.getChat(new Chat(id));
+
+        if (chat == null) return;
+
+        chats.push(chat);
+      })
+    );
 
     return chats;
   }
 
-  public setChats(chats: Record<string, Chat>): Promise<void> {
+  public setChats(chats: Chat[]): Promise<void> {
     return this.bot.setChats(chats);
   }
 
@@ -494,17 +499,24 @@ export default class Client<Bot extends IBot> extends ClientEvents {
     return this.bot.setUser(User.get(user, this.id));
   }
 
-  public async getUsers(): Promise<Record<string, User>> {
-    const users: Record<string, User> = {};
+  public async getUsers(): Promise<User[]> {
+    const ids: string[] = await this.bot.getUsers();
+    const users: User[] = [];
 
-    for (const user of Object.values(await this.bot.getUsers())) {
-      users[user.id] = User.get(user, this.id);
-    }
+    await Promise.all(
+      ids.map(async (id) => {
+        const user = await this.bot.getUser(new User(id));
+
+        if (user == null) return;
+
+        users.push(user);
+      })
+    );
 
     return users;
   }
 
-  public setUsers(users: Record<string, User>) {
+  public setUsers(users: User[]) {
     return this.bot.setUsers(users);
   }
 

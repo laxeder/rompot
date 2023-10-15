@@ -1,9 +1,9 @@
-import { BotStatus, IAuth } from "rompot-base";
-
 import ReactionMessage from "../messages/ReactionMessage";
 import { Media } from "../messages/MediaMessage";
 import { ChatStatus } from "../chat/ChatStatus";
 import Message from "../messages/Message";
+import { BotStatus } from "./BotStatus";
+import IAuth from "../client/IAuth";
 import BotEvents from "./BotEvents";
 import Chat from "../chat/Chat";
 import User from "../user/User";
@@ -11,7 +11,7 @@ import IBot from "./IBot";
 
 export default class BotBase extends BotEvents implements IBot {
   public id: string = "";
-  public status: BotStatus = "offline";
+  public status: BotStatus = BotStatus.Offline;
 
   //! #################################################################
   //! ########## MÉTODOS DE CONEXÃO
@@ -81,11 +81,11 @@ export default class BotBase extends BotEvents implements IBot {
   //! ########## MÉTODOS DO CHAT
   //! #################################################################
 
-  public async getChats(): Promise<Record<string, Chat>> {
-    return {};
+  public async getChats(): Promise<string[]> {
+    return [];
   }
 
-  public async setChats(chats: Record<string, Chat>): Promise<void> {}
+  public async setChats(chats: Chat[]): Promise<void> {}
 
   public async getChat(chat: Chat): Promise<Chat | null> {
     return null;
@@ -119,8 +119,8 @@ export default class BotBase extends BotEvents implements IBot {
     return [];
   }
 
-  public async getChatLeader(chat: Chat): Promise<User> {
-    return new Promise<User>(() => {});
+  public async getChatLeader(chat: Chat): Promise<string> {
+    return "";
   }
 
   public async getChatName(chat: Chat): Promise<string> {
@@ -145,11 +145,11 @@ export default class BotBase extends BotEvents implements IBot {
   //! ########## MÉTODOS DO USUÁRIO
   //! #################################################################
 
-  public async getUsers(): Promise<Record<string, User>> {
-    return {};
+  public async getUsers(): Promise<string[]> {
+    return [];
   }
 
-  public async setUsers(users: Record<string, User>): Promise<void> {}
+  public async setUsers(users: User[]): Promise<void> {}
 
   public async getUser(user: User): Promise<User | null> {
     return null;

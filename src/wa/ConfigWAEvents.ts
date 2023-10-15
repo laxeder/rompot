@@ -1,8 +1,9 @@
-import { DisconnectReason } from "@whiskeysockets/baileys";
+import { DisconnectReason, isJidGroup } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 
 import { ConvertWAMessage } from "./ConvertWAMessage";
 import { BotStatus } from "../bot/BotStatus";
+import { ChatType } from "../chat/ChatType";
 import WhatsAppBot from "./WhatsAppBot";
 import { replaceID } from "./ID";
 import Chat from "../chat/Chat";
@@ -153,7 +154,7 @@ export default class ConfigWAEvents {
 
             readed.push(chat.id);
 
-            await this.wa.readChat(chat);
+            await this.wa.readChat(new Chat(chat.id));
           } catch (err) {
             this.wa.emit("error", err);
           }
@@ -201,7 +202,7 @@ export default class ConfigWAEvents {
           const name = update.name;
 
           if (name && chat.name != name) {
-            await this.wa.readChat(update);
+            await this.wa.readChat(new Chat(chat.id, isJidGroup(chat.id) ? ChatType.Group : ChatType.PV, name));
           }
         } catch (err) {
           this.wa.emit("error", err);
@@ -214,7 +215,7 @@ export default class ConfigWAEvents {
     this.wa.sock.ev.on("groups.update", async (updates) => {
       for (const update of updates) {
         try {
-          await this.wa.readChat(update);
+          await this.wa.readChat(new Chat(update.id));
         } catch (err) {
           this.wa.emit("error", err);
         }

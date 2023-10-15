@@ -1,8 +1,7 @@
-import MediaMessage, { Media } from "@messages/MediaMessage";
-import { MessageType } from "@messages/Message";
-import Chat from "@src/chat/Chat";
-
-import { injectJSON } from "@utils/Generic";
+import MediaMessage, { Media } from "./MediaMessage";
+import { injectJSON } from "../utils/Generic";
+import { MessageType } from "./Message";
+import Chat from "../chat/Chat";
 
 /**
  * Representa uma mensagem de imagem.

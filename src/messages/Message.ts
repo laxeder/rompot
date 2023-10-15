@@ -1,14 +1,14 @@
-import Client from "@src/client/Client";
-import Chat from "@src/chat/Chat";
-import User from "@src/user/User";
-
-import { injectJSON } from "@utils/Generic";
+import { injectJSON } from "../utils/Generic";
+import Client from "../client/Client";
+import Chat from "../chat/Chat";
+import User from "../user/User";
 
 /**
  * Tipo da mensagem
  */
 export enum MessageType {
   Empty = "empty",
+  Error = "error",
   Text = "text",
   Media = "media",
   File = "file",

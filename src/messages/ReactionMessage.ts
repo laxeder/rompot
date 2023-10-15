@@ -1,7 +1,6 @@
-import Message, { MessageType } from "@messages/Message";
-import Chat from "@src/chat/Chat";
-
-import { injectJSON } from "@utils/Generic";
+import Message, { MessageType } from "./Message";
+import { injectJSON } from "../utils/Generic";
+import Chat from "../chat/Chat";
 
 /**
  * Representa uma mensagem de reação, que pode ser usada para expressar reações a outras mensagens.

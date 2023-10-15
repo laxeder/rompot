@@ -1,7 +1,6 @@
-import Message, { MessageType } from "@messages/Message";
-import Chat from "@src/chat/Chat";
-
-import { injectJSON } from "@utils/Generic";
+import Message, { MessageType } from "./Message";
+import { injectJSON } from "../utils/Generic";
+import Chat from "../chat/Chat";
 
 /**
  * Representa uma opção em uma enquete.

@@ -1,6 +1,5 @@
-import Message, { MessageType } from "@messages/Message";
-
-import { injectJSON } from "@utils/Generic";
+import Message, { MessageType } from "./Message";
+import { injectJSON } from "../utils/Generic";
 
 /**
  * Representa uma mensagem vazia.
