@@ -125,6 +125,6 @@ export default class ButtonMessage extends Message {
    * @returns Verdadeiro se o objeto for uma instância válida de ButtonMessage, caso contrário, falso.
    */
   public static isValid(message: any): message is ButtonMessage {
-    return typeof message === "object" && Object.keys(new ButtonMessage()).every((key) => message?.hasOwnProperty(key));
+    return Message.isValid(message) && message?.type == MessageType.Button;
   }
 }

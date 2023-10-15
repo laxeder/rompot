@@ -65,6 +65,6 @@ export default class VideoMessage extends MediaMessage {
    * @returns Verdadeiro se o objeto for uma instância válida de VideoMessage, caso contrário, falso.
    */
   public static isValid(message: any): message is VideoMessage {
-    return typeof message === "object" && Object.keys(new VideoMessage()).every((key) => message?.hasOwnProperty(key));
+    return MediaMessage.isValid(message) && message?.type == MessageType.Video;
   }
 }

@@ -56,6 +56,6 @@ export default class ReactionMessage extends Message {
    * @returns `true` se o objeto for uma instância válida de ReactionMessage, caso contrário, `false`.
    */
   public static isValid(message: any): message is ReactionMessage {
-    return typeof message === "object" && Object.keys(new ReactionMessage()).every((key) => message?.hasOwnProperty(key));
+    return Message.isValid(message) && message?.type == MessageType.Reaction;
   }
 }

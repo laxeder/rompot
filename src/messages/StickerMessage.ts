@@ -76,6 +76,6 @@ export default class StickerMessage extends MediaMessage {
    * @returns `true` se o objeto for uma instância válida de StickerMessage, caso contrário, `false`.
    */
   public static isValid(message: any): message is StickerMessage {
-    return typeof message === "object" && Object.keys(new StickerMessage()).every((key) => message?.hasOwnProperty(key));
+    return MediaMessage.isValid(message) && message?.type == MessageType.Sticker;
   }
 }

@@ -69,6 +69,6 @@ export default class PollUpdateMessage extends PollMessage {
    * @returns `true` se o objeto for uma instância válida de PollUpdateMessage, caso contrário, `false`.
    */
   public static isValid(message: any): message is PollUpdateMessage {
-    return typeof message === "object" && Object.keys(new PollUpdateMessage()).every((key) => message?.hasOwnProperty(key));
+    return PollMessage.isValid(message) && message?.type == MessageType.PollUpdate;
   }
 }

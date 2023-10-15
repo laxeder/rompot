@@ -50,6 +50,6 @@ export default class TextMessage extends Message {
    * @returns Verdadeiro se o objeto for uma instância válida de TextMessage, caso contrário, falso.
    */
   public static isValid(message: any): message is TextMessage {
-    return typeof message === "object" && Object.keys(new TextMessage()).every((key) => message?.hasOwnProperty(key));
+    return Message.isValid(message) && message?.type == MessageType.Text;
   }
 }

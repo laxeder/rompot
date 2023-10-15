@@ -72,6 +72,6 @@ export default class LocationMessage extends Message {
    * @returns Verdadeiro se o objeto for uma instância válida de LocationMessage, caso contrário, falso.
    */
   public static isValid(message: any): message is LocationMessage {
-    return typeof message === "object" && Object.keys(new LocationMessage()).every((key) => message?.hasOwnProperty(key));
+    return Message.isValid(message) && message?.type == MessageType.Location;
   }
 }

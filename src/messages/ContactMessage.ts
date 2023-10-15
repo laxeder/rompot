@@ -59,6 +59,6 @@ export default class ContactMessage extends Message {
    * @returns Verdadeiro se o objeto for uma instância válida de ContactMessage, caso contrário, falso.
    */
   public static isValid(message: any): message is ContactMessage {
-    return typeof message === "object" && Object.keys(new ContactMessage()).every((key) => message?.hasOwnProperty(key));
+    return Message.isValid(message) && message?.type == MessageType.Contact;
   }
 }
