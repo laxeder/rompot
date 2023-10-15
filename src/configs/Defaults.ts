@@ -1,6 +1,4 @@
-import ConnectionConfig from "@configs/ConnectionConfig";
-
-export const ROMPOT_VERSION = "2.0.0";
+import ConnectionConfig from "./ConnectionConfig";
 
 export const DEFAULT_CONNECTION_CONFIG: ConnectionConfig = {
   disableAutoCommand: false,

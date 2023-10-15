@@ -3,8 +3,6 @@ import { parse, resolve } from "path";
 import { Transform } from "stream";
 import https from "https";
 
-import { ROMPOT_VERSION } from "@configs/Defaults";
-
 /**
  * * Aguarda um determinado tempo
  * @param timeout
@@ -110,7 +108,11 @@ export function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut
 
 /** Retorna a versão do Rompot */
 export function getRompotVersion(): string {
-  return ROMPOT_VERSION;
+  try {
+    return require("../../package.json")?.version || "2.0.0";
+  } catch (err) {
+    return "2.0.0";
+  }
 }
 
 /** Lê um diretório recursivamente */
