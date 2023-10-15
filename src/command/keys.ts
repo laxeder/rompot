@@ -1,4 +1,4 @@
-import { CMDKeyType } from "./Command";
+import { CMDKeyType } from "./CommandEnums";
 import CommandKey from "./CommandKey";
 
 /** Chave do comando exata */
