@@ -145,14 +145,14 @@ export default class ConfigWAEvents {
 
   public configHistorySet() {
     this.wa.sock.ev.on("messaging-history.set", async (update) => {
-      const readed: string[] = [];
+      const readedChats = [] as string[];
 
       await Promise.all(
         update.chats.map(async (chat) => {
           try {
-            if (!chat.id.includes("@g") || readed.includes(chat.id)) return;
+            if (!chat.id.includes("@g") || readedChats.includes(chat.id)) return;
 
-            readed.push(chat.id);
+            readedChats.push(chat.id);
 
             await this.wa.readChat(new Chat(chat.id));
           } catch (err) {
@@ -161,14 +161,16 @@ export default class ConfigWAEvents {
         })
       );
 
+      const readedUsers = [] as string[];
+
       await Promise.all(
         update.contacts.map(async (user) => {
           try {
-            if (!user.id.includes("@s") || readed.includes(user.id)) return;
+            if (!user.id.includes("@s") || readedUsers.includes(user.id)) return;
 
-            readed.push(user.id);
+            readedUsers.push(user.id);
 
-            await this.wa.setUser((await this.wa.getUser(new User(user.id))) || new User(user.id, user.name || user.notify || user.notify));
+            await this.wa.setUser(new User(user.id, user.name || user.notify || user.notify || ""));
           } catch (err) {
             this.wa.emit("error", err);
           }
@@ -199,10 +201,9 @@ export default class ConfigWAEvents {
       for (const update of updates) {
         try {
           const chat = (await this.wa.getChat(new Chat(update.id))) || new Chat(replaceID(update.id));
-          const name = update.name;
 
-          if (name && chat.name != name) {
-            await this.wa.readChat(new Chat(chat.id, isJidGroup(chat.id) ? ChatType.Group : ChatType.PV, name));
+          if ((!chat.name && isJidGroup(chat.id)) || (update.name && chat.name != update.name)) {
+            await this.wa.readChat(new Chat(chat.id, isJidGroup(chat.id) ? ChatType.Group : ChatType.PV, update.name));
           }
         } catch (err) {
           this.wa.emit("error", err);

@@ -77,37 +77,22 @@ export class ConvertWAMessage {
       return;
     }
 
-    const jid = waMessage?.key?.remoteJid || this.bot.id;
+    const chatJid = waMessage?.key?.remoteJid || this.bot.id;
 
-    this.chat = (await this.bot.getChat(new Chat(jid))) || new Chat(replaceID(jid), isJidGroup(jid) ? ChatType.Group : ChatType.PV);
-
-    if (this.chat.type == ChatType.PV && !waMessage.key.fromMe) {
-      if (this.chat.name != waMessage.pushName) {
-        await this.bot.setChat(Chat.fromJSON({ ...this.chat, name: waMessage.pushName }));
-      }
-
-      this.chat.name = waMessage.pushName;
-    }
+    this.chat = (await this.bot.getChat(new Chat(chatJid))) || new Chat(replaceID(chatJid), isJidGroup(chatJid) ? ChatType.Group : ChatType.PV);
+    this.chat.name = this.chat.name || this.chat.type == ChatType.PV ? waMessage.pushName : "";
 
     const userJid = waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "";
 
-    this.user = (await this.bot.getUser(new User(jid))) || new User(replaceID(userJid));
-    this.user.name = waMessage.pushName || this.user.name;
-    this.message.id = this.waMessage.key.id || "";
+    this.user = (await this.bot.getUser(new User(userJid))) || new User(replaceID(userJid));
+    this.user.name = this.user.name || waMessage.pushName;
 
     await this.convertContentMessage(waMessage.message);
 
+    this.message.timestamp = (Long.isLong(this.waMessage.messageTimestamp) ? this.waMessage.messageTimestamp.toNumber() : this.waMessage.messageTimestamp || 0) * 1000 || Date.now();
+    this.message.isUnofficial = waMessage.key.id.length < 20;
     this.message.fromMe = !!this.waMessage.key.fromMe;
     this.message.id = this.waMessage.key.id || "";
-    this.message.isUnofficial = waMessage.key.id.length < 20;
-
-    if (Long.isLong(this.waMessage.messageTimestamp)) {
-      this.waMessage.messageTimestamp = this.waMessage.messageTimestamp.toNumber() * 1000;
-    } else if (this.waMessage.messageTimestamp) {
-      this.message.timestamp = this.waMessage.messageTimestamp * 1000;
-    } else {
-      this.message.timestamp = Date.now();
-    }
   }
 
   /**
@@ -179,7 +164,7 @@ export class ConvertWAMessage {
     }
 
     if (contentType === "pollCreationMessage") {
-      this.convertPollCreationMessage(content as proto.Message.PollCreationMessage);
+      await this.convertPollCreationMessage(content as proto.Message.PollCreationMessage);
     }
 
     if (contentType == "pollUpdateMessage") {
@@ -380,7 +365,7 @@ export class ConvertWAMessage {
    * @param content
    */
   public async convertPollCreationMessage(content: proto.Message.PollCreationMessage) {
-    const pollCreation = await this.bot.getPollMessage(this.message.id);
+    const pollCreation = await this.bot.getPollMessage(this.waMessage.key.id || "");
 
     const pollMessage = new PollMessage(this.chat, content.name);
 
@@ -400,7 +385,7 @@ export class ConvertWAMessage {
    * @param content
    */
   public async convertPollUpdateMessage(content: proto.Message.PollUpdateMessage) {
-    const pollCreation = await this.bot.getPollMessage(this.message.id);
+    const pollCreation = await this.bot.getPollMessage(this.waMessage.key.id || "");
     const pollUpdate = new PollUpdateMessage(this.chat, pollCreation?.text || "");
 
     if (pollCreation) {
