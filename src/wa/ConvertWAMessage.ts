@@ -79,9 +79,7 @@ export class ConvertWAMessage {
 
     const jid = waMessage?.key?.remoteJid || this.bot.id;
 
-    this.chat = (await this.bot.getChat(new Chat(jid))) || new Chat(replaceID(jid));
-
-    this.chat.type = isJidGroup(jid) ? ChatType.Group : ChatType.PV;
+    this.chat = (await this.bot.getChat(new Chat(jid))) || new Chat(replaceID(jid), isJidGroup(jid) ? ChatType.Group : ChatType.PV);
 
     if (this.chat.type == ChatType.PV && !waMessage.key.fromMe) {
       if (this.chat.name != waMessage.pushName) {
@@ -94,11 +92,6 @@ export class ConvertWAMessage {
     const userJid = waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "";
 
     this.user = (await this.bot.getUser(new User(jid))) || new User(replaceID(userJid));
-
-    if (this.user.name != waMessage.pushName) {
-      await this.bot.setUser(User.fromJSON({ ...this.user, name: waMessage.pushName }));
-    }
-
     this.user.name = waMessage.pushName || this.user.name;
     this.message.id = this.waMessage.key.id || "";
 

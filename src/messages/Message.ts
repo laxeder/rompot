@@ -61,6 +61,22 @@ export default class Message {
     this.chat = Chat.get(chat || "");
 
     injectJSON(others, this);
+
+    this.setBotId(this.botId);
+  }
+
+  /**
+   * Define o ID do bot associado a mensagem.
+   * @param botId - ID do bot associado a mensagem.
+   */
+  public setBotId(botId: string) {
+    this.botId = botId;
+    this.user.botId = botId;
+    this.chat.botId = botId;
+
+    if (this.mention) {
+      this.mention.setBotId(botId);
+    }
   }
 
   /**
@@ -114,7 +130,15 @@ export default class Message {
    * @returns Um objeto JSON que representa o estado atual do objeto.
    */
   public toJSON(): any {
-    return JSON.parse(JSON.stringify(this));
+    const data: Record<string, any> = {};
+
+    for (const key of Object.keys(this)) {
+      if (key == "toJSON") continue;
+
+      data[key] = this[key];
+    }
+
+    return JSON.parse(JSON.stringify(data));
   }
 
   /**

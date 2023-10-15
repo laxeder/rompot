@@ -98,7 +98,15 @@ export default class PollMessage extends Message {
    * @returns O objeto JSON representando a mensagem de enquete.
    */
   public toJSON(): any {
-    return JSON.parse(JSON.stringify(this));
+    const data: Record<string, any> = {};
+
+    for (const key of Object.keys(this)) {
+      if (key == "toJSON") continue;
+
+      data[key] = this[key];
+    }
+
+    return JSON.parse(JSON.stringify(data));
   }
 
   /**

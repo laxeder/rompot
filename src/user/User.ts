@@ -111,8 +111,16 @@ export default class User {
    * Converte o objeto atual para uma representação em formato JSON.
    * @returns Um objeto JSON que representa o estado atual do objeto.
    */
-  public toJSON() {
-    return JSON.parse(JSON.stringify(this));
+  public toJSON(): any {
+    const data: Record<string, any> = {};
+
+    for (const key of Object.keys(this)) {
+      if (key == "toJSON") continue;
+
+      data[key] = this[key];
+    }
+
+    return JSON.parse(JSON.stringify(data));
   }
 
   /**

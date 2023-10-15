@@ -39,7 +39,15 @@ export default class VideoMessage extends MediaMessage {
    * @returns Um objeto JSON que representa o estado atual do objeto.
    */
   public toJSON(): any {
-    return JSON.parse(JSON.stringify(this));
+    const data: Record<string, any> = {};
+
+    for (const key of Object.keys(this)) {
+      if (key == "toJSON") continue;
+
+      data[key] = this[key];
+    }
+
+    return JSON.parse(JSON.stringify(data));
   }
 
   /**

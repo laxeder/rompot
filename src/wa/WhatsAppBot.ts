@@ -358,7 +358,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     chat.id = replaceID(chat.id);
     chat.type = isJidGroup(chat.id) ? ChatType.Group : ChatType.PV;
 
-    await this.auth.set(`chats-${chat.id}`, chat);
+    await this.auth.set(`chats-${chat.id}`, chat.toJSON());
   }
 
   public async getChats(): Promise<string[]> {
@@ -476,7 +476,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async setUser(user: User): Promise<void> {
     user.id = replaceID(user.id);
 
-    await this.auth.set(`users-${user.id}`, user);
+    await this.auth.set(`users-${user.id}`, user.toJSON());
   }
 
   public async getUsers(): Promise<string[]> {
