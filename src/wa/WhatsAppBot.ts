@@ -573,7 +573,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (waMSG.isRelay) {
       const id = await this.msgWCB
-        .waitCall(async () => await this.sock?.relayMessage(getID(waMSG.chatId), waMSG.message, { ...waMSG.options, messageId: getID(waMSG.chatId) }))
+        .waitCall(async () => await this.sock?.relayMessage(getID(waMSG.chatId), waMSG.waMessage, { ...waMSG.options, messageId: getID(waMSG.chatId) }))
         .catch((err) => this.ev.emit("error", err));
 
       if (!!id && typeof id == "string") content.id = id;
@@ -581,7 +581,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       return content;
     }
 
-    const sendedMessage = await this.msgWCB.waitCall(async () => await this.sock?.sendMessage(getID(waMSG.chatId), waMSG.message, waMSG.options)).catch((err) => this.ev.emit("error", err));
+    const sendedMessage = await this.msgWCB.waitCall(async () => await this.sock?.sendMessage(getID(waMSG.chatId), waMSG.waMessage, waMSG.options)).catch((err) => this.ev.emit("error", err));
 
     if (typeof sendedMessage == "boolean") return content;
 
