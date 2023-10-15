@@ -1,5 +1,5 @@
 import ICommandControllerConfig from "./ICommandControllerConfig";
-import { CMDKeyType } from "./Command";
+import { CMDKeyType } from "./CommandEnums";
 
 export default class CommandKey {
   /** Tipo da chave */

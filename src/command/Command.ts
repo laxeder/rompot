@@ -21,22 +21,6 @@ export declare enum CMDPerms {
   BotChatLeader = "bot-chat-leader",
 }
 
-/** Tipo da chave do comando */
-export declare enum CMDKeyType {
-  /** Chaves simples (includes all) */
-  Sample = "sample",
-  /** Chave exata (startsWith) */
-  Exact = "exact",
-}
-
-/** Tipo da execução do comando */
-export declare enum CMDRunType {
-  /** Execução normal */
-  Exec = "exec",
-  /** Resposta ao comando */
-  Reply = "reply",
-}
-
 export type CommandControllerEventsMap = {
   /** Permissão negada */
   ["no-allowed"]: {
@@ -128,16 +112,15 @@ export default class Command {
                 await data.onRead();
 
                 commands.push(data);
-                return;
-              }
+              } else {
+                //@ts-ignore
+                const cmd = new data();
 
-              //@ts-ignore
-              const cmd = new data();
+                if (Command.isValid(cmd)) {
+                  await cmd.onRead();
 
-              if (Command.isValid(cmd)) {
-                await cmd.onRead();
-
-                commands.push(cmd);
+                  commands.push(cmd);
+                }
               }
             } catch (err) {}
           })

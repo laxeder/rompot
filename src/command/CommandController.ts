@@ -1,9 +1,10 @@
 import ICommandControllerConfig from "./ICommandControllerConfig";
 import { DEFAULT_COMMAND_CONTROLLER_CONFIG } from "./defaults";
 import CommandControllerEvent from "./CommandControllerEvent";
-import Command, { CMDRunType } from "./Command";
+import { CMDRunType } from "./CommandEnums";
 import Message from "../messages/Message";
 import CommandKey from "./CommandKey";
+import Command from "./Command";
 
 export default class CommandController extends CommandControllerEvent {
   /** Configuração do controlador */
