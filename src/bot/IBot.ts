@@ -218,21 +218,17 @@ export default interface IBot extends BotEvents {
    * @param chat Sala de bate-papo
    * @returns Retorna o lider da sala de bate-papo
    */
-  getChatLeader(chat: Chat): Promise<User>;
+  getChatLeader(chat: Chat): Promise<string>;
 
   /**
    * @returns Retorna as sala de bate-papo que o bot está
    */
-  getChats(): Promise<Record<string, Chat>>;
+  getChats(): Promise<string[]>;
 
   /** Define as salas de bate-papo que o bot está
    * @param chats Salas de bate-papo
    */
-  setChats(chats: Record<string, Chat>): Promise<void>;
-
-  //! =================================================================
-  //! ========== USUÁRIO
-  //! =================================================================
+  setChats(chats: Chat[]): Promise<void>;
 
   /** Adiciona um novo usuário
    * @param user Usuário
@@ -302,10 +298,10 @@ export default interface IBot extends BotEvents {
   blockUser(user: User): Promise<void>;
 
   /** @returns Retorna a lista de usuários do bot */
-  getUsers(): Promise<Record<string, User>>;
+  getUsers(): Promise<string[]>;
 
   /** Define a lista de usuários do bot
    * @param users Usuários
    */
-  setUsers(users: Record<string, User>): Promise<void>;
+  setUsers(users: User[]): Promise<void>;
 }
