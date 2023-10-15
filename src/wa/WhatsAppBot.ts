@@ -210,12 +210,9 @@ export default class WhatsAppBot extends BotEvents implements IBot {
         if (p.admin == "admin" || p.isAdmin || p.isSuperAdmin) {
           chat.admins.push(replaceID(p.id));
         }
-
-        if (p.admin == "superadmin" || p.isSuperAdmin || metadata?.owner == p.id) {
-          chat.leader = replaceID(p.id);
-        }
       }
 
+      chat.leader = replaceID(metadata.subjectOwner || "");
       chat.name = metadata?.subject || chat.name || "";
       chat.description = metadata?.desc || chat.description || "";
     }
