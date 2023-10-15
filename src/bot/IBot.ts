@@ -1,10 +1,9 @@
-import { IAuth } from "rompot-base";
-
 import ReactionMessage from "../messages/ReactionMessage";
 import { Media } from "../messages/MediaMessage";
 import { ChatStatus } from "../chat/ChatStatus";
 import Message from "../messages/Message";
 import { BotStatus } from "./BotStatus";
+import IAuth from "../client/IAuth";
 import BotEvents from "./BotEvents";
 import User from "../user/User";
 import Chat from "../chat/Chat";

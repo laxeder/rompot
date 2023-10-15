@@ -1,5 +1,4 @@
-import { CMDKeyType } from "rompot-base";
-
+import { CMDKeyType } from "./Command";
 import CommandKey from "./CommandKey";
 
 /** Chave do comando exata */
