@@ -6,12 +6,12 @@ import ConnectionConfig from "../configs/ConnectionConfig";
 import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
 import CommandController from "../command/CommandController";
 import ReactionMessage from "../messages/ReactionMessage";
+import Command, { CMDRunType } from "../command/Command";
 import MediaMessage from "../messages/MediaMessage";
 import { sleep, getError } from "../utils/Generic";
 import { ChatStatus } from "../chat/ChatStatus";
 import { BotStatus } from "../bot/BotStatus";
 import ClientEvents from "./ClientEvents";
-import Command from "../command/Command";
 import Message from "../messages/Message";
 import BotBase from "../bot/BotBase";
 import Chat from "../chat/Chat";
@@ -61,7 +61,7 @@ export default class Client<Bot extends IBot> extends ClientEvents {
   public configEvents() {
     this.bot.on("message", async (message: Message) => {
       try {
-        message.botId = this.id;
+        message.setBotId(this.id);
 
         if (!message.fromMe && !this.config.disableAutoRead) await this.readMessage(message);
         if (this.messageHandler.resolveMessage(message)) return;
@@ -71,11 +71,11 @@ export default class Client<Bot extends IBot> extends ClientEvents {
         if (this.config.disableAutoCommand) return;
         if (this.config.disableAutoCommandForUnofficialMessage && message.isUnofficial) return;
 
-        // const command = this.searchCommand(message.text);
+        const command = this.searchCommand(message.text);
 
-        // if (command != null) {
-        //   this.runCommand(command, message, CMDRunType.Exec);
-        // }
+        if (command != null) {
+          this.runCommand(command, message, CMDRunType.Exec);
+        }
       } catch (err) {
         this.emit("error", getError(err));
       }
