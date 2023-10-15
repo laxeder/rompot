@@ -223,19 +223,6 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   /**
-   * * Lê o usuário
-   * @param user Usuário
-   * @param save Salva usuário lido
-   */
-  public async readUser(user: User) {
-    user.id = replaceID(user.id || "");
-
-    await this.addUser(user);
-
-    return user;
-  }
-
-  /**
    * Obtem uma mensagem de enquete.
    * @param pollMessageId - ID da mensagem de enquete que será obtida.
    * @returns A mensagem de enquete salva.
