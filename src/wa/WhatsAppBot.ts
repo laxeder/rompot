@@ -303,7 +303,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    return this.wcb.waitCall(async () => await this.sock.groupUpdateSubject(getID(chat.id), name));
+    await this.wcb.waitCall(async () => await this.sock.groupUpdateSubject(getID(chat.id), name));
   }
 
   public async getChatDescription(chat: Chat) {
@@ -315,7 +315,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    return this.wcb.waitCall(async () => await this.sock.groupUpdateDescription(getID(chat.id), description));
+    await this.wcb.waitCall(async () => await this.sock.groupUpdateDescription(getID(chat.id), description));
   }
 
   public async getChatProfile(chat: Chat) {
@@ -329,7 +329,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    return this.wcb.waitCall(async () => await this.sock.updateProfilePicture(getID(chat.id), image));
+    await this.wcb.waitCall(async () => await this.sock.updateProfilePicture(getID(chat.id), image));
   }
 
   public async addChat(chat: Chat) {
@@ -462,7 +462,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async setUserProfile(user: User, image: Buffer) {
     if (replaceID(user.id) != this.id) return;
 
-    return await this.setBotProfile(image);
+    await this.setBotProfile(image);
   }
 
   public async getUser(user: User): Promise<User | null> {
@@ -514,7 +514,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async setBotName(name: string) {
-    return await this.wcb.waitCall(async () => await this.sock.updateProfileName(name));
+    await this.wcb.waitCall(async () => await this.sock.updateProfileName(name));
   }
 
   public async getBotDescription() {
@@ -522,7 +522,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async setBotDescription(description: string) {
-    return await this.wcb.waitCall(async () => await this.sock.updateProfileStatus(description));
+    await this.wcb.waitCall(async () => await this.sock.updateProfileStatus(description));
   }
 
   public async getBotProfile() {
@@ -530,7 +530,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async setBotProfile(image: Buffer) {
-    return await this.wcb.waitCall(async () => await this.sock.updateProfilePicture(getID(this.id), image));
+    await this.wcb.waitCall(async () => await this.sock.updateProfilePicture(getID(this.id), image));
   }
 
   //! ******************************* MESSAGE *******************************
@@ -548,13 +548,14 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async removeMessage(message: Message) {
-    return await this.msgWCB.waitCall(() =>
-      this.sock?.chatModify(
-        {
-          clear: { messages: [{ id: message.id || "", fromMe: message.user.id == this.id, timestamp: Number(message.timestamp || Date.now()) }] },
-        },
-        getID(message.chat.id)
-      )
+    await this.msgWCB.waitCall(
+      async () =>
+        await this.sock?.chatModify(
+          {
+            clear: { messages: [{ id: message.id || "", fromMe: message.user.id == this.id, timestamp: Number(message.timestamp || Date.now()) }] },
+          },
+          getID(message.chat.id)
+        )
     );
   }
 

@@ -166,7 +166,7 @@ export default class Chat {
 
   /**
    * Envia uma mensagem para este chat.
-   * @param message - A mensagem ou objeto IMessage a ser enviado.
+   * @param message - A mensagem ou objeto Message a ser enviado.
    * @returns Uma Promise que resolve para a mensagem enviada.
    */
   public async send(message: Message | string): Promise<Message> {

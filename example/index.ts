@@ -1,4 +1,4 @@
-import Client, { WhatsAppBot, Message, IMessage, Command, CMDRunType, CMDPerms } from "../src";
+import Client, { WhatsAppBot, Message, Command, CMDRunType, CMDPerms } from "../src";
 
 const client = new Client(new WhatsAppBot(), {
   disableAutoCommand: false,
@@ -34,7 +34,7 @@ client.on("reconnecting", () => {
   console.log("Reconectando...");
 });
 
-client.on("message", async (message: IMessage) => {
+client.on("message", async (message: Message) => {
   if (message.chat.type == "pv") {
     console.log(message);
   }
