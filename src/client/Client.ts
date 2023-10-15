@@ -265,11 +265,11 @@ export default class Client<Bot extends IBot> extends ClientEvents {
   }
 
   public addReaction(message: Message, reaction: string): Promise<void> {
-    return this.bot.addReaction(new ReactionMessage(message.chat, reaction, message));
+    return this.bot.addReaction(new ReactionMessage(message.chat, reaction, message, { user: message.user }));
   }
 
   public removeReaction(message: Message): Promise<void> {
-    return this.bot.removeReaction(new ReactionMessage(message.chat, "", message));
+    return this.bot.removeReaction(new ReactionMessage(message.chat, "", message, { user: message.user }));
   }
 
   public addAnimatedReaction(message: Message, reactions: string[], interval: number = 2000, maxTimeout: number = 60000): (reactionStop?: string) => Promise<void> {

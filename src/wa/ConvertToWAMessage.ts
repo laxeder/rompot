@@ -216,7 +216,7 @@ export class ConvertToWAMessage {
         key: {
           remoteJid: getID(message.chat.id),
           id: message.id || "",
-          fromMe: message.fromMe || !!message.user.id ? message.user.id == this.bot.id : false,
+          fromMe: message.fromMe || !message.user.id ? true : message.user.id == this.bot.id,
           participant: isJidGroup(message.chat.id) ? getID(message.user.id || this.bot.id) : undefined,
           toJSON: () => this,
         },
