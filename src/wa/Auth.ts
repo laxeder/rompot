@@ -60,7 +60,7 @@ export class MultiFileAuthState implements IAuth {
 
   public async listAll(pattern?: string) {
     try {
-      return readdirSync(join(this.folder)).filter((file) => file.startsWith(pattern));
+      return readdirSync(join(this.folder)).reduce((p, c) => (c.startsWith(pattern) ? [...p, c.replace(".json", "")] : p), []);
     } catch (error) {
       return [];
     }

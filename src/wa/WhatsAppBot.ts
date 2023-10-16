@@ -205,7 +205,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       if (!metadata || !metadata?.participants) return chat;
 
       for (const p of metadata?.participants || []) {
-        chat.users.push(p.id);
+        chat.users.push(replaceID(p.id));
 
         if (p.admin == "admin" || p.isAdmin || p.isSuperAdmin) {
           chat.admins.push(replaceID(p.id));
@@ -346,7 +346,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async getChats(): Promise<string[]> {
-    return await this.auth.listAll("chats-");
+    return (await this.auth.listAll("chats-")).map((id) => id.replace("chats-", ""));
   }
 
   public async setChats(chats: Chat[]): Promise<void> {
@@ -464,7 +464,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async getUsers(): Promise<string[]> {
-    return await this.auth.listAll("users-");
+    return (await this.auth.listAll("users-")).map((id) => id.replace("users-", ""));
   }
 
   public async setUsers(users: User[]): Promise<void> {
