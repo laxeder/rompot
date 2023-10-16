@@ -145,32 +145,12 @@ export default class ConfigWAEvents {
 
   public configHistorySet() {
     this.wa.sock.ev.on("messaging-history.set", async (update) => {
-      const readedChats = [] as string[];
-
       await Promise.all(
         update.chats.map(async (chat) => {
           try {
-            if (!chat.id.includes("@g") || readedChats.includes(chat.id)) return;
-
-            readedChats.push(chat.id);
+            if (!chat?.hasOwnProperty("pinned")) return;
 
             await this.wa.readChat(new Chat(chat.id));
-          } catch (err) {
-            this.wa.emit("error", err);
-          }
-        })
-      );
-
-      const readedUsers = [] as string[];
-
-      await Promise.all(
-        update.contacts.map(async (user) => {
-          try {
-            if (!user.id.includes("@s") || readedUsers.includes(user.id)) return;
-
-            readedUsers.push(user.id);
-
-            await this.wa.setUser(new User(user.id, user.name || user.notify || user.notify || ""));
           } catch (err) {
             this.wa.emit("error", err);
           }
