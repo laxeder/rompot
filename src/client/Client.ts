@@ -246,7 +246,7 @@ export default class Client<Bot extends IBot> extends ClientEvents {
   //! <============================> MESSAGES <============================>
 
   public deleteMessage(message: Message): Promise<void> {
-    return this.bot.removeMessage(message);
+    return this.bot.deleteMessage(message);
   }
 
   public removeMessage(message: Message): Promise<void> {

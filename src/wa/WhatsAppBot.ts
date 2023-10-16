@@ -544,13 +544,14 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async deleteMessage(message: Message) {
-    const key: any = { remoteJid: getID(message.chat.id), id: message.id };
+    const key: proto.IMessageKey = {
+      remoteJid: getID(message.chat.id),
+      id: message.id,
+      fromMe: message.fromMe || message.user.id == this.id,
+      participant: isJidGroup(message.chat.id) ? getID(message.user.id || this.id) : undefined,
+    };
 
-    if (isJidGroup(message.chat.id)) {
-      if (message.user.id != this.id && !(await this.getChatAdmins(message.chat)).includes(this.id)) return;
-
-      key.participant = getID(message.user.id);
-    }
+    if (key.participant && key.participant != this.id && !(await this.getChatAdmins(message.chat)).includes(this.id)) return;
 
     await this.msgWCB.waitCall(async () => await this.sock?.sendMessage(getID(message.chat.id), { delete: key }));
   }
