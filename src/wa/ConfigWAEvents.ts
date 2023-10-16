@@ -169,6 +169,12 @@ export default class ConfigWAEvents {
           if (name && user.name != name) {
             await this.wa.setUser(User.fromJSON({ ...user, name }));
           }
+
+          const chat = await this.wa.getChat(new Chat(update.id));
+
+          if (chat != null && name && chat.name != name) {
+            await this.wa.setChat(Chat.fromJSON({ ...chat, name }));
+          }
         } catch (err) {
           this.wa.emit("error", err);
         }
