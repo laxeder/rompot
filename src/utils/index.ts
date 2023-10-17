@@ -1,6 +1,6 @@
 import MessageHandler, { MessageHandlerConfig } from "./MessageHandler";
-import WaitCallBack from "./WaitCallBack";
+import FunctionHandler from "./FunctionHandler";
 
 export * from "./Generic";
 
-export { MessageHandler, MessageHandlerConfig, WaitCallBack };
+export { MessageHandler, MessageHandlerConfig, FunctionHandler };
