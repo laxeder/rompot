@@ -485,7 +485,7 @@ export default class Client<Bot extends IBot> extends ClientEvents {
 
         if (chat == null) return;
 
-        chats.push(chat);
+        chats.push(Chat.get(chat, this.id));
       })
     );
 
@@ -669,7 +669,7 @@ export default class Client<Bot extends IBot> extends ClientEvents {
 
         if (user == null) return;
 
-        users.push(user);
+        users.push(User.get(user, this.id));
       })
     );
 
