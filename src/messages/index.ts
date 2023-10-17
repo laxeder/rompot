@@ -13,6 +13,7 @@ import MediaMessage from "./MediaMessage";
 import ImageMessage from "./ImageMessage";
 import AudioMessage from "./AudioMessage";
 import EmptyMessage from "./EmptyMessage";
+import ErrorMessage from "./ErrorMessage";
 import FileMessage from "./FileMessage";
 import TextMessage from "./TextMessage";
 
@@ -34,6 +35,7 @@ export {
   LocationMessage,
   MediaMessage,
   Message,
+  ErrorMessage,
   PollMessage,
   PollUpdateMessage,
   ReactionMessage,

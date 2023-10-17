@@ -7,6 +7,7 @@ import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
 import CommandController from "../command/CommandController";
 import ReactionMessage from "../messages/ReactionMessage";
 import { CMDRunType } from "../command/CommandEnums";
+import ErrorMessage from "../messages/ErrorMessage";
 import MediaMessage from "../messages/MediaMessage";
 import { sleep, getError } from "../utils/Generic";
 import { ChatStatus } from "../chat/ChatStatus";
@@ -78,7 +79,7 @@ export default class Client<Bot extends IBot> extends ClientEvents {
           this.runCommand(command, message, CMDRunType.Exec);
         }
       } catch (err) {
-        this.emit("error", getError(err));
+        this.emit("message", new ErrorMessage(message.chat, err));
       }
     });
 
