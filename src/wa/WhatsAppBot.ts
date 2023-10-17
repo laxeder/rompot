@@ -415,6 +415,40 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     await this.removeChat(chat);
   }
 
+  public async joinChat(code: string): Promise<void> {
+    await this.chatWCB
+      .waitCall(() => this.sock.groupAcceptInvite(code.replace("https://chat.whatsapp.com/", "")))
+      .catch((err) => {
+        throw err;
+      });
+  }
+
+  public async getChatEnvite(chat: Chat): Promise<string> {
+    if (!isJidGroup(chat.id)) return "";
+    if (!(await this.getChatAdmins(chat)).includes(this.id)) return "";
+
+    return (
+      (await this.chatWCB
+        .waitCall(() => this.sock.groupInviteCode(chat.id))
+        .catch((err) => {
+          throw err;
+        })) || ""
+    );
+  }
+
+  public async revokeChatEnvite(chat: Chat): Promise<string> {
+    if (!isJidGroup(chat.id)) return "";
+    if (!(await this.getChatAdmins(chat)).includes(this.id)) return "";
+
+    return (
+      (await this.chatWCB
+        .waitCall(() => this.sock.groupRevokeInvite(chat.id))
+        .catch((err) => {
+          throw err;
+        })) || ""
+    );
+  }
+
   //! ******************************* USER *******************************
 
   public async getUserName(user: User): Promise<string> {

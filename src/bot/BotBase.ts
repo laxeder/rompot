@@ -141,6 +141,16 @@ export default class BotBase extends BotEvents implements IBot {
 
   public async setChatProfile(chat: Chat, profile: Buffer): Promise<void> {}
 
+  public async joinChat(code: string): Promise<void> {}
+
+  public async getChatEnvite(chat: Chat): Promise<string> {
+    return "";
+  }
+
+  public async revokeChatEnvite(chat: Chat): Promise<string> {
+    return "";
+  }
+
   //! #################################################################
   //! ########## MÉTODOS DO USUÁRIO
   //! #################################################################

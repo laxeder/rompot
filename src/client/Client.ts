@@ -58,10 +58,6 @@ export default class Client<Bot extends IBot> extends ClientEvents {
     this.configEvents();
   }
 
-  //! =================================================================
-  //! ========== CONFIGURAÇÃO DOS EVENTOS
-  //! =================================================================
-
   /** Configura os eventos do cliente */
   public configEvents() {
     this.bot.on("message", async (message: Message) => {
@@ -273,8 +269,6 @@ export default class Client<Bot extends IBot> extends ClientEvents {
   public runCommand(command: Command, message: Message, type?: string) {
     return this.commandController.runCommand(command, message, type);
   }
-
-  //! <============================> MESSAGES <============================>
 
   /**
    * Deletar mensagem
@@ -637,6 +631,32 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    */
   public changeChatStatus(chat: Chat | string, status: ChatStatus): Promise<void> {
     return this.bot.changeChatStatus(Chat.get(chat, this.id), status);
+  }
+
+  /**
+   * Entra no chat pelo código de convite.
+   * @param code - Código de convite do chat.
+   */
+  public joinChat(code: string): Promise<void> {
+    return this.bot.joinChat(code);
+  }
+
+  /**
+   * Obtem o código de convite do chat.
+   * @param chat - Chat que será obtido o código de convite.
+   * @returns O código de convite do chat.
+   */
+  public getChatEnvite(chat: Chat | string): Promise<string> {
+    return this.bot.getChatEnvite(Chat.get(chat, this.id));
+  }
+
+  /**
+   * Revoga o código de convite do chat.
+   * @param chat - Chat que terá seu código de convite revogado.
+   * @returns O novo código de convite do chat.
+   */
+  public revokeChatEnvite(chat: Chat | string): Promise<string> {
+    return this.bot.revokeChatEnvite(Chat.get(chat, this.id));
   }
 
   /**

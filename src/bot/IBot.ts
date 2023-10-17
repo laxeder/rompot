@@ -229,6 +229,26 @@ export default interface IBot extends BotEvents {
    */
   setChats(chats: Chat[]): Promise<void>;
 
+  /**
+   * Entra no chat pelo código de convite.
+   * @param code - Código de convite do chat.
+   */
+  joinChat(code: string): Promise<void>;
+
+  /**
+   * Obtem o código de convite do chat.
+   * @param chat - Chat que será obtido o código de convite.
+   * @returns O código de convite do chat.
+   */
+  getChatEnvite(chat: Chat): Promise<string>;
+
+  /**
+   * Revoga o código de convite do chat.
+   * @param chat - Chat que terá seu código de convite revogado.
+   * @returns O novo código de convite do chat.
+   */
+  revokeChatEnvite(chat: Chat): Promise<string>;
+
   /** Adiciona um novo usuário
    * @param user Usuário
    */
