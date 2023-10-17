@@ -2,6 +2,7 @@ import { DisconnectReason, isJidGroup } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 
 import { ConvertWAMessage } from "./ConvertWAMessage";
+import ErrorMessage from "../messages/ErrorMessage";
 import { BotStatus } from "../bot/BotStatus";
 import { ChatType } from "../chat/ChatType";
 import WhatsAppBot from "./WhatsAppBot";
@@ -87,13 +88,17 @@ export default class ConfigWAEvents {
   public configMessagesUpsert() {
     this.wa.sock.ev.on("messages.upsert", async (m) => {
       try {
-        for (const message of m.messages) {
-          if (message.key.remoteJid == "status@broadcast") return;
-          if (!message.message) return;
+        for (const message of m?.messages || []) {
+          try {
+            if (message.key.remoteJid == "status@broadcast") return;
+            if (!message.message) return;
 
-          const msg = await new ConvertWAMessage(this.wa, message, m.type).get();
+            const msg = await new ConvertWAMessage(this.wa, message, m.type).get();
 
-          this.wa.emit("message", msg);
+            this.wa.emit("message", msg);
+          } catch (err) {
+            this.wa.emit("message", new ErrorMessage(replaceID(message?.key?.remoteJid || ""), err && err instanceof Error ? err : new Error(JSON.stringify(err))));
+          }
         }
       } catch (err) {
         this.wa.emit("error", err);
