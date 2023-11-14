@@ -76,7 +76,7 @@ client.config = config;
 ## ⚙️ Criando comandos
 
 ```ts
-import { CMDKey, Command, Message } from "../../src";
+import { CMDKey, Command, Message } from "rompot";
 
 // Cria um comando com o nome hello
 // Ao ser executado envia a mensagem "Hello World!"
@@ -167,7 +167,7 @@ client.on("user", async (update) => {
 ### Erro interno
 
 ```ts
-client.on("error", (err: any) => {
+client.on("error", (err) => {
   console.error(`Um erro ocorreu: ${err}`);
 });
 ```
@@ -194,9 +194,6 @@ msg.mentions.push("userId");
 
 // Marcar mensagem
 msg.mention = message;
-
-// Ativa as funções da mensagen
-msg.client = client;
 
 // Responder mensagem
 msg.reply(message);
@@ -388,7 +385,7 @@ client.getChatDescription(chat);
 ```
 
 - Adicionar membro
-  - Você pode encontrar o user em `message.user` ou em `chat.users["userId"]`, o ID pode se encontrado em `message.user.id`
+  - Você pode encontrar o user em `message.user`, o ID pode se encontrado em `message.user.id`
 
 ```ts
 client.addUserInChat(chat, user);
