@@ -4,6 +4,7 @@ import digestSync from "crypto-digest-sync";
 import Long from "long";
 
 import PollMessage, { PollAction, PollOption } from "../messages/PollMessage";
+import ListMessage, { ListType } from "../messages/ListMessage";
 import MediaMessage, { Media } from "../messages/MediaMessage";
 import PollUpdateMessage from "../messages/PollUpdateMessage";
 import Message, { MessageType } from "../messages/Message";
@@ -17,7 +18,6 @@ import AudioMessage from "../messages/AudioMessage";
 import VideoMessage from "../messages/VideoMessage";
 import EmptyMessage from "../messages/EmptyMessage";
 import TextMessage from "../messages/TextMessage";
-import ListMessage from "../messages/ListMessage";
 import FileMessage from "../messages/FileMessage";
 import { ChatType } from "../chat/ChatType";
 import { getID, replaceID } from "./ID";
@@ -510,6 +510,7 @@ export class ConvertWAMessage {
     listMSG.title = listMessage.title || "";
     listMSG.footer = listMessage.footerText || "";
     listMSG.button = listMessage.buttonText || "";
+    listMSG.listType = listMessage.listType || ListType.UNKNOWN;
 
     listMessage?.sections?.map((list) => {
       const index = listMSG.list.length;

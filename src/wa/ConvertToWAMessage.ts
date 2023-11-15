@@ -1,4 +1,4 @@
-import { generateWAMessage, isJidGroup, MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
+import { generateWAMessage, generateWAMessageContent, isJidGroup, MiscMessageGenerationOptions, proto } from "@whiskeysockets/baileys";
 import Sticker, { Categories, StickerTypes } from "@laxeder/wa-sticker/dist";
 
 import ListMessage, { List, ListItem } from "../messages/ListMessage";
@@ -64,7 +64,7 @@ export class ConvertToWAMessage {
     if (ReactionMessage.isValid(message)) this.refactoryReactionMessage(message);
     if (ContactMessage.isValid(message)) this.refactoryContactMessage(message);
     if (ButtonMessage.isValid(message)) this.refactoryButtonMessage(message);
-    if (ListMessage.isValid(message)) this.refactoryListMessage(message);
+    if (ListMessage.isValid(message)) await this.refactoryListMessage(message);
     if (PollMessage.isValid(message)) this.refactoryPollMessage(message);
 
     return this;
@@ -264,12 +264,14 @@ export class ConvertToWAMessage {
    * * Refatora uma mensagem de lista
    * @param message
    */
-  public refactoryListMessage(message: ListMessage) {
+  public async refactoryListMessage(message: ListMessage) {
     this.waMessage.buttonText = message.button;
     this.waMessage.description = message.text;
     this.waMessage.footer = message.footer;
     this.waMessage.title = message.title;
-    this.waMessage.viewOnce = true;
+    this.waMessage.listType = message.listType;
+    this.waMessage.viewOnce = false;
+    this.isRelay = true;
 
     this.waMessage.sections = message.list.map((list: List) => {
       return {
@@ -279,5 +281,17 @@ export class ConvertToWAMessage {
         }),
       };
     });
+
+    if (this.isRelay) {
+      this.waMessage = await generateWAMessageContent(this.waMessage, { upload: () => ({} as any) });
+
+      if (this.waMessage?.viewOnceMessage?.message?.listMessage) {
+        this.waMessage.viewOnceMessage.message.listMessage.listType = message.listType;
+      }
+
+      if (this.waMessage?.listMessage) {
+        this.waMessage.listMessage.listType = message.listType;
+      }
+    }
   }
 }

@@ -20,6 +20,13 @@ export type ListItem = {
   id: string;
 };
 
+/** Tipo da lista */
+export enum ListType {
+  UNKNOWN = 0,
+  SINGLE_SELECT = 1,
+  PRODUCT_LIST = 2,
+}
+
 /**
  * Representa uma mensagem de lista.
  */
@@ -34,6 +41,8 @@ export default class ListMessage extends Message {
   public footer: string;
   /** Título da lista. */
   public title: string;
+  /** Tipo da lista */
+  public listType: number = ListType.PRODUCT_LIST;
 
   /**
    * Cria uma nova instância de ListMessage.
