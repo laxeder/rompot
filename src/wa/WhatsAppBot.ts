@@ -11,6 +11,7 @@ import makeWASocket, {
   ConnectionState,
   isJidGroup,
   Browsers,
+  generateWAMessageFromContent,
 } from "@whiskeysockets/baileys";
 import internal from "stream";
 import pino from "pino";
@@ -586,11 +587,11 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     await waMSG.refactory(content);
 
     if (waMSG.isRelay) {
-      const id = await this.funcHandler.exec("msg", this.sock.relayMessage, getID(waMSG.chatId), waMSG.waMessage, { ...waMSG.options, messageId: getID(waMSG.chatId) });
+      await this.funcHandler.exec("msg", this.sock.relayMessage, getID(waMSG.chatId), waMSG.waMessage, { ...waMSG.options, messageId: getID(waMSG.chatId) });
 
-      if (!!id && typeof id == "string") content.id = id;
+      const msgRes = generateWAMessageFromContent(getID(waMSG.chatId), waMSG.waMessage, { ...waMSG.options, userJid: getID(this.id) });
 
-      return content;
+      return await new ConvertWAMessage(this, msgRes).get();
     }
 
     const sendedMessage = await this.funcHandler.exec("msg", this.sock.sendMessage, getID(waMSG.chatId), waMSG.waMessage, waMSG.options);
