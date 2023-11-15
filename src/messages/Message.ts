@@ -157,17 +157,19 @@ export default class Message {
    * @returns A mensagem
    */
   public static get<T extends Message>(message: T | string, botId?: string): T | Message {
-    if (typeof message == "string") {
-      const m = new Message(message);
+    const m = typeof message == "string" ? new Message(message) : message;
 
-      if (botId) m.botId = botId;
+    if (botId) {
+      m.botId = botId;
+      m.chat.botId = botId;
+      m.user.botId = botId;
 
-      return m;
+      if (m.mention) {
+        m.mention = Message.get(m.mention, botId);
+      }
     }
 
-    if (botId) message.botId = botId;
-
-    return message;
+    return m;
   }
 
   /**
