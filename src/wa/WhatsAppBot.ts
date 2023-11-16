@@ -68,10 +68,14 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       },
       async patchMessageBeforeSending(msg) {
         if (msg.deviceSentMessage?.message?.listMessage?.listType == proto.Message.ListMessage.ListType.PRODUCT_LIST) {
+          msg = JSON.parse(JSON.stringify(msg));
+
           msg.deviceSentMessage.message.listMessage.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT;
         }
 
         if (msg.listMessage?.listType == proto.Message.ListMessage.ListType.PRODUCT_LIST) {
+          msg = JSON.parse(JSON.stringify(msg));
+
           msg.listMessage.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT;
         }
 
