@@ -66,6 +66,17 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       async getMessage(key) {
         return (await this.store.loadMessage(key.remoteJid!, key.id!))?.message || undefined;
       },
+      async patchMessageBeforeSending(msg) {
+        if (msg.deviceSentMessage?.message?.listMessage?.listType == proto.Message.ListMessage.ListType.PRODUCT_LIST) {
+          msg.deviceSentMessage.message.listMessage.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT;
+        }
+
+        if (msg.listMessage?.listType == proto.Message.ListMessage.ListType.PRODUCT_LIST) {
+          msg.listMessage.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT;
+        }
+
+        return msg;
+      },
       ...config,
     };
 
@@ -587,7 +598,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     await waMSG.refactory(content);
 
     if (waMSG.isRelay) {
-      await this.funcHandler.exec("msg", this.sock.relayMessage, getID(waMSG.chatId), waMSG.waMessage, { ...waMSG.options, messageId: getID(waMSG.chatId) });
+      await this.funcHandler.exec("msg", this.sock.relayMessage, getID(waMSG.chatId), waMSG.waMessage, { ...waMSG.options });
 
       const msgRes = generateWAMessageFromContent(getID(waMSG.chatId), waMSG.waMessage, { ...waMSG.options, userJid: getID(this.id) });
 
