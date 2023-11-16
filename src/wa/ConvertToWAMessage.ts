@@ -1,4 +1,4 @@
-import { generateWAMessage, generateWAMessageContent, isJidGroup, MiscMessageGenerationOptions, proto } from "@whiskeysockets/baileys";
+import { generateWAMessage, generateWAMessageContent, isJidGroup, MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
 import Sticker, { Categories, StickerTypes } from "@laxeder/wa-sticker/dist";
 
 import ListMessage, { List, ListItem } from "../messages/ListMessage";
