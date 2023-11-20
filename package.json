@@ -36,7 +36,6 @@
   ],
   "devDependencies": {
     "@types/node": "18.7.14",
-    "@types/sharp": "0.31.1",
     "@types/ws": "8.5.3",
     "ts-node-dev": "2.0.0",
     "tsc-alias": "1.7.1",
