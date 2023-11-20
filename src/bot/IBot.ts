@@ -13,8 +13,14 @@ export default interface IBot extends BotEvents {
   /** ID do bot */
   id: string;
 
-  /* Status do Client */
+  /** Status do Client */
   status: BotStatus;
+
+  /** Número do bot */
+  phoneNumber: number;
+
+  /** Nome do bot */
+  name: string;
 
   /** Conectar bot
    * @param auth Autenticação do bot
@@ -37,6 +43,11 @@ export default interface IBot extends BotEvents {
    * @param reason Razão por parar o bot
    */
   stop(reason?: any): Promise<void>;
+
+  /**
+   * Desconecta o bot
+   */
+  logout(): Promise<void>;
 
   /** Marca uma mensagem como visualizada
    * @param message Mensagem que será visualizada

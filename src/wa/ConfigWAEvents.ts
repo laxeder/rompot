@@ -3,10 +3,10 @@ import { Boom } from "@hapi/boom";
 
 import { ConvertWAMessage } from "./ConvertWAMessage";
 import ErrorMessage from "../messages/ErrorMessage";
+import { fixID, getPhoneNumber } from "./ID";
 import { BotStatus } from "../bot/BotStatus";
 import { ChatType } from "../chat/ChatType";
 import WhatsAppBot from "./WhatsAppBot";
-import { replaceID } from "./ID";
 import Chat from "../chat/Chat";
 import User from "../user/User";
 
@@ -97,7 +97,7 @@ export default class ConfigWAEvents {
 
             this.wa.emit("message", msg);
           } catch (err) {
-            this.wa.emit("message", new ErrorMessage(replaceID(message?.key?.remoteJid || ""), err && err instanceof Error ? err : new Error(JSON.stringify(err))));
+            this.wa.emit("message", new ErrorMessage(message?.key?.remoteJid || "", err && err instanceof Error ? err : new Error(JSON.stringify(err))));
           }
         }
       } catch (err) {
@@ -122,7 +122,11 @@ export default class ConfigWAEvents {
         if (update.connection == "open") {
           this.wa.status = BotStatus.Online;
 
-          this.wa.id = replaceID(this.wa.sock?.user?.id || "");
+          this.wa.id = fixID(this.wa.sock?.user?.id || "");
+          this.wa.phoneNumber = getPhoneNumber(this.wa.id);
+          this.wa.name = this.wa.sock?.user?.name;
+
+          this.wa.setUser(User.fromJSON({ id: this.wa.id, phoneNumber: this.wa.phoneNumber, name: this.wa.name }));
 
           this.wa.emit("open", { isNewLogin: update.isNewLogin || false });
         }
@@ -168,7 +172,7 @@ export default class ConfigWAEvents {
     this.wa.sock.ev.on("contacts.update", async (updates) => {
       for (const update of updates) {
         try {
-          const user = (await this.wa.getUser(new User(update.id))) || new User(replaceID(update.id));
+          const user = (await this.wa.getUser(new User(update.id))) || User.fromJSON({ id: update.id, phoneNumber: getPhoneNumber(update.id) });
           const name = update.notify || update.name || update.verifiedName;
 
           if (name && user.name != name) {
@@ -191,7 +195,7 @@ export default class ConfigWAEvents {
     this.wa.sock.ev.on("chats.upsert", async (updates) => {
       for (const update of updates) {
         try {
-          const chat = (await this.wa.getChat(new Chat(update.id))) || new Chat(replaceID(update.id));
+          const chat = (await this.wa.getChat(new Chat(update.id))) || Chat.fromJSON({ id: update.id, phoneNumber: getPhoneNumber(update.id) });
 
           if ((!chat.name && isJidGroup(chat.id)) || (update.name && chat.name != update.name)) {
             await this.wa.readChat(new Chat(chat.id, isJidGroup(chat.id) ? ChatType.Group : ChatType.PV, update.name));

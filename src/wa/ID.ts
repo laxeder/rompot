@@ -1,10 +1,16 @@
 /** * Deixa o id somente com numeros para contatos */
 export function replaceID(id: string): string {
-  id = String(`${id}`).replace(/:(.*)@/, "@");
+  id = String(`${id}`);
 
-  if (id.includes("@s")) id = id.split("@")[0];
+  if (id.includes("@s")) return id.trim();
+}
 
-  return id.trim();
+export function fixID(id: string) {
+  return id.replace(/:(.*)@/, "@");
+}
+
+export function getPhoneNumber(id: string): number {
+  return Number(id?.replace(/\D+/g, "") || "0");
 }
 
 /** * Obter o id de um número */

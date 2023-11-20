@@ -20,8 +20,8 @@ import EmptyMessage from "../messages/EmptyMessage";
 import TextMessage from "../messages/TextMessage";
 import FileMessage from "../messages/FileMessage";
 import { ChatType } from "../chat/ChatType";
-import { getID, replaceID } from "./ID";
 import WhatsAppBot from "./WhatsAppBot";
+import { getPhoneNumber } from "./ID";
 import User from "../user/User";
 import Chat from "../chat/Chat";
 
@@ -79,12 +79,12 @@ export class ConvertWAMessage {
 
     const chatJid = waMessage?.key?.remoteJid || this.bot.id;
 
-    this.chat = (await this.bot.getChat(new Chat(chatJid))) || new Chat(replaceID(chatJid), isJidGroup(chatJid) ? ChatType.Group : ChatType.PV);
+    this.chat = (await this.bot.getChat(new Chat(chatJid))) || Chat.fromJSON({ id: chatJid, phoneNumber: getPhoneNumber(chatJid), type: isJidGroup(chatJid) ? ChatType.Group : ChatType.PV });
     this.chat.name = this.chat.name || this.chat.type == ChatType.PV ? waMessage.pushName : "";
 
     const userJid = waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "";
 
-    this.user = (await this.bot.getUser(new User(userJid))) || new User(replaceID(userJid));
+    this.user = (await this.bot.getUser(new User(userJid))) || User.fromJSON({ id: userJid, phoneNumber: getPhoneNumber(userJid) });
     this.user.name = this.user.name || waMessage.pushName;
 
     await this.convertContentMessage(waMessage.message);
@@ -187,15 +187,15 @@ export class ConvertWAMessage {
   public async convertContextMessage(context: proto.ContextInfo) {
     if (context.mentionedJid) {
       for (const jid of context.mentionedJid) {
-        this.message.mentions.push(replaceID(jid));
+        this.message.mentions.push(jid);
       }
     }
 
     if (context.quotedMessage) {
       const message = {
         key: {
-          remoteJid: replaceID(this.chat.id),
-          participant: replaceID(context.participant),
+          remoteJid: this.chat.id,
+          participant: context.participant,
           id: context.stanzaId,
         },
         message: context.quotedMessage,
@@ -263,7 +263,7 @@ export class ConvertWAMessage {
       user.name = name.slice(3, name.indexOf("\n"));
 
       const id = vcard.slice(vcard.indexOf("waid=") + 5);
-      user.id = replaceID(id.slice(0, id.indexOf(":")) + "@s.whatsapp.net");
+      user.id = id.slice(0, id.indexOf(":")) + "@s.whatsapp.net";
 
       return user;
     };
@@ -389,18 +389,16 @@ export class ConvertWAMessage {
     const pollUpdate = new PollUpdateMessage(this.chat, pollCreation?.text || "");
 
     if (pollCreation) {
-      const userId = this.user.id;
-
       const poll = decryptPollVote(content.vote, {
-        pollCreatorJid: getID(pollCreation.user.id),
+        pollCreatorJid: pollCreation.user.id,
         pollMsgId: content.pollCreationMessageKey.id,
         pollEncKey: pollCreation.secretKey,
-        voterJid: getID(userId),
+        voterJid: this.user.id,
       });
 
       const votesAlias: { [name: string]: PollOption } = {};
       const hashVotes: string[] = poll.selectedOptions.map((opt) => Buffer.from(opt).toString("hex").toUpperCase()).sort();
-      const oldVotes: string[] = pollCreation.getUserVotes(userId).sort();
+      const oldVotes: string[] = pollCreation.getUserVotes(this.user.id).sort();
       const nowVotes: string[] = [];
 
       for (const opt of pollCreation.options) {
@@ -442,7 +440,7 @@ export class ConvertWAMessage {
       pollUpdate.selected = vote?.id || "";
       pollUpdate.text = vote?.name || "";
 
-      pollCreation.setUserVotes(userId, nowVotes);
+      pollCreation.setUserVotes(this.user.id, nowVotes);
 
       await this.bot.savePollMessage(pollCreation);
     }

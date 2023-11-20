@@ -12,6 +12,8 @@ import IBot from "./IBot";
 export default class BotBase extends BotEvents implements IBot {
   public id: string = "";
   public status: BotStatus = BotStatus.Offline;
+  public phoneNumber: number = 0;
+  public name: string = "";
 
   //! #################################################################
   //! ########## MÉTODOS DE CONEXÃO
@@ -26,6 +28,8 @@ export default class BotBase extends BotEvents implements IBot {
   public async reconnect(alert?: boolean): Promise<void> {}
 
   public async stop(reason: any): Promise<void> {}
+
+  public async logout(): Promise<void> {}
 
   //! #################################################################
   //! ########## MÉTODOS DE MENSAGEM

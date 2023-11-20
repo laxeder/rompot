@@ -5,12 +5,14 @@ import Chat from "../chat/Chat";
 export default class User {
   /** ID do bot associado a este usuário */
   public botId: string = "";
+  /** ID do usuário */
+  public id: string = "";
   /** Nome do usuário */
   public name: string = "";
   /** Descrição do usuário */
   public description: string = "";
-  /** ID do usuário */
-  public id: string = "";
+  /** Número de telefone */
+  public phoneNumber: number = 0;
 
   /**
    * Cria uma instância de User.

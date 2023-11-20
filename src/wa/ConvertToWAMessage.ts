@@ -15,8 +15,8 @@ import VideoMessage from "../messages/VideoMessage";
 import FileMessage from "../messages/FileMessage";
 import PollMessage from "../messages/PollMessage";
 
-import WhatsAppBot from "./WhatsAppBot";
-import { getID } from "./ID";
+import { fixID, getID, getPhoneNumber } from "./ID"; 
+import WhatsAppBot from "./WhatsAppBot"; 
 
 export class ConvertToWAMessage {
   public message: Message;
@@ -38,12 +38,12 @@ export class ConvertToWAMessage {
    */
   public async refactory(message = this.message): Promise<this> {
     this.waMessage = await this.refactoryMessage(message);
-    this.chatId = getID(message.chat.id);
+    this.chatId = message.chat.id;
 
     if (message.mention) {
       const { chatId, waMessage } = await new ConvertToWAMessage(this.bot, message.mention).refactory(message.mention);
 
-      const userJid = getID(!!message.mention.user.id ? message.mention.user.id : this.bot.id);
+      const userJid = !!message.mention.user.id ? message.mention.user.id : fixID(this.bot.id);
 
       this.options.quoted = await generateWAMessage(chatId || this.chatId, waMessage, {
         userJid,
@@ -52,7 +52,7 @@ export class ConvertToWAMessage {
         },
       });
 
-      this.options.quoted.key.fromMe = userJid == getID(this.bot.id);
+      this.options.quoted.key.fromMe = userJid == this.bot.id;
 
       if (this.chatId.includes("@g")) {
         this.options.quoted.key.participant = userJid;
@@ -81,18 +81,18 @@ export class ConvertToWAMessage {
     msg.text = message.text;
 
     if (!!message.user.id && isJidGroup(message.chat.id)) {
-      msg.participant = getID(message.user.id);
+      msg.participant = message.user.id;
     }
 
     if (message.mentions) {
       msg.mentions = [];
 
       for (const jid of message.mentions) {
-        msg.mentions.push(getID(jid));
+        msg.mentions.push(jid);
       }
 
       for (const mention of msg.text.split(/@(.*?)/)) {
-        const mentionNumber = mention.split(/\s+/)[0].replace(/\D+/g, "");
+        const mentionNumber = `${getPhoneNumber(mention.split(/\s+/)[0])}`;
 
         if (!!!mentionNumber || mentionNumber.length < 9 || mentionNumber.length > 15) continue;
 
@@ -109,10 +109,10 @@ export class ConvertToWAMessage {
 
     if (message.isEdited) {
       msg.edit = {
-        remoteJid: getID(message.chat.id) || "",
+        remoteJid: message.chat.id || "",
         id: message.id || "",
         fromMe: message.fromMe || message.user.id == this.bot.id,
-        participant: isJidGroup(message.chat.id) ? getID(message.user.id || this.bot.id) : undefined,
+        participant: isJidGroup(message.chat.id) ? message.user.id || this.bot.id : undefined,
         toJSON: () => this,
       };
     }
@@ -189,8 +189,7 @@ export class ConvertToWAMessage {
     };
 
     for (const user of message.contacts) {
-      const vcard =
-        "BEGIN:VCARD\n" + "VERSION:3.0\n" + `FN:${""}\n` + (user.description ? `ORG:${user.description};\n` : "") + `TEL;type=CELL;type=VOICE;waid=${user.id}: ${getID(user.id)}\n` + "END:VCARD";
+      const vcard = "BEGIN:VCARD\n" + "VERSION:3.0\n" + `FN:${""}\n` + (user.description ? `ORG:${user.description};\n` : "") + `TEL;type=CELL;type=VOICE;waid=${user.id}: ${user.id}\n` + "END:VCARD";
 
       if (message.contacts.length < 2) {
         this.waMessage.contacts.contacts.push({ vcard });
@@ -214,10 +213,10 @@ export class ConvertToWAMessage {
     this.waMessage = {
       react: {
         key: {
-          remoteJid: getID(message.chat.id),
+          remoteJid: message.chat.id,
           id: message.id || "",
           fromMe: message.fromMe || !message.user.id ? true : message.user.id == this.bot.id,
-          participant: isJidGroup(message.chat.id) ? getID(message.user.id || this.bot.id) : undefined,
+          participant: isJidGroup(message.chat.id) ? message.user.id || this.bot.id : undefined,
           toJSON: () => this,
         },
         text: message.text,
