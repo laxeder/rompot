@@ -11,7 +11,6 @@ import ErrorMessage from "../messages/ErrorMessage";
 import MediaMessage from "../messages/MediaMessage";
 import { sleep, getError } from "../utils/Generic";
 import { ChatStatus } from "../chat/ChatStatus";
-import { BotStatus } from "../bot/BotStatus";
 import ClientEvents from "./ClientEvents";
 import Message from "../messages/Message";
 import Command from "../command/Command";
@@ -32,27 +31,15 @@ export default class Client<Bot extends IBot> extends ClientEvents {
   public bot: Bot;
   /** Vezes que o bot reconectou */
   public reconnectTimes: number = 0;
-
-  get id() {
-    return this.bot.id;
-  }
-
-  set id(id: string) {
-    this.bot.id = id;
-  }
-
-  get status() {
-    return this.bot.status;
-  }
-
-  set status(status: BotStatus) {
-    this.bot.status = status;
-  }
+  /** Id do cliente */
+  public id: string;
 
   constructor(bot: Bot, config: Partial<ConnectionConfig> = {}) {
     super();
 
     this.bot = bot;
+
+    this.id = Client.generateId();
 
     this.config = { ...DEFAULT_CONNECTION_CONFIG, ...config };
 
@@ -86,6 +73,8 @@ export default class Client<Bot extends IBot> extends ClientEvents {
     this.bot.on("open", (update) => {
       try {
         this.reconnectTimes = 0;
+
+        Client.saveClient(this);
 
         this.emit("open", update);
       } catch (err) {
@@ -169,8 +158,6 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    */
   public async connect(auth: IAuth | string) {
     await this.bot.connect(auth);
-
-    Client.setClient(this);
   }
 
   /**
@@ -179,15 +166,7 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    * @param auth Autenticação do bot
    */
   public async connectByCode(phoneNumber: number | string, auth: string | IAuth): Promise<string> {
-    const id = String(phoneNumber).replace(/\D+/g, "");
-
-    this.id = id;
-
-    const code = await this.bot.connectByCode(id, auth);
-
-    Client.setClient(this);
-
-    return code;
+    return await this.bot.connectByCode(String(phoneNumber).replace(/\D+/g, ""), auth);
   }
 
   /** Reconectar bot
@@ -195,8 +174,6 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    */
   public async reconnect(alert?: boolean) {
     await this.bot.reconnect(alert);
-
-    Client.setClient(this);
   }
 
   /** Parar bot
@@ -815,7 +792,7 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    * Define todos os clientes diponíveis.
    * @param clients - Clientes que serão definidios.
    */
-  public static setClients(clients: Record<string, Client<IBot>>): void {
+  public static saveClients(clients: Record<string, Client<IBot>>): void {
     global["rompot-clients"] = clients;
   }
 
@@ -838,11 +815,16 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    * Define um cliente disponível
    * @param client - Cliente que será definido
    */
-  public static setClient(client: Client<IBot>): void {
+  public static saveClient(client: Client<IBot>): void {
     const clients = Client.getClients();
 
     clients[client.id] = client;
 
-    Client.setClients(clients);
+    Client.saveClients(clients);
+  }
+
+  /** Gera um id único */
+  public static generateId(): string {
+    return `${process.pid}-${Date.now()}-${Object.keys(Client.getClients()).length}`;
   }
 }
