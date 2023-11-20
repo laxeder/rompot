@@ -206,6 +206,13 @@ export default class Client<Bot extends IBot> extends ClientEvents {
     return this.bot.stop(reason);
   }
 
+  /**
+   * Desconecta o bot
+   */
+  public async logout(): Promise<void> {
+    await this.bot.logout();
+  }
+
   /** @returns Controlador de comando do cliente */
   public getCommandController(): CommandController {
     if (this.commandController.botId != this.id) {
