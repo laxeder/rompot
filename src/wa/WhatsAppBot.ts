@@ -12,7 +12,9 @@ import makeWASocket, {
   isJidGroup,
   Browsers,
   generateWAMessageFromContent,
+  GroupMetadata,
 } from "@whiskeysockets/baileys";
+import * as baileys from "@whiskeysockets/baileys";
 import internal from "stream";
 import pino from "pino";
 
@@ -213,7 +215,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
    * * Lê o chat
    * @param chat Sala de bate-papo
    */
-  public async readChat(chat: Chat) {
+  public async readChat(chat: Chat, metadata?: Partial<GroupMetadata> & Partial<baileys.Chat>) {
     if (chat.id.includes("@l")) return chat;
 
     chat.id = chat.id;
@@ -221,7 +223,9 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     chat.type = isJidGroup(chat.id) ? ChatType.Group : ChatType.PV;
 
     if (chat.type == ChatType.Group) {
-      const metadata = await this.funcHandler.exec("chat", this.sock.groupMetadata, chat.id);
+      if (!metadata) {
+        metadata = await this.funcHandler.exec("chat", this.sock.groupMetadata, chat.id);
+      }
 
       if (!metadata || !metadata?.participants) return chat;
 
@@ -234,8 +238,8 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       }
 
       chat.leader = metadata.subjectOwner || "";
-      chat.name = metadata?.subject || chat.name || "";
-      chat.description = metadata?.desc || chat.description || "";
+      chat.name = metadata?.subject || metadata?.name || chat.name || "";
+      chat.description = metadata?.desc || metadata?.description || chat.description || "";
     }
 
     await this.addChat(chat);
