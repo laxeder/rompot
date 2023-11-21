@@ -13,6 +13,8 @@ export default class User {
   public description: string = "";
   /** Número de telefone */
   public phoneNumber: number = 0;
+  /** usuário está salvado */
+  public isSaved: boolean = false;
 
   /**
    * Cria uma instância de User.
