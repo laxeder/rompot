@@ -30,9 +30,6 @@ export class ConvertWAMessage {
   public waMessage: WAMessage = { key: {} };
 
   private message: Message = new Message();
-  private user: User = new User("");
-  private chat: Chat = new Chat("");
-  private mention?: Message;
   private bot: WhatsAppBot;
 
   constructor(bot: WhatsAppBot, waMessage: WAMessage, type?: MessageUpsertType) {
@@ -57,12 +54,25 @@ export class ConvertWAMessage {
   public async get() {
     await this.convertMessage(this.waMessage, this.type);
 
-    if (this.mention) this.message.mention = this.mention;
-
-    this.message.chat = this.chat;
-    this.message.user = this.user;
-
     return this.message;
+  }
+
+  /**
+   * Obtem o usuário pelo ID
+   * @param userId - Id do usuário que será obtido
+   * @returns Instância do usuário
+   */
+  public async getUser(userId: string): Promise<User> {
+    return (await this.bot.getUser(new User(userId))) || User.fromJSON({ id: userId, phoneNumber: getPhoneNumber(userId) });
+  }
+
+  /**
+   * Obtem o chat pelo ID
+   * @param chatId - Id do chat que será obtido
+   * @returns Instância do chat
+   */
+  public async getChat(chatId: string): Promise<Chat> {
+    return (await this.bot.getChat(new Chat(chatId))) || Chat.fromJSON({ id: chatId, phoneNumber: getPhoneNumber(chatId), type: isJidGroup(chatId) ? ChatType.Group : ChatType.PV });
   }
 
   /**
@@ -72,27 +82,22 @@ export class ConvertWAMessage {
    */
   public async convertMessage(waMessage: WAMessage, type: MessageUpsertType = "notify") {
     if (!waMessage) {
-      this.message = new EmptyMessage();
-
+      this.message = EmptyMessage.fromJSON({ ...this.message, type: MessageType.Empty });
       return;
     }
 
-    const chatJid = waMessage?.key?.remoteJid || this.bot.id;
+    this.message.chat = await this.getChat(waMessage?.key?.remoteJid || this.bot.id);
+    this.message.chat.name = this.message.chat.name || this.message.chat.type == ChatType.PV ? waMessage.pushName : "";
 
-    this.chat = (await this.bot.getChat(new Chat(chatJid))) || Chat.fromJSON({ id: chatJid, phoneNumber: getPhoneNumber(chatJid), type: isJidGroup(chatJid) ? ChatType.Group : ChatType.PV });
-    this.chat.name = this.chat.name || this.chat.type == ChatType.PV ? waMessage.pushName : "";
-
-    const userJid = waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "";
-
-    this.user = (await this.bot.getUser(new User(userJid))) || User.fromJSON({ id: userJid, phoneNumber: getPhoneNumber(userJid) });
-    this.user.name = this.user.name || waMessage.pushName;
+    this.message.user = await this.getUser(waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "");
+    this.message.user.name = this.message.user.name || waMessage.pushName;
 
     await this.convertContentMessage(waMessage.message);
 
     this.message.timestamp = (Long.isLong(this.waMessage.messageTimestamp) ? this.waMessage.messageTimestamp.toNumber() : this.waMessage.messageTimestamp || 0) * 1000 || Date.now();
     this.message.isUnofficial = waMessage.key.id.length < 20;
     this.message.fromMe = !!this.waMessage.key.fromMe;
-    this.message.id = this.waMessage.key.id || "";
+    this.message.id = this.message.id || this.waMessage.key.id || "";
   }
 
   /**
@@ -100,47 +105,48 @@ export class ConvertWAMessage {
    * @param messageContent
    * @returns
    */
-  public async convertContentMessage(messageContent: WAMessageContent | undefined | null) {
+  public async convertContentMessage(messageContent: proto.IMessage | undefined | null) {
     if (!!!messageContent) {
-      this.message = new EmptyMessage();
-
+      this.message = EmptyMessage.fromJSON({ ...this.message, type: MessageType.Empty });
       return;
     }
 
-    let contentType = getContentType(messageContent);
+    if (messageContent?.viewOnceMessage?.message || messageContent?.viewOnceMessageV2?.message || messageContent?.viewOnceMessageV2Extension?.message) {
+      messageContent = messageContent?.viewOnceMessage?.message || messageContent?.viewOnceMessageV2?.message || messageContent?.viewOnceMessageV2Extension?.message;
+
+      this.message.isViewOnce = true;
+    }
+
+    if (messageContent.editedMessage) {
+      this.message.id = messageContent.editedMessage.message.protocolMessage.key.id;
+      this.message.isEdited = true;
+
+      messageContent = messageContent.editedMessage.message.protocolMessage.editedMessage;
+    }
+
+    const contentType = getContentType(messageContent);
+
+    console.log(contentType, messageContent);
 
     if (!contentType) {
-      this.message = new EmptyMessage();
+      this.message = EmptyMessage.fromJSON({ ...this.message, type: MessageType.Empty });
       return;
     }
 
     if (contentType == "conversation") {
       this.convertConversationMessage(messageContent[contentType]);
-      return;
     }
 
     if (contentType == "extendedTextMessage") {
       this.convertExtendedTextMessage(messageContent[contentType]);
     }
 
-    const content = messageContent[contentType] as any;
-
-    if ((content as proto.IWebMessageInfo).message) {
-      await this.convertContentMessage((content as proto.IWebMessageInfo).message);
-      return;
-    }
-
     if (contentType == "protocolMessage") {
       await this.convertProtocolMessage(messageContent[contentType] as proto.Message.IProtocolMessage);
-      return;
-    }
-
-    if (contentType == "editedMessage") {
-      await this.convertEditedMessage((messageContent[contentType] as WAMessageContent["editedMessage"]).message);
     }
 
     if (contentType == "imageMessage" || contentType == "videoMessage" || contentType == "audioMessage" || contentType == "stickerMessage" || contentType == "documentMessage") {
-      await this.convertMediaMessage(content, contentType);
+      await this.convertMediaMessage(messageContent[contentType], contentType);
     }
 
     if (contentType === "buttonsMessage" || contentType === "templateMessage") {
@@ -152,24 +158,26 @@ export class ConvertWAMessage {
     }
 
     if (contentType === "locationMessage") {
-      this.convertLocationMessage(content);
+      this.convertLocationMessage(messageContent[contentType]);
     }
 
     if (contentType === "contactMessage" || contentType == "contactsArrayMessage") {
-      this.convertContactMessage(content);
+      this.convertContactMessage(messageContent[contentType]);
     }
 
     if (contentType === "reactionMessage") {
-      this.convertReactionMessage(content);
+      this.convertReactionMessage(messageContent[contentType]);
     }
 
     if (contentType === "pollCreationMessage") {
-      await this.convertPollCreationMessage(content as proto.Message.PollCreationMessage);
+      await this.convertPollCreationMessage(messageContent[contentType] as proto.Message.PollCreationMessage);
     }
 
     if (contentType == "pollUpdateMessage") {
-      await this.convertPollUpdateMessage(content as proto.Message.PollUpdateMessage);
+      await this.convertPollUpdateMessage(messageContent[contentType] as proto.Message.PollUpdateMessage);
     }
+
+    const content = messageContent[contentType] as any;
 
     this.message.text = this.message.text || content.text || content.caption || content.buttonText || content.hydratedTemplate?.hydratedContentText || content.displayName || content.contentText || "";
     this.message.selected = content?.singleSelectReply?.selectedRowId || content?.selectedId || "";
@@ -194,14 +202,14 @@ export class ConvertWAMessage {
     if (context.quotedMessage) {
       const message = {
         key: {
-          remoteJid: this.chat.id,
+          remoteJid: this.message.chat.id,
           participant: context.participant,
           id: context.stanzaId,
         },
         message: context.quotedMessage,
       };
 
-      this.mention = await new ConvertWAMessage(this.bot, message).get();
+      this.message.mention = await new ConvertWAMessage(this.bot, message).get();
     }
   }
 
@@ -210,7 +218,7 @@ export class ConvertWAMessage {
    * @param content
    */
   public convertConversationMessage(content: proto.Message["conversation"]) {
-    this.message = new TextMessage(this.chat, content);
+    this.message = TextMessage.fromJSON({ ...this.message, type: MessageType.Text, text: content });
   }
 
   /**
@@ -218,7 +226,7 @@ export class ConvertWAMessage {
    * @param content
    */
   public convertExtendedTextMessage(content: proto.Message["extendedTextMessage"]) {
-    this.message = new TextMessage(this.chat, content.text);
+    this.message = TextMessage.fromJSON({ ...this.message, type: MessageType.Text, text: content });
   }
 
   /**
@@ -227,14 +235,12 @@ export class ConvertWAMessage {
    */
   public async convertProtocolMessage(content: proto.Message["protocolMessage"]) {
     if (content.type == 0) {
+      this.message.user = await this.getUser(content.key.fromMe ? this.bot.id : content.key.participant || content.key.remoteJid || "");
+      this.message.id = content.key.id;
       this.message.isDeleted = true;
+    } else {
+      this.message = EmptyMessage.fromJSON({ ...this.message, type: MessageType.Empty });
     }
-
-    if (content.type == 14) {
-      await this.convertEditedMessage(content as proto.Message["editedMessage"]["message"]);
-    }
-
-    this.message = new EmptyMessage();
   }
 
   /**
@@ -242,7 +248,7 @@ export class ConvertWAMessage {
    * @param content
    */
   public convertLocationMessage(content: any) {
-    this.message = new LocationMessage(this.chat, content.degreesLatitude, content.degreesLongitude);
+    this.message = LocationMessage.fromJSON({ ...this.message, type: MessageType.Location, latitude: content.degreesLatitude, longitude: content.degreesLongitude });
   }
 
   /**
@@ -250,7 +256,7 @@ export class ConvertWAMessage {
    * @param content
    */
   public convertContactMessage(content: any) {
-    const msg = new ContactMessage(this.chat, content.displayName, []);
+    const msg = ContactMessage.fromJSON({ ...this.message, type: MessageType.Contact, text: content.displayName });
 
     const getContact = (vcard: string | any): User => {
       const user = new User("");
@@ -285,28 +291,28 @@ export class ConvertWAMessage {
    * @param contentType
    */
   public async convertMediaMessage(content: any, contentType: keyof proto.Message) {
-    var msg = new MediaMessage(this.chat, "", Buffer.from(""));
+    var msg = MediaMessage.fromJSON({ ...this.message, type: MessageType.Media });
 
     const file: Media = { stream: this.waMessage };
 
     if (contentType == "documentMessage") {
-      msg = new FileMessage(this.chat, this.message.text, file);
+      msg = FileMessage.fromJSON({ ...msg, type: MessageType.File, file });
     }
 
     if (contentType == "imageMessage") {
-      msg = new ImageMessage(this.chat, this.message.text, file);
+      msg = ImageMessage.fromJSON({ ...msg, type: MessageType.Image, file });
     }
 
     if (contentType == "videoMessage") {
-      msg = new VideoMessage(this.chat, this.message.text, file);
+      msg = VideoMessage.fromJSON({ ...msg, type: MessageType.Video, file });
     }
 
     if (contentType == "audioMessage") {
-      msg = new AudioMessage(this.chat, file);
+      msg = AudioMessage.fromJSON({ ...msg, type: MessageType.Audio, file });
     }
 
     if (contentType == "stickerMessage") {
-      msg = new StickerMessage(this.chat, file);
+      msg = StickerMessage.fromJSON({ ...msg, type: MessageType.Sticker, file });
 
       try {
         await extractMetadata(await this.bot.downloadStreamMessage(file))
@@ -325,17 +331,9 @@ export class ConvertWAMessage {
       }
     }
 
-    if (content.gifPlayback) {
-      msg.isGIF = true;
-    }
-
-    if (!!content.mimetype) {
-      msg.mimetype = content.mimetype;
-    }
-
-    if (!!content.fileName) {
-      msg.name = content.fileName;
-    }
+    msg.isGIF = !!content.gifPlayback;
+    msg.name = content.fileName || msg.name;
+    msg.mimetype = content.mimetype || msg.mimetype;
 
     this.message = msg;
   }
@@ -345,18 +343,17 @@ export class ConvertWAMessage {
    * @param content
    */
   public convertReactionMessage(content: any) {
-    this.message = new ReactionMessage(this.chat, content.text, content.key.id);
+    this.message = ReactionMessage.fromJSON({ ...this.message, text: content.text, id: content.key.id });
   }
 
   /**
    * * Converte uma mensagem editada
    * @param content
    */
-  public async convertEditedMessage(content: WAMessageContent["editedMessage"]["message"]) {
-    this.set({ ...content, message: content.editedMessage } as any, this.type);
+  public async convertEditedMessage(content: proto.IMessage["protocolMessage"]) {
+    await this.convertContentMessage(content.editedMessage);
 
-    await this.get();
-
+    this.message.id = content.key.id;
     this.message.isEdited = true;
   }
 
@@ -367,7 +364,7 @@ export class ConvertWAMessage {
   public async convertPollCreationMessage(content: proto.Message.PollCreationMessage) {
     const pollCreation = await this.bot.getPollMessage(this.waMessage.key.id || "");
 
-    const pollMessage = new PollMessage(this.chat, content.name);
+    const pollMessage = PollMessage.fromJSON({ ...this.message, type: MessageType.Poll, text: content.name });
 
     if (!!pollCreation && pollCreation?.options && pollCreation?.options?.length > 0) {
       pollMessage.options = pollCreation.options;
@@ -386,19 +383,19 @@ export class ConvertWAMessage {
    */
   public async convertPollUpdateMessage(content: proto.Message.PollUpdateMessage) {
     const pollCreation = await this.bot.getPollMessage(this.waMessage.key.id || "");
-    const pollUpdate = new PollUpdateMessage(this.chat, pollCreation?.text || "");
+    const pollUpdate = PollUpdateMessage.fromJSON({ ...this.message, type: MessageType.PollUpdate, text: pollCreation.text });
 
     if (pollCreation) {
       const poll = decryptPollVote(content.vote, {
         pollCreatorJid: pollCreation.user.id,
         pollMsgId: content.pollCreationMessageKey.id,
         pollEncKey: pollCreation.secretKey,
-        voterJid: this.user.id,
+        voterJid: this.message.user.id,
       });
 
       const votesAlias: { [name: string]: PollOption } = {};
       const hashVotes: string[] = poll.selectedOptions.map((opt) => Buffer.from(opt).toString("hex").toUpperCase()).sort();
-      const oldVotes: string[] = pollCreation.getUserVotes(this.user.id).sort();
+      const oldVotes: string[] = pollCreation.getUserVotes(this.message.user.id).sort();
       const nowVotes: string[] = [];
 
       for (const opt of pollCreation.options) {
@@ -440,7 +437,7 @@ export class ConvertWAMessage {
       pollUpdate.selected = vote?.id || "";
       pollUpdate.text = vote?.name || "";
 
-      pollCreation.setUserVotes(this.user.id, nowVotes);
+      pollCreation.setUserVotes(this.message.user.id, nowVotes);
 
       await this.bot.savePollMessage(pollCreation);
     }
@@ -455,7 +452,7 @@ export class ConvertWAMessage {
    */
   public convertButtonMessage(content: WAMessageContent) {
     let buttonMessage: any = content.buttonsMessage || content.templateMessage;
-    const buttonMSG = new ButtonMessage(this.chat, "", "");
+    const buttonMSG = ButtonMessage.fromJSON({ ...this.message, type: MessageType.Button });
 
     if (buttonMessage.hydratedTemplate) buttonMessage = buttonMessage.hydratedTemplate;
 
@@ -502,7 +499,7 @@ export class ConvertWAMessage {
 
     if (!!!listMessage) return;
 
-    const listMSG = new ListMessage(this.chat, "", "");
+    const listMSG = ListMessage.fromJSON({ ...this.message, type: MessageType.List });
 
     listMSG.text = listMessage.description || "";
     listMSG.title = listMessage.title || "";
