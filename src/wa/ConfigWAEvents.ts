@@ -21,6 +21,7 @@ export default class ConfigWAEvents {
     this.configConnectionUpdate();
     this.configHistorySet();
     this.configContactsUpdate();
+    this.configContactsUpsert();
     this.configChatsUpsert();
     this.configGroupsUpdate();
     this.configChatsDelete();
@@ -158,7 +159,7 @@ export default class ConfigWAEvents {
         try {
           if (!chat?.hasOwnProperty("pinned")) return;
 
-          await this.wa.readChat(Chat.fromJSON({ id: chat.id, isSaved: !!chat.name }));
+          await this.wa.readChat(new Chat(chat.id), chat);
         } catch (err) {
           this.wa.emit("error", err);
         }
@@ -200,6 +201,32 @@ export default class ConfigWAEvents {
 
           if (chat != null && name && chat.name != name) {
             await this.wa.setChat(Chat.fromJSON({ ...chat, name }));
+          }
+        } catch (err) {
+          this.wa.emit("error", err);
+        }
+      }
+    });
+  }
+
+  public configContactsUpsert() {
+    this.wa.sock.ev.on("contacts.upsert", async (updates) => {
+      for (const update of updates) {
+        try {
+          const user = (await this.wa.getUser(new User(update.id))) || User.fromJSON({ id: update.id, phoneNumber: getPhoneNumber(update.id) });
+          const name = update.name || update.notify || update.verifiedName;
+          const isSaved = !!update.name || user.isSaved;
+
+          if ((name && user.name != name) || (isSaved && !user.isSaved)) {
+            await this.wa.setUser(User.fromJSON({ ...user, name, isSaved }));
+          }
+
+          if (isSaved) {
+            const chat = (await this.wa.getChat(new Chat(update.id))) || Chat.fromJSON({ id: update.id, phoneNumber: getPhoneNumber(update.id) });
+
+            if ((name && chat.name != name) || !chat.isSaved) {
+              await this.wa.setChat(Chat.fromJSON({ ...chat, name, isSaved }));
+            }
           }
         } catch (err) {
           this.wa.emit("error", err);
