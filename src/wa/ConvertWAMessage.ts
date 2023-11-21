@@ -87,7 +87,10 @@ export class ConvertWAMessage {
     }
 
     this.message.chat = await this.getChat(waMessage?.key?.remoteJid || this.bot.id);
-    this.message.chat.name = this.message.chat.name || this.message.chat.type == ChatType.PV ? waMessage.pushName : "";
+
+    if (!this.message.chat.name) {
+      this.message.chat.name = this.message.chat.type == ChatType.PV ? waMessage.pushName : "";
+    }
 
     this.message.user = await this.getUser(waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "");
     this.message.user.name = this.message.user.name || waMessage.pushName;

@@ -54,6 +54,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public status: BotStatus = BotStatus.Offline;
   public phoneNumber: number = 0;
   public name: string = "";
+  public profileUrl: string = "";
   public auth: IAuth = new MultiFileAuthState("./session", false);
 
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
@@ -216,33 +217,41 @@ export default class WhatsAppBot extends BotEvents implements IBot {
    * @param chat Sala de bate-papo
    */
   public async readChat(chat: Chat, metadata?: Partial<GroupMetadata> & Partial<baileys.Chat>) {
-    if (chat.id.includes("@l")) return chat;
+    try {
+      if (chat.id.includes("@l")) return chat;
 
-    chat.id = chat.id;
-    chat.phoneNumber = getPhoneNumber(chat.id);
-    chat.type = isJidGroup(chat.id) ? ChatType.Group : ChatType.PV;
+      chat.id = chat.id;
+      chat.phoneNumber = getPhoneNumber(chat.id);
+      chat.type = isJidGroup(chat.id) ? ChatType.Group : ChatType.PV;
 
-    if (chat.type == ChatType.Group) {
-      if (!metadata) {
-        metadata = await this.funcHandler.exec("chat", this.sock.groupMetadata, chat.id);
-      }
-
-      if (!metadata || !metadata?.participants) return chat;
-
-      for (const p of metadata?.participants || []) {
-        chat.users.push(p.id);
-
-        if (p.admin == "admin" || p.isAdmin || p.isSuperAdmin) {
-          chat.admins.push(p.id);
+      if (chat.type == ChatType.Group) {
+        if (!metadata) {
+          metadata = await this.funcHandler.exec("chat", this.sock.groupMetadata, chat.id);
+        } else if (!metadata.participants) {
+          metadata = { ...metadata, ...(await this.funcHandler.exec("chat", this.sock.groupMetadata, chat.id)) };
         }
+
+        if (!metadata || !metadata?.participants) return chat;
+
+        for (const p of metadata?.participants || []) {
+          chat.users.push(p.id);
+
+          if (p.admin == "admin" || p.isAdmin || p.isSuperAdmin) {
+            chat.admins.push(p.id);
+          }
+        }
+
+        chat.leader = metadata?.subjectOwner || "";
       }
 
-      chat.leader = metadata.subjectOwner || "";
       chat.name = metadata?.subject || metadata?.name || chat.name || "";
       chat.description = metadata?.desc || metadata?.description || chat.description || "";
-    }
+      chat.profileUrl = chat.profileUrl || (await this.getChatProfileUrl(chat)) || "";
 
-    await this.addChat(chat);
+      await this.addChat(chat);
+    } catch (err) {
+      this.emit("error", err);
+    }
 
     return chat;
   }
@@ -327,10 +336,14 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     await this.funcHandler.exec("chat", this.sock.groupUpdateDescription, chat.id, description);
   }
 
-  public async getChatProfile(chat: Chat) {
-    const uri = await this.funcHandler.exec("chat", this.sock.profilePictureUrl, chat.id, "image");
+  public async getChatProfile(chat: Chat, lowQuality?: boolean) {
+    const uri = await this.funcHandler.exec("chat", this.sock.profilePictureUrl, chat.id, !!lowQuality ? "preview" : "image");
 
     return await getImageURL(uri);
+  }
+
+  public async getChatProfileUrl(chat: Chat, lowQuality?: boolean) {
+    return (await this.funcHandler.exec("chat", this.sock.profilePictureUrl, chat.id, !!lowQuality ? "preview" : "image")) || "";
   }
 
   public async setChatProfile(chat: Chat, image: Buffer) {
@@ -363,9 +376,10 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
   public async setChat(chat: Chat) {
     if (chat.id.includes("status")) return;
+    if (chat.id.includes(":")) return;
+    if (chat.id.includes("_")) return;
 
-    chat.id = chat.id;
-    chat.phoneNumber = getPhoneNumber(chat.id);
+    chat.phoneNumber = isJidGroup(chat.id) ? 0 : getPhoneNumber(chat.id);
     chat.type = isJidGroup(chat.id) ? ChatType.Group : ChatType.PV;
 
     await this.auth.set(`chats-${chat.id}`, chat.toJSON());
@@ -485,6 +499,10 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     return await getImageURL(uri);
   }
 
+  public async getUserProfileUrl(user: User, lowQuality?: boolean) {
+    return (await this.funcHandler.exec("user", this.sock.profilePictureUrl, user.id, !!lowQuality ? "preview" : "image")) || "";
+  }
+
   public async setUserProfile(user: User, image: Buffer) {
     if (user.id != this.id) return;
 
@@ -500,7 +518,6 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async setUser(user: User): Promise<void> {
-    user.id = user.id;
     user.phoneNumber = getPhoneNumber(user.id);
 
     await this.auth.set(`users-${user.id}`, user.toJSON());
@@ -552,8 +569,12 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     await this.funcHandler.exec("user", this.sock.updateProfileStatus, description);
   }
 
-  public async getBotProfile() {
-    return await this.getUserProfile(new User(this.id));
+  public async getBotProfile(lowQuality?: boolean) {
+    return await this.getUserProfile(new User(this.id), lowQuality);
+  }
+
+  public async getBotProfileUrl(lowQuality?: boolean) {
+    return (await this.getUserProfileUrl(new User(this.id), lowQuality)) || "";
   }
 
   public async setBotProfile(image: Buffer) {

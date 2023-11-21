@@ -14,6 +14,7 @@ export default class BotBase extends BotEvents implements IBot {
   public status: BotStatus = BotStatus.Offline;
   public phoneNumber: number = 0;
   public name: string = "";
+  public profileUrl: string = "";
 
   //! #################################################################
   //! ########## MÉTODOS DE CONEXÃO
@@ -75,8 +76,12 @@ export default class BotBase extends BotEvents implements IBot {
 
   public async setBotDescription(description: string): Promise<void> {}
 
-  public async getBotProfile(): Promise<Buffer> {
+  public async getBotProfile(lowQuality?: boolean): Promise<Buffer> {
     return Buffer.from("");
+  }
+
+  public async getBotProfileUrl(lowQuality?: boolean): Promise<string> {
+    return "";
   }
 
   public async setBotProfile(image: Buffer): Promise<void> {}
@@ -139,8 +144,12 @@ export default class BotBase extends BotEvents implements IBot {
 
   public async setChatDescription(chat: Chat, description: string): Promise<void> {}
 
-  public async getChatProfile(chat: Chat): Promise<Buffer> {
+  public async getChatProfile(chat: Chat, lowQuality?: boolean): Promise<Buffer> {
     return Buffer.from("");
+  }
+
+  public async getChatProfileUrl(chat: Chat, lowQuality?: boolean): Promise<string> {
+    return "";
   }
 
   public async setChatProfile(chat: Chat, profile: Buffer): Promise<void> {}
@@ -193,6 +202,10 @@ export default class BotBase extends BotEvents implements IBot {
 
   public async getUserProfile(user: User): Promise<Buffer> {
     return Buffer.from("");
+  }
+
+  public async getUserProfileUrl(user: User, lowQuality?: boolean): Promise<string> {
+    return "";
   }
 
   public async setUserProfile(user: User, profile: Buffer): Promise<void> {}
