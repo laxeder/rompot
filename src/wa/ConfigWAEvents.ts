@@ -224,8 +224,8 @@ export default class ConfigWAEvents {
           if (isSaved) {
             const chat = (await this.wa.getChat(new Chat(update.id))) || Chat.fromJSON({ id: update.id, phoneNumber: getPhoneNumber(update.id) });
 
-            if ((name && chat.name != name) || !chat.isSaved) {
-              await this.wa.setChat(Chat.fromJSON({ ...chat, name, isSaved }));
+            if (name && chat.name != name) {
+              await this.wa.setChat(Chat.fromJSON({ ...chat, name }));
             }
           }
         } catch (err) {
