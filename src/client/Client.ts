@@ -681,6 +681,27 @@ export default class Client<Bot extends IBot> extends ClientEvents {
     return users;
   }
 
+  /**
+   * Obter lista de usuários salvos.
+   * @returns Lista de usuários salvos.
+   */
+  public async getSavedUsers(): Promise<User[]> {
+    const ids: string[] = await this.bot.getUsers();
+    const users: User[] = [];
+
+    await Promise.all(
+      ids.map(async (id) => {
+        const user = await this.bot.getUser(new User(id));
+
+        if (user == null || !user.isSaved) return;
+
+        users.push(User.get(user, this.id));
+      })
+    );
+
+    return users;
+  }
+
   /** Define a lista de usuários do bot
    * @param users Usuários
    */
