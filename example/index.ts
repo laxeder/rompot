@@ -36,6 +36,7 @@ client.on("reconnecting", () => {
 
 client.on("message", async (message: Message) => {
   if (EmptyMessage.isValid(message)) return;
+  if (message.isOld) return;
 
   if (message.chat.type == "pv") {
     console.log(message);
