@@ -24,6 +24,8 @@ export default class Chat {
   public leader: string = "";
   /** Usuários do chat */
   public users: string[] = [];
+  /** Chat está salvado */
+  public isSaved: boolean = false;
 
   /**
    * Cria uma instância de Chat.

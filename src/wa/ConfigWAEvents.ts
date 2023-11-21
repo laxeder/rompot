@@ -158,7 +158,7 @@ export default class ConfigWAEvents {
         try {
           if (!chat?.hasOwnProperty("pinned")) return;
 
-          await this.wa.readChat(new Chat(chat.id));
+          await this.wa.readChat(Chat.fromJSON({ id: chat.id, isSaved: !!chat.name }));
         } catch (err) {
           this.wa.emit("error", err);
         }
