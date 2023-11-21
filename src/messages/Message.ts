@@ -57,6 +57,8 @@ export default class Message {
   public isViewOnce: boolean = false;
   /** A mensagem foi enviada por uma API não oficial */
   public isUnofficial: boolean = false;
+  /** A mensagem recebida é antiga */
+  public isOld: boolean = false;
 
   constructor(chat: Chat | string = "", text: string = "", others: Partial<Message> = {}) {
     this.text = text || "";

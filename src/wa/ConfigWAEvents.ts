@@ -154,17 +154,34 @@ export default class ConfigWAEvents {
 
   public configHistorySet() {
     this.wa.sock.ev.on("messaging-history.set", async (update) => {
-      await Promise.all(
-        update.chats.map(async (chat) => {
-          try {
-            if (!chat?.hasOwnProperty("pinned")) return;
+      for (const chat of update.chats || []) {
+        try {
+          if (!chat?.hasOwnProperty("pinned")) return;
 
-            await this.wa.readChat(new Chat(chat.id));
-          } catch (err) {
-            this.wa.emit("error", err);
-          }
-        })
-      );
+          await this.wa.readChat(new Chat(chat.id));
+        } catch (err) {
+          this.wa.emit("error", err);
+        }
+      }
+
+      for (const message of update?.messages || []) {
+        try {
+          if (message.key.remoteJid == "status@broadcast") return;
+          if (!message.message) return;
+
+          const msg = await new ConvertWAMessage(this.wa, message).get();
+
+          msg.isOld = true;
+
+          this.wa.emit("message", msg);
+        } catch (err) {
+          const msg = new ErrorMessage(message?.key?.remoteJid || "", err && err instanceof Error ? err : new Error(JSON.stringify(err)));
+
+          msg.isOld = true;
+
+          this.wa.emit("message", msg);
+        }
+      }
     });
   }
 
