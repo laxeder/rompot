@@ -126,8 +126,6 @@ export class ConvertWAMessage {
 
     const contentType = getContentType(messageContent);
 
-    console.log(contentType, messageContent);
-
     if (!contentType) {
       this.message = EmptyMessage.fromJSON({ ...this.message, type: MessageType.Empty });
       return;
