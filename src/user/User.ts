@@ -15,6 +15,8 @@ export default class User {
   public phoneNumber: number = 0;
   /** usuário está salvado */
   public isSaved: boolean = false;
+  /** URL da imagem de perfil do usuário */
+  public profileUrl: string = "";
 
   /**
    * Cria uma instância de User.

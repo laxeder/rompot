@@ -18,6 +18,8 @@ export default class Chat {
   public phoneNumber: number = 0;
   /** Descrição do chat */
   public description: string = "";
+  /** URL da imagem de perfil do chat */
+  public profileUrl: string = "";
   /** Admins do chat */
   public admins: string[] = [];
   /** Líder do chat */

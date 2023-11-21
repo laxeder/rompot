@@ -22,6 +22,9 @@ export default interface IBot extends BotEvents {
   /** Nome do bot */
   name: string;
 
+  /**  URL da imagem de perfil do bot */
+  profileUrl: string;
+
   /** Conectar bot
    * @param auth Autenticação do bot
    */
@@ -108,7 +111,13 @@ export default interface IBot extends BotEvents {
   setBotDescription(description: string): Promise<void>;
 
   /** @returns Retorna foto de perfil do bot */
-  getBotProfile(): Promise<Buffer>;
+  getBotProfile(lowQuality?: boolean): Promise<Buffer>;
+
+  /**
+   * Obter URL da imagem de perfil do bot.
+   * @returns URL da imagem de perfil do bot.
+   */
+  getBotProfileUrl(lowQuality?: boolean): Promise<string>;
 
   /** Define foto de perfil do bot
    * @param image Foto de perfil do bot
@@ -204,7 +213,14 @@ export default interface IBot extends BotEvents {
    * @param chat Sala de bate-papo
    * @returns Retorna a imagem de perfil da sala de bate-papo
    */
-  getChatProfile(chat: Chat): Promise<Buffer>;
+  getChatProfile(chat: Chat, lowQuality?: boolean): Promise<Buffer>;
+
+  /**
+   * Obter URL da imagem de perfil do chat.
+   * @param chat - Chat que será obtido a URL da imagem de perfil.
+   * @returns URL da imagem de perfil do chat.
+   */
+  getChatProfileUrl(chat: Chat, lowQuality?: boolean): Promise<string>;
 
   /** Define a imagem de perfil da sala de bate-papo
    * @param chat Sala de bate-papo
@@ -309,7 +325,14 @@ export default interface IBot extends BotEvents {
    * @param user Usuário
    * @returns Retorna a foto de perfil do usuário
    */
-  getUserProfile(user: User): Promise<Buffer>;
+  getUserProfile(user: User, lowQuality?: boolean): Promise<Buffer>;
+
+  /**
+   * Obter URL da imagem de perfil do user.
+   * @param user - Usuário que será obtido a URL da imagem de perfil.
+   * @returns URL da imagem de perfil do usuário.
+   */
+  getUserProfileUrl(user: User, lowQuality?: boolean): Promise<string>;
 
   /** Define a foto de perfil do usuário
    * @param user Usuário
