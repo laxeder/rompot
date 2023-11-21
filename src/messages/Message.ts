@@ -51,8 +51,10 @@ export default class Message {
   public timestamp: Number = 0;
   /** A mensagem é editada */
   public isEdited: boolean = false;
-  /** A Mensagem foi deletada */
+  /** A mensagem foi deletada */
   public isDeleted: boolean = false;
+  /** A mensagem é de visualização única */
+  public isViewOnce: boolean = false;
   /** A mensagem foi enviada por uma API não oficial */
   public isUnofficial: boolean = false;
 
