@@ -423,8 +423,8 @@ export default class Client<Bot extends IBot> extends ClientEvents {
   }
 
   /** @returns Retorna foto de perfil do bot */
-  public getBotProfile() {
-    return this.bot.getBotProfile();
+  public getBotProfile(lowQuality?: boolean) {
+    return this.bot.getBotProfile(lowQuality);
   }
 
   /** Define a imagem de perfil do bot
@@ -542,8 +542,8 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    * @param chat Sala de bate-papo
    * @returns Retorna a imagem de perfil da sala de bate-papo
    */
-  public getChatProfile(chat: Chat | string) {
-    return this.bot.getChatProfile(Chat.get(chat, this.id));
+  public getChatProfile(chat: Chat | string, lowQuality?: boolean) {
+    return this.bot.getChatProfile(Chat.get(chat, this.id), lowQuality);
   }
 
   /** Define a imagem de perfil da sala de bate-papo
@@ -767,10 +767,10 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    * @param user Usuário
    * @returns Retorna a foto de perfil do usuário
    */
-  public getUserProfile(user: User | string) {
-    if (User.getId(user) == this.id) return this.getBotProfile();
+  public getUserProfile(user: User | string, lowQuality?: boolean) {
+    if (User.getId(user) == this.id) return this.getBotProfile(lowQuality);
 
-    return this.bot.getUserProfile(User.get(user, this.id));
+    return this.bot.getUserProfile(User.get(user, this.id), lowQuality);
   }
 
   /** Define a imagem de perfil do usuário
