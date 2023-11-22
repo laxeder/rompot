@@ -124,10 +124,17 @@ export default interface IBot extends BotEvents {
    */
   setBotProfile(image: Buffer): Promise<void>;
 
-  /** Adiciona uma sala de bate-papo
+  /**
    * @param chat Sala de bate-papo
+   * @returns Retorna uma sala de bate-papo
    */
-  addChat(chat: Chat): Promise<void>;
+  getChat(chat: Chat): Promise<Chat | null>;
+
+  /**
+   * Atualiza os dados de um chat.
+   * @param chat - Dados do chat que será atualizado.
+   */
+  updateChat(chat: { id: string } & Partial<Chat>): Promise<void>;
 
   /** Remove uma sala de bate-papo
    * @param chat Sala de bate-papo
@@ -173,17 +180,6 @@ export default interface IBot extends BotEvents {
    * @param chat Sala de bate-papo
    */
   leaveChat(chat: Chat): Promise<void>;
-
-  /**
-   * @param chat Sala de bate-papo
-   * @returns Retorna uma sala de bate-papo
-   */
-  getChat(chat: Chat): Promise<Chat | null>;
-
-  /** Define uma sala de bate-papo
-   * @param chat Sala de bate-papo
-   */
-  setChat(chat: Chat): Promise<void>;
 
   /**
    * @param chat Sala de bate-papo
@@ -276,26 +272,22 @@ export default interface IBot extends BotEvents {
    */
   revokeChatEnvite(chat: Chat): Promise<string>;
 
-  /** Adiciona um novo usuário
-   * @param user Usuário
-   */
-  addUser(user: User): Promise<void>;
-
-  /** Remove um usuário
-   * @param user Usuário
-   */
-  removeUser(user: User): Promise<void>;
-
   /**
    * @param user Usuário
    * @returns Retorna um usuário
    */
   getUser(user: User): Promise<User | null>;
 
-  /** Define um usuário
+  /**
+   * Atualiza os dados de um usuário.
+   * @param user - Dados do usuário que será atualizado.
+   */
+  updateUser(user: { id: string } & Partial<User>): Promise<void>;
+
+  /** Remove um usuário
    * @param user Usuário
    */
-  setUser(user: User): Promise<void>;
+  removeUser(user: User): Promise<void>;
 
   /**
    * @param user Usuário

@@ -21,7 +21,6 @@ export default class ConfigWAEvents {
     this.configHistorySet();
     this.configContactsUpsert();
     this.configContactsUpdate();
-    this.configChatsUpsert();
     this.configChatsUpdate();
     this.configChatsDelete();
     this.configGroupsUpdate();
@@ -128,13 +127,8 @@ export default class ConfigWAEvents {
           this.wa.name = this.wa.sock?.user?.name || this.wa.sock?.user?.notify || this.wa.sock?.user?.verifiedName || "";
           this.wa.profileUrl = this.wa.sock?.user?.imgUrl || "";
 
-          if ((await this.wa.getUser(new User(this.wa.id))) == null) {
-            this.wa.setUser(User.fromJSON({ id: this.wa.id, phoneNumber: this.wa.phoneNumber, name: this.wa.name, profileUrl: this.wa.profileUrl }));
-          }
-
-          if ((await this.wa.getChat(new Chat(this.wa.id))) == null) {
-            this.wa.setChat(Chat.fromJSON({ id: this.wa.id, phoneNumber: this.wa.phoneNumber, name: this.wa.name, profileUrl: this.wa.profileUrl }));
-          }
+          this.wa.readUser({ id: this.wa.id }, { notify: this.wa.name, imgUrl: this.wa.profileUrl });
+          this.wa.readChat({ id: this.wa.id }, { subject: this.wa.name });
 
           this.wa.emit("open", { isNewLogin: update.isNewLogin || false });
         }
@@ -166,7 +160,7 @@ export default class ConfigWAEvents {
         try {
           if (!chat?.hasOwnProperty("pinned")) return;
 
-          await this.wa.readChat(new Chat(chat.id), chat);
+          await this.wa.readChat({ id: chat.id }, chat);
         } catch (err) {
           this.wa.emit("error", err);
         }
@@ -197,19 +191,10 @@ export default class ConfigWAEvents {
     this.wa.sock.ev.on("contacts.update", async (updates) => {
       for (const update of updates) {
         try {
-          const user = (await this.wa.getUser(new User(update.id))) || User.fromJSON({ id: update.id, phoneNumber: getPhoneNumber(update.id) });
-          const name = update.name || update.notify || update.verifiedName || user.name;
-          const profileUrl = update.imgUrl || user.profileUrl;
-          const isSaved = !!update.name || user.isSaved;
-
-          if (user.name != name || user.isSaved != isSaved || user.profileUrl != profileUrl) {
-            await this.wa.setUser(User.fromJSON({ ...user, name, profileUrl, isSaved }));
-
-            const chat = await this.wa.getChat(new Chat(update.id));
-
-            if (chat != null) {
-              await this.wa.setChat(Chat.fromJSON({ ...chat, name, profileUrl }));
-            }
+          if (isJidGroup(update.id)) {
+            await this.wa.readChat({ id: update.id }, update);
+          } else {
+            await this.wa.readUser({ id: update.id }, update);
           }
         } catch (err) {
           this.wa.emit("error", err);
@@ -222,13 +207,10 @@ export default class ConfigWAEvents {
     this.wa.sock.ev.on("contacts.upsert", async (updates) => {
       for (const update of updates) {
         try {
-          const user = (await this.wa.getUser(new User(update.id))) || User.fromJSON({ id: update.id, phoneNumber: getPhoneNumber(update.id) });
-          const name = update.name || update.notify || update.verifiedName || user.name;
-          const profileUrl = update.imgUrl || user.profileUrl;
-          const isSaved = !!update.name || user.isSaved;
-
-          if (user.name != name || user.isSaved != isSaved || user.profileUrl != profileUrl) {
-            await this.wa.setUser(User.fromJSON({ ...user, name, profileUrl, isSaved }));
+          if (isJidGroup(update.id)) {
+            await this.wa.readChat({ id: update.id });
+          } else {
+            await this.wa.readUser({ id: update.id }, update);
           }
         } catch (err) {
           this.wa.emit("error", err);
@@ -236,43 +218,12 @@ export default class ConfigWAEvents {
       }
     });
   }
-
-  public configChatsUpsert() {
-    this.wa.sock.ev.on("chats.upsert", async (updates) => {
-      for (const update of updates) {
-        try {
-          const chat = (await this.wa.getChat(new Chat(update.id))) || Chat.fromJSON({ id: update.id, phoneNumber: getPhoneNumber(update.id) });
-
-          if ((!chat.name && isJidGroup(chat.id)) || (update.name && chat.name != update.name)) {
-            await this.wa.readChat(chat, update);
-          }
-        } catch (err) {
-          this.wa.emit("error", err);
-        }
-      }
-    });
-  }
-
   public configChatsUpdate() {
     this.wa.sock.ev.on("chats.update", async (updates) => {
       for (const update of updates) {
         try {
-          const chat = await this.wa.getChat(new Chat(update.id));
-
-          if (chat == null) {
-            if (!isJidGroup(update.id)) {
-              const user = (await this.wa.getUser(new User(update.id))) || User.fromJSON({ id: update.id, phoneNumber: getPhoneNumber(update.id) });
-
-              await this.wa.readChat(Chat.fromJSON(user), update);
-            } else {
-              await this.wa.readChat(new Chat(update.id), update);
-            }
-          } else {
-            const name = update.name || chat.name;
-
-            if (chat.name != name) {
-              await this.wa.readChat(Chat.fromJSON({ ...chat, name }), update);
-            }
+          if ((await this.wa.getChat(new Chat(update.id))) == null && update.name) {
+            await this.wa.readChat({ id: update.id }, update);
           }
         } catch (err) {
           this.wa.emit("error", err);
@@ -285,9 +236,7 @@ export default class ConfigWAEvents {
     this.wa.sock.ev.on("groups.update", async (updates) => {
       for (const update of updates) {
         try {
-          const chat = (await this.wa.getChat(new Chat(update.id))) || Chat.fromJSON({ id: update.id });
-
-          await this.wa.readChat(chat, update);
+          await this.wa.readChat({ id: update.id }, update);
         } catch (err) {
           this.wa.emit("error", err);
         }

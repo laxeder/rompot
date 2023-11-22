@@ -446,11 +446,13 @@ export default class Client<Bot extends IBot> extends ClientEvents {
     return Chat.get(chatData, this.id);
   }
 
-  /** Define uma sala de bate-papo
-   * @param chat Sala de bate-papo
+  /**
+   * Atualiza os dados de um chat.
+   * @param id - Id do chat que será atualizado.
+   * @param chat - Dados do chat que será atualizado.
    */
-  public setChat(chat: Chat): Promise<void> {
-    return this.bot.setChat(chat);
+  public updateChat(id: string, chat: Partial<Chat>): Promise<void> {
+    return this.bot.updateChat({ ...chat, id });
   }
 
   /** @returns Retorna as sala de bate-papo que o bot está */
@@ -476,13 +478,6 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    */
   public setChats(chats: Chat[]): Promise<void> {
     return this.bot.setChats(chats);
-  }
-
-  /** Adiciona uma sala de bate-papo
-   * @param chat Sala de bate-papo
-   */
-  public addChat(chat: string | Chat): Promise<void> {
-    return this.bot.addChat(Chat.get(chat, this.id));
   }
 
   /** Remove uma sala de bate-papo
@@ -644,25 +639,6 @@ export default class Client<Bot extends IBot> extends ClientEvents {
     return this.bot.revokeChatEnvite(Chat.get(chat, this.id));
   }
 
-  /**
-   * @param user Usuário
-   * @returns Retorna um usuário
-   */
-  public async getUser(user: User | string): Promise<User | null> {
-    const userData = await this.bot.getUser(User.get(user, this.id));
-
-    if (userData == null) return null;
-
-    return User.get(userData, this.id);
-  }
-
-  /** Define um usuário
-   * @param user Usuário
-   */
-  public setUser(user: User | string): Promise<void> {
-    return this.bot.setUser(User.get(user, this.id));
-  }
-
   /** @returns Retorna a lista de usuários do bot */
   public async getUsers(): Promise<User[]> {
     const ids: string[] = await this.bot.getUsers();
@@ -693,7 +669,7 @@ export default class Client<Bot extends IBot> extends ClientEvents {
       ids.map(async (id) => {
         const user = await this.bot.getUser(new User(id));
 
-        if (user == null || !user.isSaved) return;
+        if (user == null || !user.savedName) return;
 
         users.push(User.get(user, this.id));
       })
@@ -709,11 +685,25 @@ export default class Client<Bot extends IBot> extends ClientEvents {
     return this.bot.setUsers(users);
   }
 
-  /** Adiciona um novo usuário
+  /**
    * @param user Usuário
+   * @returns Retorna um usuário
    */
-  public addUser(user: User | string): Promise<void> {
-    return this.bot.addUser(User.get(user, this.id));
+  public async getUser(user: User | string): Promise<User | null> {
+    const userData = await this.bot.getUser(User.get(user, this.id));
+
+    if (userData == null) return null;
+
+    return User.get(userData, this.id);
+  }
+
+  /**
+   * Atualiza os dados de um usuário.
+   * @param id - Id do usuário que será atualizado.
+   * @param user - Dados do usuário que será atualizado.
+   */
+  public updateUser(id: string, user: Partial<User>): Promise<void> {
+    return this.bot.updateUser({ ...user, id });
   }
 
   /** Remove um usuário

@@ -100,9 +100,7 @@ export default class BotBase extends BotEvents implements IBot {
     return null;
   }
 
-  public async setChat(chat: Chat): Promise<void> {}
-
-  public async addChat(chat: Chat): Promise<void> {}
+  public async updateChat(chat: { id: string } & Partial<Chat>): Promise<void> {}
 
   public async removeChat(chat: Chat): Promise<void> {}
 
@@ -178,9 +176,7 @@ export default class BotBase extends BotEvents implements IBot {
     return null;
   }
 
-  public async setUser(user: User): Promise<void> {}
-
-  public async addUser(user: User): Promise<void> {}
+  public async updateUser(user: { id: string } & Partial<User>): Promise<void> {}
 
   public async removeUser(user: User): Promise<void> {}
 
