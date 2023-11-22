@@ -13,8 +13,8 @@ export default class User {
   public description: string = "";
   /** Número de telefone */
   public phoneNumber: number = 0;
-  /** usuário está salvado */
-  public isSaved: boolean = false;
+  /** Nome salvado do usuário */
+  public savedName: string = "";
   /** URL da imagem de perfil do usuário */
   public profileUrl: string = "";
 
