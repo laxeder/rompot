@@ -86,21 +86,25 @@ export class ConvertWAMessage {
       return;
     }
 
-    this.message.chat = await this.getChat(waMessage?.key?.remoteJid || this.bot.id);
-
-    if (!this.message.chat.name) {
-      this.message.chat.name = this.message.chat.type == ChatType.PV ? waMessage.pushName : "";
-    }
-
-    this.message.user = await this.getUser(waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "");
-    this.message.user.name = this.message.user.name || waMessage.pushName;
-
     await this.convertContentMessage(waMessage.message);
 
     this.message.timestamp = (Long.isLong(this.waMessage.messageTimestamp) ? this.waMessage.messageTimestamp.toNumber() : this.waMessage.messageTimestamp || 0) * 1000 || Date.now();
     this.message.isUnofficial = waMessage.key.id.length < 20;
     this.message.fromMe = !!this.waMessage.key.fromMe;
     this.message.id = this.message.id || this.waMessage.key.id || "";
+
+    this.message.chat = await this.getChat(waMessage?.key?.remoteJid || this.bot.id);
+
+    if (!this.message.chat.name) {
+      this.message.chat.name = this.message.chat.type == ChatType.PV ? waMessage.pushName : "";
+    }
+
+    if (this.message.chat.timestamp < this.message.timestamp) {
+      this.message.chat.timestamp = this.message.timestamp;
+    }
+
+    this.message.user = await this.getUser(waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "");
+    this.message.user.name = this.message.user.name || waMessage.pushName;
   }
 
   /**
@@ -203,7 +207,7 @@ export class ConvertWAMessage {
     if (context.quotedMessage) {
       const message = {
         key: {
-          remoteJid: this.message.chat.id,
+          remoteJid: this.waMessage?.key?.remoteJid || this.bot.id,
           participant: context.participant,
           id: context.stanzaId,
         },
@@ -236,8 +240,7 @@ export class ConvertWAMessage {
    */
   public async convertProtocolMessage(content: proto.Message["protocolMessage"]) {
     if (content.type == 0) {
-      this.message.user = await this.getUser(content.key.fromMe ? this.bot.id : content.key.participant || content.key.remoteJid || "");
-      this.message.id = content.key.id;
+      this.waMessage.key = { ...this.waMessage.key, ...content.key };
       this.message.isDeleted = true;
     } else {
       this.message = EmptyMessage.fromJSON({ ...this.message, type: MessageType.Empty });
@@ -386,17 +389,19 @@ export class ConvertWAMessage {
     const pollCreation = await this.bot.getPollMessage(this.waMessage.key.id || "");
     const pollUpdate = PollUpdateMessage.fromJSON({ ...this.message, type: MessageType.PollUpdate, text: pollCreation.text });
 
+    const userId = this.waMessage.key.fromMe ? this.bot.id : this.waMessage.key.participant || this.waMessage.participant || this.waMessage.key.remoteJid || "";
+
     if (pollCreation) {
       const poll = decryptPollVote(content.vote, {
         pollCreatorJid: pollCreation.user.id,
         pollMsgId: content.pollCreationMessageKey.id,
         pollEncKey: pollCreation.secretKey,
-        voterJid: this.message.user.id,
+        voterJid: userId,
       });
 
       const votesAlias: { [name: string]: PollOption } = {};
       const hashVotes: string[] = poll.selectedOptions.map((opt) => Buffer.from(opt).toString("hex").toUpperCase()).sort();
-      const oldVotes: string[] = pollCreation.getUserVotes(this.message.user.id).sort();
+      const oldVotes: string[] = pollCreation.getUserVotes(userId).sort();
       const nowVotes: string[] = [];
 
       for (const opt of pollCreation.options) {
@@ -438,7 +443,7 @@ export class ConvertWAMessage {
       pollUpdate.selected = vote?.id || "";
       pollUpdate.text = vote?.name || "";
 
-      pollCreation.setUserVotes(this.message.user.id, nowVotes);
+      pollCreation.setUserVotes(userId, nowVotes);
 
       await this.bot.savePollMessage(pollCreation);
     }

@@ -222,8 +222,27 @@ export default class ConfigWAEvents {
     this.wa.sock.ev.on("chats.update", async (updates) => {
       for (const update of updates) {
         try {
-          if ((await this.wa.getChat(new Chat(update.id))) == null && update.name) {
+          const chat = await this.wa.getChat(new Chat(update.id));
+
+          if (update.unreadCount) {
+            update.unreadCount += chat.unreadCount;
+          }
+
+          if (chat == null) {
             await this.wa.readChat({ id: update.id }, update);
+          } else {
+            const timestamp = !update.conversationTimestamp
+              ? undefined
+              : typeof update.conversationTimestamp == "number" || typeof update.conversationTimestamp == "string"
+              ? Number(update.conversationTimestamp) * 1000
+              : (update.conversationTimestamp?.toNumber() || 0) * 1000;
+
+            await this.wa.updateChat({
+              id: update.id,
+              timestamp,
+              name: update.name || undefined,
+              unreadCount: update.unreadCount != undefined ? update.unreadCount : undefined,
+            });
           }
         } catch (err) {
           this.wa.emit("error", err);

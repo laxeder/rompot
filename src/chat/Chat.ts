@@ -20,6 +20,10 @@ export default class Chat {
   public description: string = "";
   /** URL da imagem de perfil do chat */
   public profileUrl: string = "";
+  /** Quantidade de mensagens não lidas */
+  public unreadCount: number = 0;
+  /** Tempo da última interação com o chat */
+  public timestamp: number = 0;
   /** Admins do chat */
   public admins: string[] = [];
   /** Líder do chat */

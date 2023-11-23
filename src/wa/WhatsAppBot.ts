@@ -250,6 +250,12 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
       chat.name = metadata?.subject || metadata?.name || chat.name || undefined;
       chat.description = metadata?.desc || metadata?.description || chat.description || undefined;
+      chat.unreadCount = metadata?.unreadCount != undefined ? metadata?.unreadCount : chat.unreadCount;
+      chat.timestamp = !metadata?.conversationTimestamp
+        ? undefined
+        : typeof metadata.conversationTimestamp == "number" || typeof metadata.conversationTimestamp == "string"
+        ? Number(metadata.conversationTimestamp) * 1000
+        : (metadata.conversationTimestamp?.toNumber() || 0) * 1000;
 
       await this.updateChat({ id: chat.id || "", ...chat });
     } catch (err) {
@@ -647,6 +653,8 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       toJSON: () => key,
     };
 
+    await this.updateChat({ id: message.chat.id, unreadCount: ((await this.getChat(message.chat))?.unreadCount || 1) - 1 });
+
     return await this.funcHandler.exec("msg", this.sock.readMessages, [key]);
   }
 
@@ -693,12 +701,16 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     if (waMSG.isRelay) {
       await this.funcHandler.exec("msg", this.sock.relayMessage, waMSG.chatId, waMSG.waMessage, { ...waMSG.options });
 
+      await this.updateChat({ id: content.chat.id, unreadCount: 0 });
+
       const msgRes = generateWAMessageFromContent(waMSG.chatId, waMSG.waMessage, { ...waMSG.options, userJid: this.id });
 
       return await new ConvertWAMessage(this, msgRes).get();
     }
 
     const sendedMessage = await this.funcHandler.exec("msg", this.sock.sendMessage, waMSG.chatId, waMSG.waMessage, waMSG.options);
+
+    await this.updateChat({ id: content.chat.id, unreadCount: 0 });
 
     if (typeof sendedMessage == "boolean") return content;
 
