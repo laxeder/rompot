@@ -14,7 +14,7 @@ export class AddUserInChatCommand extends Command {
       return;
     }
 
-    await Client.getClient(this.botId).addUserInChat(message.chat, userId);
+    await Client.getClient(this.clientId).addUserInChat(message.chat, userId);
 
     await message.chat.send("Usuário adicionado com sucesso!!");
   }

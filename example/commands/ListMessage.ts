@@ -16,6 +16,6 @@ export class StickerCommand extends Command {
       }
     }
 
-    await Client.getClient(this.botId).send(listMsg);
+    await Client.getClient(this.clientId).send(listMsg);
   }
 }

@@ -13,6 +13,8 @@ export default class CommandController extends CommandControllerEvent {
   public commands: Command[] = [];
   /** ID do bot associado ao controlador de comandos */
   public botId: string = "";
+  /** ID do client associado ao controlador de comandos */
+  public clientId: string = "";
 
   constructor(config: Partial<ICommandControllerConfig> = {}) {
     super();
@@ -27,6 +29,7 @@ export default class CommandController extends CommandControllerEvent {
     const cmds: Command[] = [];
 
     for (const command of commands) {
+      command.clientId = this.clientId;
       command.botId = this.botId;
 
       cmds.push(command);
@@ -44,6 +47,7 @@ export default class CommandController extends CommandControllerEvent {
    * @param command Novo comando
    */
   public addCommand(command: Command): void {
+    command.clientId = this.clientId;
     command.botId = this.botId;
 
     this.commands.push(command);

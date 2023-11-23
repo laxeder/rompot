@@ -37,6 +37,8 @@ export default class Command {
   public permissions: string[] = [];
   /** ID do bot associado ao comando */
   public botId: string = "";
+  /** ID do client associado ao comando */
+  public clientId: string = "";
 
   /** Verifica se o comando pode ser executado
    * @param message Mensagem que está executando o comando

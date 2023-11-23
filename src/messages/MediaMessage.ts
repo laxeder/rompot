@@ -40,7 +40,7 @@ export default class MediaMessage extends Message {
    * @returns Um Buffer contendo os dados da mídia.
    */
   public async getStream(): Promise<Buffer> {
-    return await Client.getClient(this.botId).downloadStreamMessage(this);
+    return await Client.getClient(this.clientId).downloadStreamMessage(this);
   }
 
   /**

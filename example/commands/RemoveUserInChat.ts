@@ -14,7 +14,7 @@ export class RemoveUserInChatCommand extends Command {
       return;
     }
 
-    await Client.getClient(this.botId).removeUserInChat(message.chat, userId);
+    await Client.getClient(this.clientId).removeUserInChat(message.chat, userId);
 
     await message.chat.send("Usuário removido com sucesso!!");
   }

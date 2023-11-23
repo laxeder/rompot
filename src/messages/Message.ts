@@ -29,6 +29,8 @@ export enum MessageType {
 export default class Message {
   /** ID do bot associado a esta mensagem */
   public botId: string = "";
+  /** ID do cliente associado a este usuário */
+  public clientId: string = "";
   /** Tipo da mensagem */
   public type: MessageType = MessageType.Text;
   /** Sala de bate-papo que foi enviada a mensagem */
@@ -62,24 +64,32 @@ export default class Message {
 
   constructor(chat: Chat | string = "", text: string = "", others: Partial<Message> = {}) {
     this.text = text || "";
-    this.chat = Chat.get(chat || "");
+    this.chat = Chat.apply(chat || "");
 
-    injectJSON(others, this);
-
-    this.setBotId(this.botId);
+    this.inject(others);
   }
 
   /**
-   * Define o ID do bot associado a mensagem.
-   * @param botId - ID do bot associado a mensagem.
+   * Injeta dados de ujma mensagem na mesnagem atual.
+   * @param data - Os dados que serão injetados.
    */
-  public setBotId(botId: string) {
-    this.botId = botId;
-    this.user.botId = botId;
-    this.chat.botId = botId;
+  public inject(data: Partial<Message>) {
+    for (const key of Object.keys(data)) {
+      this[key] = data[key];
+    }
 
-    if (this.mention) {
-      this.mention.setBotId(botId);
+    if (data.clientId) {
+      this.clientId = data.clientId;
+      this.user.clientId = data.clientId;
+      this.chat.clientId = data.clientId;
+      this.mention?.inject({ clientId: data.clientId });
+    }
+
+    if (data.botId) {
+      this.clientId = data.botId;
+      this.user.botId = data.botId;
+      this.chat.botId = data.botId;
+      this.mention?.inject({ botId: data.botId });
     }
   }
 
@@ -88,14 +98,14 @@ export default class Message {
    * @param emoji - Emoji que será adicionado na reação.
    */
   public async addReaction(emoji: string): Promise<void> {
-    return Client.getClient(this.botId).addReaction(this, emoji);
+    return Client.getClient(this.clientId).addReaction(this, emoji);
   }
 
   /**
    * * Remove uma reação da mensagem.
    */
   public async removeReaction(): Promise<void> {
-    return Client.getClient(this.botId).removeReaction(this);
+    return Client.getClient(this.clientId).removeReaction(this);
   }
 
   /**
@@ -105,7 +115,7 @@ export default class Message {
    * @param maxTimeout Maximo de tempo reagindo.
    */
   public addAnimatedReaction(reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void> {
-    return Client.getClient(this.botId).addAnimatedReaction(this, reactions, interval, maxTimeout);
+    return Client.getClient(this.clientId).addAnimatedReaction(this, reactions, interval, maxTimeout);
   }
 
   /** Envia uma mensagem mencionando a mensagem atual.
@@ -113,20 +123,20 @@ export default class Message {
    * @param isMention Se verdadeiro a mensagem atual é mencionada na mensagem enviada.
    */
   public async reply(message: Message | string, isMention: boolean = true) {
-    const msg = Message.get(message);
+    const msg = Message.apply(message);
 
     msg.chat.id = msg.chat.id || this.chat.id;
-    msg.user.id = msg.chat.id || this.botId;
+    msg.user.id = msg.chat.id || this.clientId;
     msg.mention = isMention ? this : msg.mention;
 
-    return Client.getClient(this.botId).send(msg);
+    return Client.getClient(this.clientId).send(msg);
   }
 
   /**
    * * Marca mensagem como visualizada.
    */
   public async read(): Promise<void> {
-    return Client.getClient(this.botId).readMessage(this);
+    return Client.getClient(this.clientId).readMessage(this);
   }
 
   /**
@@ -155,25 +165,19 @@ export default class Message {
   }
 
   /**
-   * Obtem a mensagem apartir de um texto ou Message.
-   * @param message - Mensagem que será obtida.
-   * @param botId - ID do bot associado a mensagem.
-   * @returns A mensagem
+   * Obtém uma instância de Message com base em um ID e/ou dados passados.
+   * @param message - O ID da mensagem ou uma instância existente de Message.
+   * @param data - Dados que serão aplicados na mensagem,.
+   * @returns Uma instância de Message com os dados passados.
    */
-  public static get<T extends Message>(message: T | string, botId?: string): T | Message {
-    const m = typeof message == "string" ? new Message(message) : message;
-
-    if (botId) {
-      m.botId = botId;
-      m.chat.botId = botId;
-      m.user.botId = botId;
-
-      if (m.mention) {
-        m.mention = Message.get(m.mention, botId);
-      }
+  public static apply(message: Message | string, data?: Partial<Message>) {
+    if (!message || typeof message != "object") {
+      message = new Message("", `${message}`);
     }
 
-    return m;
+    message.inject(data);
+
+    return message;
   }
 
   /**

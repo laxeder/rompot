@@ -8,6 +8,8 @@ import User from "../user/User";
 export default class Chat {
   /** ID do bot associado a este chat */
   public botId: string = "";
+  /** ID do cliente associado a este chat */
+  public clientId: string = "";
   /** ID do chat */
   public id: string = "";
   /** Tipo do chat */
@@ -48,7 +50,7 @@ export default class Chat {
    * @returns Uma string representando o nome do chat.
    */
   public async getName(): Promise<string> {
-    return Client.getClient(this.botId).getChatName(this);
+    return Client.getClient(this.clientId).getChatName(this);
   }
 
   /**
@@ -57,7 +59,7 @@ export default class Chat {
    * @returns Uma Promise que resolve quando o nome do chat é definido com sucesso.
    */
   public async setName(name: string): Promise<void> {
-    await Client.getClient(this.botId).setChatName(this, name);
+    await Client.getClient(this.clientId).setChatName(this, name);
   }
 
   /**
@@ -65,7 +67,7 @@ export default class Chat {
    * @returns Uma string representando a descrição do chat.
    */
   public async getDescription(): Promise<string> {
-    return Client.getClient(this.botId).getChatDescription(this);
+    return Client.getClient(this.clientId).getChatDescription(this);
   }
 
   /**
@@ -74,7 +76,7 @@ export default class Chat {
    * @returns Uma Promise que resolve quando a descrição do chat é definida com sucesso.
    */
   public async setDescription(description: string): Promise<void> {
-    return Client.getClient(this.botId).setChatDescription(this, description);
+    return Client.getClient(this.clientId).setChatDescription(this, description);
   }
 
   /**
@@ -82,7 +84,7 @@ export default class Chat {
    * @returns Um Buffer representando o perfil do chat.
    */
   public async getProfile(): Promise<Buffer> {
-    return Client.getClient(this.botId).getChatProfile(this);
+    return Client.getClient(this.clientId).getChatProfile(this);
   }
 
   /**
@@ -91,7 +93,7 @@ export default class Chat {
    * @returns Uma Promise que resolve quando o perfil do chat é definido com sucesso.
    */
   public async setProfile(image: Buffer): Promise<void> {
-    return Client.getClient(this.botId).setChatProfile(this, image);
+    return Client.getClient(this.clientId).setChatProfile(this, image);
   }
 
   /**
@@ -100,7 +102,7 @@ export default class Chat {
    * @returns Verdadeiro se o usuário é um administrador, caso contrário, falso.
    */
   public async isAdmin(user: User | string): Promise<boolean> {
-    return (await Client.getClient(this.botId).getChatAdmins(this)).includes(User.getId(user));
+    return (await Client.getClient(this.clientId).getChatAdmins(this)).includes(User.getId(user));
   }
 
   /**
@@ -109,7 +111,7 @@ export default class Chat {
    * @returns verdadeiro se o usuário é o líder, caso contrário, falso.
    */
   public async isLeader(user: User | string): Promise<boolean> {
-    return (await Client.getClient(this.botId).getChatLeader(this))?.id == User.getId(user);
+    return (await Client.getClient(this.clientId).getChatLeader(this))?.id == User.getId(user);
   }
 
   /**
@@ -117,7 +119,7 @@ export default class Chat {
    * @returns Um objeto contendo os administradores por ID.
    */
   public async getAdmins(): Promise<string[]> {
-    return Client.getClient(this.botId).getChatAdmins(this);
+    return Client.getClient(this.clientId).getChatAdmins(this);
   }
 
   /**
@@ -125,7 +127,7 @@ export default class Chat {
    * @returns Um objeto contendo os usuários por ID.
    */
   public async getUsers(): Promise<string[]> {
-    return await Client.getClient(this.botId).getChatUsers(this);
+    return await Client.getClient(this.clientId).getChatUsers(this);
   }
 
   /**
@@ -134,7 +136,7 @@ export default class Chat {
    * @returns Uma Promise que resolve quando o usuário é adicionado com sucesso.
    */
   public async addUser(user: User | string): Promise<void> {
-    return Client.getClient(this.botId).addUserInChat(this, user);
+    return Client.getClient(this.clientId).addUserInChat(this, user);
   }
 
   /**
@@ -143,7 +145,7 @@ export default class Chat {
    * @returns Uma Promise que resolve quando o usuário é removido com sucesso.
    */
   public async removeUser(user: User | string): Promise<void> {
-    return Client.getClient(this.botId).removeUserInChat(this, user);
+    return Client.getClient(this.clientId).removeUserInChat(this, user);
   }
 
   /**
@@ -152,7 +154,7 @@ export default class Chat {
    * @returns Uma Promise que resolve quando o usuário é promovido com sucesso.
    */
   public async promote(user: User | string): Promise<void> {
-    return Client.getClient(this.botId).promoteUserInChat(this, user);
+    return Client.getClient(this.clientId).promoteUserInChat(this, user);
   }
 
   /**
@@ -161,7 +163,7 @@ export default class Chat {
    * @returns Uma Promise que resolve quando o usuário é rebaixado com sucesso.
    */
   public async demote(user: User | string): Promise<void> {
-    return Client.getClient(this.botId).demoteUserInChat(this, user);
+    return Client.getClient(this.clientId).demoteUserInChat(this, user);
   }
 
   /**
@@ -169,7 +171,7 @@ export default class Chat {
    * @returns Uma Promise que resolve quando o usuário sai do chat com sucesso.
    */
   public async leave(): Promise<void> {
-    return Client.getClient(this.botId).leaveChat(this);
+    return Client.getClient(this.clientId).leaveChat(this);
   }
 
   /**
@@ -178,12 +180,12 @@ export default class Chat {
    * @returns Uma Promise que resolve para a mensagem enviada.
    */
   public async send(message: Message | string): Promise<Message> {
-    const msg = Message.get(message);
+    const msg = Message.apply(message);
 
     if (!msg.chat.id) msg.chat.id = msg.chat.id || this.id;
-    if (!msg.user.id) msg.user.id = msg.user.id || this.botId;
+    if (!msg.user.id) msg.user.id = msg.user.id || this.clientId;
 
-    return Client.getClient(this.botId).send(msg);
+    return Client.getClient(this.clientId).send(msg);
   }
 
   /**
@@ -192,7 +194,7 @@ export default class Chat {
    * @returns Uma Promise que resolve quando o status do chat é alterado com sucesso.
    */
   public async changeStatus(status: ChatStatus): Promise<void> {
-    return Client.getClient(this.botId).changeChatStatus(this, status);
+    return Client.getClient(this.clientId).changeChatStatus(this, status);
   }
 
   /**
@@ -225,32 +227,30 @@ export default class Chat {
   }
 
   /**
-   * Obtém uma instância de Chat com base em um ID ou retorna uma nova instância vazia se o parâmetro for uma string vazia.
-   * @param chat - O ID do chat ou uma instância existente de Chat.
-   * @param botId - O ID do bot associado ao chat.
-   * @returns Uma instância de Chat com base no ID fornecido ou uma nova instância vazia se o ID for uma string vazia.
-   */
-  public static get<T extends Chat>(chat: T | string, botId?: string): T | Chat {
-    if (typeof chat == "string") {
-      const c = new Chat(chat);
-
-      if (botId) c.botId = botId;
-
-      return c;
-    }
-
-    if (botId) chat.botId = botId;
-
-    return chat;
-  }
-
-  /**
    * Obtém o ID de um chat.
    * @param chat - O chat ou ID do chat de onde obter o ID.
    * @returns O ID do chat como uma string, ou uma string vazia se o chat for inválido.
    */
   public static getId(chat: Chat | string): string {
     return typeof chat == "object" ? chat?.id || "" : typeof chat == "string" ? chat : "";
+  }
+
+  /**
+   * Obtém uma instância de Chat com base em um ID e/ou dados passados.
+   * @param chat - O ID do chat ou uma instância existente de Chat.
+   * @param data - Dados que serão aplicados no chat.
+   * @returns Uma instância de Chat com os dados passados.
+   */
+  public static apply(chat: Chat | string, data?: Partial<Chat>) {
+    if (!chat || typeof chat != "object") {
+      chat = new Chat(`${chat}`);
+    }
+
+    for (const key of Object.keys(data || {})) {
+      chat[key] = data[key];
+    }
+
+    return chat;
   }
 
   /**

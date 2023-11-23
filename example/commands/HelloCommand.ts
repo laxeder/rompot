@@ -6,7 +6,7 @@ export class HelloCommand extends Command {
   }
 
   public async onExec(message: Message) {
-    const client = Client.getClient(this.botId);
+    const client = Client.getClient(this.clientId);
 
     const msg = await client.sendMessage(message.chat, `Hello...`, message);
 

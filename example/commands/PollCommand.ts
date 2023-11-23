@@ -12,7 +12,7 @@ export class PollCommand extends Command {
     msg.addOption("op2", "poll-id2");
     msg.addOption("op3", "poll-id3");
 
-    await Client.getClient(this.botId).send(msg);
+    await Client.getClient(this.clientId).send(msg);
   }
 
   public async onReply(message: Message): Promise<void> {

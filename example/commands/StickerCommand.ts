@@ -15,6 +15,6 @@ export class StickerCommand extends Command {
 
     const msg = new StickerMessage(message.chat, await mediaMessage.getStream());
 
-    await Client.getClient(this.botId).send(msg);
+    await Client.getClient(this.clientId).send(msg);
   }
 }

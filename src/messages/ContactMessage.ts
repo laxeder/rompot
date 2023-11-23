@@ -23,7 +23,7 @@ export default class ContactMessage extends Message {
   constructor(chat?: Chat | string, text?: string, contacts: Array<User | string> = [], others: Partial<ContactMessage> = {}) {
     super(chat, text);
 
-    this.contacts = contacts.map((contact) => User.get(contact));
+    this.contacts = contacts.map((contact) => User.apply(contact));
 
     injectJSON(others, this);
   }
