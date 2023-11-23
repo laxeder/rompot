@@ -48,7 +48,7 @@ export default class Message {
   /** Usuários mencionados na mensagem */
   public mentions: string[] = [];
   /** Tempo em que a mensagem foi enviada */
-  public timestamp: Number = 0;
+  public timestamp: number = 0;
   /** A mensagem é editada */
   public isEdited: boolean = false;
   /** A mensagem foi deletada */
