@@ -86,7 +86,7 @@ export type ClientEventsMap = {
     /** Ação relacionada à sala de bate-papo. */
     action: ChatAction;
     /** O chat associado ao evento. */
-    chat: Chat;
+    chat: { id: string, botId: string } & Partial<Chat>;
   };
 
   /**

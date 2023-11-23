@@ -38,7 +38,7 @@ export type BotEventsMap = {
   /** Ocorre quando ocorre um evento relacionado a uma sala de bate-papo. */
   chat: {
     action: ChatAction;
-    chat: Chat;
+    chat: { id: string } & Partial<Chat>;
   };
   /** Ocorre quando uma nova mensagem é recebida pelo bot. */
   message: Message;

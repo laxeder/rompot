@@ -63,6 +63,10 @@ client.on("chat", (update) => {
   if (update.action == "remove") {
     console.log(`Remove chat: ${update.chat.id}`);
   }
+
+  if (update.action == "update") {
+    console.log("Chat update:", update.chat);
+  }
 });
 
 client.on("user", async (update) => {

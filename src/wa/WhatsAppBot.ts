@@ -408,7 +408,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     await this.auth.set(`chats-${newChat.id}`, newChat.toJSON());
 
-    this.ev.emit("chat", { action: newChat != null ? "update" : "add", chat: Chat.fromJSON(chat) });
+    this.ev.emit("chat", { action: newChat != null ? "update" : "add", chat });
   }
 
   public async removeChat(chat: Chat): Promise<void> {
