@@ -74,6 +74,6 @@ export default class MediaMessage extends Message {
    * @returns Verdadeiro se o objeto for uma instância válida de MediaMessage, caso contrário, falso.
    */
   public static isValid(message: any): message is MediaMessage {
-    return Message.isValid(message) && message?.type == MessageType.Media;
+    return typeof message === "object" && Object.keys(new MediaMessage()).every((key) => message?.hasOwnProperty(key));
   }
 }
