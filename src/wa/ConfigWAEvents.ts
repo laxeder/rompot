@@ -7,7 +7,6 @@ import { fixID, getPhoneNumber } from "./ID";
 import { BotStatus } from "../bot/BotStatus";
 import WhatsAppBot from "./WhatsAppBot";
 import Chat from "../chat/Chat";
-import User from "../user/User";
 
 export default class ConfigWAEvents {
   public wa: WhatsAppBot;
@@ -25,6 +24,7 @@ export default class ConfigWAEvents {
     this.configChatsDelete();
     this.configGroupsUpdate();
     this.configMessagesUpsert();
+    this.configMessagesUpdate();
     this.configCBNotifications();
   }
 
@@ -94,6 +94,29 @@ export default class ConfigWAEvents {
             if (!message.message) return;
 
             const msg = await new ConvertWAMessage(this.wa, message, m.type).get();
+
+            this.wa.emit("message", msg);
+          } catch (err) {
+            this.wa.emit("message", new ErrorMessage(message?.key?.remoteJid || "", err && err instanceof Error ? err : new Error(JSON.stringify(err))));
+          }
+        }
+      } catch (err) {
+        this.wa.emit("error", err);
+      }
+    });
+  }
+
+  public configMessagesUpdate() {
+    this.wa.sock.ev.on("messages.update", async (messages) => {
+      try {
+        for (const message of messages || []) {
+          try {
+            if (!message?.update?.status) return;
+            if (message.key.remoteJid == "status@broadcast") return;
+
+            const msg = await new ConvertWAMessage(this.wa, message).get();
+
+            msg.isUpdate = true;
 
             this.wa.emit("message", msg);
           } catch (err) {

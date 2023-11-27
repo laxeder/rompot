@@ -1,13 +1,13 @@
-import { decryptPollVote, getContentType, isJidGroup, MessageUpsertType, proto, WAMessage, WAMessageContent } from "@whiskeysockets/baileys";
+import { decryptPollVote, getContentType, isJidGroup, MessageUpsertType, proto, WAMessage, WAMessageContent, WAMessageUpdate } from "@whiskeysockets/baileys";
 import { extractMetadata } from "@laxeder/wa-sticker/dist";
 import digestSync from "crypto-digest-sync";
 import Long from "long";
 
 import PollMessage, { PollAction, PollOption } from "../messages/PollMessage";
+import Message, { MessageStatus, MessageType } from "../messages/Message";
 import ListMessage, { ListType } from "../messages/ListMessage";
 import MediaMessage, { Media } from "../messages/MediaMessage";
 import PollUpdateMessage from "../messages/PollUpdateMessage";
-import Message, { MessageType } from "../messages/Message";
 import LocationMessage from "../messages/LocationMessage";
 import ReactionMessage from "../messages/ReactionMessage";
 import ContactMessage from "../messages/ContactMessage";
@@ -86,9 +86,12 @@ export class ConvertWAMessage {
       return;
     }
 
-    await this.convertContentMessage(waMessage.message);
+    if (waMessage.message) {
+      await this.convertContentMessage(waMessage.message);
 
-    this.message.timestamp = (Long.isLong(this.waMessage.messageTimestamp) ? this.waMessage.messageTimestamp.toNumber() : this.waMessage.messageTimestamp || 0) * 1000 || Date.now();
+      this.message.timestamp = (Long.isLong(this.waMessage.messageTimestamp) ? this.waMessage.messageTimestamp.toNumber() : this.waMessage.messageTimestamp || 0) * 1000 || Date.now();
+    }
+
     this.message.isUnofficial = waMessage.key.id.length < 20;
     this.message.fromMe = !!this.waMessage.key.fromMe;
     this.message.id = this.message.id || this.waMessage.key.id || "";
@@ -102,6 +105,8 @@ export class ConvertWAMessage {
     if (this.message.chat.timestamp < this.message.timestamp) {
       this.message.chat.timestamp = this.message.timestamp;
     }
+
+    this.message.status = ConvertWAMessage.convertMessageStatus(ConvertWAMessage.isMessageUpdate(waMessage) ? waMessage.update.status : waMessage.status);
 
     this.message.user = await this.getUser(waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "");
     this.message.user.name = this.message.user.name || waMessage.pushName;
@@ -523,5 +528,20 @@ export class ConvertWAMessage {
     });
 
     this.message = listMSG;
+  }
+
+  public static convertMessageStatus(status?: proto.WebMessageInfo.Status): MessageStatus {
+    if (status == proto.WebMessageInfo.Status.ERROR) return MessageStatus.Error;
+    if (status == proto.WebMessageInfo.Status.PENDING) return MessageStatus.Sending;
+    if (status == proto.WebMessageInfo.Status.SERVER_ACK) return MessageStatus.Sended;
+    if (status == proto.WebMessageInfo.Status.DELIVERY_ACK) return MessageStatus.Received;
+    if (status == proto.WebMessageInfo.Status.READ) return MessageStatus.Readed;
+    if (status == proto.WebMessageInfo.Status.PLAYED) return MessageStatus.Played;
+
+    return MessageStatus.Sending;
+  }
+
+  public static isMessageUpdate(waMessage: any): waMessage is WAMessageUpdate {
+    return !!waMessage && typeof waMessage == "object" && !!waMessage?.update && typeof waMessage?.update == "object" && waMessage?.update?.status != undefined;
   }
 }

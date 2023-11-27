@@ -26,6 +26,18 @@ export enum MessageType {
   TemplateButton = "templateButton",
 }
 
+/**
+ * Status da mensagem
+ */
+export enum MessageStatus {
+  Error = "ERROR",
+  Sending = "SENDING",
+  Sended = "SENDED",
+  Received = "RECEIVED",
+  Readed = "READED",
+  Played = "PLAYED",
+}
+
 export default class Message {
   /** ID do bot associado a esta mensagem */
   public botId: string = "";
@@ -51,6 +63,10 @@ export default class Message {
   public mentions: string[] = [];
   /** Tempo em que a mensagem foi enviada */
   public timestamp: number = 0;
+  /** Status da mensagem */
+  public status: MessageStatus = MessageStatus.Sending;
+  /** É uma mensasgem de atualização */
+  public isUpdate: boolean = false;
   /** A mensagem é editada */
   public isEdited: boolean = false;
   /** A mensagem foi deletada */
