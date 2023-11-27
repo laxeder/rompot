@@ -181,7 +181,7 @@ export default class ConfigWAEvents {
     this.wa.sock.ev.on("messaging-history.set", async (update) => {
       for (const chat of update.chats || []) {
         try {
-          if (!chat?.hasOwnProperty("pinned")) return;
+          if (!chat?.hasOwnProperty("pinned")) continue;
 
           await this.wa.readChat({ id: chat.id }, chat);
         } catch (err) {
@@ -191,8 +191,8 @@ export default class ConfigWAEvents {
 
       for (const message of update?.messages || []) {
         try {
-          if (message.key.remoteJid == "status@broadcast") return;
-          if (!message.message) return;
+          if (message.key.remoteJid == "status@broadcast") continue;
+          if (!message.message) continue;
 
           const msg = await new ConvertWAMessage(this.wa, message).get();
 
