@@ -44,6 +44,8 @@ export default class Client<Bot extends IBot> extends ClientEvents {
     this.config = { ...DEFAULT_CONNECTION_CONFIG, ...config };
 
     this.configEvents();
+
+    Client.saveClient(this);
   }
 
   /** Configura os eventos do cliente */
@@ -73,8 +75,6 @@ export default class Client<Bot extends IBot> extends ClientEvents {
     this.bot.on("open", (update) => {
       try {
         this.reconnectTimes = 0;
-
-        Client.saveClient(this);
 
         this.emit("open", update);
       } catch (err) {
@@ -837,11 +837,11 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    * @param client - Cliente que será definido
    */
   public static saveClient(client: Client<IBot>): void {
-    const clients = Client.getClients();
+    if (!global.hasOwnProperty("rompot-clients") || typeof global["rompot-clients"] != "object") {
+      global["rompot-clients"] = {};
+    }
 
-    clients[client.id] = client;
-
-    Client.saveClients(clients);
+    global["rompot-clients"][client.id] = client;
   }
 
   /** Gera um id único */
