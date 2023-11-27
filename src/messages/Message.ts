@@ -191,7 +191,7 @@ export default class Message {
       message = new Message("", `${message}`);
     }
 
-    message.inject(data);
+    message.inject(data || {});
 
     return message;
   }
