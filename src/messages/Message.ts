@@ -102,7 +102,7 @@ export default class Message {
     }
 
     if (data.botId) {
-      this.clientId = data.botId;
+      this.botId = data.botId;
       this.user.botId = data.botId;
       this.chat.botId = data.botId;
       this.mention?.inject({ botId: data.botId });
