@@ -46,6 +46,8 @@ client.on("message", async (message: Message) => {
     console.info(` - Message update:`, message.status);
   } else if (message.isEdited) {
     console.info(` - Message edited:`, message.id, message.text);
+  } else if (message.isOld) {
+    console.info(` - Message old:`, message.id, message.text);
   } else {
     console.info(message);
   }
