@@ -1,8 +1,8 @@
-import { generateWAMessage, generateWAMessageContent, isJidGroup, MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
+import { generateWAMessage, generateWAMessageContent, isJidGroup, MiscMessageGenerationOptions, proto } from "@whiskeysockets/baileys";
 import Sticker, { Categories, StickerTypes } from "@laxeder/wa-sticker/dist";
 
+import Message, { MessageStatus, MessageType } from "../messages/Message";
 import ListMessage, { List, ListItem } from "../messages/ListMessage";
-import Message, { MessageType } from "../messages/Message";
 import LocationMessage from "../messages/LocationMessage";
 import ReactionMessage from "../messages/ReactionMessage";
 import ContactMessage from "../messages/ContactMessage";
@@ -15,8 +15,8 @@ import VideoMessage from "../messages/VideoMessage";
 import FileMessage from "../messages/FileMessage";
 import PollMessage from "../messages/PollMessage";
 
-import { fixID, getID, getPhoneNumber } from "./ID"; 
-import WhatsAppBot from "./WhatsAppBot"; 
+import { fixID, getID, getPhoneNumber } from "./ID";
+import WhatsAppBot from "./WhatsAppBot";
 
 export class ConvertToWAMessage {
   public message: Message;
@@ -292,5 +292,16 @@ export class ConvertToWAMessage {
         this.waMessage.listMessage.listType = message.listType;
       }
     }
+  }
+
+  public static convertToWaMessageStatus(status: MessageStatus): proto.WebMessageInfo.Status {
+    if (status == MessageStatus.Error) return proto.WebMessageInfo.Status.ERROR;
+    if (status == MessageStatus.Sending) return proto.WebMessageInfo.Status.PENDING;
+    if (status == MessageStatus.Sended) return proto.WebMessageInfo.Status.SERVER_ACK;
+    if (status == MessageStatus.Received) return proto.WebMessageInfo.Status.DELIVERY_ACK;
+    if (status == MessageStatus.Readed) return proto.WebMessageInfo.Status.READ;
+    if (status == MessageStatus.Played) return proto.WebMessageInfo.Status.PLAYED;
+
+    return proto.WebMessageInfo.Status.PENDING;
   }
 }
