@@ -410,7 +410,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     const newChat = Chat.fromJSON({ ...(chatData || {}), ...chat });
     newChat.type = isJidGroup(newChat.id) ? ChatType.Group : ChatType.PV;
-    newChat.phoneNumber = newChat.phoneNumber || !isJidGroup(chat.id) ? getPhoneNumber(newChat.id) : 0;
+    newChat.phoneNumber = newChat.phoneNumber || getPhoneNumber(newChat.id);
 
     await this.auth.set(`chats-${newChat.id}`, newChat.toJSON());
 
