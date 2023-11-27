@@ -8,38 +8,46 @@ const client = new Client(new WhatsAppBot(), {
 
 client.on("open", (open: { isNewLogin: boolean }) => {
   if (open.isNewLogin) {
-    console.log("Nova conexão");
+    console.info("Nova conexão");
   }
 
-  console.log("Cliente conectado!");
+  console.info("Cliente conectado!");
 });
 
 client.on("close", () => {
-  console.log(`Cliente desligado!`);
+  console.info(`Cliente desligado!`);
 });
 
 client.on("qr", (qr: string) => {
-  console.log("QR Gerado:", qr);
+  console.info("QR Gerado:", qr);
 });
 
 client.on("connecting", () => {
-  console.log("Tentando conectar cliente...");
+  console.info("Tentando conectar cliente...");
 });
 
 client.on("stop", () => {
-  console.log(`Cliente parado!`);
+  console.info(`Cliente parado!`);
 });
 
 client.on("reconnecting", () => {
-  console.log("Reconectando...");
+  console.info("Reconectando...");
 });
 
 client.on("message", async (message: Message) => {
   if (EmptyMessage.isValid(message)) return;
   if (message.isOld) return;
 
-  if (message.chat.type == "pv") {
-    console.log(message);
+  console.info(`RECEIVE MESSAGE [${message.chat.id}]`, message.id);
+
+  if (message.isDeleted) {
+    console.info(` - Message deleted!`);
+  } else if (message.isUpdate) {
+    console.info(` - Message update:`, message.status);
+  } else if (message.isEdited) {
+    console.info(` - Message edited:`, message.id, message.text);
+  } else {
+    console.info(message);
   }
 
   if (message.selected.includes("poll")) {
@@ -47,25 +55,17 @@ client.on("message", async (message: Message) => {
 
     if (!!cmd) client.runCommand(cmd, message, CMDRunType.Reply);
   }
-
-  if (message.fromMe) {
-    console.log(`Send message to ${message.user.id}: "${await client.getChatName(message.chat)}"`);
-  } else {
-    console.log(`New message in ${message.chat.id}: "${await client.getChatName(message.chat)}"`);
-  }
 });
 
 client.on("chat", (update) => {
   if (update.action == "add") {
-    console.log(`New chat: ${update.chat.id}`);
+    console.info(`New chat: ${update.chat.id}`);
   }
-
   if (update.action == "remove") {
-    console.log(`Remove chat: ${update.chat.id}`);
+    console.info(`Remove chat: ${update.chat.id}`);
   }
-
   if (update.action == "update") {
-    console.log("Chat update:", update.chat);
+    console.info("Chat update:", update.chat);
   }
 });
 
@@ -96,7 +96,7 @@ client.on("user", async (update) => {
 });
 
 client.on("error", (err: any) => {
-  console.log("Um erro ocorreu:", err);
+  console.info("Um erro ocorreu:", err);
 });
 
 (async () => {
