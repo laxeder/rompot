@@ -131,7 +131,7 @@ export default class Client<Bot extends IBot> extends ClientEvents {
     });
 
     this.bot.on("chat", (update) => {
-      this.emit("chat", { ...update, chat: { ...update.chat, botId: this.bot.id } });
+      this.emit("chat", { ...update, chat: { ...update.chat, clientId: this.id, botId: this.bot.id } });
     });
 
     this.bot.on("user", (update) => {
