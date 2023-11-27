@@ -53,6 +53,7 @@ export class ConvertToWAMessage {
       });
 
       this.options.quoted.key.fromMe = userJid == this.bot.id;
+      this.options.quoted.key.id = message.mention.id || this.options.quoted.key.id;
 
       if (this.chatId.includes("@g")) {
         this.options.quoted.key.participant = userJid;
