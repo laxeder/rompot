@@ -283,8 +283,20 @@ export default class Client<Bot extends IBot> extends ClientEvents {
   /** Marca uma mensagem como visualizada
    * @param message Mensagem que será visualizada
    */
-  public readMessage(message: Message): Promise<void> {
-    return this.bot.readMessage(message);
+  public async readMessage(message: Message): Promise<void> {
+    await this.bot.readMessage(message);
+
+    if (message.status == MessageStatus.Sending || message.status == MessageStatus.Sended || message.status == MessageStatus.Received) {
+      if (message.type == MessageType.Audio) {
+        message.status = MessageStatus.Played;
+      } else {
+        message.status = MessageStatus.Readed;
+      }
+    }
+
+    if (message.timestamp == message.chat.timestamp) {
+      message.chat.unreadCount = message.chat.unreadCount - 1 || 0;
+    }
   }
 
   /** Edita o texto de uma mensagem enviada

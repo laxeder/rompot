@@ -653,7 +653,11 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       toJSON: () => key,
     };
 
-    await this.updateChat({ id: message.chat.id, unreadCount: ((await this.getChat(message.chat))?.unreadCount || 1) - 1 });
+    const chat = await this.getChat(message.chat);
+
+    if (chat != null) {
+      await this.updateChat({ id: message.chat.id, unreadCount: (chat.unreadCount || 1) - 1 });
+    }
 
     return await this.funcHandler.exec("msg", this.sock.readMessages, [key]);
   }
