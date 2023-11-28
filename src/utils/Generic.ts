@@ -140,3 +140,26 @@ export async function readRecursiveDir<Callback extends (fileptah: string, filen
 
   return rtn;
 }
+
+/**
+ * * Verifica se dois items são iguais.
+ * @param a - Item A.
+ * @param b - Item B.
+ * @returns `true` se A for igual a B.
+ */
+export function verifyIsEquals(a: any, b: any): boolean {
+  if (typeof a == "object" && typeof b == "object") {
+    if (Array.isArray(a)) {
+      if (!Array.isArray(b)) return false;
+
+      return !a.some((v, i) => !verifyIsEquals(v, b[i]));
+    }
+
+    return !Object.keys(a).some((k) => !verifyIsEquals(a[k], b[k]));
+  }
+
+  if (typeof a != typeof b) return false;
+  if (a != b) return false;
+
+  return true;
+}
