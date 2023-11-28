@@ -17,8 +17,10 @@ import makeWASocket, {
 import * as baileys from "@whiskeysockets/baileys";
 import internal from "stream";
 import pino from "pino";
+import Long from "long";
 
 import { PollMessage, PollUpdateMessage, ReactionMessage } from "../messages";
+import { getImageURL, verifyIsEquals } from "../utils/Generic";
 import { getBaileysAuth, MultiFileAuthState } from "./Auth";
 import Message, { MessageType } from "../messages/Message";
 import { ConvertToWAMessage } from "./ConvertToWAMessage";
@@ -26,7 +28,6 @@ import FunctionHandler from "../utils/FunctionHandler";
 import { ConvertWAMessage } from "./ConvertWAMessage";
 import { Media } from "../messages/MediaMessage";
 import { UserAction, UserEvent } from "../user";
-import { getImageURL } from "../utils/Generic";
 import ConfigWAEvents from "./ConfigWAEvents";
 import { BotStatus } from "../bot/BotStatus";
 import { ChatType } from "../chat/ChatType";
@@ -216,48 +217,62 @@ export default class WhatsAppBot extends BotEvents implements IBot {
    * * Lê o chat
    * @param chat Sala de bate-papo
    */
-  public async readChat(chat: Partial<Chat>, metadata?: Partial<GroupMetadata> & Partial<baileys.Chat>) {
+  public async readChat(chat: Partial<Chat>, metadata?: Partial<GroupMetadata> & Partial<baileys.Chat>, updateMetadata: boolean = true) {
     try {
       if (!chat.id || !(chat.id.includes("@s") || chat.id.includes("@g"))) return;
-      if (chat.id.includes(":") || chat.id.includes("_")) return;
 
       chat.type = isJidGroup(chat.id) ? ChatType.Group : ChatType.PV;
 
       if (chat.type == ChatType.Group) {
-        chat.profileUrl = (await this.getChatProfileUrl(new Chat(chat.id || ""))) || undefined;
+        if (updateMetadata) {
+          chat.profileUrl = (await this.getChatProfileUrl(new Chat(chat.id))) || undefined;
 
-        if (!metadata) {
-          metadata = await this.funcHandler.exec("chat", this.sock.groupMetadata, chat.id);
-        } else if (!metadata.participants) {
-          metadata = { ...metadata, ...(await this.funcHandler.exec("chat", this.sock.groupMetadata, chat.id)) };
+          if (!metadata) {
+            metadata = await this.funcHandler.exec("chat", this.sock.groupMetadata, chat.id);
+          } else if (!metadata.participants) {
+            metadata = { ...metadata, ...(await this.funcHandler.exec("chat", this.sock.groupMetadata, chat.id)) };
+          }
         }
 
         if (metadata?.participants) {
           chat.users = [];
           chat.admins = [];
 
-          for (const p of metadata?.participants || []) {
+          for (const p of metadata.participants) {
             chat.users.push(p.id);
 
             if (p.admin == "admin" || p.isAdmin || p.isSuperAdmin) {
-              chat.admins.push(p.id);
+              chat.admins.push(`${p.id}`);
             }
           }
         }
 
-        chat.leader = metadata?.subjectOwner || undefined;
+        if (metadata?.subjectOwner) {
+          chat.leader = metadata.subjectOwner;
+        }
       }
 
-      chat.name = metadata?.subject || metadata?.name || chat.name || undefined;
-      chat.description = metadata?.desc || metadata?.description || chat.description || undefined;
-      chat.unreadCount = metadata?.unreadCount != undefined ? metadata?.unreadCount : chat.unreadCount;
-      chat.timestamp = !metadata?.conversationTimestamp
-        ? undefined
-        : typeof metadata.conversationTimestamp == "number" || typeof metadata.conversationTimestamp == "string"
-        ? Number(metadata.conversationTimestamp) * 1000
-        : (metadata.conversationTimestamp?.toNumber() || 0) * 1000;
+      if (metadata?.subject || metadata?.name) {
+        chat.name = metadata.subject || metadata.name;
+      }
 
-      await this.updateChat({ id: chat.id || "", ...chat });
+      if (metadata?.desc || metadata?.description) {
+        chat.description = metadata.desc || metadata.description;
+      }
+
+      if (metadata.unreadCount) {
+        chat.unreadCount = metadata.unreadCount;
+      }
+
+      if (metadata.conversationTimestamp) {
+        if (Long.isLong(metadata.conversationTimestamp)) {
+          chat.timestamp = metadata.conversationTimestamp.toNumber() * 1000;
+        } else {
+          chat.timestamp = Number(metadata.conversationTimestamp) * 1000;
+        }
+      }
+
+      await this.updateChat({ id: chat.id, ...chat });
     } catch (err) {
       this.emit("error", err);
     }
@@ -270,18 +285,30 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async readUser(user: Partial<User>, metadata?: Partial<baileys.Contact>) {
     try {
       if (!user.id || !user.id.includes("@s")) return;
-      if (user.id.includes(":") || user.id.includes("_")) return;
 
-      const userData = (await this.getUser(new User(user.id || ""))) || new User(user.id || "");
+      if (metadata.imgUrl) {
+        user.profileUrl = await this.getUserProfileUrl(new User(user.id));
+      } else {
+        const userData = await this.getUser(new User(user.id || ""));
 
-      user.profileUrl = !!metadata.imgUrl || !userData.profileUrl ? (await this.getUserProfileUrl(userData)) || "" : undefined;
-      user.name = metadata?.notify || metadata?.verifiedName || user.name || metadata?.name || undefined;
-      user.savedName = metadata?.name || user.savedName || undefined;
-      user.phoneNumber = getPhoneNumber(user.id || "");
+        if (userData == null || !userData.profileUrl) {
+          user.profileUrl = await this.getUserProfileUrl(new User(user.id));
+        }
+      }
+
+      if (metadata?.notify || metadata?.verifiedName) {
+        user.name = metadata?.notify || metadata?.verifiedName;
+      }
+
+      if (metadata?.name) {
+        user.savedName = metadata.name;
+      }
+
+      user.name = user.name || user.savedName;
 
       await this.updateUser({ id: user.id || "", ...user });
 
-      if (!!user.profileUrl || !!user.name) {
+      if (user.profileUrl || user.name) {
         await this.updateChat({ id: user.id, profileUrl: user.profileUrl || undefined, name: user.name || undefined });
       }
     } catch (err) {
@@ -397,22 +424,24 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     const chatData = await this.getChat(new Chat(chat.id));
 
     if (chatData != null) {
-      for (const key of Object.keys(chat)) {
-        if (chat[key] != undefined && chat[key] != null && chatData[key] != chat[key]) continue;
+      chat = Object.keys(chat).reduce(
+        (data, key) => {
+          if (!chat[key] || verifyIsEquals(chat[key], chatData[key])) return data;
 
-        delete chat[key];
-      }
-
-      chat = { ...chat, id: chatData.id };
+          return { ...data, [key]: chat[key] };
+        },
+        { id: chat.id }
+      );
 
       if (Object.keys(chat).length < 2) return;
     }
 
     const newChat = Chat.fromJSON({ ...(chatData || {}), ...chat });
-    newChat.type = isJidGroup(newChat.id) ? ChatType.Group : ChatType.PV;
-    newChat.phoneNumber = newChat.phoneNumber || getPhoneNumber(newChat.id);
 
-    await this.auth.set(`chats-${newChat.id}`, newChat.toJSON());
+    newChat.type = isJidGroup(chat.id) ? ChatType.Group : ChatType.PV;
+    newChat.phoneNumber = newChat.phoneNumber || getPhoneNumber(chat.id);
+
+    await this.auth.set(`chats-${chat.id}`, newChat.toJSON());
 
     this.ev.emit("chat", { action: newChat != null ? "update" : "add", chat });
   }
@@ -424,11 +453,11 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async getChat(chat: Chat): Promise<Chat | null> {
-    const userData = await this.auth.get(`chats-${chat.id}`);
+    const chatData = await this.auth.get(`chats-${chat.id}`);
 
-    if (!userData) return null;
+    if (!chatData) return null;
 
-    return Chat.fromJSON(userData);
+    return Chat.fromJSON(chatData);
   }
 
   public async getChats(): Promise<string[]> {
@@ -575,21 +604,23 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     const userData = await this.getUser(new User(user.id));
 
     if (userData != null) {
-      for (const key of Object.keys(user)) {
-        if (user[key] != undefined && user[key] != null && userData[key] != user[key]) continue;
+      user = Object.keys(user).reduce(
+        (data, key) => {
+          if (!user[key] || verifyIsEquals(user[key], userData[key])) return data;
 
-        delete user[key];
-      }
-
-      user = { ...user, id: userData.id };
+          return { ...data, [key]: user[key] };
+        },
+        { id: user.id }
+      );
 
       if (Object.keys(user).length < 2) return;
     }
 
     const newUser = User.fromJSON({ ...(userData || {}), ...user });
-    newUser.phoneNumber = newUser.phoneNumber || getPhoneNumber(newUser.id);
 
-    await this.auth.set(`users-${newUser.id}`, newUser.toJSON());
+    newUser.phoneNumber = newUser.phoneNumber || getPhoneNumber(user.id);
+
+    await this.auth.set(`users-${user.id}`, newUser.toJSON());
   }
 
   public async setUsers(users: User[]): Promise<void> {

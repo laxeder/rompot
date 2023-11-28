@@ -21,7 +21,6 @@ import TextMessage from "../messages/TextMessage";
 import FileMessage from "../messages/FileMessage";
 import { ChatType } from "../chat/ChatType";
 import WhatsAppBot from "./WhatsAppBot";
-import { getPhoneNumber } from "./ID";
 import User from "../user/User";
 import Chat from "../chat/Chat";
 
@@ -58,24 +57,6 @@ export class ConvertWAMessage {
   }
 
   /**
-   * Obtem o usuário pelo ID
-   * @param userId - Id do usuário que será obtido
-   * @returns Instância do usuário
-   */
-  public async getUser(userId: string): Promise<User> {
-    return (await this.bot.getUser(new User(userId))) || User.fromJSON({ id: userId, phoneNumber: getPhoneNumber(userId) });
-  }
-
-  /**
-   * Obtem o chat pelo ID
-   * @param chatId - Id do chat que será obtido
-   * @returns Instância do chat
-   */
-  public async getChat(chatId: string): Promise<Chat> {
-    return (await this.bot.getChat(new Chat(chatId))) || Chat.fromJSON({ id: chatId, phoneNumber: getPhoneNumber(chatId), type: isJidGroup(chatId) ? ChatType.Group : ChatType.PV });
-  }
-
-  /**
    * * Converte a mensagem
    * @param waMessage
    * @param type
@@ -89,27 +70,22 @@ export class ConvertWAMessage {
     if (waMessage.message) {
       await this.convertContentMessage(waMessage.message);
 
-      this.message.timestamp = (Long.isLong(this.waMessage.messageTimestamp) ? this.waMessage.messageTimestamp.toNumber() : this.waMessage.messageTimestamp || 0) * 1000 || Date.now();
+      if (Long.isLong(this.waMessage.messageTimestamp)) {
+        this.message.timestamp = (this.waMessage.messageTimestamp.toNumber() || 0) * 1000 || Date.now();
+      } else {
+        this.message.timestamp = (this.waMessage.messageTimestamp || 0) * 1000 || Date.now();
+      }
     }
 
     this.message.isUnofficial = waMessage.key.id.length < 20;
     this.message.fromMe = !!this.waMessage.key.fromMe;
     this.message.id = this.message.id || this.waMessage.key.id || "";
 
-    this.message.chat = await this.getChat(waMessage?.key?.remoteJid || this.bot.id);
-
-    if (!this.message.chat.name) {
-      this.message.chat.name = this.message.chat.type == ChatType.PV ? waMessage.pushName : "";
-    }
-
-    if (this.message.chat.timestamp < this.message.timestamp) {
-      this.message.chat.timestamp = this.message.timestamp;
-    }
-
+    this.message.chat = new Chat(waMessage?.key?.remoteJid || this.bot.id);
+    this.message.chat.type = isJidGroup(this.message.chat.id) ? ChatType.Group : ChatType.PV;
     this.message.status = ConvertWAMessage.convertMessageStatus(ConvertWAMessage.isMessageUpdate(waMessage) ? waMessage.update.status : waMessage.status);
 
-    this.message.user = await this.getUser(waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "");
-    this.message.user.name = this.message.user.name || waMessage.pushName;
+    this.message.user = new User(waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "");
   }
 
   /**
@@ -152,7 +128,7 @@ export class ConvertWAMessage {
     }
 
     if (contentType == "protocolMessage") {
-      await this.convertProtocolMessage(messageContent[contentType] as proto.Message.IProtocolMessage);
+      this.convertProtocolMessage(messageContent[contentType] as proto.Message.IProtocolMessage);
     }
 
     if (contentType == "imageMessage" || contentType == "videoMessage" || contentType == "audioMessage" || contentType == "stickerMessage" || contentType == "documentMessage") {
@@ -243,7 +219,7 @@ export class ConvertWAMessage {
    * * Converte mensagem de protocolo
    * @param content
    */
-  public async convertProtocolMessage(content: proto.Message["protocolMessage"]) {
+  public convertProtocolMessage(content: proto.Message["protocolMessage"]) {
     if (content.type == 0) {
       this.waMessage.key = { ...this.waMessage.key, ...content.key };
       this.message.isDeleted = true;

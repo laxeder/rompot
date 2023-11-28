@@ -1,5 +1,6 @@
 import { DisconnectReason, isJidGroup } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
+import Long from "long";
 
 import { ConvertWAMessage } from "./ConvertWAMessage";
 import ErrorMessage from "../messages/ErrorMessage";
@@ -20,7 +21,6 @@ export default class ConfigWAEvents {
     this.configHistorySet();
     this.configContactsUpsert();
     this.configContactsUpdate();
-    this.configChatsUpdate();
     this.configChatsDelete();
     this.configGroupsUpdate();
     this.configMessagesUpsert();
@@ -93,6 +93,31 @@ export default class ConfigWAEvents {
             if (message.key.remoteJid == "status@broadcast") return;
             if (!message.message) return;
 
+            const chatId = message.key.remoteJid || this.wa.id;
+
+            const chat = await this.wa.getChat(new Chat(chatId));
+
+            let timestamp: number;
+
+            if (message.messageTimestamp) {
+              if (Long.isLong(message.messageTimestamp)) {
+                timestamp = message.messageTimestamp.toNumber() * 1000;
+              } else {
+                timestamp = message.messageTimestamp * 1000;
+              }
+            }
+
+            await this.wa.updateChat({
+              id: chatId,
+              unreadCount: (chat?.unreadCount || 0) + 1,
+              timestamp,
+              name: message.key.id?.includes("@s") && !message.key.fromMe ? message.pushName || message.verifiedBizName : undefined,
+            });
+
+            const userId = message.key.fromMe ? this.wa.id : message.key.participant || message.participant || message.key.remoteJid || "";
+
+            await this.wa.updateUser({ id: userId, name: message.pushName || message.verifiedBizName });
+
             const msg = await new ConvertWAMessage(this.wa, message, m.type).get();
 
             this.wa.emit("message", msg);
@@ -150,10 +175,12 @@ export default class ConfigWAEvents {
           this.wa.name = this.wa.sock?.user?.name || this.wa.sock?.user?.notify || this.wa.sock?.user?.verifiedName || "";
           this.wa.profileUrl = this.wa.sock?.user?.imgUrl || "";
 
-          this.wa.readUser({ id: this.wa.id }, { notify: this.wa.name, imgUrl: this.wa.profileUrl });
-          this.wa.readChat({ id: this.wa.id }, { subject: this.wa.name });
+          this.wa.readUser({ id: this.wa.id }, { notify: this.wa.name || undefined, imgUrl: this.wa.profileUrl || undefined });
+          this.wa.readChat({ id: this.wa.id }, { subject: this.wa.name || undefined });
 
           this.wa.emit("open", { isNewLogin: update.isNewLogin || false });
+
+          await this.wa.funcHandler.exec("chat", this.wa.sock.groupFetchAllParticipating);
         }
 
         if (update.connection == "close") {
@@ -184,6 +211,20 @@ export default class ConfigWAEvents {
           if (!chat?.hasOwnProperty("pinned")) continue;
 
           await this.wa.readChat({ id: chat.id }, chat);
+        } catch (err) {
+          this.wa.emit("error", err);
+        }
+      }
+
+      for (const contact of update.contacts || []) {
+        try {
+          if (!contact.name) return;
+          
+          if (isJidGroup(contact.id)) {
+            await this.wa.readChat({ id: contact.id }, contact);
+          } else {
+            await this.wa.readUser({ id: contact.id }, contact);
+          }
         } catch (err) {
           this.wa.emit("error", err);
         }
@@ -231,41 +272,9 @@ export default class ConfigWAEvents {
       for (const update of updates) {
         try {
           if (isJidGroup(update.id)) {
-            await this.wa.readChat({ id: update.id });
-          } else {
-            await this.wa.readUser({ id: update.id }, update);
-          }
-        } catch (err) {
-          this.wa.emit("error", err);
-        }
-      }
-    });
-  }
-  public configChatsUpdate() {
-    this.wa.sock.ev.on("chats.update", async (updates) => {
-      for (const update of updates) {
-        try {
-          const chat = await this.wa.getChat(new Chat(update.id));
-
-          if (update.unreadCount) {
-            update.unreadCount += chat.unreadCount;
-          }
-
-          if (chat == null) {
             await this.wa.readChat({ id: update.id }, update);
           } else {
-            const timestamp = !update.conversationTimestamp
-              ? undefined
-              : typeof update.conversationTimestamp == "number" || typeof update.conversationTimestamp == "string"
-              ? Number(update.conversationTimestamp) * 1000
-              : (update.conversationTimestamp?.toNumber() || 0) * 1000;
-
-            await this.wa.updateChat({
-              id: update.id,
-              timestamp,
-              name: update.name || undefined,
-              unreadCount: update.unreadCount != undefined ? update.unreadCount : undefined,
-            });
+            await this.wa.readUser({ id: update.id }, update);
           }
         } catch (err) {
           this.wa.emit("error", err);
@@ -278,7 +287,15 @@ export default class ConfigWAEvents {
     this.wa.sock.ev.on("groups.update", async (updates) => {
       for (const update of updates) {
         try {
-          await this.wa.readChat({ id: update.id }, update);
+          if (!update?.id) continue;
+
+          const chat = await this.wa.getChat(new Chat(update.id));
+
+          if (chat == null) {
+            await this.wa.readChat({ id: update.id }, update, true);
+          } else {
+            await this.wa.readChat({ id: update.id }, update, false);
+          }
         } catch (err) {
           this.wa.emit("error", err);
         }

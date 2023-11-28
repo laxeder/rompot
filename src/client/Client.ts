@@ -4,6 +4,7 @@ import { DEFAULT_CONNECTION_CONFIG } from "../configs/Defaults";
 import ConnectionConfig from "../configs/ConnectionConfig";
 
 import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
+import Message, { MessageStatus, MessageType } from "../messages/Message";
 import CommandController from "../command/CommandController";
 import ReactionMessage from "../messages/ReactionMessage";
 import { CMDRunType } from "../command/CommandEnums";
@@ -12,7 +13,6 @@ import MediaMessage from "../messages/MediaMessage";
 import { sleep, getError } from "../utils/Generic";
 import { ChatStatus } from "../chat/ChatStatus";
 import ClientEvents from "./ClientEvents";
-import Message from "../messages/Message";
 import Command from "../command/Command";
 import BotBase from "../bot/BotBase";
 import Chat from "../chat/Chat";
@@ -54,7 +54,31 @@ export default class Client<Bot extends IBot> extends ClientEvents {
       try {
         message.inject({ clientId: this.id, botId: this.bot.id });
 
-        if (!message.fromMe && !this.config.disableAutoRead) await this.readMessage(message);
+        if (!message.fromMe && !this.config.disableAutoRead) {
+          await message.read();
+        }
+
+        message.user = (await this.getUser(message.user)) || message.user;
+        message.chat = (await this.getChat(message.chat)) || message.chat;
+
+        if (message.timestamp > message.chat.timestamp) {
+          message.chat.timestamp = message.timestamp;
+        }
+
+        if (message.mention) {
+          if (message.mention.chat.id != message.chat.id) {
+            message.mention.chat = (await this.getChat(message.mention.chat)) || message.mention.chat;
+          } else {
+            message.mention.chat = message.chat;
+          }
+
+          if (message.mention.user.id != message.user.id) {
+            message.mention.user = (await this.getUser(message.mention.user)) || message.mention.user;
+          } else {
+            message.mention.user = message.user;
+          }
+        }
+
         if (this.messageHandler.resolveMessage(message)) return;
 
         this.emit("message", message);
