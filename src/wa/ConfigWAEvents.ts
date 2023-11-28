@@ -218,13 +218,9 @@ export default class ConfigWAEvents {
 
       for (const contact of update.contacts || []) {
         try {
-          if (!contact.name) return;
-          
-          if (isJidGroup(contact.id)) {
-            await this.wa.readChat({ id: contact.id }, contact);
-          } else {
-            await this.wa.readUser({ id: contact.id }, contact);
-          }
+          if (!contact.name || isJidGroup(contact.id)) continue;
+
+          await this.wa.readUser({ id: contact.id }, contact);
         } catch (err) {
           this.wa.emit("error", err);
         }
