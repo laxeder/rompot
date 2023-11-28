@@ -426,7 +426,8 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     if (chatData != null) {
       chat = Object.keys(chat).reduce(
         (data, key) => {
-          if (!chat[key] || verifyIsEquals(chat[key], chatData[key])) return data;
+          if (chat[key] == undefined || chat[key] == null) return data;
+          if (verifyIsEquals(chat[key], chatData[key])) return data;
 
           return { ...data, [key]: chat[key] };
         },
@@ -606,7 +607,8 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     if (userData != null) {
       user = Object.keys(user).reduce(
         (data, key) => {
-          if (!user[key] || verifyIsEquals(user[key], userData[key])) return data;
+          if (user[key] == undefined || user[key] == null) return data;
+          if (verifyIsEquals(user[key], userData[key])) return data;
 
           return { ...data, [key]: user[key] };
         },
@@ -736,16 +738,12 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     if (waMSG.isRelay) {
       await this.funcHandler.exec("msg", this.sock.relayMessage, waMSG.chatId, waMSG.waMessage, { ...waMSG.options });
 
-      await this.updateChat({ id: content.chat.id, unreadCount: 0 });
-
       const msgRes = generateWAMessageFromContent(waMSG.chatId, waMSG.waMessage, { ...waMSG.options, userJid: this.id });
 
       return await new ConvertWAMessage(this, msgRes).get();
     }
 
     const sendedMessage = await this.funcHandler.exec("msg", this.sock.sendMessage, waMSG.chatId, waMSG.waMessage, waMSG.options);
-
-    await this.updateChat({ id: content.chat.id, unreadCount: 0 });
 
     if (typeof sendedMessage == "boolean") return content;
 

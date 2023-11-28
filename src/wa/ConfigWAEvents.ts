@@ -120,6 +120,10 @@ export default class ConfigWAEvents {
 
             const msg = await new ConvertWAMessage(this.wa, message, m.type).get();
 
+            if (msg.fromMe && msg.isUnofficial) {
+              await this.wa.updateChat({ id: msg.chat.id, unreadCount: 0 });
+            }
+
             this.wa.emit("message", msg);
           } catch (err) {
             this.wa.emit("message", new ErrorMessage(message?.key?.remoteJid || "", err && err instanceof Error ? err : new Error(JSON.stringify(err))));
