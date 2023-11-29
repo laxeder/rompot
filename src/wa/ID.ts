@@ -9,8 +9,8 @@ export function fixID(id: string) {
   return id.replace(/:(.*)@/, "@");
 }
 
-export function getPhoneNumber(id: string): number {
-  return Number(id?.replace(/\D+/g, "") || "0");
+export function getPhoneNumber(id: string): string {
+  return id?.replace(/\D+/g, "") || "0";
 }
 
 /** * Obter o id de um número */

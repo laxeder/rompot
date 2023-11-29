@@ -14,7 +14,7 @@ export default class User {
   /** Descrição do usuário */
   public description: string = "";
   /** Número de telefone */
-  public phoneNumber: number = 0;
+  public phoneNumber: string = "";
   /** Nome salvado do usuário */
   public savedName: string = "";
   /** URL da imagem de perfil do usuário */

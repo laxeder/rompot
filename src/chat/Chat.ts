@@ -17,7 +17,7 @@ export default class Chat {
   /** Nome do chat */
   public name: string = "";
   /** Número de telefone */
-  public phoneNumber: number = 0;
+  public phoneNumber: string = "";
   /** Descrição do chat */
   public description: string = "";
   /** URL da imagem de perfil do chat */

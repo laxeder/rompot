@@ -17,7 +17,7 @@ export default interface IBot extends BotEvents {
   status: BotStatus;
 
   /** Número do bot */
-  phoneNumber: number;
+  phoneNumber: string;
 
   /** Nome do bot */
   name: string;

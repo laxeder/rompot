@@ -12,7 +12,7 @@ import IBot from "./IBot";
 export default class BotBase extends BotEvents implements IBot {
   public id: string = "";
   public status: BotStatus = BotStatus.Offline;
-  public phoneNumber: number = 0;
+  public phoneNumber: string = "";
   public name: string = "";
   public profileUrl: string = "";
 
