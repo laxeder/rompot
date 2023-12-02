@@ -244,6 +244,8 @@ export default class Chat {
   public static apply(chat: Chat | string, data?: Partial<Chat>) {
     if (!chat || typeof chat != "object") {
       chat = new Chat(`${chat}`);
+    } else {
+      chat = Chat.fromJSON(chat);
     }
 
     for (const key of Object.keys(data || {})) {

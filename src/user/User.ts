@@ -153,6 +153,8 @@ export default class User {
   public static apply(user: User | string, data?: Partial<User>) {
     if (!user || typeof user != "object") {
       user = new User(`${user}`);
+    } else {
+      user = User.fromJSON(user);
     }
 
     for (const key of Object.keys(data || {})) {
