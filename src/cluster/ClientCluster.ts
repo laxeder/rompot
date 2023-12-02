@@ -1,135 +1,56 @@
-import cluster from "cluster";
-import { cpus } from "os";
+import cluster, { Worker } from "cluster";
 
-/** Opções para o cluster do cliente */
-export type ClientClusterOptions = {
-  /** Número de CPU a ser usado */
-  cpus: number;
-};
+import WorkerMessage, { WorkerMessageTag } from "./WorkerMessage";
 
-export default function ClientCluster(options: Partial<ClientClusterOptions> = {}) {
-  if (cluster.isPrimary) {
-    return ClientMain(options);
-  } else {
-    return ClientChild();
-  }
+/** ID dos dados globais do cluster gerenciado pelo Rompot */
+export enum GlobalRompotClusterId {
+  Clients = "rompot-client-cluster-ids",
+  Workes = "rompot-client-cluster-works",
 }
 
-export function ClientMain(options: Partial<ClientClusterOptions> = {}) {
-  if (!cluster.isPrimary) {
-    return ClientChild();
-  }
+export function configCluster(): void {
+  if (cluster.isPrimary) {
+    global[GlobalRompotClusterId.Clients] = {};
+    global[GlobalRompotClusterId.Workes] = {};
 
-  if (global["rompót-cluster-main"]) {
-    return global["rompót-cluster-main"];
-  }
+    cluster.on("message", (worker, message) => {
+      const workerMessage = WorkerMessage.fromJSON(message);
 
-  const opts: ClientClusterOptions = {
-    cpus: options.cpus || cpus().length,
-  };
+      try {
+        if (workerMessage.uid != "rompot") return;
 
-  const infos: Record<string | number, Array<string>> = {};
+        if (workerMessage.tag == WorkerMessageTag.Patch && workerMessage.isMain) {
+          if (workerMessage.id == "save-client") {
+            global[GlobalRompotClusterId.Clients][workerMessage.clientId] = `${worker.id}`;
 
-  for (let i = 0; i < opts.cpus; i++) {
-    infos[i] = [`ID:${i}:N-1`, `ID:${i}:N-2`, `ID:${i}:N-3`];
+            worker.send(workerMessage.clone({ tag: WorkerMessageTag.Result, data: { result: undefined } }));
 
-    let worker = cluster.fork();
+            return;
+          }
+        }
 
-    worker.on("exit", () => {
-      const oldId = worker.id;
+        for (const clientId of Object.keys(global[GlobalRompotClusterId.Clients])) {
+          try {
+            if (clientId != workerMessage.clientId) continue;
 
-      worker = cluster.fork();
+            const workerId = global[GlobalRompotClusterId.Clients][clientId];
 
-      infos[worker.id] = infos[oldId];
+            const workerReceive = global[GlobalRompotClusterId.Workes][workerId] as Worker;
 
-      delete infos[oldId];
-    });
-  }
+            if (!workerReceive) continue;
 
-  cluster.on("message", (worker, message) => {
-    if (!message || typeof message != "object") return;
-    if (!message.id || !message.tag || !message.data || !message.uid || message.uid != "rompot") return;
-
-    if (message.tag == "get") {
-      if (message.data.value == "info") {
-        worker.send!({ uid: "rompot", id: message.id, tag: message.tag, workerId: worker.id, data: infos[worker.id] });
-      } else {
-        worker.send!({ uid: "rompot", id: message.id, tag: "error", data: { message: "Invalid get value" } });
+            workerReceive.send(workerMessage);
+          } catch (error) {
+            worker.send(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: "Error in send message from worker" } }));
+          }
+        }
+      } catch (error) {
+        worker.send(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: "Error in receive message from worker" } }));
       }
-    } else if (message.tag == "res") {
-      worker.send!({ uid: "rompot", id: message.id, tag: message.tag, data: message.data });
-    } else {
-      worker.send!({ uid: "rompot", id: message.id, tag: "error", data: { message: "Invalid tag" } });
-    }
-  });
+    });
+  }
 }
 
-export function ClientChild() {
-  if (cluster.isPrimary) {
-    return ClientMain();
-  }
-
-  const worker = cluster.worker;
-
-  if (!worker) {
-    throw new Error("Worker not found");
-  }
-
-  try {
-    const awaiting: Record<string, (data: Record<any, any>) => any> = {};
-
-    const send = (tag: string, data: Record<any, any>, callback: (data: Record<any, any>) => any) => {
-      const id = `${tag}-${Date.now()}${worker.process.pid}${worker.id}${Object.keys(awaiting).length}`;
-
-      awaiting[id] = (message: Record<any, any>) => {
-        if (!message || typeof message != "object") return;
-        if (!message.id || !message.tag || !message.data || !message.uid || message.uid != "rompot") return;
-
-        delete awaiting[id];
-
-        if (message.tag == "error") {
-          throw new Error(message.data.message);
-        }
-
-        callback(message);
-      };
-
-      process.send!({ uid: "rompot", id, tag, data: { ...(data || {}) } });
-
-      setTimeout(() => {
-        if (awaiting.hasOwnProperty(id)) {
-          awaiting[id]({ uid: "rompot", id, tag: "error", data: { message: "Timeout" } });
-        }
-      }, 5000);
-    };
-
-    worker.on("message", (message) => {
-      if (!message || typeof message != "object") return;
-      if (!message.id || !message.uid || message.uid != "rompot") return;
-
-      if (!awaiting.hasOwnProperty(message.id)) return;
-
-      awaiting[message.id](message);
-    });
-
-    send("get", { value: "info" }, (res) => {
-      console.log("INFO:", res);
-    });
-
-    if (worker.id == 3) {
-      send("error", { chat: 12345, name: "Hello" }, (res) => {
-        console.log("M-M:", res);
-      });
-    }
-
-    setTimeout(() => {
-      send("res", { chat: 12345, name: "Hello" }, (res) => {
-        console.log("M-M:", res);
-      });
-    }, 5000);
-  } catch (err) {
-    console.error(err);
-
-    worker.destroy();
-  }
+export function saveWorker(worker: Worker): void {
+  global[GlobalRompotClusterId.Workes][`${worker.id}`] = worker;
 }
