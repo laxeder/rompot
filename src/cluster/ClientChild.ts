@@ -36,20 +36,22 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
   /** Vezes que o bot reconectou */
   public reconnectTimes: number = 0;
   /** Id do cliente */
-  public id: string = ClientChild.generateId();
+  public id: string;
   /** Autenticação do bot */
-  public auth: IAuth | string = "./session";
-  /** Processo do client */
+  public auth: IAuth | string;
+  /** Processo do cliente */
   public worker: Worker;
-  /** É um processo principal */
-  public isPrimary: boolean = false;
+  /** É o cliente principal */
+  public isMain: boolean = false;
   /** Requisições */
-  public requests: Record<string, (message: Record<any, any>) => any> = {};
+  public requests: Record<string, (message: WorkerMessage) => any> = {};
 
-  constructor(worker: Worker, bot: Bot, config: Partial<ClientChildConfig> = {}, auth: IAuth | string = "./session") {
+  constructor(id: string, worker: Worker, bot: Bot, config: Partial<ClientChildConfig> = {}, auth: IAuth | string = "./session", isMain: boolean = false) {
     super();
 
+    this.id = id;
     this.bot = bot;
+    this.isMain = isMain;
     this.config = { ...DEFAULT_CONNECTION_CONFIG, maxTimeout: 60000, ...config };
     this.auth = auth;
 
@@ -70,6 +72,7 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
         if (workerMessage.uid != "rompot") return;
         if (workerMessage.clientId != this.id) return;
         if (workerMessage.tag == WorkerMessageTag.Void) return;
+        if (workerMessage.isMain == this.isMain) return;
 
         const data = workerMessage.getData();
 
@@ -80,14 +83,20 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
         } else if (workerMessage.tag == WorkerMessageTag.Func) {
           const clonedMessage = workerMessage.clone({ tag: WorkerMessageTag.Result, data: { result: await this[data.name](...(data.args || [])) } });
 
-          await this.workerSend(clonedMessage);
-        } else {
-          this.requests[message.id](message);
+          await this.sendWorkerMessage(clonedMessage);
+        } else if (this.requests.hasOwnProperty(workerMessage.id)) {
+          this.requests[workerMessage.id](workerMessage);
         }
       } catch (error) {
-        await this.workerSend(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: error?.message || "Internal error" } }));
+        await this.sendWorkerMessage(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: error?.message || "Internal error" } }));
       }
     });
+
+    const workerMessage = new WorkerMessage(WorkerMessageTag.Patch, {});
+
+    workerMessage.id = "save-client";
+
+    this.sendWorkerMessage(workerMessage);
   }
 
   /**
@@ -105,16 +114,20 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param data - Data da mensagem.
    * @returns Mensagem de resposta do worker.
    */
-  public async workerSend(workerMessage: WorkerMessage): Promise<WorkerMessage> {
+  public async sendWorkerMessage(workerMessage: WorkerMessage): Promise<WorkerMessage> {
     const id = workerMessage.id || this.generateIdByTag(workerMessage.tag);
 
     const message = await new Promise<WorkerMessage>((resolve) => {
       try {
         this.requests[id] = resolve;
 
-        workerMessage.apply({ uid: "rompot", clientId: this.id, id });
+        workerMessage.apply({ uid: "rompot", clientId: this.id, isMain: this.isMain, id });
 
-        process.send!(message.toJSON());
+        process.send!(workerMessage.toJSON());
+
+        if (workerMessage.tag == WorkerMessageTag.Patch) {
+          resolve(workerMessage.clone({ tag: WorkerMessageTag.Result, data: { result: undefined } }));
+        }
 
         setTimeout(() => {
           if (!this.requests.hasOwnProperty(id)) return;
@@ -139,8 +152,8 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
   public configEvents() {
     this.bot.on("message", async (message: Message) => {
       try {
-        if (this.isPrimary) {
-          await this.workerSend(new WorkerMessage(WorkerMessageTag.Event, { name: "message", arg: message }));
+        if (this.isMain) {
+          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "message", arg: message }));
         } else {
           message = Message.fromJSON(message);
 
@@ -191,8 +204,8 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
 
     this.bot.on("open", async (update) => {
       try {
-        if (this.isPrimary) {
-          await this.workerSend(new WorkerMessage(WorkerMessageTag.Event, { name: "open", arg: update }));
+        if (this.isMain) {
+          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "open", arg: update }));
         } else {
           this.reconnectTimes = 0;
 
@@ -205,8 +218,8 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
 
     this.bot.on("reconnecting", async (update) => {
       try {
-        if (this.isPrimary) {
-          await this.workerSend(new WorkerMessage(WorkerMessageTag.Event, { name: "reconnecting", arg: update }));
+        if (this.isMain) {
+          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "reconnecting", arg: update }));
         } else {
           this.emit("reconnecting", update);
         }
@@ -217,8 +230,8 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
 
     this.bot.on("connecting", async (update) => {
       try {
-        if (this.isPrimary) {
-          await this.workerSend(new WorkerMessage(WorkerMessageTag.Event, { name: "connecting", arg: update }));
+        if (this.isMain) {
+          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "connecting", arg: update }));
         } else {
           this.emit("connecting", update);
         }
@@ -229,8 +242,8 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
 
     this.bot.on("close", async (update) => {
       try {
-        if (this.isPrimary) {
-          await this.workerSend(new WorkerMessage(WorkerMessageTag.Event, { name: "close", arg: update }));
+        if (this.isMain) {
+          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "close", arg: update }));
         } else {
           this.emit("close", update);
 
@@ -249,8 +262,8 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
 
     this.bot.on("stop", async (update) => {
       try {
-        if (this.isPrimary) {
-          await this.workerSend(new WorkerMessage(WorkerMessageTag.Event, { name: "stop", arg: update }));
+        if (this.isMain) {
+          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "stop", arg: update }));
         } else {
           this.emit("stop", update);
         }
@@ -261,8 +274,8 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
 
     this.bot.on("qr", async (update) => {
       try {
-        if (this.isPrimary) {
-          await this.workerSend(new WorkerMessage(WorkerMessageTag.Event, { name: "qr", arg: update }));
+        if (this.isMain) {
+          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "qr", arg: update }));
         } else {
           this.emit("qr", update);
         }
@@ -272,8 +285,8 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
     });
 
     this.bot.on("chat", async (update) => {
-      if (this.isPrimary) {
-        await this.workerSend(new WorkerMessage(WorkerMessageTag.Event, { name: "chat", arg: update }));
+      if (this.isMain) {
+        await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "chat", arg: update }));
       } else {
         this.emit("chat", { ...update, chat: { ...update.chat, clientId: this.id, botId: this.bot.id } });
       }
@@ -281,8 +294,8 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
 
     this.bot.on("user", async (update) => {
       try {
-        if (this.isPrimary) {
-          await this.workerSend(new WorkerMessage(WorkerMessageTag.Event, { name: "user", arg: update }));
+        if (this.isMain) {
+          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "user", arg: update }));
         } else {
           this.emit("user", {
             event: update.event,
@@ -299,8 +312,8 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
 
     this.bot.on("error", async (update) => {
       try {
-        if (this.isPrimary) {
-          await this.workerSend(new WorkerMessage(WorkerMessageTag.Event, { name: "error", arg: update }));
+        if (this.isMain) {
+          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "error", arg: update }));
         } else {
           this.emit("error", getError(update));
         }
@@ -314,10 +327,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param auth Autenticação do bot
    */
   public async connect(auth?: IAuth | string) {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.connect(typeof auth != "string" || !auth ? this.auth : auth);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "connect", args: [auth] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "connect", args: [auth] }));
     }
   }
 
@@ -327,10 +340,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param auth Autenticação do bot
    */
   public async connectByCode(phoneNumber: number | string, auth: string | IAuth): Promise<string> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return await this.bot.connectByCode(String(phoneNumber).replace(/\D+/g, ""), auth);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "connectByCode", arg: [phoneNumber, auth] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "connectByCode", arg: [phoneNumber, auth] }));
     }
   }
 
@@ -338,10 +351,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param alert Alerta que está reconectando
    */
   public async reconnect(alert?: boolean) {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.reconnect(alert);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "reconnect", args: [alert] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "reconnect", args: [alert] }));
     }
   }
 
@@ -349,10 +362,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param reason Razão por parar bot
    */
   public async stop(reason?: any) {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.stop(reason);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "stop", args: [reason] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "stop", args: [reason] }));
     }
   }
 
@@ -360,10 +373,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * Desconecta o bot
    */
   public async logout(): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.logout();
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "logout", args: [] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "logout", args: [] }));
     }
   }
 
@@ -443,10 +456,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param message Mensagem que será deletada da sala de bate-papos
    */
   public async deleteMessage(message: Message): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.deleteMessage(Message.fromJSON(message));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "deleteMessage", args: [message] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "deleteMessage", args: [message] }));
     }
   }
 
@@ -454,10 +467,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param message Mensagem que será removida da sala de bate-papo
    */
   public async removeMessage(message: Message): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.readMessage(Message.fromJSON(message));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "removeMessage", args: [message] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "removeMessage", args: [message] }));
     }
   }
 
@@ -465,10 +478,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param message Mensagem que será visualizada
    */
   public async readMessage(message: Message): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.readMessage(Message.fromJSON(message));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "readMessage", args: [message] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "readMessage", args: [message] }));
 
       if (message.status == MessageStatus.Sending || message.status == MessageStatus.Sended || message.status == MessageStatus.Received) {
         if (message.type == MessageType.Audio) {
@@ -489,13 +502,13 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param text Novo texto da mensagem
    */
   public async editMessage(message: Message, text: string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.editMessage(Message.fromJSON({ ...(message || {}), text, isEdited: true }));
     } else {
       message.text = text;
       message.isEdited = true;
 
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "editMessage", args: [message, text] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "editMessage", args: [message, text] }));
     }
   }
 
@@ -504,12 +517,12 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param reaction Reação
    */
   public async addReaction(message: Message, reaction: string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       message = Message.fromJSON(message);
 
       await this.bot.addReaction(new ReactionMessage(message.chat, reaction, message, { user: message.user }));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "addReaction", args: [message, reaction] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "addReaction", args: [message, reaction] }));
     }
   }
 
@@ -517,12 +530,12 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param message Mensagem que terá sua reação removida
    */
   public async removeReaction(message: Message): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       message = Message.fromJSON(message);
 
       await this.bot.removeReaction(new ReactionMessage(message.chat, "", message, { user: message.user }));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "removeReaction", args: [message] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "removeReaction", args: [message] }));
     }
   }
 
@@ -572,14 +585,14 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Retorna o conteudo enviado
    */
   public async send(message: Message): Promise<Message> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return Message.apply(await this.bot.send(Message.fromJSON(message)), { clientId: this.id, botId: this.bot.id });
     } else {
       if (!this.config.disableAutoTyping) {
         await this.changeChatStatus(message.chat, ChatStatus.Typing);
       }
 
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "send", args: [message] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "send", args: [message] }));
 
       return Message.fromJSON(workerMessage.getData().result || message);
     }
@@ -624,19 +637,19 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
       return readFileSync(message.file);
     }
 
-    if (this.isPrimary) {
+    if (this.isMain) {
       return await this.bot.downloadStreamMessage(message.file);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "downloadStreamMessage", args: [message] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "downloadStreamMessage", args: [message] }));
     }
   }
 
   /** @returns Retorna o nome do bot */
   public async getBotName(): Promise<string> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return await this.bot.getBotName();
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getBotName", args: [] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getBotName", args: [] }));
 
       return workerMessage.getData().result || "";
     }
@@ -646,19 +659,19 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param name Nome do bot
    */
   public async setBotName(name: string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.setBotName(name);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "setBotName", args: [name] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setBotName", args: [name] }));
     }
   }
 
   /** @returns Retorna a descrição do bot */
   public async getBotDescription(): Promise<string> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return await this.bot.getBotDescription();
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getBotDescription", args: [] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getBotDescription", args: [] }));
 
       return workerMessage.getData().result || "";
     }
@@ -668,19 +681,19 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param description Descrição do bot
    */
   public async setBotDescription(description: string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.setBotDescription(description);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "setBotDescription", args: [description] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setBotDescription", args: [description] }));
     }
   }
 
   /** @returns Retorna foto de perfil do bot */
   public async getBotProfile(lowQuality?: boolean): Promise<Buffer> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return await this.bot.getBotProfile(lowQuality);
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getBotProfile", args: [lowQuality] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getBotProfile", args: [lowQuality] }));
 
       return workerMessage.getData().result || Buffer.from("");
     }
@@ -690,10 +703,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param image Imagem de perfil do bot
    */
   public async setBotProfile(profile: Buffer) {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.setBotProfile(profile);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "setBotProfile", args: [profile] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setBotProfile", args: [profile] }));
     }
   }
 
@@ -702,14 +715,14 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Retorna uma sala de bate-papo
    */
   public async getChat(chat: Chat | string): Promise<Chat | null> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       const chatData = await this.bot.getChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
 
       if (chatData == null) return null;
 
       return Chat.apply(chatData, { clientId: this.id, botId: this.bot.id });
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getChat", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChat", args: [chat] }));
 
       const chatData = workerMessage.getData().result || null;
 
@@ -725,16 +738,16 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param chat - Dados do chat que será atualizado.
    */
   public async updateChat(id: string, chat: Partial<Chat>): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.updateChat({ ...chat, id });
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "updateChat", args: [id, chat] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "updateChat", args: [id, chat] }));
     }
   }
 
   /** @returns Retorna as sala de bate-papo que o bot está */
   public async getChats(): Promise<Chat[]> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       const ids: string[] = await this.bot.getChats();
       const chats: Chat[] = [];
 
@@ -750,7 +763,7 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
 
       return chats;
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getChats", args: [] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChats", args: [] }));
 
       return (workerMessage.getData().result || []).map((chat: Chat) => Chat.fromJSON(chat)) as Chat[];
     }
@@ -760,10 +773,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param chats Salas de bate-papo
    */
   public async setChats(chats: Chat[]): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.setChats((chats || []).map((chat) => Chat.fromJSON(chat)));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "setChats", args: [chats] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setChats", args: [chats] }));
     }
   }
 
@@ -771,10 +784,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param chat Sala de bate-papo
    */
   public async removeChat(chat: string | Chat): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.removeChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "removeChat", args: [chat] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "removeChat", args: [chat] }));
     }
   }
 
@@ -782,10 +795,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param chat Sala de bate-papo
    */
   public async createChat(chat: Chat): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.createChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "createChat", args: [chat] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "createChat", args: [chat] }));
     }
   }
 
@@ -793,10 +806,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param chat Sala de bate-papo
    */
   public async leaveChat(chat: Chat | string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.leaveChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "leaveChat", args: [chat] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "leaveChat", args: [chat] }));
     }
   }
 
@@ -805,10 +818,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Retorna o nome da sala de bate-papo
    */
   public async getChatName(chat: Chat | string): Promise<string> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return await this.bot.getChatName(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatName", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatName", args: [chat] }));
 
       return workerMessage.getData().result || "";
     }
@@ -819,10 +832,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param name Nome da sala de bate-papo
    */
   public async setChatName(chat: Chat | string, name: string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.setChatName(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), name);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "setChatName", args: [chat, name] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setChatName", args: [chat, name] }));
     }
   }
 
@@ -831,10 +844,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Retorna a descrição da sala de bate-papo
    */
   public async getChatDescription(chat: Chat | string): Promise<string> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return await this.bot.getChatDescription(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatDescription", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatDescription", args: [chat] }));
 
       return workerMessage.getData().result || "";
     }
@@ -845,10 +858,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param description Descrição da sala de bate-papo
    */
   public async setChatDescription(chat: Chat | string, description: string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.setChatDescription(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), description);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "setChatDescription", args: [chat, description] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setChatDescription", args: [chat, description] }));
     }
   }
 
@@ -857,10 +870,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Retorna a imagem de perfil da sala de bate-papo
    */
   public async getChatProfile(chat: Chat | string, lowQuality?: boolean): Promise<Buffer> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return await this.bot.getChatProfile(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), lowQuality);
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatProfile", args: [chat, lowQuality] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatProfile", args: [chat, lowQuality] }));
 
       return workerMessage.getData().result || Buffer.from("");
     }
@@ -871,10 +884,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param profile Imagem de perfil da sala de bate-papo
    */
   public async setChatProfile(chat: Chat | string, profile: Buffer): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.setChatProfile(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), profile);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "setChatProfile", args: [chat, profile] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setChatProfile", args: [chat, profile] }));
     }
   }
 
@@ -883,10 +896,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Retorna o lider da sala de bate-papo
    */
   public async getChatLeader(chat: Chat | string): Promise<User> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return User.apply(await this.bot.getChatLeader(Chat.apply(chat, { clientId: this.id, botId: this.bot.id })), { clientId: this.id, botId: this.bot.id });
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatLeader", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatLeader", args: [chat] }));
 
       return User.fromJSON(workerMessage.getData().result || {});
     }
@@ -897,10 +910,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Retorna os usuários de uma sala de bate-papo
    */
   public async getChatUsers(chat: Chat | string): Promise<string[]> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return await this.bot.getChatUsers(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatUsers", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatUsers", args: [chat] }));
 
       return workerMessage.getData().result || [];
     }
@@ -911,10 +924,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Retorna os administradores de uma sala de bate-papo
    */
   public async getChatAdmins(chat: Chat | string): Promise<string[]> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return await this.bot.getChatAdmins(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatAdmins", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatAdmins", args: [chat] }));
 
       return workerMessage.getData().result || [];
     }
@@ -925,10 +938,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param user Usuário
    */
   public async addUserInChat(chat: Chat | string, user: User | string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.addUserInChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "addUserInChat", args: [chat, user] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "addUserInChat", args: [chat, user] }));
     }
   }
 
@@ -937,10 +950,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param user Usuário
    */
   public async removeUserInChat(chat: Chat | string, user: User | string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.removeUserInChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "removeUserInChat", args: [chat, user] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "removeUserInChat", args: [chat, user] }));
     }
   }
 
@@ -949,10 +962,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param user Usuário
    */
   public async promoteUserInChat(chat: Chat | string, user: User | string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.promoteUserInChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "promoteUserInChat", args: [chat, user] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "promoteUserInChat", args: [chat, user] }));
     }
   }
 
@@ -961,10 +974,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param user Usuário
    */
   public async demoteUserInChat(chat: Chat | string, user: User | string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.demoteUserInChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "demoteUserInChat", args: [chat, user] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "demoteUserInChat", args: [chat, user] }));
     }
   }
 
@@ -973,10 +986,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param status Status da sala de bate-papo
    */
   public async changeChatStatus(chat: Chat | string, status: ChatStatus): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.changeChatStatus(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), status);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "changeChatStatus", args: [chat, status] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "changeChatStatus", args: [chat, status] }));
     }
   }
 
@@ -985,10 +998,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param code - Código de convite do chat.
    */
   public async joinChat(code: string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.joinChat(code);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "joinChat", args: [code] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "joinChat", args: [code] }));
     }
   }
 
@@ -998,10 +1011,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns O código de convite do chat.
    */
   public async getChatEnvite(chat: Chat | string): Promise<string> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return await this.bot.getChatEnvite(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatEnvite", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatEnvite", args: [chat] }));
 
       return workerMessage.getData().result || "";
     }
@@ -1013,10 +1026,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns O novo código de convite do chat.
    */
   public async revokeChatEnvite(chat: Chat | string): Promise<string> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       return await this.bot.revokeChatEnvite(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "revokeChatEnvite", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "revokeChatEnvite", args: [chat] }));
 
       return workerMessage.getData().result || "";
     }
@@ -1024,7 +1037,7 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
 
   /** @returns Retorna a lista de usuários do bot */
   public async getUsers(): Promise<User[]> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       const ids: string[] = await this.bot.getUsers();
       const users: User[] = [];
 
@@ -1040,7 +1053,7 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
 
       return users;
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getUsers", args: [] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getUsers", args: [] }));
 
       return (workerMessage.getData().result || []).map((user: User) => User.fromJSON(user)) as User[];
     }
@@ -1051,7 +1064,7 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Lista de usuários salvos.
    */
   public async getSavedUsers(): Promise<User[]> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       const ids: string[] = await this.bot.getUsers();
       const users: User[] = [];
 
@@ -1067,7 +1080,7 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
 
       return users;
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getSavedUsers", args: [] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getSavedUsers", args: [] }));
 
       return (workerMessage.getData().result || []).map((user: User) => User.fromJSON(user)) as User[];
     }
@@ -1077,10 +1090,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param users Usuários
    */
   public async setUsers(users: User[]): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.setUsers(users);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "setUsers", args: [users] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setUsers", args: [users] }));
     }
   }
 
@@ -1089,14 +1102,14 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Retorna um usuário
    */
   public async getUser(user: User | string): Promise<User | null> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       const userData = await this.bot.getUser(User.apply(user, { clientId: this.id, botId: this.bot.id }));
 
       if (userData == null) return null;
 
       return User.apply(userData, { clientId: this.id, botId: this.bot.id });
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getUser", args: [user] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getUser", args: [user] }));
 
       const userData = workerMessage.getData().result || null;
 
@@ -1112,10 +1125,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param user - Dados do usuário que será atualizado.
    */
   public async updateUser(id: string, user: Partial<User>): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.updateUser({ ...user, id });
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "updateUser", args: [id, user] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "updateUser", args: [id, user] }));
     }
   }
 
@@ -1123,10 +1136,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param user Usuário
    */
   public async removeUser(user: User | string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.removeUser(User.apply(user, { clientId: this.id, botId: this.bot.id }));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "removeUser", args: [user] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "removeUser", args: [user] }));
     }
   }
 
@@ -1135,12 +1148,12 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Retorna o nome do usuário
    */
   public async getUserName(user: User | string): Promise<string> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       if (User.getId(user) == this.id) return this.getBotName();
 
       return await this.bot.getUserName(User.apply(user, { clientId: this.id, botId: this.bot.id }));
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getUserName", args: [user] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getUserName", args: [user] }));
 
       return workerMessage.getData().result || "";
     }
@@ -1151,14 +1164,14 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param name Nome do usuário
    */
   public async setUserName(user: User | string, name: string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       if (User.getId(user) == this.id) {
         await this.setBotName(name);
       }
 
       await this.bot.setUserName(User.apply(user, { clientId: this.id, botId: this.bot.id }), name);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "setUserName", args: [user, name] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setUserName", args: [user, name] }));
     }
   }
 
@@ -1167,14 +1180,14 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Retorna a descrição do usuário
    */
   public async getUserDescription(user: User | string): Promise<string> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       if (User.getId(user) == this.id) {
         return await this.getBotDescription();
       }
 
       return await this.bot.getUserDescription(User.apply(user, { clientId: this.id, botId: this.bot.id }));
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getUserDescription", args: [user] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getUserDescription", args: [user] }));
 
       return workerMessage.getData().result || "";
     }
@@ -1185,14 +1198,14 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param description Descrição do usuário
    */
   public async setUserDescription(user: User | string, description: string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       if (User.getId(user) == this.id) {
         await this.setBotDescription(description);
       }
 
       await this.bot.setUserDescription(User.apply(user, { clientId: this.id, botId: this.bot.id }), description);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "setUserDescription", args: [user, description] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setUserDescription", args: [user, description] }));
     }
   }
 
@@ -1201,14 +1214,14 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @returns Retorna a foto de perfil do usuário
    */
   public async getUserProfile(user: User | string, lowQuality?: boolean): Promise<Buffer> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       if (User.getId(user) == this.id) {
         return await this.getBotProfile(lowQuality);
       }
 
       return await this.bot.getUserProfile(User.apply(user, { clientId: this.id, botId: this.bot.id }), lowQuality);
     } else {
-      const workerMessage = await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "getUserProfile", args: [user, lowQuality] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getUserProfile", args: [user, lowQuality] }));
 
       return workerMessage.getData().result || Buffer.from("");
     }
@@ -1219,14 +1232,14 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param profile Imagem de perfil do usuário
    */
   public async setUserProfile(user: User | string, profile: Buffer): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       if (User.getId(user) == this.id) {
         await this.setBotProfile(profile);
       }
 
       await this.bot.setUserProfile(User.apply(user, { clientId: this.id, botId: this.bot.id }), profile);
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "setUserProfile", args: [user, profile] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setUserProfile", args: [user, profile] }));
     }
   }
 
@@ -1234,10 +1247,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param user Usuário
    */
   public async unblockUser(user: User | string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.unblockUser(User.apply(user, { clientId: this.id, botId: this.bot.id }));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "unblockUser", args: [user] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "unblockUser", args: [user] }));
     }
   }
 
@@ -1245,10 +1258,10 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
    * @param user Usuário
    */
   public async blockUser(user: User | string): Promise<void> {
-    if (this.isPrimary) {
+    if (this.isMain) {
       await this.bot.blockUser(User.apply(user, { clientId: this.id, botId: this.bot.id }));
     } else {
-      await this.workerSend(new WorkerMessage(WorkerMessageTag.Func, { name: "blockUser", args: [user] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "blockUser", args: [user] }));
     }
   }
 
@@ -1284,7 +1297,7 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
       return clients[id];
     }
 
-    return new ClientChild(cluster.worker, new BotBase());
+    return new ClientChild(id, cluster.worker, new BotBase());
   }
 
   /**

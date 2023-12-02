@@ -21,6 +21,8 @@ export default class WorkerMessage {
   public uid: string = "";
   /** ID do cliente da mensagem */
   public clientId: string = "";
+  /** É de um cliente principal */
+  public isMain: boolean = false;
   /** ID da mensagem */
   public id: string = "";
   /** Tag da mensagem */
@@ -28,7 +30,7 @@ export default class WorkerMessage {
   /** Data da mensagem */
   public data: WorkerMessageData;
 
-  constructor(tag: WorkerMessageTag = WorkerMessageTag.Patch, data: WorkerMessageData = {}) {
+  constructor(tag: WorkerMessageTag = WorkerMessageTag.Void, data: WorkerMessageData = {}) {
     this.tag = tag;
     this.data = data;
   }
@@ -74,7 +76,15 @@ export default class WorkerMessage {
   }
 
   public toJSON() {
-    return JSON.parse(JSON.stringify(this));
+    const data: Record<string, any> = {};
+
+    for (const key of Object.keys(this)) {
+      if (key == "toJSON") continue;
+
+      data[key] = this[key];
+    }
+
+    return JSON.parse(JSON.stringify(data));
   }
 
   public static fromJSON(data: any): WorkerMessage {
