@@ -7,7 +7,7 @@ yarn-error.log*
 lerna-debug.log*
 
 # Baileys
-auth
+auth-*
 example/auth
 
 # Utils
