@@ -7,6 +7,7 @@
   "scripts": {
     "example": "ts-node-dev -r tsconfig-paths/register example/index.ts",
     "dev": "ts-node-dev -r tsconfig-paths/register example/index.ts",
+    "cluster": "ts-node-dev -r tsconfig-paths/register example/cluster.ts",
     "build": "npm i && npm run clean && tsc && tsc-alias",
     "clean": "rimraf lib"
   },
