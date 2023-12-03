@@ -1,6 +1,6 @@
-import { IBot } from "src/bot";
-import { Client } from "src/client";
 import { injectJSON } from "src/utils";
+import { Client } from "src/client";
+import { IBot } from "src/bot";
 
 /** Tag da mensagem do worker */
 export enum WorkerMessageTag {
@@ -91,6 +91,15 @@ export default class WorkerMessage {
   }
 
   public static fromJSON(data: any): WorkerMessage {
-    return injectJSON(data, new WorkerMessage());
+    return injectJSON(
+      JSON.parse(JSON.stringify(data), (_, value) => {
+        if (typeof value === "object" && !!value && (value.buffer === true || value.type === "Buffer")) {
+          return Buffer.from(value.data || value.value || []);
+        }
+
+        return value;
+      }),
+      new WorkerMessage()
+    );
   }
 }
