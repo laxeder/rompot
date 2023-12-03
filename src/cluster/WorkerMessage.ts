@@ -23,6 +23,8 @@ export default class WorkerMessage {
   public clientId: string = "";
   /** É de um cliente principal */
   public isMain: boolean = false;
+  /** É uma mensagem para o processo principal */
+  public isPrimary: boolean = false;
   /** ID da mensagem */
   public id: string = "";
   /** Tag da mensagem */

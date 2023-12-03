@@ -125,11 +125,8 @@ export default class ClientCluster extends ClientEvents {
 
         process.send!(workerMessage.toJSON());
 
-        if (workerMessage.tag == WorkerMessageTag.Patch) {
-          resolve(workerMessage.clone({ tag: WorkerMessageTag.Result, data: { result: undefined } }));
-        }
-
         if (
+          workerMessage.isPrimary ||
           workerMessage.tag == WorkerMessageTag.Event ||
           workerMessage.tag == WorkerMessageTag.Patch ||
           workerMessage.tag == WorkerMessageTag.Result ||
@@ -1334,6 +1331,7 @@ export default class ClientCluster extends ClientEvents {
     const workerMessage = new WorkerMessage(WorkerMessageTag.Patch, {});
 
     workerMessage.id = "save-client";
+    workerMessage.isPrimary = true;
 
     client.sendWorkerMessage(workerMessage);
   }
@@ -1380,13 +1378,11 @@ export default class ClientCluster extends ClientEvents {
         try {
           if (workerMessage.uid != "rompot") return;
 
-          if (workerMessage.id == "save-client") {
-            if (!global[GlobalRompotCluster].clients[worker.id]?.includes(workerMessage.clientId)) {
-              global[GlobalRompotCluster].clients[worker.id] = [...(global[GlobalRompotCluster].clients[worker.id] || []), workerMessage.clientId];
-            }
-
-            return;
+          if (!global[GlobalRompotCluster].clients[worker.id]?.includes(workerMessage.clientId)) {
+            global[GlobalRompotCluster].clients[worker.id] = [...(global[GlobalRompotCluster].clients[worker.id] || []), workerMessage.clientId];
           }
+
+          if (workerMessage.isPrimary) return;
 
           for (const workerId of Object.keys(global[GlobalRompotCluster]?.clients || {})) {
             try {
