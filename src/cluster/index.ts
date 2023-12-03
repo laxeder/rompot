@@ -1,8 +1,7 @@
-import ClientChild from "./ClientChild";
+import ClientCluster from "./ClientCluster";
 import WorkerMessage from "./WorkerMessage";
 
-export * from "./ClientChild";
 export * from "./ClientCluster";
 export * from "./WorkerMessage";
 
-export { ClientChild, WorkerMessage };
+export { ClientCluster, WorkerMessage };

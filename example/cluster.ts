@@ -1,51 +1,50 @@
 import cluster from "cluster";
 import { cpus } from "os";
 
-import { BotBase, ClientChild, EmptyMessage, Message, WhatsAppBot, configCluster, saveWorker } from "../src/index";
+import { ClientCluster, EmptyMessage, Message, WhatsAppBot } from "../src/index";
 
 async function start() {
   if (cluster.isPrimary) {
-    configCluster();
+    ClientCluster.configCluster();
 
     for (let i = 0; i < cpus().length; i++) {
-      saveWorker(cluster.fork());
+      cluster.fork();
     }
   } else {
     const worker = cluster.worker;
 
     if (!worker) return;
 
-    const clientMain = new ClientChild(
-      ClientChild.generateId(),
-      worker,
-      new WhatsAppBot({ printQRInTerminal: false }),
-      {
-        disableAutoCommand: false,
-        disableAutoTyping: false,
-        disableAutoRead: false,
-      },
-      `./example/auth-${worker.id}`,
-      true
-    );
+    const id = `${worker.id > 2 ? worker.id - 2 : worker.id}`;
 
-    const clientChild = new ClientChild(clientMain.id, worker, new BotBase(), clientMain.config);
+    const config = {
+      disableAutoCommand: false,
+      disableAutoTyping: false,
+      disableAutoRead: false,
+    };
 
-    clientChild.on("open", () => {
-      console.info("Cliente conectado!");
-    });
+    if (worker.id < 3) {
+      ClientCluster.createMain(id, worker, new WhatsAppBot({ printQRInTerminal: false }), `./example/auth-${id}`, config);
+    } else {
+      const clientChild = new ClientCluster(id, worker, config);
 
-    clientChild.on("message", async (message: Message) => {
-      if (EmptyMessage.isValid(message)) return;
-      if (message.isOld) return;
+      clientChild.on("conn", (update) => {
+        console.info("Connection update:", update);
+      });
 
-      console.info(`RECEIVE MESSAGE [${message.chat.id}]`, message.id);
-    });
+      clientChild.on("message", async (message: Message) => {
+        if (EmptyMessage.isValid(message)) return;
+        if (message.isOld) return;
 
-    clientChild.on("error", (err: any) => {
-      console.info("Um erro ocorreu:", err);
-    });
+        console.info(`RECEIVE MESSAGE [${message.chat.id}]`, message.id);
+      });
 
-    await clientChild.connect();
+      clientChild.on("error", (err: any) => {
+        console.info("Um erro ocorreu:", err);
+      });
+
+      await clientChild.connect();
+    }
   }
 }
 
