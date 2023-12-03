@@ -129,11 +129,21 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
           resolve(workerMessage.clone({ tag: WorkerMessageTag.Result, data: { result: undefined } }));
         }
 
-        setTimeout(() => {
-          if (!this.requests.hasOwnProperty(id)) return;
+        if (
+          workerMessage.tag == WorkerMessageTag.Event ||
+          workerMessage.tag == WorkerMessageTag.Patch ||
+          workerMessage.tag == WorkerMessageTag.Result ||
+          workerMessage.tag == WorkerMessageTag.Void ||
+          workerMessage.tag == WorkerMessageTag.Error
+        ) {
+          resolve(workerMessage.clone({ tag: WorkerMessageTag.Result, data: { result: undefined } }));
+        } else if (workerMessage.autoCancel) {
+          setTimeout(() => {
+            if (!this.requests.hasOwnProperty(id)) return;
 
-          resolve(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: "Timeout" } }));
-        }, this.config.maxTimeout);
+            resolve(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: "Timeout" } }));
+          }, this.config.maxTimeout);
+        }
       } catch (error) {
         resolve(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: error?.message || "Internal error" } }));
       }
@@ -330,7 +340,7 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
     if (this.isMain) {
       await this.bot.connect(typeof auth != "string" || !auth ? this.auth : auth);
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "connect", args: [auth] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "connect", args: [auth] }, false));
     }
   }
 
@@ -354,7 +364,7 @@ export default class ClientChild<Bot extends IBot> extends ClientEvents {
     if (this.isMain) {
       await this.bot.reconnect(alert);
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "reconnect", args: [alert] }));
+      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "reconnect", args: [alert] }, false));
     }
   }
 

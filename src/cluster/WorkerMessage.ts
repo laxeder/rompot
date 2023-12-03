@@ -29,10 +29,13 @@ export default class WorkerMessage {
   public tag: WorkerMessageTag;
   /** Data da mensagem */
   public data: WorkerMessageData;
+  /** Auto cancela a mensagem acaso demore */
+  public autoCancel: boolean;
 
-  constructor(tag: WorkerMessageTag = WorkerMessageTag.Void, data: WorkerMessageData = {}) {
+  constructor(tag: WorkerMessageTag = WorkerMessageTag.Void, data: WorkerMessageData = {}, autoCancel: boolean = true) {
     this.tag = tag;
     this.data = data;
+    this.autoCancel = autoCancel;
   }
 
   public getData() {
