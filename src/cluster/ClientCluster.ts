@@ -219,6 +219,16 @@ export default class ClientCluster extends ClientEvents {
       }
     });
 
+    this.on("error", async (update) => {
+      try {
+        if (this.isMain) {
+          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "error", arg: update }));
+        }
+      } catch (err) {
+        this.emit("error", getError(err));
+      }
+    });
+
     this.bot.on("open", async (update) => {
       try {
         if (this.isMain) {
@@ -302,10 +312,14 @@ export default class ClientCluster extends ClientEvents {
     });
 
     this.bot.on("chat", async (update) => {
-      if (this.isMain) {
-        await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "chat", arg: update }));
-      } else {
-        this.emit("chat", { ...update, chat: { ...update.chat, clientId: this.id, botId: this.bot.id } });
+      try {
+        if (this.isMain) {
+          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "chat", arg: update }));
+        } else {
+          this.emit("chat", { ...update, chat: { ...update.chat, clientId: this.id, botId: this.bot.id } });
+        }
+      } catch (err) {
+        this.emit("error", getError(err));
       }
     });
 
