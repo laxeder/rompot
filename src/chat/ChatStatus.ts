@@ -4,4 +4,5 @@ export enum ChatStatus {
   Offline = "offline",
   Recording = "recording",
   Typing = "typing",
+  Paused = "paused"
 }

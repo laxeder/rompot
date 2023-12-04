@@ -7,4 +7,5 @@ export const WAStatus: Record<ChatStatus, WAPresence> = {
   [ChatStatus.Recording]: "recording",
   [ChatStatus.Online]: "available",
   [ChatStatus.Offline]: "unavailable",
+  [ChatStatus.Paused]: "paused",
 };
