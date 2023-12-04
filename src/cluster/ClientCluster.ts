@@ -1,4 +1,4 @@
-import cluster, { Worker } from "cluster";
+import { Cluster, Worker } from "cluster";
 import { readFileSync } from "fs";
 
 import { DEFAULT_CONNECTION_CONFIG } from "../configs/Defaults";
@@ -1314,7 +1314,7 @@ export default class ClientCluster extends ClientEvents {
       return clients[id];
     }
 
-    return new ClientCluster(id, cluster.worker);
+    return new ClientCluster(id, global["rompot-cluster-save"]?.worker);
   }
 
   /**
@@ -1361,48 +1361,48 @@ export default class ClientCluster extends ClientEvents {
   }
 
   /** Configura o cluster para o cliente */
-  public static configCluster() {
-    if (cluster.isPrimary) {
-      global[GlobalRompotCluster] = {
-        workers: { ...(global[GlobalRompotCluster]?.workers || {}) },
-        clients: { ...(global[GlobalRompotCluster]?.clients || {}) },
-      };
+  public static configCluster(cluster: Cluster) {
+    global["rompot-cluster-save"] = cluster;
 
-      cluster.on("fork", (worker) => {
-        global[GlobalRompotCluster].workers[`${worker.id}`] = worker;
-      });
+    global[GlobalRompotCluster] = {
+      workers: { ...(global[GlobalRompotCluster]?.workers || {}) },
+      clients: { ...(global[GlobalRompotCluster]?.clients || {}) },
+    };
 
-      cluster.on("message", (worker, message) => {
-        const workerMessage = WorkerMessage.fromJSON(message);
+    cluster.on("fork", (worker) => {
+      global[GlobalRompotCluster].workers[`${worker.id}`] = worker;
+    });
 
-        try {
-          if (workerMessage.uid != "rompot") return;
+    cluster.on("message", (worker, message) => {
+      const workerMessage = WorkerMessage.fromJSON(message);
 
-          if (!global[GlobalRompotCluster].clients[worker.id]?.includes(workerMessage.clientId)) {
-            global[GlobalRompotCluster].clients[worker.id] = [...(global[GlobalRompotCluster].clients[worker.id] || []), workerMessage.clientId];
-          }
+      try {
+        if (workerMessage.uid != "rompot") return;
 
-          if (workerMessage.isPrimary) return;
-
-          for (const workerId of Object.keys(global[GlobalRompotCluster]?.clients || {})) {
-            try {
-              for (const clientId of global[GlobalRompotCluster]?.clients[workerId] || []) {
-                if (clientId != workerMessage.clientId) continue;
-
-                const workerReceive = global[GlobalRompotCluster].workers[workerId] as Worker;
-
-                if (!workerReceive) continue;
-
-                workerReceive.send(workerMessage);
-              }
-            } catch (error) {
-              worker.send(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: "Error in send message from worker" } }));
-            }
-          }
-        } catch (error) {
-          worker.send(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: "Error in receive message from worker" } }));
+        if (!global[GlobalRompotCluster].clients[worker.id]?.includes(workerMessage.clientId)) {
+          global[GlobalRompotCluster].clients[worker.id] = [...(global[GlobalRompotCluster].clients[worker.id] || []), workerMessage.clientId];
         }
-      });
-    }
+
+        if (workerMessage.isPrimary) return;
+
+        for (const workerId of Object.keys(global[GlobalRompotCluster]?.clients || {})) {
+          try {
+            for (const clientId of global[GlobalRompotCluster]?.clients[workerId] || []) {
+              if (clientId != workerMessage.clientId) continue;
+
+              const workerReceive = global[GlobalRompotCluster].workers[workerId] as Worker;
+
+              if (!workerReceive) continue;
+
+              workerReceive.send(workerMessage);
+            }
+          } catch (error) {
+            worker.send(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: "Error in send message from worker" } }));
+          }
+        }
+      } catch (error) {
+        worker.send(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: "Error in receive message from worker" } }));
+      }
+    });
   }
 }
