@@ -620,7 +620,7 @@ export default class ClientCluster extends ClientEvents {
       return Message.apply(await this.bot.send(Message.fromJSON(message)), { clientId: this.id, botId: this.bot.id });
     } else {
       if (!this.config.disableAutoTyping) {
-        await this.changeChatStatus(message.chat, ChatStatus.Typing);
+        await this.changeChatStatus(message.chat, message.type == "audio" ? ChatStatus.Recording : ChatStatus.Typing);
       }
 
       const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "send", args: [message] }));
