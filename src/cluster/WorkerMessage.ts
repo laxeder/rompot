@@ -1,6 +1,6 @@
-import { injectJSON } from "src/utils";
-import { Client } from "src/client";
-import { IBot } from "src/bot";
+import { injectJSON } from "../utils/Generic";
+import Client from "../client/Client";
+import IBot from "../bot/IBot";
 
 /** Tag da mensagem do worker */
 export enum WorkerMessageTag {
