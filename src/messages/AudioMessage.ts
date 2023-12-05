@@ -8,6 +8,10 @@ export default class AudioMessage extends MediaMessage {
   public readonly type = MessageType.Audio;
   /** O tipo MIME da mensagem de áudio (padrão é "audio/mp4"). */
   public mimetype: string = "audio/mp4";
+  /** É uma mensagem de audio gravada */
+  public isPTT: boolean = false;
+  /** Duração do audio */
+  public duration: number = 0;
 
   /**
    * Cria uma nova instância de AudioMessage.

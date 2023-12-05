@@ -128,24 +128,26 @@ export class ConvertToWAMessage {
   public async refactoryMediaMessage(message: MediaMessage) {
     const stream = await message.getStream();
 
-    if (ImageMessage.isValid(message)) {
-      this.waMessage.image = stream;
-    }
-
-    if (VideoMessage.isValid(message)) {
-      this.waMessage.video = stream;
-    }
-
+    // Convert audio message
     if (AudioMessage.isValid(message)) {
       this.waMessage.audio = stream;
-    }
+      this.waMessage.ptt = !!message.isPTT;
 
-    if (FileMessage.isValid(message)) {
-      this.waMessage.document = stream;
-    }
+      // Convert image message
+    } else if (ImageMessage.isValid(message)) {
+      this.waMessage.image = stream;
 
-    if (StickerMessage.isValid(message)) {
+      // Convert video message
+    } else if (VideoMessage.isValid(message)) {
+      this.waMessage.video = stream;
+
+      // Convert sticker message
+    } else if (StickerMessage.isValid(message)) {
       await this.refatoryStickerMessage(message);
+
+      // Convert default media message (includes file)
+    } else {
+      this.waMessage.document = stream;
     }
 
     this.waMessage.gifPlayback = !!message?.isGIF;

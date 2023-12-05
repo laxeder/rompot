@@ -293,7 +293,7 @@ export class ConvertWAMessage {
     }
 
     if (contentType == "audioMessage") {
-      msg = AudioMessage.fromJSON({ ...msg, type: MessageType.Audio, file });
+      msg = AudioMessage.fromJSON({ ...msg, type: MessageType.Audio, file, isPTT: !!content.ptt, duration: content.seconds || 0 });
     }
 
     if (contentType == "stickerMessage") {
