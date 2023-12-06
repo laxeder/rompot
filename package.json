@@ -1,6 +1,6 @@
 {
   "name": "rompot",
-  "version": "1.8.4s",
+  "version": "1.8.5",
   "description": "Chatbot API em TypeScript",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
