@@ -154,7 +154,10 @@ export default class WhatsAppBot extends BotEvents implements IBot {
         this.saveCreds = saveCreds;
 
         this.sock = makeWASocket({
-          auth: state,
+          auth: {
+            creds: state.creds,
+            keys: baileys.makeCacheableSignalKeyStore(state.keys, this.config.logger),
+          },
           ...this.config,
         });
 
