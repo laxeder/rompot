@@ -79,22 +79,19 @@ export declare type ObjectJSON = { [key: string]: any | ObjectJSON };
  * @param objectIn Objeto com novos valores
  * @param objectOut Objeto que receberá os novos valores
  * @param recursive Injeta dados recursivamente
+ * @param force Força injetar dados
  * @returns Retorna o objeto com os novos valores
  */
-export function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut: T, recursive: boolean = false): T {
+export function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut: T, recursive: boolean = false, force: boolean = false): T {
   if (typeof objectIn != "object" || objectIn == null) return objectOut;
 
   Object.keys(objectIn).forEach((keyIn) => {
     const keyOut: keyof T = keyIn;
 
-    if (!objectOut.hasOwnProperty(keyOut)) return;
+    if (!objectOut.hasOwnProperty(keyOut) && !force) return;
 
     const typeOut = typeof objectOut[keyOut];
     const typeIn = typeof objectIn[keyIn];
-
-    if (typeOut == "undefined") {
-      objectOut[keyOut] = objectIn[keyIn];
-    }
 
     if (typeOut == typeIn) {
       if (typeOut == "object" && recursive && !Array.isArray(objectOut[keyOut]) && !Array.isArray(objectIn[keyIn])) {
@@ -102,14 +99,14 @@ export function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut
       } else {
         objectOut[keyOut] = objectIn[keyIn];
       }
-    }
-
-    if (typeOut == "string" && typeIn == "number") {
+    } else if (typeOut == "string" && typeIn == "number") {
       objectIn[keyIn] = String(objectIn[keyIn]);
-    }
-
-    if (typeOut == "number" && typeIn == "string") {
+    } else if (typeOut == "number" && typeIn == "string") {
       objectIn[keyIn] = Number(objectIn[keyIn]);
+    } else if (force) {
+      objectOut[keyOut] = objectIn[keyIn];
+    } else if (typeOut == "undefined") {
+      objectOut[keyOut] = objectIn[keyIn];
     }
   });
 
