@@ -419,7 +419,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async getChatProfile(chat: Chat, lowQuality?: boolean) {
-    const uri = await this.funcHandler.exec("chat", "profilePictureUrl", chat.id, !!lowQuality ? "preview" : "image");
+    const uri = await this.getChatProfileUrl(chat, lowQuality);
 
     return await getImageURL(uri);
   }
@@ -590,7 +590,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async getUserProfile(user: User, lowQuality?: boolean) {
-    const uri = await this.funcHandler.exec("user", "profilePictureUrl", user.id, !!lowQuality ? "preview" : "image");
+    const uri = await this.getUserProfileUrl(user, lowQuality);
 
     return await getImageURL(uri);
   }
