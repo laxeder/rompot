@@ -177,7 +177,18 @@ export default class Message {
    * @returns Uma instância de Message criada a partir dos dados JSON.
    */
   public static fromJSON(data: any): Message {
-    return !data || typeof data != "object" ? new Message() : injectJSON(data, new Message());
+    return Message.fix(!data || typeof data != "object" ? new Message() : injectJSON(data, new Message(), false, true));
+  }
+
+  public static fix<T extends Message>(message: T): T {
+    message.chat = Chat.fromJSON(message.chat);
+    message.user = User.fromJSON(message.user);
+
+    if (message.mention) {
+      message.mention = Message.fromJSON(message.mention);
+    }
+
+    return message;
   }
 
   /**

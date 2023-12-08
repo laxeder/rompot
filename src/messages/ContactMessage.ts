@@ -50,7 +50,7 @@ export default class ContactMessage extends Message {
    * @returns Uma instância de ContactMessage.
    */
   public static fromJSON(data: any): ContactMessage {
-    return !data || typeof data != "object" ? new ContactMessage() : injectJSON(data, new ContactMessage());
+    return Message.fix(!data || typeof data != "object" ? new ContactMessage() : injectJSON(data, new ContactMessage()));
   }
 
   /**

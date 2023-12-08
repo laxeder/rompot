@@ -8,7 +8,7 @@ import Chat from "../chat/Chat";
 export default class ErrorMessage extends Message {
   /** O tipo da mensagem é sempre MessageType.Error. */
   public readonly type = MessageType.Error;
-  
+
   /** O erro da mensagem */
   public error: Error;
 
@@ -48,7 +48,7 @@ export default class ErrorMessage extends Message {
    * @returns Uma instância de ErrorMessage.
    */
   public static fromJSON(data: any): ErrorMessage {
-    return !data || typeof data != "object" ? new ErrorMessage() : injectJSON(data, new ErrorMessage());
+    return Message.fix(!data || typeof data != "object" ? new ErrorMessage() : injectJSON(data, new ErrorMessage()));
   }
 
   /**

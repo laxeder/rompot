@@ -41,7 +41,7 @@ export default class TextMessage extends Message {
    * @returns Uma instância de TextMessage criada a partir dos dados JSON.
    */
   public static fromJSON(data: any): TextMessage {
-    return !data || typeof data != "object" ? new TextMessage() : injectJSON(data, new TextMessage());
+    return Message.fix(!data || typeof data != "object" ? new TextMessage() : injectJSON(data, new TextMessage()));
   }
 
   /**

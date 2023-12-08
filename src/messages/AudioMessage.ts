@@ -55,7 +55,7 @@ export default class AudioMessage extends MediaMessage {
    * @returns Uma instância de AudioMessage.
    */
   public static fromJSON(data: any): AudioMessage {
-    return !data || typeof data != "object" ? new AudioMessage() : injectJSON(data, new AudioMessage());
+    return MediaMessage.fix(!data || typeof data != "object" ? new AudioMessage() : injectJSON(data, new AudioMessage()));
   }
 
   /**

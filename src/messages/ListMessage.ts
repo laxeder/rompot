@@ -110,7 +110,7 @@ export default class ListMessage extends Message {
    * @returns Uma instância de ListMessage.
    */
   public static fromJSON(data: any): ListMessage {
-    return !data || typeof data != "object" ? new ListMessage() : injectJSON(data, new ListMessage());
+    return Message.fix(!data || typeof data != "object" ? new ListMessage() : injectJSON(data, new ListMessage()));
   }
 
   /**

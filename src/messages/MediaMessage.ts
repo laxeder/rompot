@@ -65,7 +65,7 @@ export default class MediaMessage extends Message {
    * @returns Uma instância de MediaMessage.
    */
   public static fromJSON(data: any): MediaMessage {
-    return !data || typeof data != "object" ? new MediaMessage() : injectJSON(data, new MediaMessage());
+    return Message.fix(!data || typeof data != "object" ? new MediaMessage() : injectJSON(data, new MediaMessage()));
   }
 
   /**

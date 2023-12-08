@@ -47,7 +47,7 @@ export default class ReactionMessage extends Message {
    * @returns Uma instância de ReactionMessage.
    */
   public static fromJSON(data: any): ReactionMessage {
-    return !data || typeof data != "object" ? new ReactionMessage() : injectJSON(data, new ReactionMessage());
+    return Message.fix(!data || typeof data != "object" ? new ReactionMessage() : injectJSON(data, new ReactionMessage()));
   }
 
   /**

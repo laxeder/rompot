@@ -63,7 +63,7 @@ export default class LocationMessage extends Message {
    * @returns Uma instância de LocationMessage.
    */
   public static fromJSON(data: any): LocationMessage {
-    return !data || typeof data != "object" ? new LocationMessage() : injectJSON(data, new LocationMessage());
+    return Message.fix(!data || typeof data != "object" ? new LocationMessage() : injectJSON(data, new LocationMessage()));
   }
 
   /**

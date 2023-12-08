@@ -1,6 +1,6 @@
 import MediaMessage, { Media } from "./MediaMessage";
 import { injectJSON } from "../utils/Generic";
-import { MessageType } from "./Message";
+import Message, { MessageType } from "./Message";
 import Chat from "../chat/Chat";
 
 /**
@@ -67,7 +67,7 @@ export default class StickerMessage extends MediaMessage {
    * @returns Uma instância de StickerMessage.
    */
   public static fromJSON(data: any): StickerMessage {
-    return !data || typeof data != "object" ? new StickerMessage() : injectJSON(data, new StickerMessage());
+    return Message.fix(!data || typeof data != "object" ? new StickerMessage() : injectJSON(data, new StickerMessage()));
   }
 
   /**

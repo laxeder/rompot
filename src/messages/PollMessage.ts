@@ -119,7 +119,7 @@ export default class PollMessage extends Message {
       return new PollMessage();
     }
 
-    const pollMessage = injectJSON(message, new PollMessage());
+    const pollMessage = Message.fix(injectJSON(message, new PollMessage()));
 
     pollMessage.secretKey = Buffer.from(message?.secretKey || "");
     pollMessage.votes = message?.votes || [];

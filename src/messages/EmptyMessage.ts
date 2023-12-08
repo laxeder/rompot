@@ -30,7 +30,7 @@ export default class EmptyMessage extends Message {
    * @returns Uma instância de EmptyMessage.
    */
   public static fromJSON(data: any): EmptyMessage {
-    return !data || typeof data != "object" ? new EmptyMessage() : injectJSON(data, new EmptyMessage());
+    return Message.fix(!data || typeof data != "object" ? new EmptyMessage() : injectJSON(data, new EmptyMessage()));
   }
 
   /**

@@ -116,7 +116,7 @@ export default class ButtonMessage extends Message {
    * @returns Uma instância de ButtonMessage.
    */
   public static fromJSON(data: any): ButtonMessage {
-    return !data || typeof data != "object" ? new ButtonMessage() : injectJSON(data, new ButtonMessage());
+    return Message.fix(!data || typeof data != "object" ? new ButtonMessage() : injectJSON(data, new ButtonMessage()));
   }
 
   /**
