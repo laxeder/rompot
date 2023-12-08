@@ -1,10 +1,13 @@
 export default class FunctionHandler<D extends any, T extends string> {
+  /** Patterns */
   public patterns: Array<() => Promise<void> | void> = [];
+  /** Todas funções */
+  public awaiting: Function[] = [];
 
   constructor(public data: D, public functions: Record<T, Function[]>) {}
 
   public async exec<F extends (...args: any[]) => any>(row: T, funcName: keyof D, ...args: Parameters<F>): Promise<Awaited<ReturnType<F>>> {
-    return new Promise<Awaited<ReturnType<F>>>(async (resolve) => {
+    return await new Promise<Awaited<ReturnType<F>>>(async (resolve, reject) => {
       try {
         await this.await(row);
 
@@ -22,12 +25,13 @@ export default class FunctionHandler<D extends any, T extends string> {
 
         this.resolve(row);
 
-        throw err;
+        reject(err);
       }
     });
   }
 
   public async await(row: T) {
+    await new Promise((resolve) => this.addAwaiting(resolve));
     await new Promise((resolve) => this.add(row, resolve));
   }
 
@@ -36,6 +40,14 @@ export default class FunctionHandler<D extends any, T extends string> {
 
     if (this.functions[row].length == 1) {
       this.resolve(row);
+    }
+  }
+
+  public addAwaiting(func: Function) {
+    this.awaiting.push(func);
+
+    if (this.awaiting.length == 1) {
+      this.resolveAwaiting();
     }
   }
 
@@ -54,6 +66,22 @@ export default class FunctionHandler<D extends any, T extends string> {
 
     if (func) {
       await func();
+    }
+  }
+
+  public async resolveAwaiting() {
+    if (this.awaiting.length <= 0) return;
+
+    const func = this.awaiting[0];
+
+    if (func) {
+      await func();
+    }
+
+    this.awaiting.shift();
+
+    if (this.awaiting.length > 0) {
+      this.resolveAwaiting();
     }
   }
 }
