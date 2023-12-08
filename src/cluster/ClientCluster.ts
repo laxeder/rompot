@@ -9,6 +9,7 @@ import Message, { MessageStatus, MessageType } from "../messages/Message";
 import WorkerMessage, { WorkerMessageTag } from "./WorkerMessage";
 import { sleep, getError, injectJSON } from "../utils/Generic";
 import CommandController from "../command/CommandController";
+import { getMessageFromJSON } from "../utils/MessageUtils";
 import ReactionMessage from "../messages/ReactionMessage";
 import { CMDRunType } from "../command/CommandEnums";
 import ErrorMessage from "../messages/ErrorMessage";
@@ -162,7 +163,7 @@ export default class ClientCluster extends ClientEvents {
         if (this.isMain) {
           await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "message", arg: message }));
         } else {
-          message = Message.fromJSON(message);
+          message = getMessageFromJSON(message);
 
           message.inject({ clientId: this.id, botId: this.bot.id });
 
@@ -488,7 +489,7 @@ export default class ClientCluster extends ClientEvents {
    */
   public async deleteMessage(message: Message): Promise<void> {
     if (this.isMain) {
-      await this.bot.deleteMessage(Message.fromJSON(message));
+      await this.bot.deleteMessage(getMessageFromJSON(message));
     } else {
       await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "deleteMessage", args: [message] }));
     }
@@ -499,7 +500,7 @@ export default class ClientCluster extends ClientEvents {
    */
   public async removeMessage(message: Message): Promise<void> {
     if (this.isMain) {
-      await this.bot.readMessage(Message.fromJSON(message));
+      await this.bot.readMessage(getMessageFromJSON(message));
     } else {
       await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "removeMessage", args: [message] }));
     }
@@ -510,7 +511,7 @@ export default class ClientCluster extends ClientEvents {
    */
   public async readMessage(message: Message): Promise<void> {
     if (this.isMain) {
-      await this.bot.readMessage(Message.fromJSON(message));
+      await this.bot.readMessage(getMessageFromJSON(message));
     } else {
       await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "readMessage", args: [message] }));
 
@@ -534,7 +535,7 @@ export default class ClientCluster extends ClientEvents {
    */
   public async editMessage(message: Message, text: string): Promise<void> {
     if (this.isMain) {
-      await this.bot.editMessage(Message.fromJSON({ ...(message || {}), text, isEdited: true }));
+      await this.bot.editMessage(getMessageFromJSON({ ...(message || {}), text, isEdited: true }));
     } else {
       message.text = text;
       message.isEdited = true;
@@ -549,7 +550,7 @@ export default class ClientCluster extends ClientEvents {
    */
   public async addReaction(message: Message, reaction: string): Promise<void> {
     if (this.isMain) {
-      message = Message.fromJSON(message);
+      message = getMessageFromJSON(message);
 
       await this.bot.addReaction(new ReactionMessage(message.chat, reaction, message, { user: message.user }));
     } else {
@@ -562,7 +563,7 @@ export default class ClientCluster extends ClientEvents {
    */
   public async removeReaction(message: Message): Promise<void> {
     if (this.isMain) {
-      message = Message.fromJSON(message);
+      message = getMessageFromJSON(message);
 
       await this.bot.removeReaction(new ReactionMessage(message.chat, "", message, { user: message.user }));
     } else {
@@ -617,7 +618,7 @@ export default class ClientCluster extends ClientEvents {
    */
   public async send(message: Message): Promise<Message> {
     if (this.isMain) {
-      return Message.apply(await this.bot.send(Message.fromJSON(message)), { clientId: this.id, botId: this.bot.id });
+      return Message.apply(await this.bot.send(getMessageFromJSON(message)), { clientId: this.id, botId: this.bot.id });
     } else {
       if (!this.config.disableAutoTyping) {
         await this.changeChatStatus(message.chat, message.type == "audio" ? ChatStatus.Recording : ChatStatus.Typing);
@@ -625,7 +626,7 @@ export default class ClientCluster extends ClientEvents {
 
       const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "send", args: [message] }));
 
-      return Message.fromJSON(workerMessage.getData().result || message);
+      return getMessageFromJSON(workerMessage.getData().result || message);
     }
   }
 
