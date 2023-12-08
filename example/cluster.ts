@@ -5,7 +5,7 @@ import { ClientCluster, EmptyMessage, Message, WhatsAppBot } from "../src/index"
 
 async function start() {
   if (cluster.isPrimary) {
-    ClientCluster.configCluster();
+    ClientCluster.configCluster(cluster);
 
     for (let i = 0; i < cpus().length; i++) {
       cluster.fork();
