@@ -56,7 +56,7 @@ export default class VideoMessage extends MediaMessage {
    * @returns Uma instância de VideoMessage criada a partir dos dados JSON.
    */
   public static fromJSON(data: any): VideoMessage {
-    return MediaMessage.fix(!data || typeof data != "object" ? new VideoMessage() : injectJSON(data, new VideoMessage()));
+    return MediaMessage.fromMediaJSON(data, new VideoMessage());
   }
 
   /**

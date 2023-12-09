@@ -67,7 +67,7 @@ export default class StickerMessage extends MediaMessage {
    * @returns Uma instância de StickerMessage.
    */
   public static fromJSON(data: any): StickerMessage {
-    return Message.fix(!data || typeof data != "object" ? new StickerMessage() : injectJSON(data, new StickerMessage()));
+    return MediaMessage.fromMediaJSON(data, new StickerMessage());
   }
 
   /**

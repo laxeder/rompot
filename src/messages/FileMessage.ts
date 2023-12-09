@@ -49,7 +49,7 @@ export default class FileMessage extends MediaMessage {
    * @returns Uma instância de FileMessage.
    */
   public static fromJSON(data: any): FileMessage {
-    return MediaMessage.fix(!data || typeof data != "object" ? new FileMessage() : injectJSON(data, new FileMessage()));
+    return MediaMessage.fromMediaJSON(data, new FileMessage());
   }
 
   /**

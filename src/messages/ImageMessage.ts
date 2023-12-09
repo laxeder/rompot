@@ -55,7 +55,7 @@ export default class ImageMessage extends MediaMessage {
    * @returns Uma instância de ImageMessage.
    */
   public static fromJSON(data: any): ImageMessage {
-    return MediaMessage.fix(!data || typeof data != "object" ? new ImageMessage() : injectJSON(data, new ImageMessage()));
+    return MediaMessage.fromMediaJSON(data, new ImageMessage());
   }
 
   /**

@@ -184,7 +184,7 @@ export default class Message {
     message.chat = Chat.fromJSON(message.chat);
     message.user = User.fromJSON(message.user);
 
-    if (message.mention) {
+    if (message.mention && !(message.mention instanceof Message)) {
       message.mention = Message.fromJSON(message.mention);
     }
 

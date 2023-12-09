@@ -65,7 +65,22 @@ export default class MediaMessage extends Message {
    * @returns Uma instância de MediaMessage.
    */
   public static fromJSON(data: any): MediaMessage {
-    return Message.fix(!data || typeof data != "object" ? new MediaMessage() : injectJSON(data, new MediaMessage()));
+    return MediaMessage.fromMediaJSON(data, new MediaMessage());
+  }
+
+  /**
+   * Desserializa um objeto JSON de mídia em uma instância de MediaMessage.
+   * @param data - O objeto JSON de mídia a ser desserializado.
+   * @returns Uma instância da mensagem de mídia passada.
+   */
+  public static fromMediaJSON<T extends MediaMessage>(data: any, mediaMessage: T): T {
+    mediaMessage = MediaMessage.fix(!data || typeof data != "object" ? mediaMessage : injectJSON(data, mediaMessage));
+
+    if (data && typeof data == "object" && data?.file) {
+      mediaMessage.file = data.file;
+    }
+
+    return mediaMessage;
   }
 
   /**

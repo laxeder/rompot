@@ -22,64 +22,42 @@ export function getMessageFromJSON(data: any) {
   }
 
   if (data?.type == MessageType.Audio) {
-    return AudioMessage.fromJSON(data);
+    var message: Message = AudioMessage.fromJSON(data);
+  } else if (data?.type == MessageType.Button) {
+    var message: Message = ButtonMessage.fromJSON(data);
+  } else if (data?.type == MessageType.Contact) {
+    var message: Message = ContactMessage.fromJSON(data);
+  } else if (data?.type == MessageType.Error) {
+    var message: Message = ErrorMessage.fromJSON(data);
+  } else if (data?.type == MessageType.File) {
+    var message: Message = FileMessage.fromJSON(data);
+  } else if (data?.type == MessageType.Image) {
+    var message: Message = ImageMessage.fromJSON(data);
+  } else if (data?.type == MessageType.List) {
+    var message: Message = ListMessage.fromJSON(data);
+  } else if (data?.type == MessageType.Location) {
+    var message: Message = LocationMessage.fromJSON(data);
+  } else if (data?.type == MessageType.Media) {
+    var message: Message = MediaMessage.fromJSON(data);
+  } else if (data?.type == MessageType.Text) {
+    var message: Message = TextMessage.fromJSON(data);
+  } else if (data?.type == MessageType.Poll) {
+    var message: Message = PollMessage.fromJSON(data);
+  } else if (data?.type == MessageType.PollUpdate) {
+    var message: Message = PollUpdateMessage.fromJSON(data);
+  } else if (data?.type == MessageType.Reaction) {
+    var message: Message = ReactionMessage.fromJSON(data);
+  } else if (data?.type == MessageType.Sticker) {
+    var message: Message = StickerMessage.fromJSON(data);
+  } else if (data?.type == MessageType.Video) {
+    var message: Message = VideoMessage.fromJSON(data);
+  } else {
+    var message: Message = Message.fromJSON(data);
   }
 
-  if (data?.type == MessageType.Button) {
-    return ButtonMessage.fromJSON(data);
+  if (message.mention) {
+    message.mention = getMessageFromJSON(message.mention);
   }
 
-  if (data?.type == MessageType.Contact) {
-    return ContactMessage.fromJSON(data);
-  }
-
-  if (data?.type == MessageType.Error) {
-    return ErrorMessage.fromJSON(data);
-  }
-
-  if (data?.type == MessageType.File) {
-    return FileMessage.fromJSON(data);
-  }
-
-  if (data?.type == MessageType.Image) {
-    return ImageMessage.fromJSON(data);
-  }
-
-  if (data?.type == MessageType.List) {
-    return ListMessage.fromJSON(data);
-  }
-
-  if (data?.type == MessageType.Location) {
-    return LocationMessage.fromJSON(data);
-  }
-
-  if (data?.type == MessageType.Media) {
-    return MediaMessage.fromJSON(data);
-  }
-
-  if (data?.type == MessageType.Text) {
-    return TextMessage.fromJSON(data);
-  }
-
-  if (data?.type == MessageType.Poll) {
-    return PollMessage.fromJSON(data);
-  }
-
-  if (data?.type == MessageType.PollUpdate) {
-    return PollUpdateMessage.fromJSON(data);
-  }
-
-  if (data?.type == MessageType.Reaction) {
-    return ReactionMessage.fromJSON(data);
-  }
-
-  if (data?.type == MessageType.Sticker) {
-    return StickerMessage.fromJSON(data);
-  }
-
-  if (data?.type == MessageType.Video) {
-    return VideoMessage.fromJSON(data);
-  }
-
-  return Message.fromJSON(data);
+  return message;
 }
