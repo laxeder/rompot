@@ -8,6 +8,7 @@ import Message, { MessageStatus, MessageType } from "../messages/Message";
 import CommandController from "../command/CommandController";
 import ReactionMessage from "../messages/ReactionMessage";
 import { CMDRunType } from "../command/CommandEnums";
+import ClientCluster from "../cluster/ClientCluster";
 import ErrorMessage from "../messages/ErrorMessage";
 import MediaMessage from "../messages/MediaMessage";
 import { sleep, getError } from "../utils/Generic";
@@ -863,6 +864,10 @@ export default class Client<Bot extends IBot> extends ClientEvents {
 
     if (clients.hasOwnProperty(id) && typeof clients[id] == "object") {
       return clients[id];
+    }
+
+    if (global["default-rompot-worker"] || global["rompot-cluster-save"]?.worker) {
+      return ClientCluster.getClient(id);
     }
 
     return new Client(new BotBase());

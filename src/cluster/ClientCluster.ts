@@ -72,6 +72,10 @@ export default class ClientCluster extends ClientEvents {
   public setWorker(worker: Worker): void {
     this.worker = worker;
 
+    if (!global["default-rompot-worker"] && worker) {
+      global["default-rompot-worker"] = worker;
+    }
+
     this.worker.on("message", async (message) => {
       const workerMessage = WorkerMessage.fromJSON(message);
 
@@ -1329,7 +1333,7 @@ export default class ClientCluster extends ClientEvents {
       return clients[id];
     }
 
-    return new ClientCluster(id, global["rompot-cluster-save"]?.worker);
+    return new ClientCluster(id, global["default-rompot-worker"] || global["rompot-cluster-save"]?.worker);
   }
 
   /**
