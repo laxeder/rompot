@@ -676,7 +676,9 @@ export default class ClientCluster extends ClientEvents {
     if (this.isMain) {
       return await this.bot.downloadStreamMessage(message.file);
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "downloadStreamMessage", args: [message] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "downloadStreamMessage", args: [message] }));
+
+      return workerMessage.getData().result || Buffer.from("");
     }
   }
 
