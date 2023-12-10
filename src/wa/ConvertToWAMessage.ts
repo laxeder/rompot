@@ -1,5 +1,4 @@
 import { generateWAMessage, generateWAMessageContent, isJidGroup, MiscMessageGenerationOptions, proto } from "@whiskeysockets/baileys";
-import Sticker, { Categories, StickerTypes } from "@laxeder/wa-sticker/dist";
 
 import Message, { MessageStatus, MessageType } from "../messages/Message";
 import ListMessage, { List, ListItem } from "../messages/ListMessage";
@@ -12,8 +11,9 @@ import MediaMessage from "../messages/MediaMessage";
 import ImageMessage from "../messages/ImageMessage";
 import AudioMessage from "../messages/AudioMessage";
 import VideoMessage from "../messages/VideoMessage";
-import FileMessage from "../messages/FileMessage";
 import PollMessage from "../messages/PollMessage";
+
+import { getWaSticker } from "../utils/Libs";
 
 import { fixID, getID, getPhoneNumber } from "./ID";
 import WhatsAppBot from "./WhatsAppBot";
@@ -164,16 +164,20 @@ export class ConvertToWAMessage {
     this.waMessage = { ...this.waMessage, sticker: stickerFile };
 
     try {
-      const sticker = new Sticker(stickerFile, {
-        pack: message.pack,
-        author: message.author,
-        categories: message.categories as Categories[],
-        id: message.stickerId,
-        type: StickerTypes.FULL,
-        quality: 100,
-      });
+      const waSticker = await getWaSticker();
 
-      this.waMessage = { ...this.waMessage, ...(await sticker.toMessage()) };
+      if (waSticker) {
+        const sticker = new waSticker.default(stickerFile, {
+          pack: message.pack,
+          author: message.author,
+          categories: message.categories,
+          id: message.stickerId,
+          type: waSticker.StickerTypes.FULL,
+          quality: 100,
+        });
+
+        this.waMessage = { ...this.waMessage, ...(await sticker.toMessage()) };
+      }
     } catch (err) {
       this.bot.emit("error", err);
     }

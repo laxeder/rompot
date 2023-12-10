@@ -1,5 +1,4 @@
 import { decryptPollVote, getContentType, isJidGroup, MessageUpsertType, proto, WAMessage, WAMessageContent, WAMessageUpdate } from "@whiskeysockets/baileys";
-import { extractMetadata } from "@laxeder/wa-sticker/dist";
 import digestSync from "crypto-digest-sync";
 import Long from "long";
 
@@ -19,6 +18,7 @@ import VideoMessage from "../messages/VideoMessage";
 import EmptyMessage from "../messages/EmptyMessage";
 import TextMessage from "../messages/TextMessage";
 import FileMessage from "../messages/FileMessage";
+import { getWaSticker } from "../utils/Libs";
 import { ChatType } from "../chat/ChatType";
 import WhatsAppBot from "./WhatsAppBot";
 import User from "../user/User";
@@ -300,17 +300,22 @@ export class ConvertWAMessage {
       msg = StickerMessage.fromJSON({ ...msg, type: MessageType.Sticker, file });
 
       try {
-        await extractMetadata(await this.bot.downloadStreamMessage(file))
-          .then((data) => {
-            if (StickerMessage.isValid(msg)) {
-              msg.author = data["sticker-pack-publisher"] || "";
-              msg.stickerId = data["sticker-pack-id"] || "";
-              msg.pack = data["sticker-pack-name"] || "";
-            }
-          })
-          .catch((err) => {
-            this.bot.emit("error", err);
-          });
+        const waSticker = await getWaSticker();
+
+        if (waSticker) {
+          await waSticker
+            .extractMetadata(await this.bot.downloadStreamMessage(file))
+            .then((data) => {
+              if (StickerMessage.isValid(msg)) {
+                msg.author = data["sticker-pack-publisher"] || "";
+                msg.stickerId = data["sticker-pack-id"] || "";
+                msg.pack = data["sticker-pack-name"] || "";
+              }
+            })
+            .catch((err) => {
+              this.bot.emit("error", err);
+            });
+        }
       } catch (err) {
         this.bot.emit("error", err);
       }
