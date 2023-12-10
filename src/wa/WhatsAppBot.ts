@@ -248,9 +248,13 @@ export default class WhatsAppBot extends BotEvents implements IBot {
           chat.profileUrl = (await this.getChatProfileUrl(new Chat(chat.id))) || undefined;
 
           if (!metadata) {
-            metadata = await this.funcHandler.exec("chat", "groupMetadata", chat.id);
+            try {
+              metadata = await this.funcHandler.exec("chat", "groupMetadata", chat.id);
+            } catch {}
           } else if (!metadata.participants) {
-            metadata = { ...metadata, ...(await this.funcHandler.exec("chat", "groupMetadata", chat.id)) };
+            try {
+              metadata = { ...metadata, ...(await this.funcHandler.exec("chat", "groupMetadata", chat.id)) };
+            } catch {}
           }
         }
 
@@ -293,9 +297,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       }
 
       await this.updateChat({ id: chat.id, ...chat });
-    } catch (err) {
-      this.emit("error", err);
-    }
+    } catch {}
   }
 
   /**
@@ -756,14 +758,22 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     await waMSG.refactory(content);
 
     if (waMSG.isRelay) {
-      await this.funcHandler.exec("msg", "relayMessage", waMSG.chatId, waMSG.waMessage, { ...waMSG.options });
+      try {
+        await this.funcHandler.exec("msg", "relayMessage", waMSG.chatId, waMSG.waMessage, { ...waMSG.options });
+      } catch (err) {
+        throw err;
+      }
 
       const msgRes = generateWAMessageFromContent(waMSG.chatId, waMSG.waMessage, { ...waMSG.options, userJid: this.id });
 
       return await new ConvertWAMessage(this, msgRes).get();
     }
 
-    const sendedMessage = await this.funcHandler.exec("msg", "sendMessage", waMSG.chatId, waMSG.waMessage, waMSG.options);
+    try {
+      var sendedMessage = await this.funcHandler.exec("msg", "sendMessage", waMSG.chatId, waMSG.waMessage, waMSG.options);
+    } catch (err) {
+      throw err;
+    }
 
     if (typeof sendedMessage == "boolean") return content;
 

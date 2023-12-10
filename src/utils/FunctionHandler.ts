@@ -1,3 +1,5 @@
+import { isPromise } from "util/types";
+
 export default class FunctionHandler<D extends any, T extends string> {
   /** Patterns */
   public patterns: Array<() => Promise<void> | void> = [];
@@ -7,27 +9,51 @@ export default class FunctionHandler<D extends any, T extends string> {
   constructor(public data: D, public functions: Record<T, Function[]>) {}
 
   public async exec<F extends (...args: any[]) => any>(row: T, funcName: keyof D, ...args: Parameters<F>): Promise<Awaited<ReturnType<F>>> {
-    return await new Promise<Awaited<ReturnType<F>>>(async (resolve, reject) => {
-      try {
-        await this.await(row);
+    try {
+      return await new Promise<Awaited<ReturnType<F>>>(async (resolve, reject) => {
+        try {
+          await this.await(row);
 
-        if (!this.data || typeof this.data[funcName] != "function") {
-          throw new Error(`Invalid execution "${String(funcName)}"`);
+          if (!this.data || typeof this.data[funcName] != "function") {
+            throw new Error(`Invalid execution "${String(funcName)}"`);
+          }
+
+          const res = (this.data[funcName] as Function)(...args);
+
+          if (isPromise(res)) {
+            res
+              .then((value: any) => {
+                resolve(value);
+
+                this.functions[row].shift();
+
+                this.resolve(row);
+              })
+              .catch((error) => {
+                this.functions[row].shift();
+
+                this.resolve(row);
+
+                reject(error);
+              });
+          } else {
+            resolve(res);
+
+            this.functions[row].shift();
+
+            this.resolve(row);
+          }
+        } catch (err) {
+          this.functions[row].shift();
+
+          this.resolve(row);
+
+          reject(err);
         }
-
-        resolve(await (this.data[funcName] as Function)(...args));
-
-        this.functions[row].shift();
-
-        this.resolve(row);
-      } catch (err) {
-        this.functions[row].shift();
-
-        this.resolve(row);
-
-        reject(err);
-      }
-    });
+      });
+    } catch (err) {
+      throw err;
+    }
   }
 
   public async await(row: T) {
