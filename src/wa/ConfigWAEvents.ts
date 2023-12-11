@@ -209,10 +209,32 @@ export default class ConfigWAEvents {
   }
 
   public configHistorySet() {
+    const ignoreChats: string[] = [];
+
     this.wa.sock.ev.on("messaging-history.set", async (update) => {
       for (const chat of update.chats || []) {
         try {
-          if (!chat?.hasOwnProperty("pinned")) continue;
+          if (!chat?.hasOwnProperty("unreadCount") || chat.isDefaultSubgroup === true) {
+            ignoreChats.push(chat.id);
+
+            continue;
+          }
+
+          const isGroup = isJidGroup(chat.id);
+
+          if (!chat?.hasOwnProperty("pinned") || isGroup) {
+            if (!isGroup) {
+              ignoreChats.push(chat.id);
+
+              continue;
+            }
+
+            if (chat?.hasOwnProperty("endOfHistoryTransferType") && !chat.hasOwnProperty("isDefaultSubgroup")) {
+              ignoreChats.push(chat.id);
+
+              continue;
+            }
+          }
 
           await this.wa.readChat({ id: chat.id }, chat);
         } catch (err) {
@@ -220,20 +242,10 @@ export default class ConfigWAEvents {
         }
       }
 
-      for (const contact of update.contacts || []) {
-        try {
-          if (!contact.name || isJidGroup(contact.id)) continue;
-
-          await this.wa.readUser({ id: contact.id }, contact);
-        } catch (err) {
-          this.wa.emit("error", err);
-        }
-      }
-
       for (const message of update?.messages || []) {
         try {
-          if (message.key.remoteJid == "status@broadcast") continue;
-          if (!message.message) continue;
+          if (!message?.message || message.key.remoteJid == "status@broadcast") continue;
+          if (ignoreChats.includes(message.key.remoteJid || "")) continue;
 
           const msg = await new ConvertWAMessage(this.wa, message).get();
 

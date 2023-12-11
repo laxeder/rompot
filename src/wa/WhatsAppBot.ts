@@ -233,6 +233,15 @@ export default class WhatsAppBot extends BotEvents implements IBot {
             try {
               metadata = { ...metadata, ...(await this.funcHandler.exec("chat", "groupMetadata", chat.id)) };
             } catch {}
+
+            if (metadata.participant) {
+              metadata.participants = [
+                ...(metadata.participants || []),
+                ...metadata.participant.map((p) => {
+                  return { id: p.userJid, isSuperAdmin: p.rank == proto.GroupParticipant.Rank.SUPERADMIN, isAdmin: p.rank == proto.GroupParticipant.Rank.ADMIN } as any;
+                }),
+              ];
+            }
           }
         }
 
@@ -243,7 +252,11 @@ export default class WhatsAppBot extends BotEvents implements IBot {
           for (const p of metadata.participants) {
             chat.users.push(p.id);
 
-            if (p.admin == "admin" || p.isAdmin || p.isSuperAdmin) {
+            if (p.admin == "admin" || p.isAdmin) {
+              chat.admins.push(`${p.id}`);
+            } else if (p.isSuperAdmin) {
+              chat.leader = p.id;
+
               chat.admins.push(`${p.id}`);
             }
           }
@@ -307,10 +320,6 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       user.name = user.name || user.savedName;
 
       await this.updateUser({ id: user.id || "", ...user });
-
-      if (user.profileUrl || user.name) {
-        await this.updateChat({ id: user.id, profileUrl: user.profileUrl || undefined, name: user.name || undefined });
-      }
     } catch (err) {
       this.emit("error", err);
     }
@@ -457,6 +466,14 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     const chatData = await this.auth.get(`chats-${chat.id}`);
 
     if (!chatData) return null;
+
+    if (!chat.name || !chat.profileUrl) {
+      const user = await this.getUser(new User(chat.id));
+
+      if (user != null) {
+        return Chat.fromJSON({ ...chat, ...user });
+      }
+    }
 
     return Chat.fromJSON(chatData);
   }
