@@ -56,7 +56,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public phoneNumber: string = "";
   public name: string = "";
   public profileUrl: string = "";
-  public auth: IAuth = new MultiFileAuthState("./session");
+  public auth: IAuth = new MultiFileAuthState("./session", undefined, false);
 
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
   public funcHandler = new FunctionHandler(this.sock, { sock: [], chat: [], user: [], msg: [] });
