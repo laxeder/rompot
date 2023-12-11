@@ -236,6 +236,14 @@ export default class ConfigWAEvents {
             }
           }
 
+          if ((chat.participant?.length || 0) > 0) {
+            if (!chat.participant?.some((p) => p.userJid == this.wa.id)) {
+              ignoreChats.push(chat.id);
+
+              continue;
+            }
+          }
+
           await this.wa.readChat({ id: chat.id }, chat);
         } catch (err) {
           this.wa.emit("error", err);
