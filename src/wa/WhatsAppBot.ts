@@ -174,7 +174,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
    * @param reason
    * @returns
    */
-  public async stop(reason: any = DisconnectReason.loggedOut): Promise<void> {
+  public async stop(reason: any = 402): Promise<void> {
     try {
       this.status = BotStatus.Offline;
 

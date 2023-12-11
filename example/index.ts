@@ -14,8 +14,8 @@ client.on("open", (open: { isNewLogin: boolean }) => {
   console.info("Cliente conectado!");
 });
 
-client.on("close", () => {
-  console.info(`Cliente desligado!`);
+client.on("close", (update) => {
+  console.info(`Cliente desconectou! Motivo: ${update.reason}`);
 });
 
 client.on("qr", (qr: string) => {
@@ -30,8 +30,12 @@ client.on("connecting", () => {
   console.info("Tentando conectar cliente...");
 });
 
-client.on("stop", () => {
-  console.info(`Cliente parado!`);
+client.on("stop", (update) => {
+  if (update.isLogout) {
+    console.info(`Cliente desligado!`);
+  } else {
+    console.info(`Cliente parado!`);
+  }
 });
 
 client.on("reconnecting", () => {

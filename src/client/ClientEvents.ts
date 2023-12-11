@@ -21,6 +21,10 @@ export type ClientEventsMap = {
     action: ConnectionType;
     /** Indica se é um novo login. */
     isNewLogin?: boolean;
+    /** Motivo da desconeção */
+    reason?: any;
+    /** O cliente se desconectou */
+    isLogout?: boolean;
     /** O QR code gerado (quando aplicável). */
     qr?: string;
     /** O código de pareamento gerado */
@@ -48,12 +52,18 @@ export type ClientEventsMap = {
   /**
    * Evento de conexão parada.
    */
-  stop: {};
+  stop: {
+    /** O cliente se desconectou */
+    isLogout: boolean;
+  };
 
   /**
    * Evento de conexão fechada.
    */
-  close: {};
+  close: {
+    /** Motivo da desconeção */
+    reason: any;
+  };
 
   /**
    * Evento de QR code gerado.
@@ -149,8 +159,8 @@ export default class ClientEvents {
    * Registra ouvintes internos para eventos padrão de conexão.
    */
   constructor() {
-    this.on("close", () => {
-      this.emit("conn", { action: "close" });
+    this.on("close", (update) => {
+      this.emit("conn", { action: "close", reason: update.reason });
     });
 
     this.on("open", (update: { isNewLogin: boolean }) => {
@@ -165,8 +175,8 @@ export default class ClientEvents {
       this.emit("conn", { action: "code", code });
     });
 
-    this.on("stop", () => {
-      this.emit("conn", { action: "stop" });
+    this.on("stop", (update) => {
+      this.emit("conn", { action: "stop", isLogout: !!update?.isLogout });
     });
 
     this.on("reconnecting", () => {

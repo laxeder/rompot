@@ -193,13 +193,15 @@ export default class ConfigWAEvents {
           const status = (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
 
           if (status === DisconnectReason.loggedOut) {
-            this.wa.emit("stop", { status: "offline" });
+            this.wa.emit("stop", { isLogout: true });
+          } else if (status === 402) {
+            this.wa.emit("stop", { isLogout: false });
           } else if (status == DisconnectReason.restartRequired) {
             this.wa.saveCreds(this.wa.sock.authState.creds);
 
             await this.wa.reconnect(false);
           } else {
-            this.wa.emit("close", { status: "offline" });
+            this.wa.emit("close", { reason: status });
           }
         }
       } catch (err) {

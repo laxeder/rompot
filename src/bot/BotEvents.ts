@@ -20,9 +20,15 @@ export type BotEventsMap = {
   /** Ocorre quando o bot está se conectando. */
   connecting: {};
   /** Ocorre quando a conexão com o bot é interrompida. */
-  stop: {};
+  stop: {
+    /** O bot se desconectou */
+    isLogout: boolean;
+  };
   /** Ocorre quando a conexão com o bot é fechada. */
-  close: {};
+  close: {
+    /** Motivo da desconeção */
+    reason: any;
+  };
   /** Ocorre quando um código QR é gerado para autenticação. */
   qr: string;
   /** Ocorre quando um código de autenticação é gerado. */
