@@ -155,6 +155,14 @@ export default class Client<Bot extends IBot> extends ClientEvents {
       }
     });
 
+    this.bot.on("code", (code) => {
+      try {
+        this.emit("code", code);
+      } catch (err) {
+        this.emit("error", getError(err));
+      }
+    });
+
     this.bot.on("chat", (update) => {
       this.emit("chat", { ...update, chat: { ...update.chat, clientId: this.id, botId: this.bot.id } });
     });
@@ -187,15 +195,6 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    */
   public async connect(auth: IAuth | string) {
     await this.bot.connect(auth);
-  }
-
-  /**
-   * Conectar bot pelo código
-   * @param phoneNumber Número do bot
-   * @param auth Autenticação do bot
-   */
-  public async connectByCode(phoneNumber: number | string, auth: string | IAuth): Promise<string> {
-    return await this.bot.connectByCode(String(phoneNumber).replace(/\D+/g, ""), auth);
   }
 
   /** Reconectar bot

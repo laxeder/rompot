@@ -56,7 +56,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public phoneNumber: string = "";
   public name: string = "";
   public profileUrl: string = "";
-  public auth: IAuth = new MultiFileAuthState("./session", false);
+  public auth: IAuth = new MultiFileAuthState("./session");
 
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
   public funcHandler = new FunctionHandler(this.sock, { sock: [], chat: [], user: [], msg: [] });
@@ -68,7 +68,6 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       printQRInTerminal: true,
       logger: this.logger,
       defaultQueryTimeoutMs: 10000,
-      browser: WhatsAppBot.Browser(),
       async getMessage(key) {
         return (await this.store.loadMessage(key.remoteJid!, key.id!))?.message || undefined;
       },
@@ -101,52 +100,30 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async connect(auth?: string | IAuth): Promise<void> {
-    try {
-      if (!!!auth || typeof auth == "string") {
-        this.auth = new MultiFileAuthState(`${auth || "./session"}`);
-      } else {
-        this.auth = auth;
-      }
-
-      await this.internalConnect();
-
-      await this.awaitConnectionState("open");
-    } catch (err) {
-      this.ev.emit("error", err);
+    if (!!!auth || typeof auth == "string") {
+      this.auth = new MultiFileAuthState(`${auth || "./session"}`);
+    } else {
+      this.auth = auth;
     }
-  }
 
-  public async connectByCode(phoneNumber: string, auth: string | IAuth): Promise<string> {
-    return new Promise(async (res) => {
-      try {
-        if (!!!auth || typeof auth == "string") {
-          this.auth = new MultiFileAuthState(`${auth || "./session"}`);
-        } else {
-          this.auth = auth;
-        }
+    if (!this.auth.botPhoneNumber) {
+      await this.internalConnect({ browser: WhatsAppBot.Browser() });
+    } else {
+      await this.internalConnect({ browser: ["Chrome (linux)", "Rompot", "22.5.0"] });
 
-        this.config.printQRInTerminal = false;
+      if (!this.sock?.authState?.creds?.registered) {
+        await this.sock.waitForConnectionUpdate((update) => !!update.qr);
 
-        await this.internalConnect();
+        const code = await this.sock.requestPairingCode(this.auth.botPhoneNumber);
 
-        if (!this.sock.authState.creds.account) {
-          await this.sock.waitForConnectionUpdate((update) => !!update.qr);
-
-          const code = await this.sock.requestPairingCode(phoneNumber);
-
-          res(code);
-        } else {
-          res("");
-        }
-
-        await this.awaitConnectionState("open");
-      } catch (err) {
-        this.ev.emit("error", err);
+        this.emit("code", code);
       }
-    });
+    }
+
+    await this.awaitConnectionState("open");
   }
 
-  public async internalConnect(): Promise<void> {
+  public async internalConnect(additionalOptions: this["config"] = {}): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const { state, saveCreds } = await getBaileysAuth(this.auth);
@@ -158,6 +135,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
             creds: state.creds,
             keys: baileys.makeCacheableSignalKeyStore(state.keys, this.config.logger),
           },
+          ...additionalOptions,
           ...this.config,
         });
 

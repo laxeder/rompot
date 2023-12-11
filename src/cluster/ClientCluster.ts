@@ -316,6 +316,18 @@ export default class ClientCluster extends ClientEvents {
       }
     });
 
+    this.bot.on("code", async (update) => {
+      try {
+        if (this.isMain) {
+          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "code", arg: update }));
+        } else {
+          this.emit("code", update);
+        }
+      } catch (err) {
+        this.emit("error", getError(err));
+      }
+    });
+
     this.bot.on("chat", async (update) => {
       try {
         if (this.isMain) {
@@ -367,19 +379,6 @@ export default class ClientCluster extends ClientEvents {
       await this.bot.connect(typeof auth != "string" || !auth ? this.auth : auth);
     } else {
       await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "connect", args: [auth] }, false));
-    }
-  }
-
-  /**
-   * Conectar bot pelo código
-   * @param phoneNumber Número do bot
-   * @param auth Autenticação do bot
-   */
-  public async connectByCode(phoneNumber: number | string, auth: string | IAuth): Promise<string> {
-    if (this.isMain) {
-      return await this.bot.connectByCode(String(phoneNumber).replace(/\D+/g, ""), auth);
-    } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "connectByCode", arg: [phoneNumber, auth] }));
     }
   }
 

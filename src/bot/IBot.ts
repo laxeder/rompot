@@ -30,13 +30,6 @@ export default interface IBot extends BotEvents {
    */
   connect(auth: IAuth | string): Promise<void>;
 
-  /**
-   * * Conectar bot pelo código
-   * @param phoneNumber Número do bot
-   * @param auth Autenticação do bot
-   */
-  connectByCode(phoneNumber: string, auth: IAuth | string): Promise<string>;
-
   /** Reconectar bot
    * @param alert Alerta que está reconectando
    */

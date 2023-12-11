@@ -23,6 +23,8 @@ export type ClientEventsMap = {
     isNewLogin?: boolean;
     /** O QR code gerado (quando aplicável). */
     qr?: string;
+    /** O código de pareamento gerado */
+    code?: string;
   };
 
   /**
@@ -86,7 +88,7 @@ export type ClientEventsMap = {
     /** Ação relacionada à sala de bate-papo. */
     action: ChatAction;
     /** O chat associado ao evento. */
-    chat: { id: string, botId: string } & Partial<Chat>;
+    chat: { id: string; botId: string } & Partial<Chat>;
   };
 
   /**
@@ -157,6 +159,10 @@ export default class ClientEvents {
 
     this.on("qr", (qr: string) => {
       this.emit("conn", { action: "qr", qr });
+    });
+
+    this.on("code", (code: string) => {
+      this.emit("conn", { action: "code", code });
     });
 
     this.on("stop", () => {

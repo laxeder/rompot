@@ -1,4 +1,4 @@
-import Client, { WhatsAppBot, Message, Command, CMDRunType, CMDPerms, EmptyMessage } from "../src";
+import Client, { WhatsAppBot, Message, Command, CMDRunType, CMDPerms, EmptyMessage, MultiFileAuthState } from "../src";
 
 const client = new Client(new WhatsAppBot(), {
   disableAutoCommand: false,
@@ -20,6 +20,10 @@ client.on("close", () => {
 
 client.on("qr", (qr: string) => {
   console.info("QR Gerado:", qr);
+});
+
+client.on("code", (code: string) => {
+  console.info("Código de pareamento gerado:", code);
 });
 
 client.on("connecting", () => {
@@ -123,5 +127,8 @@ client.on("error", (err: any) => {
     }
   });
 
-  client.connect("./example/auth");
+  //? Ao inserir o número do bot é ativado o pareamento por código
+  const botPhoneNumber = "";
+
+  await client.connect(new MultiFileAuthState("./example/auth", botPhoneNumber));
 })();

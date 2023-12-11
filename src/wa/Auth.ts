@@ -7,6 +7,7 @@ import IAuth from "../client/IAuth";
 
 export class MultiFileAuthState implements IAuth {
   public folder: string;
+  public botPhoneNumber?: string;
 
   public fixFileName = (file?: string) => file?.replace(/\//g, "__")?.replace(/:/g, "-");
 
@@ -18,8 +19,9 @@ export class MultiFileAuthState implements IAuth {
     }
   }
 
-  constructor(folder: string, autoCreateDir: boolean = true) {
+  constructor(folder: string, botPhoneNumber: string = "", autoCreateDir: boolean = true) {
     this.folder = folder;
+    this.botPhoneNumber = botPhoneNumber;
 
     const folderInfo = this.getStat(folder);
 
@@ -58,7 +60,7 @@ export class MultiFileAuthState implements IAuth {
     } catch {}
   }
 
-  public async listAll(pattern?: string) {
+  public async listAll(pattern?: string): Promise<string[]> {
     try {
       return readdirSync(join(this.folder)).reduce((p, c) => (c.startsWith(pattern) ? [...p, c.replace(".json", "")] : p), []);
     } catch (error) {

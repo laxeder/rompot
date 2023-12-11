@@ -22,10 +22,6 @@ export default class BotBase extends BotEvents implements IBot {
 
   public async connect(auth: IAuth): Promise<void> {}
 
-  public async connectByCode(phoneNumber: number | string, auth: string | IAuth): Promise<string> {
-    return "";
-  }
-
   public async reconnect(alert?: boolean): Promise<void> {}
 
   public async stop(reason: any): Promise<void> {}
