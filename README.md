@@ -52,6 +52,8 @@ Necessita passar um método de autenticação personalizado incluindo o número 
 ```ts
 import Client, { WhatsAppBot, MultiFileAuthState } from "rompot";
 
+const client = new Client(new WhatsAppBot());
+
 client.on("code", (code) => {
   console.info("Código de pareamento gerado:", code);
 });
