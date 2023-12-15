@@ -1,6 +1,6 @@
 # Rompot
 
-Uma API para desenvolvimento de ChatBot multi-plataforma em JavaScript/TypeScript
+Uma biblioteca para desenvolvimento de ChatBot multi-plataforma em JavaScript/TypeScript
 
 ## 🛠 Recursos
 
@@ -8,8 +8,11 @@ Uma API para desenvolvimento de ChatBot multi-plataforma em JavaScript/TypeScrip
   - WhatsApp (baileys)
   - Telegram (Em breve)
 - Automatização de mensagem
+- Suporte a Cluster
 - Criação de comandos
 - Simples uso
+- Tratamento de solicitações
+- Envio de lista
 
 ### 🔧 Instalação
 
@@ -19,7 +22,7 @@ Instalando pacote
 npm i rompot
 ```
 
-Importando API
+Importando pacote
 
 ```ts
 // TypeScript
@@ -44,12 +47,20 @@ client.on("qr", (qr) => {
 
 ## Parear código
 
+Necessita passar um método de autenticação personalizado incluindo o número do bot a ser conectado.
+
 ```ts
-const phoneNumber = 1234567890;
+import Client, { WhatsAppBot, MultiFileAuthState } from "rompot";
 
-const code = await client.connectByCode(phoneNumber, "./path-to-auth");
+client.on("code", (code) => {
+  console.info("Código de pareamento gerado:", code);
+});
 
-console.log("Code:", code);
+const botPhoneNumber = "5511991234567";
+
+const auth = new MultiFileAuthState("./path-to-auth", botPhoneNumber));
+
+await client.connect(auth);
 ```
 
 ## Configurações
@@ -105,12 +116,16 @@ client.on("open", (open) => {
   console.log("Cliente conectado!");
 });
 
-client.on("close", (close) => {
-  console.log("Cliente desconectado!");
+client.on("close", (update) => {
+  console.info(`Cliente desconectou! Motivo: ${update.reason}`);
 });
 
-client.on("stop", (closed) => {
-  console.log("Cliente parado!");
+client.on("stop", (update) => {
+  if (update.isLogout) {
+    console.info(`Cliente desligado!`);
+  } else {
+    console.info(`Cliente parado!`);
+  }
 });
 
 client.on("connecting", (conn) => {
