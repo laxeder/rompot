@@ -69,14 +69,7 @@ export default class TelegramBot extends BotEvents implements IBot {
         this.status = BotStatus.Online;
         this.name = TelegramUtils.getName(botInfo);
         this.phoneNumber = TelegramUtils.getPhoneNumber(this.id);
-
-        const profile = await this.bot.getUserProfilePhotos(Number(this.id));
-
-        const photo = profile.photos?.shift()?.shift();
-
-        if (photo) {
-          this.profileUrl = await this.bot.getFileLink(photo.file_id);
-        }
+        this.profileUrl = await this.getBotProfileUrl();
 
         resolve();
 
