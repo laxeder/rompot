@@ -672,8 +672,8 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    * @param chat - Chat que será obtido o código de convite.
    * @returns O código de convite do chat.
    */
-  public getChatEnvite(chat: Chat | string): Promise<string> {
-    return this.bot.getChatEnvite(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+  public getChatInvite(chat: Chat | string): Promise<string> {
+    return this.bot.getChatInvite(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
   }
 
   /**
@@ -681,8 +681,8 @@ export default class Client<Bot extends IBot> extends ClientEvents {
    * @param chat - Chat que terá seu código de convite revogado.
    * @returns O novo código de convite do chat.
    */
-  public revokeChatEnvite(chat: Chat | string): Promise<string> {
-    return this.bot.revokeChatEnvite(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+  public revokeChatInvite(chat: Chat | string): Promise<string> {
+    return this.bot.revokeChatInvite(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
   }
 
   /** @returns Retorna a lista de usuários do bot */

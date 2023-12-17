@@ -256,14 +256,14 @@ export default interface IBot extends BotEvents {
    * @param chat - Chat que será obtido o código de convite.
    * @returns O código de convite do chat.
    */
-  getChatEnvite(chat: Chat): Promise<string>;
+  getChatInvite(chat: Chat): Promise<string>;
 
   /**
    * Revoga o código de convite do chat.
    * @param chat - Chat que terá seu código de convite revogado.
    * @returns O novo código de convite do chat.
    */
-  revokeChatEnvite(chat: Chat): Promise<string>;
+  revokeChatInvite(chat: Chat): Promise<string>;
 
   /**
    * @param user Usuário

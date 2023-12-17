@@ -1047,11 +1047,11 @@ export default class ClientCluster extends ClientEvents {
    * @param chat - Chat que será obtido o código de convite.
    * @returns O código de convite do chat.
    */
-  public async getChatEnvite(chat: Chat | string): Promise<string> {
+  public async getChatInvite(chat: Chat | string): Promise<string> {
     if (this.isMain) {
-      return await this.bot.getChatEnvite(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+      return await this.bot.getChatInvite(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatEnvite", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatInvite", args: [chat] }));
 
       return workerMessage.getData().result || "";
     }
@@ -1062,11 +1062,11 @@ export default class ClientCluster extends ClientEvents {
    * @param chat - Chat que terá seu código de convite revogado.
    * @returns O novo código de convite do chat.
    */
-  public async revokeChatEnvite(chat: Chat | string): Promise<string> {
+  public async revokeChatInvite(chat: Chat | string): Promise<string> {
     if (this.isMain) {
-      return await this.bot.revokeChatEnvite(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+      return await this.bot.revokeChatInvite(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "revokeChatEnvite", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "revokeChatInvite", args: [chat] }));
 
       return workerMessage.getData().result || "";
     }

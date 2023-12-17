@@ -552,14 +552,14 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     await this.funcHandler.exec("chat", "groupAcceptInvite", code.replace("https://chat.whatsapp.com/", ""));
   }
 
-  public async getChatEnvite(chat: Chat): Promise<string> {
+  public async getChatInvite(chat: Chat): Promise<string> {
     if (!isJidGroup(chat.id)) return "";
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return "";
 
     return await this.funcHandler.exec("chat", "groupInviteCode", chat.id);
   }
 
-  public async revokeChatEnvite(chat: Chat): Promise<string> {
+  public async revokeChatInvite(chat: Chat): Promise<string> {
     if (!isJidGroup(chat.id)) return "";
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return "";
 

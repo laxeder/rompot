@@ -150,11 +150,11 @@ export default class BotBase extends BotEvents implements IBot {
 
   public async joinChat(code: string): Promise<void> {}
 
-  public async getChatEnvite(chat: Chat): Promise<string> {
+  public async getChatInvite(chat: Chat): Promise<string> {
     return "";
   }
 
-  public async revokeChatEnvite(chat: Chat): Promise<string> {
+  public async revokeChatInvite(chat: Chat): Promise<string> {
     return "";
   }
 
