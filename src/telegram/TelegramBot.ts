@@ -80,11 +80,37 @@ export default class TelegramBot extends BotEvents implements IBot {
     });
   }
 
-  public async reconnect(alert?: boolean): Promise<void> {}
+  public async reconnect(alert?: boolean): Promise<void> {
+    this.status = BotStatus.Offline;
 
-  public async stop(reason: any): Promise<void> {}
+    try {
+      await this.bot.close();
+    } catch {}
 
-  public async logout(): Promise<void> {}
+    this.emit("reconnecting", {});
+
+    await this.connect(this.auth);
+  }
+
+  public async stop(reason: any): Promise<void> {
+    this.status = BotStatus.Offline;
+
+    try {
+      await this.bot.close();
+    } catch {}
+
+    this.emit("stop", { isLogout: false });
+  }
+
+  public async logout(): Promise<void> {
+    this.status = BotStatus.Offline;
+
+    try {
+      await this.bot.logOut();
+    } catch {}
+
+    this.emit("stop", { isLogout: true });
+  }
 
   public async send(message: Message): Promise<Message> {
     const telegramMessage = await this.bot.sendMessage(Number(message.chat.id), message.text);
