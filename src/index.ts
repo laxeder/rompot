@@ -7,6 +7,7 @@ export * from "./cluster/index";
 export * from "./command/index";
 export * from "./configs/index";
 export * from "./messages/index";
+export * from "./telegram/index";
 export * from "./user/index";
 export * from "./utils/index";
 export * from "./wa/index";
