@@ -5,8 +5,9 @@ import { join } from "path";
 import IAuth from "../client/IAuth";
 
 export default class TelegramAuth implements IAuth {
+  #botToken: string;
+
   public sessionsDir: string;
-  public botToken: string;
   public botPhoneNumber?: string;
 
   public fixFileName = (file?: string) => file?.replace(/\//g, "__")?.replace(/:/g, "-");
@@ -19,9 +20,13 @@ export default class TelegramAuth implements IAuth {
     }
   }
 
+  public setBotToken(botToken: string): void {
+    this.#botToken = `${botToken || ""}`;
+  }
+
   constructor(botToken: string, sessionsDir: string = "./sessions", autoCreateDir: boolean = true) {
     this.sessionsDir = sessionsDir;
-    this.botToken = botToken;
+    this.#botToken = `${botToken || ""}`;
 
     const sessionDir = this.getSession();
     const folderInfo = this.getStat(sessionDir);
@@ -36,13 +41,13 @@ export default class TelegramAuth implements IAuth {
   }
 
   public getSession(...paths: string[]) {
-    return join(`${this.sessionsDir}`, `${this.botToken}`.slice(0, 9), ...paths);
+    return join(`${this.sessionsDir}`, `${this.#botToken}`.slice(0, 9), ...paths);
   }
 
   public async get(file: string) {
     try {
       if (file == "BOT_TOKEN") {
-        return this.botToken;
+        return this.#botToken;
       }
 
       const data = await readFile(this.getSession(this.fixFileName(`${file}.json`)!), { encoding: "utf-8" });

@@ -20,6 +20,7 @@ import TelegramEvents from "./TelegramEvents";
 import TelegramAuth from "./TelegramAuth";
 
 export default class TelegramBot extends BotEvents implements IBot {
+  public auth: IAuth;
   public bot: TelegramBotAPI;
   public events: TelegramEvents;
   public options: Partial<TelegramBotAPI.ConstructorOptions>;
@@ -30,13 +31,12 @@ export default class TelegramBot extends BotEvents implements IBot {
   public name: string = "";
   public profileUrl: string = "";
 
-  public auth: IAuth = new TelegramAuth("", "", false);
-
   constructor(options?: Partial<TelegramBotAPI.ConstructorOptions>) {
     super();
 
     this.options = { ...(options || {}) };
 
+    this.auth = new TelegramAuth("", "./sessions", false);
     this.bot = new TelegramBotAPI("", this.options);
     this.events = new TelegramEvents(this);
 
@@ -51,7 +51,7 @@ export default class TelegramBot extends BotEvents implements IBot {
         this.emit("connecting", {});
 
         if (typeof auth == "string") {
-          auth = new TelegramAuth(auth);
+          auth = new TelegramAuth(auth, "./sessions");
         }
 
         this.auth = auth;
