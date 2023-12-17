@@ -10,11 +10,11 @@ import { BotStatus } from "../bot/BotStatus";
 import BotEvents from "../bot/BotEvents";
 import IBot from "../bot/IBot";
 
-import MediaMessage, { Media } from "../messages/MediaMessage";
 import ReactionMessage from "../messages/ReactionMessage";
+import { Media } from "../messages/MediaMessage";
 import Message from "../messages/Message";
 
-import TelegramToRompotConverter from "./TelegramToRompotConverter";
+import TelegramSendingController from "./TelegramSendingController";
 import { TelegramUtils } from "./TelegramUtils";
 import TelegramEvents from "./TelegramEvents";
 import TelegramAuth from "./TelegramAuth";
@@ -113,44 +113,20 @@ export default class TelegramBot extends BotEvents implements IBot {
   }
 
   public async send(message: Message): Promise<Message> {
-    const telegramMessage = await this.bot.sendMessage(Number(message.chat.id), message.text);
-
-    const converter = new TelegramToRompotConverter(telegramMessage);
-
-    const rompotMessage = await converter.convert();
-
-    return rompotMessage;
+    return await new TelegramSendingController(this).send(message);
   }
 
   public async editMessage(message: Message): Promise<void> {
-    const entities = message.mentions.reduce((entities, mention) => {
-      const result = new RegExp(`@(${mention})`).exec(message.text);
-
-      const searchedMention = result.shift();
-
-      if (searchedMention) {
-        entities.push({ type: "mention", offset: result.index, length: searchedMention.length });
-      }
-
-      return entities;
-    }, [] as TelegramBotAPI.MessageEntity[]);
-
-    const options: TelegramBotAPI.EditMessageTextOptions = {
-      chat_id: Number(message.chat.id || 0),
-      message_id: Number(message.id),
-      caption_entities: entities,
-    };
-
-    if (MediaMessage.isValid(message)) {
-      await this.bot.editMessageCaption(message.text, options);
-    } else {
-      await this.bot.editMessageText(message.text, options);
-    }
+    await new TelegramSendingController(this).sendEditedMessage(message);
   }
 
-  public async addReaction(message: ReactionMessage): Promise<void> {}
+  public async addReaction(message: ReactionMessage): Promise<void> {
+    await new TelegramSendingController(this).sendReaction(message);
+  }
 
-  public async removeReaction(message: ReactionMessage): Promise<void> {}
+  public async removeReaction(message: ReactionMessage): Promise<void> {
+    await new TelegramSendingController(this).sendReaction(message);
+  }
 
   public async readMessage(message: Message): Promise<void> {}
 
