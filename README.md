@@ -5,8 +5,8 @@ Uma biblioteca para desenvolvimento de ChatBot multi-plataforma em JavaScript/Ty
 ## 🛠 Recursos
 
 - Multi plataformas
-  - WhatsApp (baileys)
-  - Telegram (Em breve)
+  - WhatsApp (baileys@6.5.0)
+  - Telegram (node-telegram-bot-api@0.64.0) - beta
 - Automatização de mensagem
 - Suporte a Cluster
 - Criação de comandos
@@ -26,10 +26,10 @@ Importando pacote
 
 ```ts
 // TypeScript
-import Client, { WhatsAppBot } from "rompot";
+import Client, { WhatsAppBot, TelegramBot } from "rompot";
 
 // Javascript
-const { Client, WhatsAppBot } = require("rompot");
+const { Client, WhatsAppBot, TelegramBot } = require("rompot");
 ```
 
 ## WhatsApp
@@ -63,6 +63,19 @@ const botPhoneNumber = "5511991234567";
 const auth = new MultiFileAuthState("./path-to-auth", botPhoneNumber));
 
 await client.connect(auth);
+```
+
+## Telegram (Beta)
+
+Altere o valor `BOT_TOKEN` para o token do seu bot para se conectar a ele, acaso não tenha consulte a documentação do [Telegram](https://core.telegram.org/bots/api) para gerar um.
+
+```ts
+const client = new Client(new TelegramBot());
+client.connect("BOT_TOKEN");
+
+client.on("open", () => {
+  console.log("Bot conectado!");
+});
 ```
 
 ## Configurações
@@ -425,12 +438,6 @@ client.promoteUserInChat(chat, user);
 ```ts
 client.demoteUserInChat(chat, user);
 ```
-
-## 🛠️ Construído com
-
-Esse Software foi construído com:
-
-- [Baileys@6.5.0](https://github.com/WhiskeySockets/Baileys) - API para se conectar ao WhatsApp
 
 ## 📄 Licença
 
