@@ -156,51 +156,47 @@ export default class TelegramBot extends BotEvents implements IBot {
 
   public async removeMessage(message: Message): Promise<void> {}
 
-  public async deleteMessage(message: Message): Promise<void> {}
+  public async deleteMessage(message: Message): Promise<void> {
+    await this.bot.deleteMessage(Number(message.chat.id), Number(message.id));
+  }
 
   public async downloadStreamMessage(media: Media): Promise<Buffer> {
-    return Buffer.from("");
+    if (!media?.stream || typeof media.stream != "object" || !media.stream.file_id) {
+      return Buffer.from("");
+    }
+
+    const fileUrl = await this.bot.getFileLink(media.stream.file_id);
+
+    return await TelegramUtils.downloadFileFromURL(fileUrl);
   }
 
   public async getBotName(): Promise<string> {
     return TelegramUtils.getName(await this.bot.getMe());
   }
 
-  public async setBotName(name: string): Promise<void> {}
-
-  public async getBotDescription(): Promise<string> {
-    return "";
+  public async setBotName(name: string): Promise<void> {
+    await this.setUserName(new User(this.id), name);
   }
 
-  public async setBotDescription(description: string): Promise<void> {}
+  public async getBotDescription(): Promise<string> {
+    return await this.getUserDescription(new User(this.id));
+  }
+
+  public async setBotDescription(description: string): Promise<void> {
+    await this.setUserDescription(new User(this.id), description);
+  }
 
   public async getBotProfile(lowQuality?: boolean): Promise<Buffer> {
-    const fileUrl = await this.getBotProfileUrl();
-
-    if (!fileUrl) {
-      return Buffer.from("");
-    }
-
-    return await TelegramUtils.downloadFileFromURL(fileUrl);
+    return await this.getUserProfile(new User(this.id));
   }
 
   public async getBotProfileUrl(lowQuality?: boolean): Promise<string> {
-    const profile = await this.bot.getUserProfilePhotos(Number(this.id));
-
-    const photo = profile.photos?.shift()?.shift();
-
-    if (!photo) {
-      return "";
-    }
-
-    return await this.bot.getFileLink(photo.file_id);
+    return await this.getUserProfileUrl(new User(this.id));
   }
 
-  public async setBotProfile(image: Buffer): Promise<void> {}
-
-  //! #################################################################
-  //! ########## MÉTODOS DO CHAT
-  //! #################################################################
+  public async setBotProfile(image: Buffer): Promise<void> {
+    await this.setUserProfile(new User(this.id), image);
+  }
 
   public async getChats(): Promise<string[]> {
     return [];
@@ -218,13 +214,21 @@ export default class TelegramBot extends BotEvents implements IBot {
 
   public async createChat(chat: Chat): Promise<void> {}
 
-  public async leaveChat(chat: Chat): Promise<void> {}
+  public async leaveChat(chat: Chat): Promise<void> {
+    await this.bot.leaveChat(Number(chat.id));
+  }
 
-  public async addUserInChat(chat: Chat, user: User): Promise<void> {}
+  public async addUserInChat(chat: Chat, user: User): Promise<void> {
+    await this.bot.unbanChatMember(Number(chat.id), Number(user.id));
+  }
 
-  public async removeUserInChat(chat: Chat, user: User): Promise<void> {}
+  public async removeUserInChat(chat: Chat, user: User): Promise<void> {
+    await this.bot.banChatMember(Number(chat.id), Number(user.id));
+  }
 
-  public async promoteUserInChat(chat: Chat, user: User): Promise<void> {}
+  public async promoteUserInChat(chat: Chat, user: User): Promise<void> {
+    await this.bot.promoteChatMember(Number(chat.id), Number(user.id));
+  }
 
   public async demoteUserInChat(chat: Chat, user: User): Promise<void> {}
 
@@ -235,43 +239,73 @@ export default class TelegramBot extends BotEvents implements IBot {
   }
 
   public async getChatAdmins(chat: Chat): Promise<string[]> {
-    return [];
+    const members = await this.bot.getChatAdministrators(Number(chat.id));
+
+    return members.map((member) => TelegramUtils.getId(member.user));
   }
 
   public async getChatLeader(chat: Chat): Promise<string> {
-    return "";
+    const members = await this.bot.getChatAdministrators(Number(chat.id));
+
+    return `${members.find((member) => member.status == "creator") || ""}`;
   }
 
   public async getChatName(chat: Chat): Promise<string> {
-    return "";
+    const chatData = await this.bot.getChat(Number(chat.id));
+
+    return `${chatData.title || ""}`;
   }
 
-  public async setChatName(chat: Chat, name: string): Promise<void> {}
+  public async setChatName(chat: Chat, name: string): Promise<void> {
+    await this.bot.setChatTitle(Number(chat.id), `${name}`);
+  }
 
   public async getChatDescription(chat: Chat): Promise<string> {
-    return "";
+    const chatData = await this.bot.getChat(Number(chat.id));
+
+    return `${chatData.description || chatData.bio || ""}`;
   }
 
-  public async setChatDescription(chat: Chat, description: string): Promise<void> {}
+  public async setChatDescription(chat: Chat, description: string): Promise<void> {
+    await this.bot.setChatDescription(Number(chat.id), `${description || ""}`);
+  }
 
   public async getChatProfile(chat: Chat, lowQuality?: boolean): Promise<Buffer> {
-    return Buffer.from("");
+    const fileUrl = await this.getChatProfileUrl(chat, lowQuality);
+
+    if (!fileUrl) {
+      return Buffer.from("");
+    }
+
+    return await TelegramUtils.downloadFileFromURL(fileUrl);
   }
 
   public async getChatProfileUrl(chat: Chat, lowQuality?: boolean): Promise<string> {
-    return "";
+    const profile = await this.bot.getUserProfilePhotos(Number(chat.id));
+
+    const photo = profile.photos?.shift()?.shift();
+
+    if (!photo) {
+      return "";
+    }
+
+    return await this.bot.getFileLink(photo.file_id);
   }
 
-  public async setChatProfile(chat: Chat, profile: Buffer): Promise<void> {}
+  public async setChatProfile(chat: Chat, profile: Buffer): Promise<void> {
+    await this.bot.setChatPhoto(Number(chat.id), profile);
+  }
 
   public async joinChat(code: string): Promise<void> {}
 
-  public async getChatEnvite(chat: Chat): Promise<string> {
-    return "";
+  public async getChatInvite(chat: Chat): Promise<string> {
+    return await this.bot.exportChatInviteLink(Number(chat.id));
   }
 
-  public async revokeChatEnvite(chat: Chat): Promise<string> {
-    return "";
+  public async revokeChatInvite(chat: Chat): Promise<string> {
+    const result = await this.bot.revokeChatInviteLink(Number(chat.id), await this.getChatInvite(chat));
+
+    return result.invite_link;
   }
 
   public async getUsers(): Promise<string[]> {
@@ -293,24 +327,48 @@ export default class TelegramBot extends BotEvents implements IBot {
   public async blockUser(user: User): Promise<void> {}
 
   public async getUserName(user: User): Promise<string> {
-    return "";
+    const chat = await this.bot.getChat(Number(user.id));
+
+    return `${chat.title || ""}`;
   }
 
-  public async setUserName(user: User, name: string): Promise<void> {}
+  public async setUserName(user: User, name: string): Promise<void> {
+    await this.bot.setChatTitle(Number(user.id), `${name || ""}`);
+  }
 
   public async getUserDescription(user: User): Promise<string> {
-    return "";
+    const chatData = await this.bot.getChat(Number(user.id));
+
+    return `${chatData.description || chatData.bio || ""}`;
   }
 
-  public async setUserDescription(user: User, description: string): Promise<void> {}
+  public async setUserDescription(user: User, description: string): Promise<void> {
+    await this.bot.setChatDescription(Number(user.id), `${description || ""}`);
+  }
 
-  public async getUserProfile(user: User): Promise<Buffer> {
-    return Buffer.from("");
+  public async getUserProfile(user: User, lowQuality?: boolean): Promise<Buffer> {
+    const fileUrl = await this.getUserProfileUrl(user, lowQuality);
+
+    if (!fileUrl) {
+      return Buffer.from("");
+    }
+
+    return await TelegramUtils.downloadFileFromURL(fileUrl);
   }
 
   public async getUserProfileUrl(user: User, lowQuality?: boolean): Promise<string> {
-    return "";
+    const profile = await this.bot.getUserProfilePhotos(Number(user.id));
+
+    const photo = profile.photos?.shift()?.shift();
+
+    if (!photo) {
+      return "";
+    }
+
+    return await this.bot.getFileLink(photo.file_id);
   }
 
-  public async setUserProfile(user: User, profile: Buffer): Promise<void> {}
+  public async setUserProfile(user: User, profile: Buffer): Promise<void> {
+    await this.bot.setChatPhoto(Number(user.id), profile);
+  }
 }
