@@ -134,5 +134,5 @@ client.on("error", (err: any) => {
   //? Ao inserir o número do bot é ativado o pareamento por código
   const botPhoneNumber = "";
 
-  await client.connect(new MultiFileAuthState("./example/auth", botPhoneNumber));
+  await client.connect(new MultiFileAuthState("./example/sessions/whatsapp", botPhoneNumber));
 })();

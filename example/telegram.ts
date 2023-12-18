@@ -141,5 +141,5 @@ client.on("error", (err: any) => {
     }
   });
 
-  client.connect(new TelegramAuth(process.env.TELEGRAM_BOT_TOKEN || "", "./example/auth"));
+  client.connect(new TelegramAuth(process.env.TELEGRAM_BOT_TOKEN || "", "./example/sessions/telegram"));
 })();
