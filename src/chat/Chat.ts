@@ -16,6 +16,8 @@ export default class Chat {
   public type: ChatType = ChatType.PV;
   /** Nome do chat */
   public name: string = "";
+  /** Apelido do chat */
+  public nickname: string = "";
   /** Número de telefone */
   public phoneNumber: string = "";
   /** Descrição do chat */

@@ -11,6 +11,8 @@ export default class User {
   public id: string = "";
   /** Nome do usuário */
   public name: string = "";
+  /** Apelido do usuário */
+  public nickname: string = "";
   /** Descrição do usuário */
   public description: string = "";
   /** Número de telefone */

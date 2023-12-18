@@ -31,6 +31,14 @@ export namespace TelegramUtils {
     return "";
   }
 
+  export function getNickname(data: Partial<TelegramBotAPI.Chat & TelegramBotAPI.User & TelegramBotAPI.Contact>): string {
+    if (!data || typeof data != "object") {
+      return "";
+    }
+
+    return `${data.username || ""}`;
+  }
+
   export function getChatType(chat: TelegramBotAPI.Chat): ChatType {
     if (!chat || typeof chat != "object") {
       return ChatType.PV;
