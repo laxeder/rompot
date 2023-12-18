@@ -38,7 +38,7 @@ export default class TelegramToRompotConverter {
     this.rompotMessage.chat.name = TelegramUtils.getName(this.telegramMessage.chat);
     this.rompotMessage.chat.type = TelegramUtils.getChatType(this.telegramMessage.chat);
     this.rompotMessage.chat.nickname = TelegramUtils.getNickname(this.telegramMessage.chat);
-    this.rompotMessage.user.phoneNumber = TelegramUtils.getPhoneNumber(this.telegramMessage.chat.id);
+    this.rompotMessage.chat.phoneNumber = TelegramUtils.getPhoneNumber(this.telegramMessage.chat.id);
 
     this.rompotMessage.user.id = TelegramUtils.getId(this.telegramMessage.from);
     this.rompotMessage.user.name = TelegramUtils.getName(this.telegramMessage.from);
