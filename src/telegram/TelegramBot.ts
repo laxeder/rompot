@@ -131,9 +131,13 @@ export default class TelegramBot extends BotEvents implements IBot {
     await new TelegramSendingController(this).sendReaction(message);
   }
 
-  public async readMessage(message: Message): Promise<void> {}
+  public async readMessage(message: Message): Promise<void> {
+    //TODO: Read message
+  }
 
-  public async removeMessage(message: Message): Promise<void> {}
+  public async removeMessage(message: Message): Promise<void> {
+    //TODO: Remove message
+  }
 
   public async deleteMessage(message: Message): Promise<void> {
     await this.bot.deleteMessage(Number(message.chat.id), Number(message.id));
@@ -177,14 +181,28 @@ export default class TelegramBot extends BotEvents implements IBot {
     await this.setUserProfile(new User(this.id), image);
   }
 
-  public async getChats(): Promise<string[]> {
-    return [];
+  public async getChat(chat: Chat): Promise<Chat | null> {
+    const chatData = await this.auth.get(`chats-${chat.id}`);
+
+    if (!chatData) return null;
+
+    if (!chat.name || !chat.profileUrl) {
+      const user = await this.getUser(new User(chat.id));
+
+      if (user != null) {
+        return Chat.fromJSON({ ...chat, ...user });
+      }
+    }
+
+    return Chat.fromJSON(chatData);
   }
 
-  public async setChats(chats: Chat[]): Promise<void> {}
+  public async getChats(): Promise<string[]> {
+    return (await this.auth.listAll("chats-")).map((id) => id.replace("chats-", ""));
+  }
 
-  public async getChat(chat: Chat): Promise<Chat | null> {
-    return null;
+  public async setChats(chats: Chat[]): Promise<void> {
+    await Promise.all(chats.map(async (chat) => await this.updateChat(chat)));
   }
 
   public async updateChat(chat: { id: string } & Partial<Chat>): Promise<void> {
@@ -214,9 +232,15 @@ export default class TelegramBot extends BotEvents implements IBot {
     this.ev.emit("chat", { action: chatData != null ? "update" : "add", chat });
   }
 
-  public async removeChat(chat: Chat): Promise<void> {}
+  public async removeChat(chat: Chat): Promise<void> {
+    await this.auth.remove(`chats-${chat.id}`);
 
-  public async createChat(chat: Chat): Promise<void> {}
+    this.ev.emit("chat", { action: "remove", chat });
+  }
+
+  public async createChat(chat: Chat): Promise<void> {
+    //TODO: Create chat
+  }
 
   public async leaveChat(chat: Chat): Promise<void> {
     await this.bot.leaveChat(Number(chat.id));
@@ -234,12 +258,16 @@ export default class TelegramBot extends BotEvents implements IBot {
     await this.bot.promoteChatMember(Number(chat.id), Number(user.id));
   }
 
-  public async demoteUserInChat(chat: Chat, user: User): Promise<void> {}
+  public async demoteUserInChat(chat: Chat, user: User): Promise<void> {
+    //TODO: Demote user in chat
+  }
 
-  public async changeChatStatus(chat: Chat, status: ChatStatus): Promise<void> {}
+  public async changeChatStatus(chat: Chat, status: ChatStatus): Promise<void> {
+    //TODO: Change chat status
+  }
 
   public async getChatUsers(chat: Chat): Promise<string[]> {
-    return [];
+    return (await this.getChat(chat))?.users || [];
   }
 
   public async getChatAdmins(chat: Chat): Promise<string[]> {
@@ -300,7 +328,9 @@ export default class TelegramBot extends BotEvents implements IBot {
     await this.bot.setChatPhoto(Number(chat.id), profile);
   }
 
-  public async joinChat(code: string): Promise<void> {}
+  public async joinChat(code: string): Promise<void> {
+    //TODO: Join chat
+  }
 
   public async getChatInvite(chat: Chat): Promise<string> {
     return await this.bot.exportChatInviteLink(Number(chat.id));
@@ -312,14 +342,20 @@ export default class TelegramBot extends BotEvents implements IBot {
     return result.invite_link;
   }
 
-  public async getUsers(): Promise<string[]> {
-    return [];
+  public async getUser(user: User): Promise<User | null> {
+    const userData = await this.auth.get(`users-${user.id}`);
+
+    if (!userData) return null;
+
+    return User.fromJSON(userData);
   }
 
-  public async setUsers(users: User[]): Promise<void> {}
+  public async getUsers(): Promise<string[]> {
+    return (await this.auth.listAll("users-")).map((id) => id.replace("users-", ""));
+  }
 
-  public async getUser(user: User): Promise<User | null> {
-    return null;
+  public async setUsers(users: User[]): Promise<void> {
+    await Promise.all(users.map(async (user) => await this.updateUser(user)));
   }
 
   public async updateUser(user: { id: string } & Partial<User>): Promise<void> {
@@ -346,11 +382,17 @@ export default class TelegramBot extends BotEvents implements IBot {
     await this.auth.set(`users-${user.id}`, newUser.toJSON());
   }
 
-  public async removeUser(user: User): Promise<void> {}
+  public async removeUser(user: User): Promise<void> {
+    await this.auth.remove(`users-${user.id}`);
+  }
 
-  public async unblockUser(user: User): Promise<void> {}
+  public async unblockUser(user: User): Promise<void> {
+    //TODO: Unblock user
+  }
 
-  public async blockUser(user: User): Promise<void> {}
+  public async blockUser(user: User): Promise<void> {
+    //TODO: Block user
+  }
 
   public async getUserName(user: User): Promise<string> {
     const chat = await this.bot.getChat(Number(user.id));
