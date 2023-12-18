@@ -56,6 +56,8 @@ export default class TelegramEvents {
           phoneNumber: TelegramUtils.getPhoneNumber(userId),
         });
 
+        await this.updateChatUsers("add", rompotMessage.chat, user);
+
         await this.update(user);
         await this.update(rompotMessage.user);
         await this.update(rompotMessage.chat);
@@ -89,6 +91,8 @@ export default class TelegramEvents {
       await this.update(rompotMessage.user);
       await this.update(rompotMessage.chat);
 
+      await this.updateChatUsers("remove", rompotMessage.chat, user);
+
       if (rompotMessage.user.id == user.id) {
         this.telegram.emit("user", { action: "leave", event: "remove", user, chat: rompotMessage.chat, fromUser: rompotMessage.user });
       } else {
@@ -107,6 +111,37 @@ export default class TelegramEvents {
 
       if (data instanceof Chat) {
         return await this.telegram.updateChat(data);
+      }
+    } catch (error) {
+      this.telegram.emit("error", error);
+    }
+  }
+
+  public async updateChatUsers(action: "add" | "remove", chat: Chat, ...users: User[]) {
+    try {
+      chat = Chat.fromJSON({
+        ...((await this.telegram.getChat(chat)) || {}),
+        ...chat,
+      });
+
+      if (action == "add") {
+        users = users.filter((user) => !chat.users.includes(user.id));
+
+        if (users.length == 0) return;
+
+        chat.users.push(...users.map((user) => user.id));
+
+        await this.update(chat);
+      } else if (action == "remove") {
+        const userIds = users.map((user) => user.id);
+
+        if (userIds.includes(this.telegram.id)) {
+          await this.telegram.removeChat(chat);
+        } else {
+          chat.users = chat.users.filter((userId) => !userIds.includes(userId));
+
+          await this.update(chat);
+        }
       }
     } catch (error) {
       this.telegram.emit("error", error);
