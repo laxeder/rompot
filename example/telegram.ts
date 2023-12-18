@@ -86,27 +86,31 @@ client.on("chat", (update) => {
 
 client.on("user", async (update) => {
   if (update.action == "join") {
-    // await client.send(new Message(update.chat, `@${update.user.id} entrou no grupo.`));
+    await client.send(new Message(update.chat, `@${update.user.nickname} entrou no grupo.`));
   }
 
   if (update.action == "leave") {
-    // await client.send(new Message(update.chat, `@${update.user.id} saiu do grupo...`));
+    await client.send(new Message(update.chat, `@${update.user.nickname} saiu do grupo...`));
   }
 
   if (update.action == "add") {
-    // await client.send(new Message(update.chat, `Membro @${update.fromUser.id} adicionou o @${update.user.id} ao grupo!`));
+    await client.send(new Message(update.chat, `Membro @${update.fromUser.nickname} adicionou o @${update.user.nickname} ao grupo!`));
   }
 
   if (update.action == "remove") {
-    // await client.send(new Message(update.chat, `Membro @${update.fromUser.id} removeu o @${update.user.id} do grupo.`));
+    if (update.user.id == client.bot.id) {
+      console.info(`Bot foi removido do grupo "${update.chat.name}" pelo membro "${update.user.name}"`);
+    } else {
+      await client.send(new Message(update.chat, `Membro @${update.fromUser.nickname} removeu o @${update.user.nickname} do grupo.`));
+    }
   }
 
   if (update.action == "promote") {
-    // await client.send(new Message(update.chat, `Membro @${update.fromUser.id} promoveu o @${update.user.id} para admin!`));
+    await client.send(new Message(update.chat, `Membro @${update.fromUser.nickname} promoveu o @${update.user.nickname} para admin!`));
   }
 
   if (update.action == "demote") {
-    // await client.send(new Message(update.chat, `Membro @${update.fromUser.id} removeu o admin do @${update.user.id}.`));
+    await client.send(new Message(update.chat, `Membro @${update.fromUser.nickname} removeu o admin do @${update.user.nickname}.`));
   }
 });
 
