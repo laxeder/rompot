@@ -227,6 +227,12 @@ export default class TelegramBot extends BotEvents implements IBot {
     newChat.type = chat.id.length > 10 ? ChatType.Group : ChatType.PV;
     newChat.phoneNumber = newChat.phoneNumber || TelegramUtils.getPhoneNumber(chat.id);
 
+    if (!newChat.profileUrl) {
+      try {
+        newChat.profileUrl = await this.getChatProfileUrl(newChat);
+      } catch {}
+    }
+
     await this.auth.set(`chats-${chat.id}`, newChat.toJSON());
 
     this.ev.emit("chat", { action: chatData != null ? "update" : "add", chat });
@@ -376,6 +382,12 @@ export default class TelegramBot extends BotEvents implements IBot {
     const newUser = User.fromJSON({ ...(userData || {}), ...user });
 
     newUser.phoneNumber = newUser.phoneNumber || TelegramUtils.getPhoneNumber(user.id);
+
+    if (!newUser.profileUrl) {
+      try {
+        newUser.profileUrl = await this.getUserProfileUrl(newUser);
+      } catch {}
+    }
 
     await this.auth.set(`users-${user.id}`, newUser.toJSON());
   }
