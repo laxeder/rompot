@@ -313,15 +313,13 @@ export default class TelegramBot extends BotEvents implements IBot {
   }
 
   public async getChatProfileUrl(chat: Chat, lowQuality?: boolean): Promise<string> {
-    const profile = await this.bot.getUserProfilePhotos(Number(chat.id));
+    const chatData = await this.bot.getChat(Number(chat.id));
 
-    const photo = profile.photos?.shift()?.shift();
+    const fileId = lowQuality ? chatData.photo?.small_file_id : chatData.photo?.big_file_id;
 
-    if (!photo) {
-      return "";
-    }
+    if (!fileId) return "";
 
-    return await this.bot.getFileLink(photo.file_id);
+    return await this.bot.getFileLink(fileId);
   }
 
   public async setChatProfile(chat: Chat, profile: Buffer): Promise<void> {
