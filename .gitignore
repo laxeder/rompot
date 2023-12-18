@@ -6,9 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# Baileys
-auth-*
-example/auth
+# Example
+example/sessions
 
 # Utils
 auto-merge.sh
