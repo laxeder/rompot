@@ -1,7 +1,8 @@
+import dotenv from "dotenv";
+
 import Client, { Message, Command, CMDRunType, CMDPerms, EmptyMessage } from "../src";
 import TelegramAuth from "../src/telegram/TelegramAuth";
 import TelegramBot from "../src/telegram/TelegramBot";
-import dotenv from "dotenv";
 
 dotenv.config();
 
