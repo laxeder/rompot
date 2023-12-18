@@ -3,6 +3,7 @@ import TelegramBotAPI from "node-telegram-bot-api";
 import IAuth from "../client/IAuth";
 
 import { ChatStatus } from "../chat/ChatStatus";
+import { ChatType } from "../chat/ChatType";
 import Chat from "../chat/Chat";
 import User from "../user/User";
 
@@ -18,6 +19,8 @@ import TelegramSendingController from "./TelegramSendingController";
 import { TelegramUtils } from "./TelegramUtils";
 import TelegramEvents from "./TelegramEvents";
 import TelegramAuth from "./TelegramAuth";
+
+import { verifyIsEquals } from "../utils/Generic";
 
 export default class TelegramBot extends BotEvents implements IBot {
   public auth: IAuth;
@@ -184,7 +187,32 @@ export default class TelegramBot extends BotEvents implements IBot {
     return null;
   }
 
-  public async updateChat(chat: { id: string } & Partial<Chat>): Promise<void> {}
+  public async updateChat(chat: { id: string } & Partial<Chat>): Promise<void> {
+    const chatData = await this.getChat(new Chat(chat.id));
+
+    if (chatData != null) {
+      chat = Object.keys(chat).reduce(
+        (data, key) => {
+          if (chat[key] == undefined || chat[key] == null) return data;
+          if (verifyIsEquals(chat[key], chatData[key])) return data;
+
+          return { ...data, [key]: chat[key] };
+        },
+        { id: chat.id }
+      );
+
+      if (Object.keys(chat).length < 2) return;
+    }
+
+    const newChat = Chat.fromJSON({ ...(chatData || {}), ...chat });
+
+    newChat.type = chat.id.length > 10 ? ChatType.Group : ChatType.PV;
+    newChat.phoneNumber = newChat.phoneNumber || TelegramUtils.getPhoneNumber(chat.id);
+
+    await this.auth.set(`chats-${chat.id}`, newChat.toJSON());
+
+    this.ev.emit("chat", { action: chatData != null ? "update" : "add", chat });
+  }
 
   public async removeChat(chat: Chat): Promise<void> {}
 
@@ -294,7 +322,29 @@ export default class TelegramBot extends BotEvents implements IBot {
     return null;
   }
 
-  public async updateUser(user: { id: string } & Partial<User>): Promise<void> {}
+  public async updateUser(user: { id: string } & Partial<User>): Promise<void> {
+    const userData = await this.getUser(new User(user.id));
+
+    if (userData != null) {
+      user = Object.keys(user).reduce(
+        (data, key) => {
+          if (user[key] == undefined || user[key] == null) return data;
+          if (verifyIsEquals(user[key], userData[key])) return data;
+
+          return { ...data, [key]: user[key] };
+        },
+        { id: user.id }
+      );
+
+      if (Object.keys(user).length < 2) return;
+    }
+
+    const newUser = User.fromJSON({ ...(userData || {}), ...user });
+
+    newUser.phoneNumber = newUser.phoneNumber || TelegramUtils.getPhoneNumber(user.id);
+
+    await this.auth.set(`users-${user.id}`, newUser.toJSON());
+  }
 
   public async removeUser(user: User): Promise<void> {}
 
