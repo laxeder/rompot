@@ -24,24 +24,23 @@ export default class TelegramAuth implements IAuth {
     this.#botToken = `${botToken || ""}`;
   }
 
-  constructor(botToken: string, sessionsDir: string = "./sessions", autoCreateDir: boolean = true) {
+  constructor(botToken: string, sessionsDir: string = "./telegram-session", autoCreateDir: boolean = true) {
     this.sessionsDir = sessionsDir;
     this.#botToken = `${botToken || ""}`;
 
-    const sessionDir = this.getSession();
-    const folderInfo = this.getStat(sessionDir);
+    const folderInfo = this.getStat(this.sessionsDir);
 
     if (folderInfo) {
       if (!folderInfo.isDirectory()) {
-        throw new Error(`found something that is not a directory at ${sessionDir}, either delete it or specify a different location`);
+        throw new Error(`found something that is not a directory at ${this.sessionsDir}, either delete it or specify a different location`);
       }
     } else {
-      if (autoCreateDir) mkdirSync(sessionDir, { recursive: true });
+      if (autoCreateDir) mkdirSync(this.sessionsDir, { recursive: true });
     }
   }
 
   public getSession(...paths: string[]) {
-    return join(`${this.sessionsDir}`, `${this.#botToken}`.slice(0, 9), ...paths);
+    return join(`${this.sessionsDir}`, ...paths);
   }
 
   public async get(file: string) {
