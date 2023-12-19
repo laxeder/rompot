@@ -30,6 +30,7 @@
     "crypto-digest-sync": "1.0.0",
     "jimp": "0.16.2",
     "link-preview-js": "3.0.0",
+    "node-cache": "5.1.2",
     "node-telegram-bot-api": "0.64.0",
     "pino": "8.7.0",
     "qrcode-terminal": "0.12.0"
