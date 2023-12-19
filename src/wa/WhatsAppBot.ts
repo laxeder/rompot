@@ -1,20 +1,24 @@
 import makeWASocket, {
-  DisconnectReason,
-  downloadMediaMessage,
-  proto,
+  generateWAMessageFromContent,
+  makeCacheableSignalKeyStore,
   MediaDownloadOptions,
-  WASocket,
-  SocketConfig,
-  makeInMemoryStore,
+  downloadMediaMessage,
   AuthenticationCreds,
+  Chat as BaileysChat,
+  DEFAULT_CACHE_TTLS,
   WAConnectionState,
+  makeInMemoryStore,
+  DisconnectReason,
   ConnectionState,
+  GroupMetadata,
+  SocketConfig,
   isJidGroup,
   Browsers,
-  generateWAMessageFromContent,
-  GroupMetadata,
+  WASocket,
+  Contact,
+  proto,
 } from "@whiskeysockets/baileys";
-import * as baileys from "@whiskeysockets/baileys";
+import NodeCache from "node-cache";
 import internal from "stream";
 import pino from "pino";
 import Long from "long";
@@ -44,7 +48,11 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   //@ts-ignore
   public sock: WASocket = {};
   public config: Partial<SocketConfig & { usePairingCode: boolean }>;
+  public auth: IAuth = new MultiFileAuthState("./session", undefined, false);
+
+  public msgRetryCounterCache: NodeCache;
   public store: ReturnType<typeof makeInMemoryStore>;
+
   public saveCreds = (creds: Partial<AuthenticationCreds>) => new Promise<void>((res) => res);
   public connectionListeners: ((update: Partial<ConnectionState>) => boolean)[] = [];
 
@@ -56,7 +64,6 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public phoneNumber: string = "";
   public name: string = "";
   public profileUrl: string = "";
-  public auth: IAuth = new MultiFileAuthState("./session", undefined, false);
 
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
   public funcHandler = new FunctionHandler(this.sock, { sock: [], chat: [], user: [], msg: [] });
@@ -64,10 +71,17 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   constructor(config?: Partial<SocketConfig & { usePairingCode: boolean }>) {
     super();
 
+    this.msgRetryCounterCache = new NodeCache({
+      stdTTL: DEFAULT_CACHE_TTLS.MSG_RETRY,
+      useClones: false,
+    });
+
     this.config = {
       printQRInTerminal: true,
       logger: this.logger,
       defaultQueryTimeoutMs: 10000,
+      retryRequestDelayMs: 500,
+      msgRetryCounterCache: this.msgRetryCounterCache,
       async getMessage(key) {
         return (await this.store.loadMessage(key.remoteJid!, key.id!))?.message || undefined;
       },
@@ -133,7 +147,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
         this.sock = makeWASocket({
           auth: {
             creds: state.creds,
-            keys: baileys.makeCacheableSignalKeyStore(state.keys, this.config.logger),
+            keys: makeCacheableSignalKeyStore(state.keys, this.config.logger),
           },
           ...additionalOptions,
           ...this.config,
@@ -215,7 +229,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
    * * Lê o chat
    * @param chat Sala de bate-papo
    */
-  public async readChat(chat: Partial<Chat>, metadata?: Partial<GroupMetadata> & Partial<baileys.Chat>, updateMetadata: boolean = true) {
+  public async readChat(chat: Partial<Chat>, metadata?: Partial<GroupMetadata> & Partial<BaileysChat>, updateMetadata: boolean = true) {
     try {
       if (!chat.id || !(chat.id.includes("@s") || chat.id.includes("@g"))) return;
 
@@ -295,7 +309,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
    * * Lê o usuário
    * @param user Usuário
    */
-  public async readUser(user: Partial<User>, metadata?: Partial<baileys.Contact>) {
+  public async readUser(user: Partial<User>, metadata?: Partial<Contact>) {
     try {
       if (!user.id || !user.id.includes("@s")) return;
 
