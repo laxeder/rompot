@@ -1,4 +1,4 @@
-import { DisconnectReason, MessageUpsertType, isJidGroup, proto } from "@whiskeysockets/baileys";
+import { DisconnectReason, MessageUpsertType, decodeMessageNode, isJidGroup, proto } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 import Long from "long";
 
@@ -33,6 +33,7 @@ export default class ConfigWAEvents {
     this.configCBNotificationAdd();
     this.configCBNotificationPromote();
     this.configCBNotificationDemote();
+    this.configCBMessage();
   }
 
   public configCBNotificationRemove() {
@@ -85,14 +86,52 @@ export default class ConfigWAEvents {
     });
   }
 
+  public configCBMessage() {
+    this.wa.sock.ws.addListener("CB:message", async (node) => {
+      try {
+        this.wa.sock.ev.buffer();
+
+        try {
+          const { fullMessage } = decodeMessageNode(node, this.wa.sock.authState.creds.me!.id);
+
+          if (this.wa.config.shouldIgnoreJid!(fullMessage.key.remoteJid!)) return;
+
+          const isDecrypted = (Array.isArray(node.content) ? node.content : []).some(({ tag, content }) => {
+            return tag == "enc" && content instanceof Uint8Array;
+          });
+
+          if (!isDecrypted) {
+            this.wa.addMessageRetryCache(fullMessage.key.id, node);
+          }
+        } catch (error) {
+          this.wa.emit("error", new Error("Process message failed"));
+        }
+
+        this.wa.sock.ev.flush();
+      } catch (error) {
+        this.wa.emit("error", new Error("Process message failed"));
+      }
+    });
+  }
+
   public async readMessages(messages: proto.IWebMessageInfo[], type: MessageUpsertType = "notify") {
     try {
-      console.log(JSON.stringify(messages, undefined, 2));
-
       for (const message of messages || []) {
         try {
+          if (!message || !message.message) return;
           if (message.key.remoteJid == "status@broadcast") return;
-          if (!message.message) return;
+          if (message.messageStubType == proto.WebMessageInfo.StubType.CIPHERTEXT) return;
+
+          this.wa.removeMessageRetryCache(message.key.id || "");
+
+          if (this.wa.messagesCached.includes(message.key.id)) return;
+
+          this.wa.addMessageCache(message.key.id);
+
+          for (let i = 0; i < 5; i++) {
+            await new Promise((res) => setTimeout(res, 200));
+            this.readMessages([message]);
+          }
 
           const chatId = message.key.remoteJid || this.wa.id;
 
