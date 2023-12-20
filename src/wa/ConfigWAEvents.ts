@@ -1,4 +1,4 @@
-import { DisconnectReason, isJidGroup } from "@whiskeysockets/baileys";
+import { DisconnectReason, MessageUpsertType, isJidGroup, proto } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 import Long from "long";
 
@@ -85,50 +85,60 @@ export default class ConfigWAEvents {
     });
   }
 
+  public async readMessages(messages: proto.IWebMessageInfo[], type: MessageUpsertType = "notify") {
+    try {
+      console.log(JSON.stringify(messages, undefined, 2));
+
+      for (const message of messages || []) {
+        try {
+          if (message.key.remoteJid == "status@broadcast") return;
+          if (!message.message) return;
+
+          const chatId = message.key.remoteJid || this.wa.id;
+
+          const chat = await this.wa.getChat(new Chat(chatId));
+
+          let timestamp: number;
+
+          if (message.messageTimestamp) {
+            if (Long.isLong(message.messageTimestamp)) {
+              timestamp = message.messageTimestamp.toNumber() * 1000;
+            } else {
+              timestamp = message.messageTimestamp * 1000;
+            }
+          }
+
+          await this.wa.updateChat({
+            id: chatId,
+            unreadCount: (chat?.unreadCount || 0) + 1,
+            timestamp,
+            name: message.key.id?.includes("@s") && !message.key.fromMe ? message.pushName || message.verifiedBizName : undefined,
+          });
+
+          const userId = message.key.fromMe ? this.wa.id : message.key.participant || message.participant || message.key.remoteJid || "";
+
+          await this.wa.updateUser({ id: userId, name: message.pushName || message.verifiedBizName });
+
+          const msg = await new ConvertWAMessage(this.wa, message, type).get();
+
+          if (msg.fromMe && msg.isUnofficial) {
+            await this.wa.updateChat({ id: msg.chat.id, unreadCount: 0 });
+          }
+
+          this.wa.emit("message", msg);
+        } catch (err) {
+          this.wa.emit("message", new ErrorMessage(message?.key?.remoteJid || "", err && err instanceof Error ? err : new Error(JSON.stringify(err))));
+        }
+      }
+    } catch (err) {
+      this.wa.emit("error", err);
+    }
+  }
+
   public configMessagesUpsert() {
     this.wa.sock.ev.on("messages.upsert", async (m) => {
       try {
-        for (const message of m?.messages || []) {
-          try {
-            if (message.key.remoteJid == "status@broadcast") return;
-            if (!message.message) return;
-
-            const chatId = message.key.remoteJid || this.wa.id;
-
-            const chat = await this.wa.getChat(new Chat(chatId));
-
-            let timestamp: number;
-
-            if (message.messageTimestamp) {
-              if (Long.isLong(message.messageTimestamp)) {
-                timestamp = message.messageTimestamp.toNumber() * 1000;
-              } else {
-                timestamp = message.messageTimestamp * 1000;
-              }
-            }
-
-            await this.wa.updateChat({
-              id: chatId,
-              unreadCount: (chat?.unreadCount || 0) + 1,
-              timestamp,
-              name: message.key.id?.includes("@s") && !message.key.fromMe ? message.pushName || message.verifiedBizName : undefined,
-            });
-
-            const userId = message.key.fromMe ? this.wa.id : message.key.participant || message.participant || message.key.remoteJid || "";
-
-            await this.wa.updateUser({ id: userId, name: message.pushName || message.verifiedBizName });
-
-            const msg = await new ConvertWAMessage(this.wa, message, m.type).get();
-
-            if (msg.fromMe && msg.isUnofficial) {
-              await this.wa.updateChat({ id: msg.chat.id, unreadCount: 0 });
-            }
-
-            this.wa.emit("message", msg);
-          } catch (err) {
-            this.wa.emit("message", new ErrorMessage(message?.key?.remoteJid || "", err && err instanceof Error ? err : new Error(JSON.stringify(err))));
-          }
-        }
+        await this.readMessages(m?.messages || [], m.type);
       } catch (err) {
         this.wa.emit("error", err);
       }
@@ -142,6 +152,8 @@ export default class ConfigWAEvents {
           try {
             if (!message?.update?.status) return;
             if (message.key.remoteJid == "status@broadcast") return;
+
+            await this.readMessages([{ key: message.key, ...message.update }]);
 
             const msg = await new ConvertWAMessage(this.wa, message).get();
 
