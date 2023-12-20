@@ -190,8 +190,6 @@ export default class TelegramSendingController {
   public async sendEditedMessage(message: Message): Promise<void> {
     const options = TelegramSendingController.getOptions(message);
 
-    console.log(options);
-
     if (MediaMessage.isValid(message)) {
       await this.telegram.bot.editMessageCaption(message.text, options);
     } else {

@@ -28,8 +28,6 @@ export default class TelegramToRompotConverter {
   }
 
   public async convert(received?: boolean): Promise<Message> {
-    console.log(this.telegramMessage);
-
     if (!this.telegramMessage || typeof this.telegramMessage != "object") {
       return this.rompotMessage;
     }
