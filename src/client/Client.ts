@@ -19,6 +19,7 @@ import Command from "../command/Command";
 import ClientEvents, { ClientEventsMap } from "./ClientEvents";
 import ClientFunctionHandler from "./ClientFunctionHandler";
 import ClientCluster from "../cluster/ClientCluster";
+import IClient from "./IClient";
 import IAuth from "./IAuth";
 
 import { BotStatus } from "../bot/BotStatus";
@@ -28,37 +29,28 @@ import IBot from "../bot/IBot";
 import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
 import { sleep, getError } from "../utils/Generic";
 
-export default class Client<Bot extends IBot = IBot> extends ClientEvents {
-  /** Tratador de mensagens */
-  public messageHandler: MessageHandler = new MessageHandler();
-  /** Controlador de comandos  */
-  public commandController: CommandController = new CommandController();
-  /** Configuração */
-  public config: ConnectionConfig;
-  /** Bot */
-  public bot: Bot;
-  /** Vezes que o bot reconectou */
-  public reconnectTimes: number = 0;
-  /** Id do cliente */
-  public id: string;
-  /** Tratador de funções */
+export default class Client<Bot extends IBot = IBot> extends ClientEvents implements IClient {
   public funcHandler = new ClientFunctionHandler(this, { bot: [], chat: [], user: [], message: [], sendMessage: [], sendMediaMessage: [], downloadMedia: [] });
+  public commandController: CommandController = new CommandController();
+  public messageHandler: MessageHandler = new MessageHandler();
+  public reconnectTimes: number = 0;
+
+  public config: ConnectionConfig;
+  public bot: Bot;
+  public id: string;
 
   constructor(bot: Bot, config: Partial<ConnectionConfig> = {}) {
     super();
 
-    this.bot = bot;
-
-    this.id = Client.generateId();
-
     this.config = { ...DEFAULT_CONNECTION_CONFIG, ...config };
+    this.id = Client.generateId();
+    this.bot = bot;
 
     this.configEvents();
 
     Client.saveClient(this);
   }
 
-  /** Configura os eventos do cliente */
   public configEvents() {
     this.bot.on("message", async (message: Message) => {
       try {
@@ -199,39 +191,22 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     });
   }
 
-  /** Conectar bot
-   * @param auth Autenticação do bot
-   */
   public async connect(auth: IAuth | string) {
     await this.bot.connect(auth);
   }
 
-  /** Reconectar bot
-   * @param alert Alerta que está reconectando
-   */
   public async reconnect(alert?: boolean) {
     await this.bot.reconnect(alert);
   }
 
-  /** Parar bot
-   * @param reason Razão por parar bot
-   */
   public async stop(reason?: any) {
     await this.bot.stop(reason);
   }
 
-  /**
-   * Desconecta o bot
-   */
   public async logout(): Promise<void> {
     await this.bot.logout();
   }
 
-  /**
-   * * Aguarda um evento ser chamado.
-   * @param eventName - Nome do evento que será aguardado.
-   * @returns {Promise<ClientEventsMap[T]>} Argumento retornado do evento esperado.
-   */
   public async awaitEvent<T extends keyof ClientEventsMap>(eventName: T): Promise<ClientEventsMap[T]> {
     return new Promise<ClientEventsMap[T]>((res) => {
       const listener = (arg: ClientEventsMap[T]) => {
@@ -244,16 +219,12 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     });
   }
 
-  /**
-   * * Aguarda a conexão for aberta.
-   */
   public async awaitConnectionOpen(): Promise<void> {
     if (this.bot.status != BotStatus.Online) {
       await this.awaitEvent("open");
     }
   }
 
-  /** @returns Controlador de comando do cliente */
   public getCommandController(): CommandController {
     if (this.commandController.clientId != this.id) {
       this.commandController.clientId = this.id;
@@ -266,7 +237,6 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return this.commandController;
   }
 
-  /** Define o controlador de comando do cliente */
   public setCommandController(controller: CommandController): void {
     controller.botId = this.bot.id;
     controller.clientId = this.id;
@@ -274,36 +244,22 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     this.commandController = controller;
   }
 
-  /** Define os comandos do bot
-   * @param commands Comandos que será injetado
-   */
   public setCommands(commands: Command[]) {
     this.commandController.setCommands(commands);
   }
 
-  /** @returns Retorna os comandos do bot */
   public getCommands() {
     return this.commandController.getCommands();
   }
 
-  /** Adiciona um comando na lista de comandos
-   * @param command Comando que será adicionado
-   */
   public addCommand(command: Command): void {
     this.commandController.addCommand(command);
   }
 
-  /** Remove um comando na lista de comandos
-   * @param command Comando que será removido
-   */
   public removeCommand(command: Command): boolean {
     return this.commandController.removeCommand(command);
   }
 
-  /**
-   * Procura um comando no texto.
-   * @param text - Texto que contem o comando.
-   * */
   public searchCommand(text: string): Command | null {
     const command = this.commandController.searchCommand(text);
 
@@ -315,33 +271,18 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return command;
   }
 
-  /**
-   * Execução do comando.
-   * @param command - Comando que será executado.
-   * @param message - Mensagem associada ao comando.
-   */
   public runCommand(command: Command, message: Message, type?: string) {
     return this.commandController.runCommand(command, message, type);
   }
 
-  /**
-   * Deletar mensagem
-   * @param message Mensagem que será deletada da sala de bate-papos
-   */
   public deleteMessage(message: Message): Promise<void> {
     return this.funcHandler.exec("message", this.bot.deleteMessage, message);
   }
 
-  /** Remover mensagem
-   * @param message Mensagem que será removida da sala de bate-papo
-   */
   public removeMessage(message: Message): Promise<void> {
     return this.funcHandler.exec("message", this.bot.removeMessage, message);
   }
 
-  /** Marca uma mensagem como visualizada
-   * @param message Mensagem que será visualizada
-   */
   public async readMessage(message: Message): Promise<void> {
     await this.funcHandler.exec("message", this.bot.readMessage, message);
 
@@ -358,10 +299,6 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     }
   }
 
-  /** Edita o texto de uma mensagem enviada
-   * @param message Mensagem que será editada
-   * @param text Novo texto da mensagem
-   */
   public editMessage(message: Message, text: string): Promise<void> {
     message.text = text;
     message.isEdited = true;
@@ -369,29 +306,16 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return this.funcHandler.exec("message", this.bot.editMessage, message);
   }
 
-  /** Adiciona uma reação na mensagem
-   * @param message Mensagem
-   * @param reaction Reação
-   */
   public addReaction(message: Message, reaction: string): Promise<void> {
     return this.funcHandler.exec("message", this.bot.addReaction, new ReactionMessage(message.chat, reaction, message, { user: message.user }));
   }
 
-  /** Remove a reação da mensagem
-   * @param message Mensagem que terá sua reação removida
-   */
   public removeReaction(message: Message): Promise<void> {
     return this.funcHandler.exec("message", this.bot.removeReaction, new ReactionMessage(message.chat, "", message, { user: message.user }));
   }
 
-  /** Adiciona animações na reação da mensagem
-   * @param message Mensagem que receberá a animação
-   * @param reactions Reações em sequência
-   * @param interval Intervalo entre cada reação
-   * @param maxTimeout Maximo de tempo reagindo
-   */
   public addAnimatedReaction(message: Message, reactions: string[], interval: number = 2000, maxTimeout: number = 60000): (reactionStop?: string) => Promise<void> {
-    var isStoped: boolean = false;
+    let isStoped: boolean = false;
     const now = Date.now();
 
     const stop = async (reactionStop?: string) => {
@@ -425,10 +349,6 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return stop;
   }
 
-  /** Envia uma mensagem
-   * @param message Menssagem que será enviada
-   * @returns Retorna o conteudo enviado
-   */
   public async send(message: Message): Promise<Message> {
     if (!this.config.disableAutoTyping) {
       await this.changeChatStatus(message.chat, message.type == "audio" ? ChatStatus.Recording : ChatStatus.Typing);
@@ -441,11 +361,6 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     }
   }
 
-  /** Envia uma mensagem
-   * @param chat Sala de bate-papo onde irá ser enviado a mensagem
-   * @param message Mensagem que será enviada
-   * @param mention Mensagem que será mencionada
-   */
   public async sendMessage(chat: Chat | string, message: string | Message, mention?: Message): Promise<Message> {
     if (Message.isValid(message)) {
       message = Message.apply(message, { clientId: this.id, botId: this.bot.id });
@@ -458,19 +373,10 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return await this.send(new Message(chat, message, { mention }));
   }
 
-  /** Aguarda uma mensagem ser recebida em uma sala de bate-papo
-   * @param chat Sala de bate-papo que irá receber a mensagem
-   * @param config Configuração do aguardo da mensagem
-   */
   public async awaitMessage(chat: Chat | string, config: Partial<MessageHandlerConfig> = {}): Promise<Message> {
     return Message.apply(await this.messageHandler.addMessage(Chat.getId(chat), config), { clientId: this.id, botId: this.bot.id });
   }
 
-  /**
-   * Retorna a stream da mídia
-   * @param message Mídia que será baixada
-   * @returns Stream da mídia
-   */
   public async downloadStreamMessage(message: MediaMessage): Promise<Buffer> {
     if (!message.file) return Buffer.from("");
 
@@ -483,46 +389,30 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return this.funcHandler.exec("downloadMedia", this.bot.downloadStreamMessage, message.file);
   }
 
-  /** @returns Retorna o nome do bot */
   public getBotName(): Promise<string> {
     return this.funcHandler.exec("bot", this.bot.getBotName);
   }
 
-  /** Define o nome do bot
-   * @param name Nome do bot
-   */
   public setBotName(name: string) {
     return this.funcHandler.exec("bot", this.bot.setBotName, name);
   }
 
-  /** @returns Retorna a descrição do bot */
   public getBotDescription() {
     return this.funcHandler.exec("bot", this.bot.getBotDescription);
   }
 
-  /** Define a descrição do bot
-   * @param description Descrição do bot
-   */
   public setBotDescription(description: string) {
     return this.funcHandler.exec("bot", this.bot.setBotDescription, description);
   }
 
-  /** @returns Retorna foto de perfil do bot */
   public getBotProfile(lowQuality?: boolean) {
     return this.funcHandler.exec("bot", this.bot.getBotProfile, lowQuality);
   }
 
-  /** Define a imagem de perfil do bot
-   * @param image Imagem de perfil do bot
-   */
   public setBotProfile(profile: Buffer) {
     return this.funcHandler.exec("bot", this.bot.setBotProfile, profile);
   }
 
-  /**
-   * @param chat Sala de bate-papo
-   * @returns Retorna uma sala de bate-papo
-   */
   public async getChat(chat: Chat | string): Promise<Chat | null> {
     const chatData = await this.funcHandler.exec("chat", this.bot.getChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
 
@@ -531,16 +421,10 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return Chat.apply(chatData, { clientId: this.id, botId: this.bot.id });
   }
 
-  /**
-   * Atualiza os dados de um chat.
-   * @param id - Id do chat que será atualizado.
-   * @param chat - Dados do chat que será atualizado.
-   */
   public updateChat(id: string, chat: Partial<Chat>): Promise<void> {
     return this.funcHandler.exec("chat", this.bot.updateChat, { ...chat, id });
   }
 
-  /** @returns Retorna as sala de bate-papo que o bot está */
   public async getChats(): Promise<Chat[]> {
     const ids: string[] = await this.funcHandler.exec("chat", this.bot.getChats);
     const chats: Chat[] = [];
@@ -558,173 +442,90 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return chats;
   }
 
-  /** Define as salas de bate-papo que o bot está
-   * @param chats Salas de bate-papo
-   */
   public setChats(chats: Chat[]): Promise<void> {
     return this.funcHandler.exec("chat", this.bot.setChats, chats);
   }
 
-  /** Remove uma sala de bate-papo
-   * @param chat Sala de bate-papo
-   */
   public removeChat(chat: string | Chat): Promise<void> {
     return this.funcHandler.exec("chat", this.bot.removeChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** Cria uma sala de bate-papo
-   * @param chat Sala de bate-papo
-   */
   public createChat(chat: Chat) {
     return this.funcHandler.exec("chat", this.bot.createChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** Sai de uma sala de bate-papo
-   * @param chat Sala de bate-papo
-   */
   public leaveChat(chat: Chat | string) {
     return this.funcHandler.exec("chat", this.bot.leaveChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /**
-   * @param chat Sala de bate-papo
-   * @returns Retorna o nome da sala de bate-papo
-   */
   public getChatName(chat: Chat | string) {
     return this.funcHandler.exec("chat", this.bot.getChatName, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** Define o nome da sala de bate-papo
-   * @param chat Sala de bate-papo
-   * @param name Nome da sala de bate-papo
-   */
   public setChatName(chat: Chat | string, name: string) {
     return this.funcHandler.exec("chat", this.bot.setChatName, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), name);
   }
 
-  /**
-   * @param chat Sala de bate-papo
-   * @returns Retorna a descrição da sala de bate-papo
-   */
   public getChatDescription(chat: Chat | string) {
     return this.funcHandler.exec("chat", this.bot.getChatDescription, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** Define a descrição da sala de bate-papo
-   * @param chat Sala de bate-papo
-   * @param description Descrição da sala de bate-papo
-   */
   public setChatDescription(chat: Chat | string, description: string) {
     return this.funcHandler.exec("chat", this.bot.setChatDescription, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), description);
   }
 
-  /**
-   * @param chat Sala de bate-papo
-   * @returns Retorna a imagem de perfil da sala de bate-papo
-   */
   public getChatProfile(chat: Chat | string, lowQuality?: boolean) {
     return this.funcHandler.exec("chat", this.bot.getChatProfile, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), lowQuality);
   }
 
-  /** Define a imagem de perfil da sala de bate-papo
-   * @param chat Sala de bate-papo
-   * @param profile Imagem de perfil da sala de bate-papo
-   */
   public setChatProfile(chat: Chat | string, profile: Buffer) {
     return this.funcHandler.exec("chat", this.bot.setChatProfile, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), profile);
   }
 
-  /**
-   * @param chat Sala de bate-papo
-   * @returns Retorna o lider da sala de bate-papo
-   */
   public async getChatLeader(chat: Chat | string): Promise<User> {
     return User.apply(await this.funcHandler.exec("chat", this.bot.getChatLeader, Chat.apply(chat, { clientId: this.id, botId: this.bot.id })), { clientId: this.id, botId: this.bot.id });
   }
 
-  /**
-   * @param chat Sala de bate-papo
-   * @returns Retorna os usuários de uma sala de bate-papo
-   */
   public async getChatUsers(chat: Chat | string): Promise<string[]> {
     return await this.funcHandler.exec("chat", this.bot.getChatUsers, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /**
-   * @param chat Sala de bate-papo
-   * @returns Retorna os administradores de uma sala de bate-papo
-   */
   public async getChatAdmins(chat: Chat | string): Promise<string[]> {
     return await this.funcHandler.exec("chat", this.bot.getChatAdmins, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** Adiciona um novo usuário a uma sala de bate-papo
-   * @param chat Sala de bate-papo
-   * @param user Usuário
-   */
   public addUserInChat(chat: Chat | string, user: User | string) {
     return this.funcHandler.exec("chat", this.bot.addUserInChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** Adiciona um novo usuário a uma sala de bate-papo
-   * @param chat Sala de bate-papo
-   * @param user Usuário
-   */
   public removeUserInChat(chat: Chat | string, user: User | string) {
     return this.funcHandler.exec("chat", this.bot.removeUserInChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** Promove há administrador um usuário da sala de bate-papo
-   * @param chat Sala de bate-papo
-   * @param user Usuário
-   */
   public promoteUserInChat(chat: Chat | string, user: User | string) {
     return this.funcHandler.exec("chat", this.bot.promoteUserInChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** Remove a administração um usuário da sala de bate-papo
-   * @param chat Sala de bate-papo
-   * @param user Usuário
-   */
   public demoteUserInChat(chat: Chat | string, user: User | string) {
     return this.funcHandler.exec("chat", this.bot.demoteUserInChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** Altera o status da sala de bate-papo
-   * @param chat Sala de bate-papo
-   * @param status Status da sala de bate-papo
-   */
   public changeChatStatus(chat: Chat | string, status: ChatStatus): Promise<void> {
     return this.funcHandler.exec("chat", this.bot.changeChatStatus, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), status);
   }
 
-  /**
-   * Entra no chat pelo código de convite.
-   * @param code - Código de convite do chat.
-   */
   public joinChat(code: string): Promise<void> {
     return this.funcHandler.exec("chat", this.bot.joinChat, code);
   }
 
-  /**
-   * Obtem o código de convite do chat.
-   * @param chat - Chat que será obtido o código de convite.
-   * @returns O código de convite do chat.
-   */
   public getChatInvite(chat: Chat | string): Promise<string> {
     return this.funcHandler.exec("chat", this.bot.getChatInvite, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /**
-   * Revoga o código de convite do chat.
-   * @param chat - Chat que terá seu código de convite revogado.
-   * @returns O novo código de convite do chat.
-   */
   public revokeChatInvite(chat: Chat | string): Promise<string> {
     return this.funcHandler.exec("chat", this.bot.revokeChatInvite, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** @returns Retorna a lista de usuários do bot */
   public async getUsers(): Promise<User[]> {
     const ids: string[] = await this.funcHandler.exec("user", this.bot.getUsers);
     const users: User[] = [];
@@ -742,10 +543,6 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return users;
   }
 
-  /**
-   * Obter lista de usuários salvos.
-   * @returns Lista de usuários salvos.
-   */
   public async getSavedUsers(): Promise<User[]> {
     const ids: string[] = await this.funcHandler.exec("user", this.bot.getUsers);
     const users: User[] = [];
@@ -763,17 +560,10 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return users;
   }
 
-  /** Define a lista de usuários do bot
-   * @param users Usuários
-   */
   public setUsers(users: User[]) {
     return this.funcHandler.exec("user", this.bot.setUsers, users);
   }
 
-  /**
-   * @param user Usuário
-   * @returns Retorna um usuário
-   */
   public async getUser(user: User | string): Promise<User | null> {
     const userData = await this.funcHandler.exec("user", this.bot.getUser, User.apply(user, { clientId: this.id, botId: this.bot.id }));
 
@@ -782,100 +572,58 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return User.apply(userData, { clientId: this.id, botId: this.bot.id });
   }
 
-  /**
-   * Atualiza os dados de um usuário.
-   * @param id - Id do usuário que será atualizado.
-   * @param user - Dados do usuário que será atualizado.
-   */
   public updateUser(id: string, user: Partial<User>): Promise<void> {
     return this.funcHandler.exec("user", this.bot.updateUser, { ...user, id });
   }
 
-  /** Remove um usuário
-   * @param user Usuário
-   */
   public removeUser(user: User | string) {
     return this.funcHandler.exec("user", this.bot.removeUser, User.apply(user, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /**
-   * @param user Usuário
-   * @returns Retorna o nome do usuário
-   */
   public getUserName(user: User | string) {
     if (User.getId(user) == this.id) return this.getBotName();
 
     return this.funcHandler.exec("user", this.bot.getUserName, User.apply(user, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** Define o nome do usuário
-   * @param user Usuário
-   * @param name Nome do usuário
-   */
   public setUserName(user: User | string, name: string) {
     if (User.getId(user) == this.id) return this.setBotName(name);
 
     return this.funcHandler.exec("user", this.bot.setUserName, User.apply(user, { clientId: this.id, botId: this.bot.id }), name);
   }
 
-  /**
-   * @param user Usuário
-   * @returns Retorna a descrição do usuário
-   */
   public getUserDescription(user: User | string) {
     if (User.getId(user) == this.id) return this.getBotDescription();
 
     return this.funcHandler.exec("user", this.bot.getUserDescription, User.apply(user, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** Define a descrição do usuário
-   * @param user Usuário
-   * @param description Descrição do usuário
-   */
   public setUserDescription(user: User | string, description: string) {
     if (User.getId(user) == this.id) return this.setBotDescription(description);
 
     return this.funcHandler.exec("user", this.bot.setUserDescription, User.apply(user, { clientId: this.id, botId: this.bot.id }), description);
   }
 
-  /**
-   * @param user Usuário
-   * @returns Retorna a foto de perfil do usuário
-   */
   public getUserProfile(user: User | string, lowQuality?: boolean) {
     if (User.getId(user) == this.id) return this.getBotProfile(lowQuality);
 
     return this.funcHandler.exec("user", this.bot.getUserProfile, User.apply(user, { clientId: this.id, botId: this.bot.id }), lowQuality);
   }
 
-  /** Define a imagem de perfil do usuário
-   * @param user Usuário
-   * @param profile Imagem de perfil do usuário
-   */
   public setUserProfile(user: User | string, profile: Buffer) {
     if (User.getId(user) == this.id) return this.setBotProfile(profile);
 
     return this.funcHandler.exec("user", this.bot.setUserProfile, User.apply(user, { clientId: this.id, botId: this.bot.id }), profile);
   }
 
-  /** Desbloqueia um usuário
-   * @param user Usuário
-   */
   public unblockUser(user: User | string) {
     return this.funcHandler.exec("user", this.bot.unblockUser, User.apply(user, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /** Bloqueia um usuário
-   * @param user Usuário
-   */
   public blockUser(user: User | string) {
     return this.funcHandler.exec("user", this.bot.blockUser, User.apply(user, { clientId: this.id, botId: this.bot.id }));
   }
 
-  /**
-   * Retorna a lista de clientes diponíveis.
-   * @returns Clientes ordenados pelo ID.
-   */
   public static getClients(): Record<string, Client<IBot>> {
     if (!global.hasOwnProperty("rompot-clients") || typeof global["rompot-clients"] != "object") {
       global["rompot-clients"] = {};
@@ -884,19 +632,10 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return global["rompot-clients"];
   }
 
-  /**
-   * Define todos os clientes diponíveis.
-   * @param clients - Clientes que serão definidios.
-   */
   public static saveClients(clients: Record<string, Client<IBot>>): void {
     global["rompot-clients"] = clients;
   }
 
-  /**
-   * Retorna o cliente pelo seu respectivo ID.
-   * @param id - ID do cliente.
-   * @returns O cliente associado ao ID.
-   */
   public static getClient(id: string): Client<IBot> {
     const clients = Client.getClients();
 
@@ -911,10 +650,6 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     return new Client(new BotBase());
   }
 
-  /**
-   * Define um cliente disponível
-   * @param client - Cliente que será definido
-   */
   public static saveClient(client: Client<IBot>): void {
     if (!global.hasOwnProperty("rompot-clients") || typeof global["rompot-clients"] != "object") {
       global["rompot-clients"] = {};
@@ -923,7 +658,6 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents {
     global["rompot-clients"][client.id] = client;
   }
 
-  /** Gera um id único */
   public static generateId(): string {
     return `${process.pid}-${Date.now()}-${Object.keys(Client.getClients()).length}`;
   }

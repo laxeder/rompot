@@ -1,11 +1,11 @@
+import IClient from "./IClient";
 import IBot from "../bot/IBot";
-import Client from "./Client";
 
 export default class ClientFunctionHandler<B extends IBot, T extends string> {
   /** Todas funções */
   public awaiting: Function[] = [];
 
-  constructor(public client: Client<B>, public functions: Record<T, Function[]>) {}
+  constructor(public client: IClient<B>, public functions: Record<T, Function[]>) {}
 
   public async exec<F extends (...args: any[]) => any>(row: T, func: F, ...args: Parameters<F>): Promise<Awaited<ReturnType<F>>> {
     await this.await(row);

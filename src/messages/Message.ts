@@ -1,7 +1,8 @@
-import { injectJSON } from "../utils/Generic";
-import Client from "../client/Client";
 import Chat from "../chat/Chat";
 import User from "../user/User";
+
+import { ClientUtils } from "../utils/ClientUtils";
+import { injectJSON } from "../utils/Generic";
 
 /**
  * Tipo da mensagem
@@ -114,14 +115,14 @@ export default class Message {
    * @param emoji - Emoji que será adicionado na reação.
    */
   public async addReaction(emoji: string): Promise<void> {
-    return Client.getClient(this.clientId).addReaction(this, emoji);
+    return ClientUtils.getClient(this.clientId).addReaction(this, emoji);
   }
 
   /**
    * * Remove uma reação da mensagem.
    */
   public async removeReaction(): Promise<void> {
-    return Client.getClient(this.clientId).removeReaction(this);
+    return ClientUtils.getClient(this.clientId).removeReaction(this);
   }
 
   /**
@@ -131,7 +132,7 @@ export default class Message {
    * @param maxTimeout Maximo de tempo reagindo.
    */
   public addAnimatedReaction(reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void> {
-    return Client.getClient(this.clientId).addAnimatedReaction(this, reactions, interval, maxTimeout);
+    return ClientUtils.getClient(this.clientId).addAnimatedReaction(this, reactions, interval, maxTimeout);
   }
 
   /** Envia uma mensagem mencionando a mensagem atual.
@@ -145,14 +146,14 @@ export default class Message {
     msg.user.id = msg.chat.id || this.clientId;
     msg.mention = isMention ? this : msg.mention;
 
-    return Client.getClient(this.clientId).send(msg);
+    return ClientUtils.getClient(this.clientId).send(msg);
   }
 
   /**
    * * Marca mensagem como visualizada.
    */
   public async read(): Promise<void> {
-    return Client.getClient(this.clientId).readMessage(this);
+    return ClientUtils.getClient(this.clientId).readMessage(this);
   }
 
   /**

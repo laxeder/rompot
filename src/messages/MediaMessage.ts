@@ -1,7 +1,9 @@
 import Message, { MessageType } from "./Message";
-import { injectJSON } from "../utils/Generic";
-import Client from "../client/Client";
+
 import Chat from "../chat/Chat";
+
+import { ClientUtils } from "../utils/ClientUtils";
+import { injectJSON } from "../utils/Generic";
 
 /** Mídia de uma mensagem */
 export type Media = {
@@ -40,7 +42,7 @@ export default class MediaMessage extends Message {
    * @returns Um Buffer contendo os dados da mídia.
    */
   public async getStream(): Promise<Buffer> {
-    return await Client.getClient(this.clientId).downloadStreamMessage(this);
+    return await ClientUtils.getClient(this.clientId).downloadStreamMessage(this);
   }
 
   /**

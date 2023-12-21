@@ -1,5 +1,5 @@
 import { injectJSON } from "../utils/Generic";
-import Client from "../client/Client";
+import IClient from "../client/IClient";
 import IBot from "../bot/IBot";
 
 /** Tag da mensagem do worker */
@@ -13,7 +13,7 @@ export enum WorkerMessageTag {
 }
 
 /** Data da mensagem do worker */
-export type WorkerMessageData = { reason: string } | { name: string; arg: any } | { name: keyof Client<IBot>; args: any[] } | { result: any } | { key: keyof Client<IBot>; value: any } | {};
+export type WorkerMessageData = { reason: string } | { name: string; arg: any } | { name: keyof IClient<IBot>; args: any[] } | { result: any } | { key: keyof IClient<IBot>; value: any } | {};
 
 /** Mensagem do worker */
 export default class WorkerMessage {

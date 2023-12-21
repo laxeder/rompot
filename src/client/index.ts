@@ -1,8 +1,8 @@
-import { ConnectionType } from "./ConnectionType";
-
+import Client from "./Client";
 import ClientEvents from "./ClientEvents";
 import ClientFunctionHandler from "./ClientFunctionHandler";
-import Client from "./Client";
+import { ConnectionType } from "./ConnectionType";
 import IAuth from "./IAuth";
+import IClient from "./IClient";
 
-export { IAuth, ClientEvents, ClientFunctionHandler, ConnectionType, Client };
+export { Client, ClientEvents, ClientFunctionHandler, ConnectionType, IAuth, IClient };

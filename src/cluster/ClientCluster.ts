@@ -20,6 +20,7 @@ import Command from "../command/Command";
 import ClientEvents, { ClientEventsMap } from "../client/ClientEvents";
 import ClientFunctionHandler from "../client/ClientFunctionHandler";
 import WorkerMessage, { WorkerMessageTag } from "./WorkerMessage";
+import IClient from "../client/IClient";
 import IAuth from "../client/IAuth";
 
 import { BotStatus } from "../bot/BotStatus";
@@ -36,7 +37,7 @@ export const GlobalRompotCluster = "rompot-client-cluster";
 /** Configuração do cliente */
 export type ClientClusterConfig = { maxTimeout: number } & ConnectionConfig;
 
-export default class ClientCluster extends ClientEvents {
+export default class ClientCluster extends ClientEvents implements IClient{
   /** Tratador de mensagens */
   public messageHandler: MessageHandler = new MessageHandler();
   /** Controlador de comandos  */
