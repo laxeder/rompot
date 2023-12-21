@@ -11,4 +11,8 @@ export default interface ConnectionConfig {
   maxReconnectTimes: number;
   /** Tempo de aguarde para se reconectar */
   reconnectTimeout: number;
+  /** Máximo de tentativas de solitação acaso a primeira falhe */
+  maxRequests: number;
+  /** Tempo necessário de aguardo para próxima tentativa de solicitação */
+  requestsDelay: number;
 }

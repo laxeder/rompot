@@ -7,4 +7,6 @@ export const DEFAULT_CONNECTION_CONFIG: ConnectionConfig = {
   disableAutoRead: false,
   maxReconnectTimes: 12,
   reconnectTimeout: 1000,
+  maxRequests: 3,
+  requestsDelay: 100,
 };

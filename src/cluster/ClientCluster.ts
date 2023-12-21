@@ -4,24 +4,31 @@ import { readFileSync } from "fs";
 import { DEFAULT_CONNECTION_CONFIG } from "../configs/Defaults";
 import ConnectionConfig from "../configs/ConnectionConfig";
 
-import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
 import Message, { MessageStatus, MessageType } from "../messages/Message";
-import WorkerMessage, { WorkerMessageTag } from "./WorkerMessage";
-import { sleep, getError, injectJSON } from "../utils/Generic";
-import CommandController from "../command/CommandController";
-import { getMessageFromJSON } from "../utils/MessageUtils";
 import ReactionMessage from "../messages/ReactionMessage";
-import { CMDRunType } from "../command/CommandEnums";
-import ErrorMessage from "../messages/ErrorMessage";
 import MediaMessage from "../messages/MediaMessage";
-import ClientEvents from "../client/ClientEvents";
+import ErrorMessage from "../messages/ErrorMessage";
+
 import { ChatStatus } from "../chat/ChatStatus";
-import Command from "../command/Command";
-import BotBase from "../bot/BotBase";
-import IAuth from "../client/IAuth";
 import Chat from "../chat/Chat";
 import User from "../user/User";
+
+import CommandController from "../command/CommandController";
+import { CMDRunType } from "../command/CommandEnums";
+import Command from "../command/Command";
+
+import ClientEvents, { ClientEventsMap } from "../client/ClientEvents";
+import ClientFunctionHandler from "../client/ClientFunctionHandler";
+import WorkerMessage, { WorkerMessageTag } from "./WorkerMessage";
+import IAuth from "../client/IAuth";
+
+import { BotStatus } from "../bot/BotStatus";
+import BotBase from "../bot/BotBase";
 import IBot from "../bot/IBot";
+
+import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
+import { sleep, getError, injectJSON } from "../utils/Generic";
+import { getMessageFromJSON } from "../utils/MessageUtils";
 
 /** ID dos dados globais do cluster gerenciado pelo Rompot */
 export const GlobalRompotCluster = "rompot-client-cluster";
@@ -50,6 +57,8 @@ export default class ClientCluster extends ClientEvents {
   public isMain: boolean;
   /** Requisições */
   public requests: Record<string, (message: WorkerMessage) => any> = {};
+  /** Tratador de funções */
+  public funcHandler = new ClientFunctionHandler(this, { bot: [], chat: [], user: [], message: [], sendMessage: [], sendMediaMessage: [], downloadMedia: [] });
 
   constructor(id: string, worker: Worker, config: Partial<ClientClusterConfig> = {}, isMain: boolean = false) {
     super();
@@ -412,6 +421,32 @@ export default class ClientCluster extends ClientEvents {
       await this.bot.logout();
     } else {
       await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "logout", args: [] }));
+    }
+  }
+
+  /**
+   * * Aguarda um evento ser chamado.
+   * @param eventName - Nome do evento que será aguardado.
+   * @returns {Promise<ClientEventsMap[T]>} Argumento retornado do evento esperado.
+   */
+  public async awaitEvent<T extends keyof ClientEventsMap>(eventName: T): Promise<ClientEventsMap[T]> {
+    return new Promise<ClientEventsMap[T]>((res) => {
+      const listener = (arg: ClientEventsMap[T]) => {
+        this.ev.removeListener(eventName, listener);
+
+        res(arg);
+      };
+
+      this.ev.on(eventName, listener);
+    });
+  }
+
+  /**
+   * * Aguarda a conexão for aberta.
+   */
+  public async awaitConnectionOpen(): Promise<void> {
+    if (this.bot.status != BotStatus.Online) {
+      await this.awaitEvent("open");
     }
   }
 

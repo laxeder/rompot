@@ -235,7 +235,7 @@ export default class ConfigWAEvents {
 
           this.wa.emit("open", { isNewLogin: update.isNewLogin || false });
 
-          await this.wa.funcHandler.exec("chat", "groupFetchAllParticipating");
+          await this.wa.sock.groupFetchAllParticipating()
         }
 
         if (update.connection == "close") {

@@ -30,7 +30,6 @@ import { getImageURL, verifyIsEquals } from "../utils/Generic";
 import { getBaileysAuth, MultiFileAuthState } from "./Auth";
 import Message, { MessageType } from "../messages/Message";
 import { ConvertToWAMessage } from "./ConvertToWAMessage";
-import FunctionHandler from "../utils/FunctionHandler";
 import { ConvertWAMessage } from "./ConvertWAMessage";
 import { Media } from "../messages/MediaMessage";
 import { UserAction, UserEvent } from "../user";
@@ -70,7 +69,6 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public profileUrl: string = "";
 
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
-  public funcHandler = new FunctionHandler(this.sock, { sock: [], chat: [], user: [], msg: [] });
 
   constructor(config?: Partial<SocketConfig & { usePairingCode: boolean }>) {
     super();
@@ -109,13 +107,6 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     };
 
     this.store = makeInMemoryStore({ logger: this.config.logger });
-
-    // Aguarda o bot ficar online acaso caia
-    this.funcHandler.patterns.push(async () => {
-      if (this?.sock && this.sock.ws.isOpen && this.status == BotStatus.Online) return;
-
-      await this.awaitConnectionState("open");
-    });
   }
 
   public async connect(auth?: string | IAuth): Promise<void> {
@@ -158,8 +149,6 @@ export default class WhatsAppBot extends BotEvents implements IBot {
           ...this.config,
         });
 
-        this.funcHandler.data = this.sock;
-
         this.store.bind(this.sock.ev);
 
         this.configEvents.configureAll();
@@ -196,14 +185,6 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async stop(reason: any = 402): Promise<void> {
     try {
       this.status = BotStatus.Offline;
-
-      await new Promise<void>((res) => {
-        if (!Object.values(this.funcHandler).some((v) => v.length > 0)) {
-          this.funcHandler.patterns.push(res);
-        } else {
-          res();
-        }
-      });
 
       this.sock?.end(reason);
     } catch (err) {
@@ -246,11 +227,11 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
           if (!metadata) {
             try {
-              metadata = await this.funcHandler.exec("chat", "groupMetadata", chat.id);
+              metadata = await this.sock.groupMetadata(chat.id);
             } catch {}
           } else if (!metadata.participants) {
             try {
-              metadata = { ...metadata, ...(await this.funcHandler.exec("chat", "groupMetadata", chat.id)) };
+              metadata = { ...metadata, ...(await this.sock.groupMetadata(chat.id)) };
             } catch {}
 
             if (metadata.participant) {
@@ -411,7 +392,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    await this.funcHandler.exec("chat", "groupUpdateSubject", chat.id, name);
+    await this.sock.groupUpdateSubject(chat.id, name);
   }
 
   public async getChatDescription(chat: Chat) {
@@ -423,7 +404,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    await this.funcHandler.exec("chat", "groupUpdateDescription", chat.id, description);
+    await this.sock.groupUpdateDescription(chat.id, description);
   }
 
   public async getChatProfile(chat: Chat, lowQuality?: boolean) {
@@ -434,7 +415,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
   public async getChatProfileUrl(chat: Chat, lowQuality?: boolean) {
     try {
-      return (await this.funcHandler.exec("chat", "profilePictureUrl", chat.id, !!lowQuality ? "preview" : "image")) || "";
+      return (await this.sock.profilePictureUrl(chat.id, !!lowQuality ? "preview" : "image")) || "";
     } catch (err) {
       return "";
     }
@@ -445,7 +426,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    await this.funcHandler.exec("chat", "updateProfilePicture", chat.id, image);
+    await this.sock.updateProfilePicture(chat.id, image);
   }
 
   public async updateChat(chat: { id: string } & Partial<Chat>): Promise<void> {
@@ -522,7 +503,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    await this.funcHandler.exec("chat", "groupParticipantsUpdate", chat.id, [user.id], "add");
+    await this.sock.groupParticipantsUpdate(chat.id, [user.id], "add");
   }
 
   public async removeUserInChat(chat: Chat, user: User) {
@@ -530,7 +511,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    await this.funcHandler.exec("chat", "groupParticipantsUpdate", chat.id, [user.id], "remove");
+    await this.sock.groupParticipantsUpdate(chat.id, [user.id], "remove");
   }
 
   public async promoteUserInChat(chat: Chat, user: User): Promise<void> {
@@ -538,7 +519,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    await this.funcHandler.exec("chat", "groupParticipantsUpdate", chat.id, [user.id], "promote");
+    await this.sock.groupParticipantsUpdate(chat.id, [user.id], "promote");
   }
 
   public async demoteUserInChat(chat: Chat, user: User): Promise<void> {
@@ -546,15 +527,15 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
 
-    await this.funcHandler.exec("chat", "groupParticipantsUpdate", chat.id, [user.id], "demote");
+    await this.sock.groupParticipantsUpdate(chat.id, [user.id], "demote");
   }
 
   public async changeChatStatus(chat: Chat, status: ChatStatus): Promise<void> {
-    await this.funcHandler.exec("chat", "sendPresenceUpdate", WAStatus[status] || "available", chat.id);
+    await this.sock.sendPresenceUpdate(WAStatus[status] || "available", chat.id);
   }
 
   public async createChat(chat: Chat) {
-    await this.funcHandler.exec("chat", "groupCreate", chat.name || "", [this.id]);
+    await this.sock.groupCreate(chat.name || "", [this.id]);
   }
 
   public async leaveChat(chat: Chat): Promise<void> {
@@ -562,27 +543,27 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if ((await this.getChat(chat)) == null) return;
 
-    await this.funcHandler.exec("chat", "groupLeave", chat.id);
+    await this.sock.groupLeave(chat.id);
 
     await this.removeChat(chat);
   }
 
   public async joinChat(code: string): Promise<void> {
-    await this.funcHandler.exec("chat", "groupAcceptInvite", code.replace("https://chat.whatsapp.com/", ""));
+    await this.sock.groupAcceptInvite(code.replace("https://chat.whatsapp.com/", ""));
   }
 
   public async getChatInvite(chat: Chat): Promise<string> {
     if (!isJidGroup(chat.id)) return "";
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return "";
 
-    return await this.funcHandler.exec("chat", "groupInviteCode", chat.id);
+    return await this.sock.groupInviteCode(chat.id);
   }
 
   public async revokeChatInvite(chat: Chat): Promise<string> {
     if (!isJidGroup(chat.id)) return "";
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return "";
 
-    return await this.funcHandler.exec("chat", "groupRevokeInvite", chat.id);
+    return await this.sock.groupRevokeInvite(chat.id);
   }
 
   public async getUserName(user: User): Promise<string> {
@@ -596,7 +577,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async getUserDescription(user: User): Promise<string> {
-    return (await this.funcHandler.exec("user", "fetchStatus", String(user.id)))?.status || "";
+    return (await this.sock.fetchStatus(String(user.id)))?.status || "";
   }
 
   public async setUserDescription(user: User, description: string): Promise<void> {
@@ -613,7 +594,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
   public async getUserProfileUrl(user: User, lowQuality?: boolean) {
     try {
-      return (await this.funcHandler.exec("user", "profilePictureUrl", user.id, !!lowQuality ? "preview" : "image")) || "";
+      return (await this.sock.profilePictureUrl(user.id, !!lowQuality ? "preview" : "image")) || "";
     } catch (err) {
       return "";
     }
@@ -672,13 +653,13 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async blockUser(user: User) {
     if (user.id == this.id) return;
 
-    await this.funcHandler.exec("user", "updateBlockStatus", user.id, "block");
+    await this.sock.updateBlockStatus(user.id, "block");
   }
 
   public async unblockUser(user: User) {
     if (user.id == this.id) return;
 
-    await this.funcHandler.exec("user", "updateBlockStatus", user.id, "unblock");
+    await this.sock.updateBlockStatus(user.id, "unblock");
   }
 
   //! ******************************** BOT ********************************
@@ -688,7 +669,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async setBotName(name: string) {
-    await this.funcHandler.exec("user", "updateProfileName", name);
+    await this.sock.updateProfileName(name);
   }
 
   public async getBotDescription() {
@@ -696,7 +677,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async setBotDescription(description: string) {
-    await this.funcHandler.exec("user", "updateProfileStatus", description);
+    await this.sock.updateProfileStatus(description);
   }
 
   public async getBotProfile(lowQuality?: boolean) {
@@ -708,7 +689,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async setBotProfile(image: Buffer) {
-    await this.funcHandler.exec("user", "updateProfilePicture", this.id, image);
+    await this.sock.updateProfilePicture(this.id, image);
   }
 
   //! ******************************* MESSAGE *******************************
@@ -728,13 +709,11 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       await this.updateChat({ id: message.chat.id, unreadCount: (chat.unreadCount || 1) - 1 });
     }
 
-    return await this.funcHandler.exec("msg", "readMessages", [key]);
+    return await this.sock.readMessages([key]);
   }
 
   public async removeMessage(message: Message) {
-    await this.funcHandler.exec(
-      "msg",
-      "chatModify",
+    await this.sock.chatModify(
       {
         clear: { messages: [{ id: message.id || "", fromMe: message.user.id == this.id, timestamp: Number(message.timestamp || Date.now()) }] },
       },
@@ -752,7 +731,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (key.participant && key.participant != this.id && !(await this.getChatAdmins(message.chat)).includes(this.id)) return;
 
-    await this.funcHandler.exec("msg", "sendMessage", message.chat.id, { delete: key });
+    await this.sock.sendMessage(message.chat.id, { delete: key });
   }
 
   public async addReaction(message: ReactionMessage): Promise<void> {
@@ -773,7 +752,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (waMSG.isRelay) {
       try {
-        await this.funcHandler.exec("msg", "relayMessage", waMSG.chatId, waMSG.waMessage, { ...waMSG.options });
+        await this.sock.relayMessage(waMSG.chatId, waMSG.waMessage, { ...waMSG.options });
       } catch (err) {
         throw err;
       }
@@ -784,7 +763,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     }
 
     try {
-      var sendedMessage = await this.funcHandler.exec("msg", "sendMessage", waMSG.chatId, waMSG.waMessage, waMSG.options);
+      var sendedMessage = await this.sock.sendMessage(waMSG.chatId, waMSG.waMessage, waMSG.options);
     } catch (err) {
       throw err;
     }
@@ -847,7 +826,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
       const encNode = getBinaryNodeChild(node, "enc");
 
-      await this.funcHandler.exec("sock", "sendRetryRequest", node, !encNode);
+      await this.sock.sendRetryRequest(node, !encNode);
 
       await this.addMessageRetryCache(id, node, count + 1);
     } catch (error) {
@@ -902,7 +881,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
    * @returns
    */
   public async onExists(id: string): Promise<{ exists: boolean; id: string }> {
-    const user = await this.funcHandler.exec("sock", "onWhatsApp", id);
+    const user = await this.sock.onWhatsApp(id);
 
     if (user && user.length > 0) return { exists: user[0].exists, id: user[0].jid };
 
