@@ -21,15 +21,17 @@ import WhatsAppBot from "./WhatsAppBot";
 export class ConvertToWAMessage {
   public message: Message;
   public bot: WhatsAppBot;
+  public isMention: boolean;
 
   public chatId: string = "";
   public waMessage: any = {};
   public options: MiscMessageGenerationOptions = {};
   public isRelay: boolean = false;
 
-  constructor(wa: WhatsAppBot, message: Message) {
+  constructor(bot: WhatsAppBot, message: Message, isMention: boolean = false) {
     this.message = message;
-    this.bot = wa;
+    this.bot = bot;
+    this.isMention = !!isMention;
   }
 
   /**
@@ -40,8 +42,8 @@ export class ConvertToWAMessage {
     this.waMessage = await this.refactoryMessage(message);
     this.chatId = message.chat.id;
 
-    if (message.mention) {
-      const { chatId, waMessage } = await new ConvertToWAMessage(this.bot, message.mention).refactory(message.mention);
+    if (message.mention && !this.isMention) {
+      const { chatId, waMessage } = await new ConvertToWAMessage(this.bot, message.mention, true).refactory(message.mention);
 
       const userJid = !!message.mention.user.id ? message.mention.user.id : fixID(this.bot.id);
 
