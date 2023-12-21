@@ -1,6 +1,7 @@
-import { injectJSON } from "../utils/Generic";
-import Client from "../client/Client";
 import Chat from "../chat/Chat";
+
+import { ClientUtils } from "../utils/ClientUtils";
+import { injectJSON } from "../utils/Generic";
 
 export default class User {
   /** ID do bot associado a este usuário */
@@ -37,7 +38,7 @@ export default class User {
    * @returns Uma Promise que resolve quando o usuário é bloqueado com sucesso.
    */
   public async blockUser(): Promise<void> {
-    return Client.getClient(this.clientId).blockUser(this);
+    return ClientUtils.getClient(this.clientId).blockUser(this);
   }
 
   /**
@@ -45,7 +46,7 @@ export default class User {
    * @returns Uma Promise que resolve quando o usuário é desbloqueado com sucesso.
    */
   public async unblockUser(): Promise<void> {
-    return Client.getClient(this.clientId).unblockUser(this);
+    return ClientUtils.getClient(this.clientId).unblockUser(this);
   }
 
   /**
@@ -53,7 +54,7 @@ export default class User {
    * @returns Uma string representando o nome do usuário.
    */
   public async getName(): Promise<string> {
-    return Client.getClient(this.clientId).getUserName(this);
+    return ClientUtils.getClient(this.clientId).getUserName(this);
   }
 
   /**
@@ -62,7 +63,7 @@ export default class User {
    * @returns Uma Promise que resolve quando o nome do usuário é definido com sucesso.
    */
   public async setName(name: string): Promise<void> {
-    return Client.getClient(this.clientId).setUserName(this, name);
+    return ClientUtils.getClient(this.clientId).setUserName(this, name);
   }
 
   /**
@@ -70,7 +71,7 @@ export default class User {
    * @returns Uma string representando a descrição do usuário.
    */
   public async getDescription(): Promise<string> {
-    return Client.getClient(this.clientId).getUserDescription(this);
+    return ClientUtils.getClient(this.clientId).getUserDescription(this);
   }
 
   /**
@@ -79,7 +80,7 @@ export default class User {
    * @returns Uma Promise que resolve quando a descrição do usuário é definida com sucesso.
    */
   public async setDescription(description: string): Promise<void> {
-    return Client.getClient(this.clientId).setUserDescription(this, description);
+    return ClientUtils.getClient(this.clientId).setUserDescription(this, description);
   }
 
   /**
@@ -87,7 +88,7 @@ export default class User {
    * @returns Um Buffer representando o perfil do usuário.
    */
   public async getProfile(): Promise<Buffer> {
-    return Client.getClient(this.clientId).getUserProfile(this);
+    return ClientUtils.getClient(this.clientId).getUserProfile(this);
   }
 
   /**
@@ -96,7 +97,7 @@ export default class User {
    * @returns Uma Promise que resolve quando o perfil do usuário é definido com sucesso.
    */
   public async setProfile(image: Buffer): Promise<void> {
-    return Client.getClient(this.clientId).setUserProfile(this, image);
+    return ClientUtils.getClient(this.clientId).setUserProfile(this, image);
   }
 
   /**
@@ -105,7 +106,7 @@ export default class User {
    * @returns Verdadeiro se o usuário é um administrador do chat, caso contrário, falso.
    */
   public async isAdmin(chat: Chat | string): Promise<boolean> {
-    return (await Client.getClient(this.clientId).getChatAdmins(chat)).includes(this.id);
+    return (await ClientUtils.getClient(this.clientId).getChatAdmins(chat)).includes(this.id);
   }
 
   /**
@@ -114,7 +115,7 @@ export default class User {
    * @returns Verdadeiro se o usuário é o líder do chat, caso contrário, falso.
    */
   public async isLeader(chat: Chat | string): Promise<boolean> {
-    return (await Client.getClient(this.clientId).getChatLeader(chat))?.id == this.id;
+    return (await ClientUtils.getClient(this.clientId).getChatLeader(chat))?.id == this.id;
   }
 
   /**
