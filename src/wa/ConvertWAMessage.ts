@@ -23,6 +23,7 @@ import { ChatType } from "../chat/ChatType";
 import WhatsAppBot from "./WhatsAppBot";
 import User from "../user/User";
 import Chat from "../chat/Chat";
+import { fixID } from "./ID";
 
 export class ConvertWAMessage {
   public type?: MessageUpsertType;
@@ -81,11 +82,11 @@ export class ConvertWAMessage {
     this.message.fromMe = !!this.waMessage.key.fromMe;
     this.message.id = this.message.id || this.waMessage.key.id || "";
 
-    this.message.chat = new Chat(waMessage?.key?.remoteJid || this.bot.id);
+    this.message.chat = new Chat(fixID(waMessage?.key?.remoteJid || this.bot.id));
     this.message.chat.type = isJidGroup(this.message.chat.id) ? ChatType.Group : ChatType.PV;
     this.message.status = ConvertWAMessage.convertMessageStatus(ConvertWAMessage.isMessageUpdate(waMessage) ? waMessage.update.status! : waMessage.status!);
 
-    this.message.user = new User(waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "");
+    this.message.user = new User(fixID(waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || ""));
   }
 
   /**
@@ -188,7 +189,7 @@ export class ConvertWAMessage {
     if (context.quotedMessage) {
       const message = {
         key: {
-          remoteJid: this.waMessage?.key?.remoteJid || this.bot.id,
+          remoteJid: fixID(this.waMessage?.key?.remoteJid || this.bot.id),
           participant: context.participant,
           id: context.stanzaId,
         },
@@ -375,7 +376,7 @@ export class ConvertWAMessage {
     const pollCreation = await this.bot.getPollMessage(this.waMessage.key.id || "");
     const pollUpdate = PollUpdateMessage.fromJSON({ ...this.message, type: MessageType.PollUpdate, text: pollCreation.text });
 
-    const userId = this.waMessage.key.fromMe ? this.bot.id : this.waMessage.key.participant || this.waMessage.participant || this.waMessage.key.remoteJid || "";
+    const userId = fixID(this.waMessage.key.fromMe ? this.bot.id : this.waMessage.key.participant || this.waMessage.participant || this.waMessage.key.remoteJid || "");
 
     if (pollCreation) {
       const poll = decryptPollVote(content.vote!, {

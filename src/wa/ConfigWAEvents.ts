@@ -94,7 +94,7 @@ export default class ConfigWAEvents {
         try {
           const { fullMessage } = decodeMessageNode(node, this.wa.sock.authState.creds.me!.id, this.wa.sock.authState.creds.me!.lid || "");
 
-          if (this.wa.config.shouldIgnoreJid!(fullMessage.key.remoteJid!)) return;
+          if (this.wa.config.shouldIgnoreJid!(fixID(fullMessage.key.remoteJid!))) return;
 
           const isDecrypted = (Array.isArray(node.content) ? node.content : []).some(({ tag, content }) => {
             return tag == "enc" && content instanceof Uint8Array;
@@ -133,7 +133,7 @@ export default class ConfigWAEvents {
             this.readMessages([message]);
           }
 
-          const chatId = message.key.remoteJid || this.wa.id;
+          const chatId = fixID(message.key.remoteJid || this.wa.id);
 
           const chat = await this.wa.getChat(new Chat(chatId));
 
@@ -154,7 +154,7 @@ export default class ConfigWAEvents {
             name: message.key.id?.includes("@s") && !message.key.fromMe ? message.pushName || message.verifiedBizName || undefined : undefined,
           });
 
-          const userId = message.key.fromMe ? this.wa.id : message.key.participant || message.participant || message.key.remoteJid || "";
+          const userId = fixID(message.key.fromMe ? this.wa.id : message.key.participant || message.participant || message.key.remoteJid || "");
 
           await this.wa.updateUser({ id: userId, name: message.pushName || message.verifiedBizName || undefined });
 
@@ -166,7 +166,7 @@ export default class ConfigWAEvents {
 
           this.wa.emit("message", msg);
         } catch (err) {
-          this.wa.emit("message", new ErrorMessage(message?.key?.remoteJid || "", err && err instanceof Error ? err : new Error(JSON.stringify(err))));
+          this.wa.emit("message", new ErrorMessage(fixID(message?.key?.remoteJid || ""), err && err instanceof Error ? err : new Error(JSON.stringify(err))));
         }
       }
     } catch (err) {
@@ -200,7 +200,7 @@ export default class ConfigWAEvents {
 
             this.wa.emit("message", msg);
           } catch (err) {
-            this.wa.emit("message", new ErrorMessage(message?.key?.remoteJid || "", err && err instanceof Error ? err : new Error(JSON.stringify(err))));
+            this.wa.emit("message", new ErrorMessage(fixID(message?.key?.remoteJid || ""), err && err instanceof Error ? err : new Error(JSON.stringify(err))));
           }
         }
       } catch (err) {
@@ -306,7 +306,7 @@ export default class ConfigWAEvents {
       for (const message of update?.messages || []) {
         try {
           if (!message?.message || message.key.remoteJid == "status@broadcast") continue;
-          if (ignoreChats.includes(message.key.remoteJid || "")) continue;
+          if (ignoreChats.includes(fixID(message.key.remoteJid || ""))) continue;
 
           const msg = await new ConvertWAMessage(this.wa, message).get();
 
@@ -314,7 +314,7 @@ export default class ConfigWAEvents {
 
           this.wa.emit("message", msg);
         } catch (err) {
-          const msg = new ErrorMessage(message?.key?.remoteJid || "", err && err instanceof Error ? err : new Error(JSON.stringify(err)));
+          const msg = new ErrorMessage(fixID(message?.key?.remoteJid || ""), err && err instanceof Error ? err : new Error(JSON.stringify(err)));
 
           msg.isOld = true;
 

@@ -34,10 +34,10 @@ import { ConvertWAMessage } from "./ConvertWAMessage";
 import { Media } from "../messages/MediaMessage";
 import { UserAction, UserEvent } from "../user";
 import ConfigWAEvents from "./ConfigWAEvents";
+import { fixID, getPhoneNumber } from "./ID";
 import { BotStatus } from "../bot/BotStatus";
 import { ChatType } from "../chat/ChatType";
 import BotEvents from "../bot/BotEvents";
-import { getPhoneNumber } from "./ID";
 import { WAStatus } from "./WAStatus";
 import { ChatStatus } from "../chat";
 import IAuth from "../client/IAuth";
@@ -90,7 +90,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       msgRetryCounterCache: this.msgRetryCounterCache,
       shouldIgnoreJid: () => false,
       async getMessage(key) {
-        return (await store.loadMessage(key.remoteJid!, key.id!))?.message || undefined;
+        return (await store.loadMessage(fixID(key.remoteJid!), key.id!))?.message || undefined;
       },
       async patchMessageBeforeSending(msg) {
         if (msg.deviceSentMessage?.message?.listMessage?.listType == proto.Message.ListMessage.ListType.PRODUCT_LIST) {
