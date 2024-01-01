@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2016",
+    "target": "es2018",
     "module": "commonjs",
     "sourceMap": true,
     "rootDir": "./src",
@@ -8,9 +8,14 @@
     "esModuleInterop": true,
     "strict": false,
     "declaration": true,
-    "baseUrl": ".",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["es2020", "esnext.array", "DOM"]
   },
-  "include": ["./src/**/*.ts"],
+  "include": ["./src"],
   "exclude": ["node_modules", "src/baileys/src/Tests/*", "src/baileys/src/Binary/GenerateStatics.ts"]
 }
