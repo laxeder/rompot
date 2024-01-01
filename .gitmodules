@@ -1,0 +1,3 @@
+[submodule "src/baileys"]
+	path = src/baileys
+	url = https://github.com/laxeder/baileys.git

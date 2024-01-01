@@ -11,5 +11,6 @@
     "baseUrl": ".",
     "moduleResolution": "node"
   },
-  "include": ["src"]
+  "include": ["./src/**/*.ts"],
+  "exclude": ["node_modules", "src/baileys/src/Tests/*", "src/baileys/src/Binary/GenerateStatics.ts"]
 }
