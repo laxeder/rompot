@@ -278,8 +278,6 @@ export class ConvertToWAMessage {
     this.waMessage.footer = message.footer;
     this.waMessage.title = message.title;
     this.waMessage.listType = message.listType;
-    this.waMessage.viewOnce = false;
-    this.isRelay = true;
 
     this.waMessage.sections = message.list.map((list: List) => {
       return {
@@ -289,18 +287,6 @@ export class ConvertToWAMessage {
         }),
       };
     });
-
-    if (this.isRelay) {
-      this.waMessage = await generateWAMessageContent(this.waMessage, { upload: () => ({} as any) });
-
-      if (this.waMessage?.viewOnceMessage?.message?.listMessage) {
-        this.waMessage.viewOnceMessage.message.listMessage.listType = message.listType;
-      }
-
-      if (this.waMessage?.listMessage) {
-        this.waMessage.listMessage.listType = message.listType;
-      }
-    }
   }
 
   public static convertToWaMessageStatus(status: MessageStatus): proto.WebMessageInfo.Status {
