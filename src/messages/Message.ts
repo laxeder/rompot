@@ -39,6 +39,15 @@ export enum MessageStatus {
   Played = "PLAYED",
 }
 
+/** Plataforma de onde foi enviado uma mensagem */
+export enum MessagePlataform {
+  Android = "android",
+  Ios = "ios",
+  Web = "web",
+  Desktop = "desktop",
+  Unknown = "unknown",
+}
+
 export default class Message {
   /** ID do bot associado a esta mensagem */
   public botId: string = "";
@@ -76,6 +85,8 @@ export default class Message {
   public isViewOnce: boolean = false;
   /** A mensagem foi enviada por uma API não oficial */
   public isUnofficial: boolean = false;
+  /** Plataforma de onde foi enviado a mensagem */
+  public plataform: MessagePlataform = MessagePlataform.Unknown;
   /** A mensagem recebida é antiga */
   public isOld: boolean = false;
 

@@ -78,7 +78,29 @@ export class ConvertWAMessage {
       }
     }
 
-    this.message.isUnofficial = (waMessage?.key?.id?.length || 24) < 20;
+    switch (getDevice(waMessage?.key?.id || "")) {
+      case "android":
+        this.message.plataform = MessagePlataform.Android;
+        break;
+
+      case "ios":
+        this.message.plataform = MessagePlataform.Ios;
+        break;
+
+      case "web":
+        this.message.plataform = MessagePlataform.Web;
+        break;
+
+      case "desktop":
+        this.message.plataform = MessagePlataform.Desktop;
+        break;
+
+      default:
+        this.message.plataform = MessagePlataform.Unknown;
+        break;
+    }
+
+    this.message.isUnofficial = this.message.plataform == MessagePlataform.Unknown;
     this.message.fromMe = !!this.waMessage.key.fromMe;
     this.message.id = this.message.id || this.waMessage.key.id || "";
 

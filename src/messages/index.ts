@@ -1,6 +1,6 @@
+import Message, { MessageType, MessageStatus, MessagePlataform } from "./Message";
 import PollMessage, { PollAction, PollOption } from "./PollMessage";
 import ButtonMessage, { Button, ButtonType } from "./ButtonMessage";
-import Message, { MessageType, MessageStatus } from "./Message";
 import ListMessage, { List, ListItem } from "./ListMessage";
 
 import PollUpdateMessage from "./PollUpdateMessage";
@@ -20,6 +20,7 @@ import TextMessage from "./TextMessage";
 export {
   MessageType,
   MessageStatus,
+  MessagePlataform,
   Button,
   ButtonType,
   List,
