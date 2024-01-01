@@ -1,9 +1,9 @@
-import { decryptPollVote, getContentType, isJidGroup, MessageUpsertType, proto, WAMessage, WAMessageContent, WAMessageUpdate } from "../baileys/src/index";
+import { decryptPollVote, getContentType, getDevice, isJidGroup, MessageUpsertType, proto, WAMessage, WAMessageContent, WAMessageUpdate } from "../baileys/src/index";
 import digestSync from "crypto-digest-sync";
 import Long from "long";
 
 import PollMessage, { PollAction, PollOption } from "../messages/PollMessage";
-import Message, { MessageStatus, MessageType } from "../messages/Message";
+import Message, { MessagePlataform, MessageStatus, MessageType } from "../messages/Message";
 import ListMessage, { ListType } from "../messages/ListMessage";
 import MediaMessage, { Media } from "../messages/MediaMessage";
 import PollUpdateMessage from "../messages/PollUpdateMessage";
@@ -151,7 +151,7 @@ export class ConvertWAMessage {
     }
 
     if (contentType == "protocolMessage") {
-      this.convertProtocolMessage(messageContent![contentType] as proto.Message.IProtocolMessage);
+      await this.convertProtocolMessage(messageContent![contentType] as proto.Message.IProtocolMessage);
     }
 
     if (contentType == "imageMessage" || contentType == "videoMessage" || contentType == "audioMessage" || contentType == "stickerMessage" || contentType == "documentMessage") {
@@ -242,10 +242,12 @@ export class ConvertWAMessage {
    * * Converte mensagem de protocolo
    * @param content
    */
-  public convertProtocolMessage(content: proto.Message["protocolMessage"]) {
+  public async convertProtocolMessage(content: proto.Message["protocolMessage"]) {
     if (content?.type == 0) {
       this.waMessage.key = { ...this.waMessage.key, ...content.key };
       this.message.isDeleted = true;
+    } else if (content?.type == 14) {
+      await this.convertEditedMessage(content);
     } else {
       this.message = EmptyMessage.fromJSON({ ...this.message, type: MessageType.Empty });
     }
