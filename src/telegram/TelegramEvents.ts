@@ -45,7 +45,7 @@ export default class TelegramEvents {
 
       const rompotMessage = await converter.convert(true);
 
-      for (const member of msg.new_chat_members) {
+      for (const member of msg.new_chat_members || []) {
         const userId: string = TelegramUtils.getId(member);
 
         const user = User.fromJSON({
@@ -77,13 +77,13 @@ export default class TelegramEvents {
 
       const rompotMessage = await converter.convert(true);
 
-      const userId: string = TelegramUtils.getId(msg.left_chat_member);
+      const userId: string = TelegramUtils.getId(msg.left_chat_member!);
 
       const user = User.fromJSON({
         ...((await this.telegram.getUser(new User(userId))) || {}),
         id: userId,
-        name: TelegramUtils.getName(msg.left_chat_member),
-        nickname: TelegramUtils.getNickname(msg.left_chat_member),
+        name: TelegramUtils.getName(msg.left_chat_member!),
+        nickname: TelegramUtils.getNickname(msg.left_chat_member!),
         phoneNumber: TelegramUtils.getPhoneNumber(userId),
       });
 

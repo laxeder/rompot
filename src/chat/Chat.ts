@@ -253,7 +253,7 @@ export default class Chat {
     }
 
     for (const key of Object.keys(data || {})) {
-      chat[key] = data[key];
+      chat[key] = data?.[key];
     }
 
     return chat;

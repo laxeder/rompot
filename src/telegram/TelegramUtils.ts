@@ -99,7 +99,7 @@ export namespace TelegramUtils {
   }
 
   export function getMessageMentions(msg: TelegramBotAPI.Message): string[] {
-    return getMentions(getText(msg), msg.entities);
+    return getMentions(getText(msg), msg.entities!);
   }
 
   export async function downloadFileFromURL(url: string): Promise<Buffer> {

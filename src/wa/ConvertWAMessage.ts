@@ -77,13 +77,13 @@ export class ConvertWAMessage {
       }
     }
 
-    this.message.isUnofficial = waMessage.key.id.length < 20;
+    this.message.isUnofficial = (waMessage?.key?.id?.length || 24) < 20;
     this.message.fromMe = !!this.waMessage.key.fromMe;
     this.message.id = this.message.id || this.waMessage.key.id || "";
 
     this.message.chat = new Chat(waMessage?.key?.remoteJid || this.bot.id);
     this.message.chat.type = isJidGroup(this.message.chat.id) ? ChatType.Group : ChatType.PV;
-    this.message.status = ConvertWAMessage.convertMessageStatus(ConvertWAMessage.isMessageUpdate(waMessage) ? waMessage.update.status : waMessage.status);
+    this.message.status = ConvertWAMessage.convertMessageStatus(ConvertWAMessage.isMessageUpdate(waMessage) ? waMessage.update.status! : waMessage.status!);
 
     this.message.user = new User(waMessage.key.fromMe ? this.bot.id : waMessage.key.participant || waMessage.participant || waMessage.key.remoteJid || "");
   }
@@ -105,14 +105,14 @@ export class ConvertWAMessage {
       this.message.isViewOnce = true;
     }
 
-    if (messageContent.editedMessage) {
-      this.message.id = messageContent.editedMessage.message.protocolMessage.key.id;
+    if (messageContent?.editedMessage) {
+      this.message.id = messageContent?.editedMessage?.message?.protocolMessage?.key?.id || "";
       this.message.isEdited = true;
 
-      messageContent = messageContent.editedMessage.message.protocolMessage.editedMessage;
+      messageContent = messageContent?.editedMessage?.message?.protocolMessage?.editedMessage;
     }
 
-    const contentType = getContentType(messageContent);
+    const contentType = getContentType(messageContent!);
 
     if (!contentType) {
       this.message = EmptyMessage.fromJSON({ ...this.message, type: MessageType.Empty });
@@ -120,50 +120,50 @@ export class ConvertWAMessage {
     }
 
     if (contentType == "conversation") {
-      this.convertConversationMessage(messageContent[contentType]);
+      this.convertConversationMessage(messageContent![contentType]!);
     }
 
     if (contentType == "extendedTextMessage") {
-      this.convertExtendedTextMessage(messageContent[contentType]);
+      this.convertExtendedTextMessage(messageContent![contentType]);
     }
 
     if (contentType == "protocolMessage") {
-      this.convertProtocolMessage(messageContent[contentType] as proto.Message.IProtocolMessage);
+      this.convertProtocolMessage(messageContent![contentType] as proto.Message.IProtocolMessage);
     }
 
     if (contentType == "imageMessage" || contentType == "videoMessage" || contentType == "audioMessage" || contentType == "stickerMessage" || contentType == "documentMessage") {
-      await this.convertMediaMessage(messageContent[contentType], contentType);
+      await this.convertMediaMessage(messageContent![contentType], contentType);
     }
 
     if (contentType === "buttonsMessage" || contentType === "templateMessage") {
-      this.convertButtonMessage(messageContent);
+      this.convertButtonMessage(messageContent!);
     }
 
     if (contentType === "listMessage") {
-      this.convertListMessage(messageContent);
+      this.convertListMessage(messageContent!);
     }
 
     if (contentType === "locationMessage") {
-      this.convertLocationMessage(messageContent[contentType]);
+      this.convertLocationMessage(messageContent![contentType]);
     }
 
     if (contentType === "contactMessage" || contentType == "contactsArrayMessage") {
-      this.convertContactMessage(messageContent[contentType]);
+      this.convertContactMessage(messageContent![contentType]);
     }
 
     if (contentType === "reactionMessage") {
-      this.convertReactionMessage(messageContent[contentType]);
+      this.convertReactionMessage(messageContent![contentType]);
     }
 
     if (contentType === "pollCreationMessage") {
-      await this.convertPollCreationMessage(messageContent[contentType] as proto.Message.PollCreationMessage);
+      await this.convertPollCreationMessage(messageContent![contentType] as proto.Message.PollCreationMessage);
     }
 
     if (contentType == "pollUpdateMessage") {
-      await this.convertPollUpdateMessage(messageContent[contentType] as proto.Message.PollUpdateMessage);
+      await this.convertPollUpdateMessage(messageContent![contentType] as proto.Message.PollUpdateMessage);
     }
 
-    const content = messageContent[contentType] as any;
+    const content = messageContent![contentType] as any;
 
     this.message.text = this.message.text || content.text || content.caption || content.buttonText || content.hydratedTemplate?.hydratedContentText || content.displayName || content.contentText || "";
     this.message.selected = content?.singleSelectReply?.selectedRowId || content?.selectedId || "";
@@ -220,7 +220,7 @@ export class ConvertWAMessage {
    * @param content
    */
   public convertProtocolMessage(content: proto.Message["protocolMessage"]) {
-    if (content.type == 0) {
+    if (content?.type == 0) {
       this.waMessage.key = { ...this.waMessage.key, ...content.key };
       this.message.isDeleted = true;
     } else {
@@ -341,9 +341,9 @@ export class ConvertWAMessage {
    * @param content
    */
   public async convertEditedMessage(content: proto.IMessage["protocolMessage"]) {
-    await this.convertContentMessage(content.editedMessage);
+    await this.convertContentMessage(content?.editedMessage);
 
-    this.message.id = content.key.id;
+    this.message.id = content?.key?.id || "";
     this.message.isEdited = true;
   }
 
@@ -360,7 +360,7 @@ export class ConvertWAMessage {
       pollMessage.options = pollCreation.options;
     } else {
       for (const opt of content.options) {
-        pollMessage.addOption(opt.optionName);
+        pollMessage.addOption(opt.optionName || "");
       }
     }
 
@@ -378,9 +378,9 @@ export class ConvertWAMessage {
     const userId = this.waMessage.key.fromMe ? this.bot.id : this.waMessage.key.participant || this.waMessage.participant || this.waMessage.key.remoteJid || "";
 
     if (pollCreation) {
-      const poll = decryptPollVote(content.vote, {
+      const poll = decryptPollVote(content.vote!, {
         pollCreatorJid: pollCreation.user.id,
-        pollMsgId: content.pollCreationMessageKey.id,
+        pollMsgId: content?.pollCreationMessageKey?.id || "",
         pollEncKey: pollCreation.secretKey,
         voterJid: userId,
       });

@@ -161,7 +161,7 @@ export default class User {
     }
 
     for (const key of Object.keys(data || {})) {
-      user[key] = data[key];
+      user[key] = data?.[key];
     }
 
     return user;

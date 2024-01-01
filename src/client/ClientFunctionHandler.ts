@@ -34,7 +34,7 @@ export default class ClientFunctionHandler<B extends IBot, T extends string> {
       throw error;
     }
 
-    return result;
+    return result as any;
   }
 
   public async await(row: T) {

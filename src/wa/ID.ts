@@ -1,10 +1,3 @@
-/** * Deixa o id somente com numeros para contatos */
-export function replaceID(id: string): string {
-  id = String(`${id}`);
-
-  if (id.includes("@s")) return id.trim();
-}
-
 export function fixID(id: string) {
   return id.replace(/:(.*)@/, "@");
 }

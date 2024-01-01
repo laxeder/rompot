@@ -92,7 +92,7 @@ export default class ConfigWAEvents {
         this.wa.sock.ev.buffer();
 
         try {
-          const { fullMessage } = decodeMessageNode(node, this.wa.sock.authState.creds.me!.id, this.wa.sock.authState.creds.me!.lid);
+          const { fullMessage } = decodeMessageNode(node, this.wa.sock.authState.creds.me!.id, this.wa.sock.authState.creds.me!.lid || "");
 
           if (this.wa.config.shouldIgnoreJid!(fullMessage.key.remoteJid!)) return;
 
@@ -101,7 +101,7 @@ export default class ConfigWAEvents {
           });
 
           if (!isDecrypted) {
-            this.wa.addMessageRetryCache(fullMessage.key.id, node);
+            this.wa.addMessageRetryCache(fullMessage.key.id || "", node);
           }
         } catch (error) {
           this.wa.emit("error", new Error("Process message failed"));
@@ -124,9 +124,9 @@ export default class ConfigWAEvents {
 
           this.wa.removeMessageRetryCache(message.key.id || "");
 
-          if (this.wa.messagesCached.includes(message.key.id)) return;
+          if (this.wa.messagesCached.includes(message.key.id!)) return;
 
-          this.wa.addMessageCache(message.key.id);
+          this.wa.addMessageCache(message.key.id!);
 
           for (let i = 0; i < 5; i++) {
             await new Promise((res) => setTimeout(res, 200));
@@ -137,7 +137,7 @@ export default class ConfigWAEvents {
 
           const chat = await this.wa.getChat(new Chat(chatId));
 
-          let timestamp: number;
+          let timestamp: number | undefined;
 
           if (message.messageTimestamp) {
             if (Long.isLong(message.messageTimestamp)) {
@@ -151,12 +151,12 @@ export default class ConfigWAEvents {
             id: chatId,
             unreadCount: (chat?.unreadCount || 0) + 1,
             timestamp,
-            name: message.key.id?.includes("@s") && !message.key.fromMe ? message.pushName || message.verifiedBizName : undefined,
+            name: message.key.id?.includes("@s") && !message.key.fromMe ? message.pushName || message.verifiedBizName || undefined : undefined,
           });
 
           const userId = message.key.fromMe ? this.wa.id : message.key.participant || message.participant || message.key.remoteJid || "";
 
-          await this.wa.updateUser({ id: userId, name: message.pushName || message.verifiedBizName });
+          await this.wa.updateUser({ id: userId, name: message.pushName || message.verifiedBizName || undefined });
 
           const msg = await new ConvertWAMessage(this.wa, message, type).get();
 
@@ -235,7 +235,7 @@ export default class ConfigWAEvents {
 
           this.wa.emit("open", { isNewLogin: update.isNewLogin || false });
 
-          await this.wa.sock.groupFetchAllParticipating()
+          await this.wa.sock.groupFetchAllParticipating();
         }
 
         if (update.connection == "close") {

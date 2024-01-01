@@ -217,10 +217,10 @@ export default class TelegramSendingController {
     options.caption_entities = message.mentions.reduce((entities, mention) => {
       const result = new RegExp(`@(${mention || ""})`).exec(`${message.text || ""}`);
 
-      const searchedMention = result.shift();
+      const searchedMention = result?.shift();
 
       if (searchedMention) {
-        entities.push({ type: "mention", offset: result.index, length: searchedMention.length });
+        entities.push({ type: "mention", offset: result?.index || 0, length: searchedMention.length });
       }
 
       return entities;

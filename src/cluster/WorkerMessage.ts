@@ -70,8 +70,10 @@ export default class WorkerMessage {
     return WorkerMessage.fromJSON({ ...this.toJSON(), ...data });
   }
 
-  public apply(data: Partial<WorkerMessage>): WorkerMessage {
-    if (typeof data != "object") return;
+  public apply(data: Partial<WorkerMessage>): this {
+    if (typeof data != "object") {
+      return this;
+    }
 
     for (const key of Object.keys(data)) {
       this[key] = data[key];

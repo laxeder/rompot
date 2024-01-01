@@ -78,6 +78,10 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       useClones: false,
     });
 
+    const store = makeInMemoryStore({ logger: this.logger });
+
+    this.store = store;
+
     this.config = {
       printQRInTerminal: true,
       logger: this.logger,
@@ -86,27 +90,25 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       msgRetryCounterCache: this.msgRetryCounterCache,
       shouldIgnoreJid: () => false,
       async getMessage(key) {
-        return (await this.store.loadMessage(key.remoteJid!, key.id!))?.message || undefined;
+        return (await store.loadMessage(key.remoteJid!, key.id!))?.message || undefined;
       },
       async patchMessageBeforeSending(msg) {
         if (msg.deviceSentMessage?.message?.listMessage?.listType == proto.Message.ListMessage.ListType.PRODUCT_LIST) {
           msg = JSON.parse(JSON.stringify(msg));
 
-          msg.deviceSentMessage.message.listMessage.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT;
+          msg.deviceSentMessage!.message!.listMessage!.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT;
         }
 
         if (msg.listMessage?.listType == proto.Message.ListMessage.ListType.PRODUCT_LIST) {
           msg = JSON.parse(JSON.stringify(msg));
 
-          msg.listMessage.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT;
+          msg.listMessage!.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT;
         }
 
         return msg;
       },
       ...config,
     };
-
-    this.store = makeInMemoryStore({ logger: this.config.logger });
   }
 
   public async connect(auth?: string | IAuth): Promise<void> {
@@ -143,7 +145,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
         this.sock = makeWASocket({
           auth: {
             creds: state.creds,
-            keys: makeCacheableSignalKeyStore(state.keys, this.config.logger),
+            keys: makeCacheableSignalKeyStore(state.keys, this.config.logger!),
           },
           ...additionalOptions,
           ...this.config,
@@ -268,18 +270,18 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       }
 
       if (metadata?.subject || metadata?.name) {
-        chat.name = metadata.subject || metadata.name;
+        chat.name = metadata.subject || metadata.name || undefined;
       }
 
       if (metadata?.desc || metadata?.description) {
-        chat.description = metadata.desc || metadata.description;
+        chat.description = metadata.desc || metadata.description || undefined;
       }
 
-      if (metadata.unreadCount) {
-        chat.unreadCount = metadata.unreadCount;
+      if (metadata?.unreadCount) {
+        chat.unreadCount = metadata.unreadCount || undefined;
       }
 
-      if (metadata.conversationTimestamp) {
+      if (metadata?.conversationTimestamp) {
         if (Long.isLong(metadata.conversationTimestamp)) {
           chat.timestamp = metadata.conversationTimestamp.toNumber() * 1000;
         } else {
@@ -299,7 +301,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     try {
       if (!user.id || !user.id.includes("@s")) return;
 
-      if (metadata.imgUrl) {
+      if (metadata?.imgUrl) {
         user.profileUrl = await this.getUserProfileUrl(new User(user.id));
       } else {
         const userData = await this.getUser(new User(user.id || ""));
@@ -556,14 +558,14 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     if (!isJidGroup(chat.id)) return "";
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return "";
 
-    return await this.sock.groupInviteCode(chat.id);
+    return (await this.sock.groupInviteCode(chat.id)) || "";
   }
 
   public async revokeChatInvite(chat: Chat): Promise<string> {
     if (!isJidGroup(chat.id)) return "";
     if (!(await this.getChatAdmins(chat)).includes(this.id)) return "";
 
-    return await this.sock.groupRevokeInvite(chat.id);
+    return (await this.sock.groupRevokeInvite(chat.id)) || "";
   }
 
   public async getUserName(user: User): Promise<string> {
@@ -695,11 +697,11 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   //! ******************************* MESSAGE *******************************
 
   public async readMessage(message: Message): Promise<void> {
-    const key: proto.MessageKey = {
+    const key = {
       remoteJid: message.chat.id,
       id: message.id || "",
       fromMe: message.fromMe || message.user.id == this.id,
-      participant: isJidGroup(message.chat.id) ? message.user.id || this.id : undefined,
+      participant: isJidGroup(message.chat.id) ? message.user.id || this.id || undefined : undefined,
       toJSON: () => key,
     };
 
@@ -770,11 +772,11 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     if (typeof sendedMessage == "boolean") return content;
 
-    const msgRes = (await new ConvertWAMessage(this, sendedMessage).get()) || content;
+    const msgRes = (await new ConvertWAMessage(this, sendedMessage!).get()) || content;
 
     if (PollMessage.isValid(msgRes) && PollMessage.isValid(content)) {
       msgRes.options = content.options;
-      msgRes.secretKey = sendedMessage.message.messageContextInfo.messageSecret;
+      msgRes.secretKey = sendedMessage?.message?.messageContextInfo?.messageSecret!;
 
       await this.savePollMessage(msgRes);
     }

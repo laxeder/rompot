@@ -59,7 +59,7 @@ export default class MessageHandler {
     let stopRead: boolean = false;
 
     for (const msg of this.messages[chatId]) {
-      if (msg.patterns.some((ptn) => ptn(message))) return;
+      if (msg.patterns.some((ptn) => ptn(message))) return false;
 
       msg.resolve(message);
 

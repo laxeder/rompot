@@ -73,7 +73,7 @@ export default class TelegramAuth implements IAuth {
     } catch {}
   }
 
-  public async listAll(pattern?: string): Promise<string[]> {
+  public async listAll(pattern: string = ""): Promise<string[]> {
     try {
       return readdirSync(this.getSession()).reduce((p, c) => (c.startsWith(pattern) ? [...p, c.replace(".json", "")] : p), []);
     } catch (error) {
