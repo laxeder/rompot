@@ -48,12 +48,10 @@ import IBot from "../bot/IBot";
 export default class WhatsAppBot extends BotEvents implements IBot {
   //@ts-ignore
   public sock: WASocket = {};
-  public config: Partial<SocketConfig & { usePairingCode: boolean }>;
+  public config: Partial<SocketConfig> & { maxRetryCount: number, retryMessageCache: NodeCache };
   public auth: IAuth = new MultiFileAuthState("./session", undefined, false);
 
-  public msgRetryCounterCache: NodeCache;
   public messagesCached: string[] = [];
-  public retryMessageCache: Record<string, BinaryNode> = {};
   public store: ReturnType<typeof makeInMemoryStore>;
 
   public saveCreds = (creds: Partial<AuthenticationCreds>) => new Promise<void>((res) => res);
@@ -70,13 +68,8 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
 
-  constructor(config?: Partial<SocketConfig & { usePairingCode: boolean }>) {
+  constructor(config?: Partial<WhatsAppBot["config"]>) {
     super();
-
-    this.msgRetryCounterCache = new NodeCache({
-      stdTTL: DEFAULT_CACHE_TTLS.MSG_RETRY,
-      useClones: false,
-    });
 
     const store = makeInMemoryStore({ logger: this.logger });
 
@@ -86,8 +79,16 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       printQRInTerminal: true,
       logger: this.logger,
       defaultQueryTimeoutMs: 10000,
+      maxRetryCount: 10,
       retryRequestDelayMs: 250,
-      msgRetryCounterCache: this.msgRetryCounterCache,
+      msgRetryCounterCache: new NodeCache({
+        stdTTL: DEFAULT_CACHE_TTLS.MSG_RETRY,
+        useClones: false,
+      }),
+      retryMessageCache: new NodeCache({
+        stdTTL: DEFAULT_CACHE_TTLS.MSG_RETRY,
+        useClones: false,
+      }),
       shouldIgnoreJid: () => false,
       async getMessage(key) {
         return (await store.loadMessage(fixID(key.remoteJid!), key.id!))?.message || undefined;
@@ -135,7 +136,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     await this.awaitConnectionState("open");
   }
 
-  public async internalConnect(additionalOptions: this["config"] = {}): Promise<void> {
+  public async internalConnect(additionalOptions: Partial<WhatsAppBot["config"]> = {}): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const { state, saveCreds } = await getBaileysAuth(this.auth);
@@ -809,9 +810,9 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async addMessageRetryCache(id: string, node: BinaryNode, count: number = 0): Promise<void> {
     try {
       if (count != 0) {
-        if (!this.retryMessageCache.hasOwnProperty(id)) return;
+        if (!this.config.retryMessageCache.get(id)) return;
 
-        if (count == 10) {
+        if (count >= this.config.maxRetryCount) {
           this.removeMessageRetryCache(id);
 
           this.emit("error", new Error("Retry message failed"));
@@ -819,16 +820,16 @@ export default class WhatsAppBot extends BotEvents implements IBot {
           return;
         }
       } else {
-        this.retryMessageCache[id] = node;
+        this.config.retryMessageCache.set(id, node);
       }
 
       await new Promise((res) => setTimeout(res, (this.config.retryRequestDelayMs || 250) * 2));
 
-      if (!this.retryMessageCache.hasOwnProperty(id)) return;
+      if (!this.config.retryMessageCache.get(id)) return;
 
       const encNode = getBinaryNodeChild(node, "enc");
 
-      await this.sock.sendRetryRequest(node, !encNode);
+      await this.sock.sendRetryRequest(node, !encNode, this.config.maxRetryCount);
 
       await this.addMessageRetryCache(id, node, count + 1);
     } catch (error) {
@@ -843,8 +844,8 @@ export default class WhatsAppBot extends BotEvents implements IBot {
    * Este método remove uma mensagem do cache de repetições, se existir.
    */
   public removeMessageRetryCache(id: string): void {
-    if (this.retryMessageCache.hasOwnProperty(id)) {
-      delete this.retryMessageCache[id];
+    if (this.config.retryMessageCache.get(id)) {
+      this.config.retryMessageCache.del(id)
     }
   }
 

@@ -1,29 +1,23 @@
 {
   "compilerOptions": {
     "target": "es2018",
-    "module": "commonjs",
-    "sourceMap": true,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "experimentalDecorators": true,
+    "allowJs": true,
+    "checkJs": false,
     "rootDir": "./src",
     "outDir": "./lib",
-    "esModuleInterop": true,
     "strict": false,
-    "declaration": true,
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
     "strictNullChecks": true,
+    "skipLibCheck": true,
     "noImplicitThis": true,
+    "esModuleInterop": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
+    "declaration": true,
     "lib": ["es2020", "esnext.array", "DOM"]
   },
-  "include": ["./src/**/*.ts", "./src/**/*.js", "./src/**/*.proto", "./src/**/*.d.ts"],
-  "exclude": [
-    "node_modules",
-    "./src/baileys/Example/*",
-    "./src/baileys/Media/*",
-    "./src/baileys/proto-exact/*",
-    "./src/baileys/WASignalGroup/*",
-    "./src/baileys/src/Tests/*",
-    "./baileys/src/Binary/GenerateStatics.ts"
-  ]
+  "include": ["./src"],
+  "exclude": ["node_modules", "./src/baileys/Example/*", "./src/baileys/Media/*", "./src/baileys/src/Tests/*", "./baileys/src/Binary/GenerateStatics.ts"]
 }
