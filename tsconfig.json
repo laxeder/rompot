@@ -16,6 +16,14 @@
     "forceConsistentCasingInFileNames": true,
     "lib": ["es2020", "esnext.array", "DOM"]
   },
-  "include": ["./src"],
-  "exclude": ["node_modules", "src/baileys/src/Tests/*", "src/baileys/src/Binary/GenerateStatics.ts"]
+  "include": ["./src/**/*.ts", "./src/**/*.js", "./src/**/*.proto", "./src/**/*.d.ts"],
+  "exclude": [
+    "node_modules",
+    "./src/baileys/Example/*",
+    "./src/baileys/Media/*",
+    "./src/baileys/proto-exact/*",
+    "./src/baileys/WASignalGroup/*",
+    "./src/baileys/src/Tests/*",
+    "./baileys/src/Binary/GenerateStatics.ts"
+  ]
 }
