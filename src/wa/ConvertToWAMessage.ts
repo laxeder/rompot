@@ -1,4 +1,4 @@
-import { generateWAMessage, generateWAMessageContent, isJidGroup, MiscMessageGenerationOptions, proto } from "@whiskeysockets/baileys";
+import { generateWAMessage, generateWAMessageContent, isJidGroup, MiscMessageGenerationOptions, proto } from "../baileys/src/index";
 
 import Message, { MessageStatus, MessageType } from "../messages/Message";
 import ListMessage, { List, ListItem } from "../messages/ListMessage";

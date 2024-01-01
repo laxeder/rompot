@@ -1,4 +1,4 @@
-import { decryptPollVote, getContentType, isJidGroup, MessageUpsertType, proto, WAMessage, WAMessageContent, WAMessageUpdate } from "@whiskeysockets/baileys";
+import { decryptPollVote, getContentType, isJidGroup, MessageUpsertType, proto, WAMessage, WAMessageContent, WAMessageUpdate } from "../baileys/src/index";
 import digestSync from "crypto-digest-sync";
 import Long from "long";
 

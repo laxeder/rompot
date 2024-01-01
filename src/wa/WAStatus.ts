@@ -1,4 +1,4 @@
-import { WAPresence } from "@whiskeysockets/baileys";
+import { WAPresence } from "../baileys/src/index";
 
 import { ChatStatus } from "../chat/ChatStatus";
 

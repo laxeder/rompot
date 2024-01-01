@@ -1,4 +1,4 @@
-import { DisconnectReason, MessageUpsertType, decodeMessageNode, isJidGroup, proto } from "@whiskeysockets/baileys";
+import { DisconnectReason, MessageUpsertType, decodeMessageNode, isJidGroup, proto } from "../baileys/src/index";
 import { Boom } from "@hapi/boom";
 import Long from "long";
 
@@ -92,7 +92,7 @@ export default class ConfigWAEvents {
         this.wa.sock.ev.buffer();
 
         try {
-          const { fullMessage } = decodeMessageNode(node, this.wa.sock.authState.creds.me!.id);
+          const { fullMessage } = decodeMessageNode(node, this.wa.sock.authState.creds.me!.id, this.wa.sock.authState.creds.me!.lid);
 
           if (this.wa.config.shouldIgnoreJid!(fullMessage.key.remoteJid!)) return;
 

@@ -19,7 +19,7 @@ import makeWASocket, {
   WASocket,
   Contact,
   proto,
-} from "@whiskeysockets/baileys";
+} from "../baileys/src/index";
 import NodeCache from "node-cache";
 import internal from "stream";
 import pino from "pino";
