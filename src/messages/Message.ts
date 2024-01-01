@@ -151,10 +151,10 @@ export default class Message {
    * @param isMention Se verdadeiro a mensagem atual é mencionada na mensagem enviada.
    */
   public async reply(message: Message | string, isMention: boolean = true) {
-    const msg = Message.apply(message);
+    const msg = Message.apply(message, { clientId: this.clientId, botId: this.botId });
 
     msg.chat.id = msg.chat.id || this.chat.id;
-    msg.user.id = msg.chat.id || this.clientId;
+    msg.user.id = this.botId;
     msg.mention = isMention ? this : msg.mention;
 
     return ClientUtils.getClient(this.clientId).send(msg);
