@@ -350,6 +350,8 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   }
 
   public async send(message: Message): Promise<Message> {
+    message = Message.apply(message, { clientId: this.id, botId: this.bot.id });
+
     if (!this.config.disableAutoTyping) {
       await this.changeChatStatus(message.chat, message.type == "audio" ? ChatStatus.Recording : ChatStatus.Typing);
     }
