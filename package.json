@@ -9,8 +9,9 @@
     "dev": "ts-node-dev example/index.ts",
     "cluster": "ts-node-dev example/cluster.ts",
     "telegram": "ts-node-dev example/telegram.ts",
-    "build": "npm i && npm run clean && tsc",
-    "clean": "rimraf lib"
+    "build": "npm i && npm run install-peer-dependencies && npm run clean && tsc",
+    "clean": "rimraf lib",
+    "install-peer-dependencies": "node ./install-peers"
   },
   "repository": {
     "type": "git",
