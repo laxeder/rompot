@@ -51,6 +51,7 @@
   ],
   "devDependencies": {
     "@adiwajshing/eslint-config": "github:adiwajshing/eslint-config",
+    "@laxeder/wa-sticker": "4.4.4",
     "@types/got": "9.6.11",
     "@types/jest": "27.5.1",
     "@types/node": "18.7.14",
