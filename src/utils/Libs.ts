@@ -9,6 +9,7 @@
  */
 export async function getWaSticker(): Promise<any> {
   try {
+    //@ts-nocheck
     return await import("@laxeder/wa-sticker").catch(() => undefined);
   } catch {
     return undefined;
