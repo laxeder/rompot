@@ -15,6 +15,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 18
+      - run: git clone https://github.com/laxeder/baileys ./src/baileys
       - run: npm install
       - run: npm run build
       - uses: JS-DevTools/npm-publish@v1
