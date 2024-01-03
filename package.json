@@ -47,7 +47,6 @@
     "@types/node": "18.7.14",
     "@types/node-telegram-bot-api": "0.64.1",
     "@types/ws": "8.5.3",
-    "conventional-changelog-cli": "2.2.2",
     "dotenv": "16.3.1",
     "jimp": "0.16.1",
     "sharp": "0.30.5",
