@@ -74,7 +74,7 @@ export class ConvertWAMessage {
       if (Long.isLong(this.waMessage.messageTimestamp)) {
         this.message.timestamp = (this.waMessage.messageTimestamp.toNumber() || 0) * 1000 || Date.now();
       } else {
-        this.message.timestamp = (this.waMessage.messageTimestamp || 0) * 1000 || Date.now();
+        this.message.timestamp = ((this.waMessage.messageTimestamp as number) || 0) * 1000 || Date.now();
       }
     }
 

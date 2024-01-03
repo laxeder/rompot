@@ -112,7 +112,7 @@ export default class ConfigWAEvents {
             if (Long.isLong(message.messageTimestamp)) {
               timestamp = message.messageTimestamp.toNumber() * 1000;
             } else {
-              timestamp = message.messageTimestamp * 1000;
+              timestamp = (message.messageTimestamp as number) * 1000;
             }
           }
 
