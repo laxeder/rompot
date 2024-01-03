@@ -1,5 +1,5 @@
 import Client from "./client/Client";
-import baileys from "./baileys/src/index";
+import baileys from "@laxeder/baileys";
 
 export * from "./bot/index";
 export * from "./chat/index";

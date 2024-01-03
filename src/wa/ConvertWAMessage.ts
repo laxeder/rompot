@@ -1,4 +1,4 @@
-import { decryptPollVote, getContentType, getDevice, isJidGroup, MessageUpsertType, proto, WAMessage, WAMessageContent, WAMessageUpdate } from "../baileys/src/index";
+import { decryptPollVote, getContentType, getDevice, isJidGroup, MessageUpsertType, proto, WAMessage, WAMessageContent, WAMessageUpdate } from "@laxeder/baileys";
 import digestSync from "crypto-digest-sync";
 import Long from "long";
 

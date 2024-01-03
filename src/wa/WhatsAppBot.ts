@@ -5,22 +5,17 @@ import makeWASocket, {
   downloadMediaMessage,
   AuthenticationCreds,
   Chat as BaileysChat,
-  DEFAULT_CACHE_TTLS,
-  getBinaryNodeChild,
   WAConnectionState,
   makeInMemoryStore,
   DisconnectReason,
   ConnectionState,
   GroupMetadata,
   SocketConfig,
-  BinaryNode,
   isJidGroup,
   Browsers,
-  WASocket,
   Contact,
   proto,
-} from "../baileys/src/index";
-import NodeCache from "node-cache";
+} from "@laxeder/baileys";
 import internal from "stream";
 import pino from "pino";
 import Long from "long";
@@ -47,8 +42,8 @@ import IBot from "../bot/IBot";
 
 export default class WhatsAppBot extends BotEvents implements IBot {
   //@ts-ignore
-  public sock: WASocket = {};
-  public config: Partial<SocketConfig> & { maxRetryCount: number, retryMessageCache: NodeCache };
+  public sock: ReturnType<typeof makeWASocket> = {};
+  public config: Partial<SocketConfig>;
   public auth: IAuth = new MultiFileAuthState("./session", undefined, false);
 
   public messagesCached: string[] = [];
@@ -68,7 +63,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
 
-  constructor(config?: Partial<WhatsAppBot["config"]>) {
+  constructor(config?: Partial<SocketConfig>) {
     super();
 
     const store = makeInMemoryStore({ logger: this.logger });
@@ -79,34 +74,11 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       printQRInTerminal: true,
       logger: this.logger,
       defaultQueryTimeoutMs: 10000,
-      maxRetryCount: 10,
-      retryRequestDelayMs: 250,
-      msgRetryCounterCache: new NodeCache({
-        stdTTL: DEFAULT_CACHE_TTLS.MSG_RETRY,
-        useClones: false,
-      }),
-      retryMessageCache: new NodeCache({
-        stdTTL: DEFAULT_CACHE_TTLS.MSG_RETRY,
-        useClones: false,
-      }),
+      retryRequestDelayMs: 300,
+      maxMsgRetryCount: 10,
       shouldIgnoreJid: () => false,
       async getMessage(key) {
         return (await store.loadMessage(fixID(key.remoteJid!), key.id!))?.message || undefined;
-      },
-      async patchMessageBeforeSending(msg) {
-        if (msg.deviceSentMessage?.message?.listMessage?.listType == proto.Message.ListMessage.ListType.PRODUCT_LIST) {
-          msg = JSON.parse(JSON.stringify(msg));
-
-          msg.deviceSentMessage!.message!.listMessage!.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT;
-        }
-
-        if (msg.listMessage?.listType == proto.Message.ListMessage.ListType.PRODUCT_LIST) {
-          msg = JSON.parse(JSON.stringify(msg));
-
-          msg.listMessage!.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT;
-        }
-
-        return msg;
       },
       ...config,
     };
@@ -796,57 +768,6 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     setTimeout(() => {
       this.messagesCached = this.messagesCached.filter((msgId) => msgId != id);
     }, 60 * 60);
-  }
-
-  /**
-   * * Adiciona assincronamente uma mensagem ao cache de tentativas de repetição para lidar com retried de mensagens.
-   * @param id - O identificador único da mensagem.
-   * @param node - O nó binário que representa a mensagem.
-   * @param count - O número de tentativas de repetição (padrão é 0).
-   * @remarks
-   * Este método adiciona a mensagem ao cache de repetições e tenta enviar uma solicitação de repetição.
-   * Se a contagem máxima de repetições for atingida, a mensagem é removida do cache, e um erro é emitido.
-   */
-  public async addMessageRetryCache(id: string, node: BinaryNode, count: number = 0): Promise<void> {
-    try {
-      if (count != 0) {
-        if (!this.config.retryMessageCache.get(id)) return;
-
-        if (count >= this.config.maxRetryCount) {
-          this.removeMessageRetryCache(id);
-
-          this.emit("error", new Error("Retry message failed"));
-
-          return;
-        }
-      } else {
-        this.config.retryMessageCache.set(id, node);
-      }
-
-      await new Promise((res) => setTimeout(res, (this.config.retryRequestDelayMs || 250) * 2));
-
-      if (!this.config.retryMessageCache.get(id)) return;
-
-      const encNode = getBinaryNodeChild(node, "enc");
-
-      await this.sock.sendRetryRequest(node, !encNode, this.config.maxRetryCount);
-
-      await this.addMessageRetryCache(id, node, count + 1);
-    } catch (error) {
-      await this.addMessageRetryCache(id, node, count + 1);
-    }
-  }
-
-  /**
-   * Remove uma mensagem do cache de repetições.
-   * @param id - O identificador único da mensagem a ser removida.
-   * @remarks
-   * Este método remove uma mensagem do cache de repetições, se existir.
-   */
-  public removeMessageRetryCache(id: string): void {
-    if (this.config.retryMessageCache.get(id)) {
-      this.config.retryMessageCache.del(id)
-    }
   }
 
   public async downloadStreamMessage(media: Media): Promise<Buffer> {

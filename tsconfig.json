@@ -14,10 +14,8 @@
     "noImplicitThis": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "lib": ["es2020", "esnext.array", "DOM"]
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["./src"],
-  "exclude": ["node_modules", "./src/baileys/Example/*", "./src/baileys/Media/*", "./src/baileys/src/Tests/*", "./baileys/src/Binary/GenerateStatics.ts"]
+  "include": ["./src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

@@ -1,4 +1,4 @@
-import { WAPresence } from "../baileys/src/index";
+import { WAPresence } from "@laxeder/baileys";
 
 import { ChatStatus } from "../chat/ChatStatus";
 

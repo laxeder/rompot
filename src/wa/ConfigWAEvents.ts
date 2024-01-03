@@ -1,4 +1,4 @@
-import { DisconnectReason, MessageUpsertType, decodeMessageNode, isJidGroup, proto } from "../baileys/src/index";
+import { DisconnectReason, MessageUpsertType, isJidGroup, proto } from "@laxeder/baileys";
 import { Boom } from "@hapi/boom";
 import Long from "long";
 
@@ -33,7 +33,6 @@ export default class ConfigWAEvents {
     this.configCBNotificationAdd();
     this.configCBNotificationPromote();
     this.configCBNotificationDemote();
-    this.configCBMessage();
   }
 
   public configCBNotificationRemove() {
@@ -86,34 +85,6 @@ export default class ConfigWAEvents {
     });
   }
 
-  public configCBMessage() {
-    this.wa.sock.ws.addListener("CB:message", async (node) => {
-      try {
-        this.wa.sock.ev.buffer();
-
-        try {
-          const { fullMessage } = decodeMessageNode(node, this.wa.sock.authState.creds.me!.id, this.wa.sock.authState.creds.me!.lid || "");
-
-          if (this.wa.config.shouldIgnoreJid!(fixID(fullMessage.key.remoteJid!))) return;
-
-          const isDecrypted = (Array.isArray(node.content) ? node.content : []).some(({ tag, content }) => {
-            return tag == "enc" && content instanceof Uint8Array;
-          });
-
-          if (!isDecrypted) {
-            this.wa.addMessageRetryCache(fullMessage.key.id || "", node);
-          }
-        } catch (error) {
-          this.wa.emit("error", new Error("Process message failed"));
-        }
-
-        this.wa.sock.ev.flush();
-      } catch (error) {
-        this.wa.emit("error", new Error("Process message failed"));
-      }
-    });
-  }
-
   public async readMessages(messages: proto.IWebMessageInfo[], type: MessageUpsertType = "notify") {
     try {
       for (const message of messages || []) {
@@ -121,8 +92,6 @@ export default class ConfigWAEvents {
           if (!message || !message.message) return;
           if (message.key.remoteJid == "status@broadcast") return;
           if (message.messageStubType == proto.WebMessageInfo.StubType.CIPHERTEXT) return;
-
-          this.wa.removeMessageRetryCache(message.key.id || "");
 
           if (this.wa.messagesCached.includes(message.key.id!)) return;
 
