@@ -73,6 +73,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     this.config = {
       printQRInTerminal: true,
       logger: this.logger,
+      qrTimeout: 60000,
       defaultQueryTimeoutMs: 10000,
       retryRequestDelayMs: 300,
       maxMsgRetryCount: 10,
@@ -837,8 +838,8 @@ export default class WhatsAppBot extends BotEvents implements IBot {
    * @param version Versão do navegador
    */
   public static Browser(plataform?: string, browser?: string, version?: string): [string, string, string] {
-    const browserAppropriated = Browsers.appropriate(browser);
-
+    const browserAppropriated = Browsers.appropriate(browser || "Rompot");
+    
     return [plataform || browserAppropriated[0], browser || browserAppropriated[1], version || browserAppropriated[2]];
   }
 }
