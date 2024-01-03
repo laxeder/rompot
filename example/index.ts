@@ -49,13 +49,13 @@ client.on("message", async (message: Message) => {
   console.info(`RECEIVE MESSAGE [${message.chat.id}]`, message.id);
 
   if (message.isDeleted) {
-    console.info(` - Message deleted!`);
+    // console.info(` - Message deleted!`);
   } else if (message.isUpdate) {
-    console.info(` - Message update:`, message.status);
+    // console.info(` - Message update:`, message.status);
   } else if (message.isEdited) {
-    console.info(` - Message edited:`, message.id, message.text);
+    // console.info(` - Message edited:`, message.id, message.text);
   } else if (message.isOld) {
-    console.info(` - Message old:`, message.id, message.text);
+    // console.info(` - Message old:`, message.id, message.text);
   } else {
     console.info(message);
   }
@@ -69,13 +69,13 @@ client.on("message", async (message: Message) => {
 
 client.on("chat", (update) => {
   if (update.action == "add") {
-    console.info(`New chat: ${update.chat.id}`);
+    // console.info(`New chat: ${update.chat.id}`);
   }
   if (update.action == "remove") {
-    console.info(`Remove chat: ${update.chat.id}`);
+    // console.info(`Remove chat: ${update.chat.id}`);
   }
   if (update.action == "update") {
-    console.info("Chat update:", update.chat);
+    // console.info("Chat update:", update.chat);
   }
 });
 
