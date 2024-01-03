@@ -37,7 +37,7 @@ export const GlobalRompotCluster = "rompot-client-cluster";
 /** Configuração do cliente */
 export type ClientClusterConfig = { maxTimeout: number } & ConnectionConfig;
 
-export default class ClientCluster extends ClientEvents implements IClient{
+export default class ClientCluster extends ClientEvents implements IClient {
   /** Tratador de mensagens */
   public messageHandler: MessageHandler = new MessageHandler();
   /** Controlador de comandos  */
@@ -211,6 +211,7 @@ export default class ClientCluster extends ClientEvents implements IClient{
           this.emit("message", message);
 
           if (this.config.disableAutoCommand) return;
+          if (this.config.disableAutoCommandForOldMessage && message.isOld) return;
           if (this.config.disableAutoCommandForUnofficialMessage && message.isUnofficial) return;
 
           const command = this.searchCommand(message.text);

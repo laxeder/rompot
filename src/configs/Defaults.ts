@@ -2,7 +2,8 @@ import ConnectionConfig from "./ConnectionConfig";
 
 export const DEFAULT_CONNECTION_CONFIG: ConnectionConfig = {
   disableAutoCommand: false,
-  disableAutoCommandForUnofficialMessage: false,
+  disableAutoCommandForOldMessage: true,
+  disableAutoCommandForUnofficialMessage: true,
   disableAutoTyping: false,
   disableAutoRead: false,
   maxReconnectTimes: 12,

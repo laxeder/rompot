@@ -86,6 +86,7 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
         this.emit("message", message);
 
         if (this.config.disableAutoCommand) return;
+        if (this.config.disableAutoCommandForOldMessage && message.isOld) return;
         if (this.config.disableAutoCommandForUnofficialMessage && message.isUnofficial) return;
 
         const command = this.searchCommand(message.text);

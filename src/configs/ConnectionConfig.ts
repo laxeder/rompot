@@ -1,6 +1,8 @@
 export default interface ConnectionConfig {
   /** Desativar execução do comando automático */
   disableAutoCommand: boolean;
+  /** Desativar comandos para mensagem antiga */
+  disableAutoCommandForOldMessage: boolean;
   /** Desativa a execução do comando automático para mensagens não oficiais */
   disableAutoCommandForUnofficialMessage: boolean;
   /** Desativar a digitação automatica */
