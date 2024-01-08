@@ -56,7 +56,7 @@ export type BotEventsMap = {
  * Classe que lida com os eventos do bot e permite registrar ou remover ouvintes para esses eventos.
  */
 export default class BotEvents {
-  protected ev = new EventEmitter();
+  public ev = new EventEmitter();
 
   /**
    * Registra um ouvinte para um evento específico.
