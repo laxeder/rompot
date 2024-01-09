@@ -91,7 +91,6 @@ export default class ConfigWAEvents {
         try {
           if (!message || !message.message) return;
           if (message.key.remoteJid == "status@broadcast") return;
-          if (message.messageStubType == proto.WebMessageInfo.StubType.CIPHERTEXT) return;
 
           if (this.wa.messagesCached.includes(message.key.id!)) return;
 
