@@ -1,6 +1,6 @@
 {
   "name": "rompot",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Chatbot API em TypeScript",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -44,7 +44,6 @@
     "lib/**/*"
   ],
   "devDependencies": {
-    "@adiwajshing/eslint-config": "github:adiwajshing/eslint-config",
     "@laxeder/wa-sticker": "4.4.4",
     "@types/body-parser": "1.19.5",
     "@types/express": "4.17.21",
