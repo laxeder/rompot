@@ -96,11 +96,6 @@ export default class ConfigWAEvents {
 
           this.wa.addMessageCache(message.key.id!);
 
-          for (let i = 0; i < 5; i++) {
-            await new Promise((res) => setTimeout(res, 200));
-            this.readMessages([message]);
-          }
-
           const chatId = fixID(message.key.remoteJid || this.wa.id);
 
           const chat = await this.wa.getChat(new Chat(chatId));
