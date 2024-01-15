@@ -17,14 +17,18 @@ export namespace ServerRequest {
     await axios.get(`${url}/ping`);
   }
 
-  export async function send(url: string, body: Body) {
+  export async function send<T extends any>(url: string, body: Body): Promise<ServerResponse.Body<string, T>> {
     if (body.method == ServerRequest.RequestMethod.EMIT) {
-      await axios.patch(`${url}/emit`, body);
+      var { data } = await axios.patch(`${url}/emit`, body);
     } else if (body.method == ServerRequest.RequestMethod.SET) {
-      await axios.patch(`${url}/set`, body);
+      var { data } = await axios.patch(`${url}/set`, body);
     } else if (body.method == ServerRequest.RequestMethod.POST) {
-      await axios.post(`${url}/post`, body);
+      var { data } = await axios.post(`${url}/post`, body);
+    } else {
+      throw new Error("Invalid request method");
     }
+
+    return data;
   }
 
   export function generate<M extends RequestMethod = any, K extends string = string, A extends any = any>(method: M, key: K, ...args: A[]): Body<M, K, A> {

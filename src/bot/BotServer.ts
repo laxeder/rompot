@@ -37,56 +37,68 @@ export interface BotServerBase {
   removeWebhook(id: string): boolean;
 }
 
-export type BotServer<Bot extends IBot = IBot> = Bot &
-  BotServerBase & {
-    configEvents(): void;
-    configRoutes(): Server;
-  };
+export type BotServer<Bot extends IBot = IBot> = Bot & BotServerBase;
 
 export default function BotServer<Bot extends IBot = IBot>(bot: Bot, options: Partial<BotServerOptions> = {}): BotServer<Bot> {
   if (!bot || typeof bot !== "object") {
     throw new Error("Invalid bot");
   }
 
-  const botServer: BotServer<Bot> = {
-    ...bot,
-    ...generateBotServerBase(options),
-    configRoutes(): Server {
-      const app: Express = express();
+  const botServer: BotServer<Bot> = { ...bot, ...generateBotServerBase(options) };
 
-      app.use(bodyParser.json({ limit: Infinity }));
-      app.use(bodyParser.urlencoded({ extended: true }));
+  const prototypes: any[] = [Object.getPrototypeOf(bot)];
 
-      if (botServer.options.version == "apiV1") {
-        app.use(`/${botServer.options.serverId}`, apiV1(botServer));
-      } else {
-        app.use(`/${botServer.options.serverId}`, apiV1(botServer));
-      }
+  while (prototypes[prototypes.length - 1]) {
+    prototypes.push(Object.getPrototypeOf(prototypes[prototypes.length - 1]));
+  }
 
-      botServer.options.server.on("request", app);
+  for (let i: number = 0; i < prototypes.length - 2; i++) {
+    for (const name of Object.getOwnPropertyNames(prototypes[i])) {
+      if (name.startsWith("_")) continue;
+      if (name == "constructor") continue;
 
-      return botServer.options.server;
-    },
+      Object.defineProperty(botServer, name, {
+        get: () => {
+          if (typeof bot[name] == "function") {
+            return bot[name].bind(bot);
+          } else {
+            return bot[name];
+          }
+        },
+        set: (value) => {
+          bot[name] = value;
+        },
+      });
+    }
+  }
 
-    configEvents() {
-      const emit = <T extends keyof BotEventsMap>(eventName: T, arg: BotEventsMap[T]): boolean => {
-        botServer.sendAll(ServerRequest.generate(ServerRequest.RequestMethod.EMIT, eventName, arg));
+  const app: Express = express();
 
-        return bot.ev.emit(eventName, arg);
-      };
+  app.use(bodyParser.json({ limit: Infinity }));
+  app.use(bodyParser.urlencoded({ extended: true }));
 
-      bot.emit = emit;
-      botServer.emit = emit;
-    },
-  };
+  if (botServer.options.version == "apiV1") {
+    app.use(`/${botServer.options.serverId}`, apiV1(botServer));
+  } else {
+    app.use(`/${botServer.options.serverId}`, apiV1(botServer));
+  }
 
-  botServer.configRoutes();
+  botServer.options.server.on("request", app);
 
   if (!options.disableAutoStart) {
     botServer.options.server.listen(options.port, () => {
       botServer.options.logger.info(`Bot Server "${botServer.options.serverId}" is running on port ${botServer.options.port}`);
     });
   }
+
+  const emit = <T extends keyof BotEventsMap>(eventName: T, arg: BotEventsMap[T]): boolean => {
+    botServer.sendAll(ServerRequest.generate(ServerRequest.RequestMethod.EMIT, eventName, arg));
+
+    return bot.ev.emit(eventName, arg);
+  };
+
+  bot.emit = emit;
+  botServer.emit = emit;
 
   return botServer;
 }
@@ -163,7 +175,7 @@ export function generateBotServerOptions(options: Partial<BotServerOptions>): Bo
   const botServerOptions: BotServerOptions = {
     serverId: options.serverId || nonce(),
     server: options.server || createServer(),
-    port: options.port || 8080,
+    port: options.port || 8050,
     disableAutoStart: !!options.disableAutoStart,
     pingInterval: options.pingInterval || 10000,
     maxPing: options.maxPing || 6,
