@@ -2,8 +2,8 @@ import { DisconnectReason, MessageUpsertType, isJidGroup, proto } from "@laxeder
 import { Boom } from "@hapi/boom";
 import Long from "long";
 
-import { ConvertWAMessage } from "./ConvertWAMessage";
 import ErrorMessage from "../messages/ErrorMessage";
+import ConvertWAMessage from "./ConvertWAMessage";
 import { fixID, getPhoneNumber } from "./ID";
 import { BotStatus } from "../bot/BotStatus";
 import WhatsAppBot from "./WhatsAppBot";
@@ -89,12 +89,31 @@ export default class ConfigWAEvents {
     try {
       for (const message of messages || []) {
         try {
-          if (!message || !message.message) return;
+          if (!message) return;
           if (message.key.remoteJid == "status@broadcast") return;
 
-          if (this.wa.messagesCached.includes(message.key.id!)) return;
+          if (!message.message) {
+            if (!(message.messageStubType == proto.WebMessageInfo.StubType.CIPHERTEXT)) {
+              return;
+            }
+          } else {
+            if (this.wa.messagesCached.includes(message.key.id!)) return;
 
-          this.wa.addMessageCache(message.key.id!);
+            if (message.message) {
+              this.wa.addMessageCache(message.key.id!);
+            }
+
+            if (
+              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.APP_STATE_SYNC_KEY_SHARE ||
+              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.APP_STATE_SYNC_KEY_REQUEST ||
+              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.APP_STATE_FATAL_EXCEPTION_NOTIFICATION ||
+              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.EPHEMERAL_SETTING ||
+              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.HISTORY_SYNC_NOTIFICATION ||
+              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.INITIAL_SECURITY_NOTIFICATION_SETTING_SYNC
+            ) {
+              return;
+            }
+          }
 
           const chatId = fixID(message.key.remoteJid || this.wa.id);
 
@@ -152,10 +171,11 @@ export default class ConfigWAEvents {
       try {
         for (const message of messages || []) {
           try {
-            if (!message?.update?.status) return;
             if (message.key.remoteJid == "status@broadcast") return;
 
             await this.readMessages([{ key: message.key, ...message.update }]);
+
+            if (!message?.update?.status) return;
 
             const msg = await new ConvertWAMessage(this.wa, message).get();
 
@@ -228,6 +248,8 @@ export default class ConfigWAEvents {
     const ignoreChats: string[] = [];
 
     this.wa.sock.ev.on("messaging-history.set", async (update) => {
+      if (!this.wa.config.autoSyncHistory) return;
+
       for (const chat of update.chats || []) {
         try {
           if (!chat?.hasOwnProperty("unreadCount") || chat.isDefaultSubgroup === true) {

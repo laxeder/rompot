@@ -16,8 +16,10 @@ import ImageMessage from "../messages/ImageMessage";
 import AudioMessage from "../messages/AudioMessage";
 import VideoMessage from "../messages/VideoMessage";
 import EmptyMessage from "../messages/EmptyMessage";
+import ErrorMessage from "../messages/ErrorMessage";
 import TextMessage from "../messages/TextMessage";
 import FileMessage from "../messages/FileMessage";
+import { WAMessageError } from "./WAMessage";
 import { getWaSticker } from "../utils/Libs";
 import { ChatType } from "../chat/ChatType";
 import WhatsAppBot from "./WhatsAppBot";
@@ -25,7 +27,7 @@ import User from "../user/User";
 import Chat from "../chat/Chat";
 import { fixID } from "./ID";
 
-export class ConvertWAMessage {
+export default class ConvertWAMessage {
   public type?: MessageUpsertType;
   public waMessage: WAMessage = { key: {} };
 
@@ -76,6 +78,15 @@ export class ConvertWAMessage {
       } else {
         this.message.timestamp = ((this.waMessage.messageTimestamp as number) || 0) * 1000 || Date.now();
       }
+    }
+
+    if (waMessage.messageStubType == proto.WebMessageInfo.StubType.CIPHERTEXT) {
+      this.message = ErrorMessage.fromJSON({
+        ...this.message,
+        type: MessageType.Error,
+        text: WAMessageError.FAILED_TO_DECRYPT,
+        error: new Error(waMessage.messageStubParameters?.shift() || WAMessageError.FAILED_TO_DECRYPT),
+      });
     }
 
     switch (getDevice(waMessage?.key?.id || "")) {

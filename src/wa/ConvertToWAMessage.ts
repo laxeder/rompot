@@ -18,7 +18,7 @@ import { getWaSticker } from "../utils/Libs";
 import { fixID, getID, getPhoneNumber } from "./ID";
 import WhatsAppBot from "./WhatsAppBot";
 
-export class ConvertToWAMessage {
+export default class ConvertToWAMessage {
   public message: Message;
   public bot: WhatsAppBot;
   public isMention: boolean;

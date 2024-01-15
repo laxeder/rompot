@@ -24,8 +24,8 @@ import { PollMessage, PollUpdateMessage, ReactionMessage } from "../messages";
 import { getImageURL, verifyIsEquals } from "../utils/Generic";
 import { getBaileysAuth, MultiFileAuthState } from "./Auth";
 import Message, { MessageType } from "../messages/Message";
-import { ConvertToWAMessage } from "./ConvertToWAMessage";
-import { ConvertWAMessage } from "./ConvertWAMessage";
+import ConvertToWAMessage from "./ConvertToWAMessage";
+import ConvertWAMessage from "./ConvertWAMessage";
 import { Media } from "../messages/MediaMessage";
 import { UserAction, UserEvent } from "../user";
 import ConfigWAEvents from "./ConfigWAEvents";
@@ -40,10 +40,12 @@ import User from "../user/User";
 import Chat from "../chat/Chat";
 import IBot from "../bot/IBot";
 
+export type WhatsAppBotConfig = Partial<SocketConfig> & { autoSyncHistory?: boolean };
+
 export default class WhatsAppBot extends BotEvents implements IBot {
   //@ts-ignore
   public sock: ReturnType<typeof makeWASocket> = {};
-  public config: Partial<SocketConfig>;
+  public config: Partial<WhatsAppBotConfig>;
   public auth: IAuth = new MultiFileAuthState("./session", undefined, false);
 
   public messagesCached: string[] = [];
@@ -63,7 +65,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
 
-  constructor(config?: Partial<SocketConfig>) {
+  constructor(config?: WhatsAppBotConfig) {
     super();
 
     const store = makeInMemoryStore({ logger: this.logger });
@@ -75,9 +77,10 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       logger: this.logger,
       qrTimeout: 60000,
       defaultQueryTimeoutMs: 10000,
-      retryRequestDelayMs: 300,
-      maxMsgRetryCount: 10,
+      retryRequestDelayMs: 1000,
+      maxMsgRetryCount: 5,
       shouldIgnoreJid: () => false,
+      autoSyncHistory: false,
       async getMessage(key) {
         return (await store.loadMessage(fixID(key.remoteJid!), key.id!))?.message || undefined;
       },
@@ -839,7 +842,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
    */
   public static Browser(plataform?: string, browser?: string, version?: string): [string, string, string] {
     const browserAppropriated = Browsers.appropriate(browser || "Rompot");
-    
+
     return [plataform || browserAppropriated[0], browser || browserAppropriated[1], version || browserAppropriated[2]];
   }
 }
