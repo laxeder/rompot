@@ -6,7 +6,7 @@ import makeWASocket, {
   AuthenticationCreds,
   Chat as BaileysChat,
   WAConnectionState,
-  makeInMemoryStore,
+  makeInMemoryStore as BaileysMakeInMemoryStore,
   DisconnectReason,
   ConnectionState,
   GroupMetadata,
@@ -25,6 +25,7 @@ import { getImageURL, verifyIsEquals } from "../utils/Generic";
 import { getBaileysAuth, MultiFileAuthState } from "./Auth";
 import Message, { MessageType } from "../messages/Message";
 import ConvertToWAMessage from "./ConvertToWAMessage";
+import makeInMemoryStore from "./makeInMemoryStore";
 import ConvertWAMessage from "./ConvertWAMessage";
 import { Media } from "../messages/MediaMessage";
 import { UserAction, UserEvent } from "../user";
@@ -49,7 +50,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public auth: IAuth = new MultiFileAuthState("./session", undefined, false);
 
   public messagesCached: string[] = [];
-  public store: ReturnType<typeof makeInMemoryStore>;
+  public store: ReturnType<typeof BaileysMakeInMemoryStore>;
 
   public saveCreds = (creds: Partial<AuthenticationCreds>) => new Promise<void>((res) => res);
   public connectionListeners: ((update: Partial<ConnectionState>) => boolean)[] = [];
@@ -72,6 +73,8 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     this.store = store;
 
+    const waBot = this;
+
     this.config = {
       printQRInTerminal: true,
       logger: this.logger,
@@ -82,7 +85,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       shouldIgnoreJid: () => false,
       autoSyncHistory: false,
       async getMessage(key) {
-        return (await store.loadMessage(fixID(key.remoteJid!), key.id!))?.message || undefined;
+        return (await waBot.store.loadMessage(fixID(key.remoteJid!), key.id!))?.message || undefined;
       },
       ...config,
     };
