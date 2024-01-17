@@ -1,10 +1,11 @@
 import makeWASocket, {
   generateWAMessageFromContent,
   makeCacheableSignalKeyStore,
+  DEFAULT_CONNECTION_CONFIG,
   MediaDownloadOptions,
   downloadMediaMessage,
   AuthenticationCreds,
-  Chat as BaileysChat,
+  DEFAULT_CACHE_TTLS,
   WAConnectionState,
   makeInMemoryStore as BaileysMakeInMemoryStore,
   DisconnectReason,
@@ -15,7 +16,9 @@ import makeWASocket, {
   Browsers,
   Contact,
   proto,
+  Chat as BaileysChat,
 } from "@laxeder/baileys";
+import NodeCache from "node-cache";
 import internal from "stream";
 import pino from "pino";
 import Long from "long";
@@ -41,7 +44,7 @@ import User from "../user/User";
 import Chat from "../chat/Chat";
 import IBot from "../bot/IBot";
 
-export type WhatsAppBotConfig = Partial<SocketConfig> & { autoSyncHistory?: boolean };
+export type WhatsAppBotConfig = Partial<SocketConfig> & { autoSyncHistory?: boolean; readAllFailedMessages?: boolean };
 
 export default class WhatsAppBot extends BotEvents implements IBot {
   //@ts-ignore
@@ -51,6 +54,10 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
   public messagesCached: string[] = [];
   public store: ReturnType<typeof BaileysMakeInMemoryStore>;
+  public msgRetryCountercache: NodeCache = new NodeCache({
+    stdTTL: DEFAULT_CACHE_TTLS.MSG_RETRY, // 1 hour
+    useClones: false,
+  });
 
   public saveCreds = (creds: Partial<AuthenticationCreds>) => new Promise<void>((res) => res);
   public connectionListeners: ((update: Partial<ConnectionState>) => boolean)[] = [];
@@ -76,12 +83,15 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     const waBot = this;
 
     this.config = {
+      ...DEFAULT_CONNECTION_CONFIG,
       printQRInTerminal: true,
       logger: this.logger,
       qrTimeout: 60000,
       defaultQueryTimeoutMs: 10000,
       retryRequestDelayMs: 1000,
       maxMsgRetryCount: 5,
+      readAllFailedMessages: false,
+      msgRetryCounterCache: this.msgRetryCountercache,
       shouldIgnoreJid: () => false,
       autoSyncHistory: false,
       async getMessage(key) {
@@ -89,6 +99,8 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       },
       ...config,
     };
+
+    delete this.config.auth;
   }
 
   public async connect(auth?: string | IAuth): Promise<void> {
@@ -125,7 +137,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
         this.sock = makeWASocket({
           auth: {
             creds: state.creds,
-            keys: makeCacheableSignalKeyStore(state.keys, this.config.logger!),
+            keys: state.keys
           },
           ...additionalOptions,
           ...this.config,
