@@ -91,10 +91,14 @@ export default class ConfigWAEvents {
         try {
           if (!message) return;
           if (message.key.remoteJid == "status@broadcast") return;
-
+          
           if (!message.message) {
             if (!(message.messageStubType == proto.WebMessageInfo.StubType.CIPHERTEXT)) {
               return;
+            } else {
+              const msgRetryCount = this.wa.config.msgRetryCounterCache?.get<number | boolean | null>(message.key.id!);
+
+              if (!this.wa.config.readAllFailedMessages && msgRetryCount != false) return;
             }
           } else {
             if (this.wa.messagesCached.includes(message.key.id!)) return;
