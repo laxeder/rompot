@@ -1,4 +1,4 @@
-import { decryptPollVote, getContentType, getDevice, isJidGroup, MessageUpsertType, proto, WAMessage, WAMessageContent, WAMessageUpdate } from "@laxeder/baileys";
+import { decryptPollVote, getContentType, getDevice, isJidGroup, MessageUpsertType, normalizeMessageContent, proto, WAMessage, WAMessageContent, WAMessageUpdate } from "@laxeder/baileys";
 import digestSync from "crypto-digest-sync";
 import Long from "long";
 
@@ -71,7 +71,7 @@ export default class ConvertWAMessage {
     }
 
     if (waMessage.message) {
-      await this.convertContentMessage(waMessage.message);
+      await this.convertContentMessage(normalizeMessageContent(waMessage.message));
 
       if (Long.isLong(this.waMessage.messageTimestamp)) {
         this.message.timestamp = (this.waMessage.messageTimestamp.toNumber() || 0) * 1000 || Date.now();

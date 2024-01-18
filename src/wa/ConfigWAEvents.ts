@@ -118,6 +118,7 @@ export default class ConfigWAEvents {
             }
 
             if (
+              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.EPHEMERAL_SYNC_RESPONSE ||
               message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.APP_STATE_SYNC_KEY_SHARE ||
               message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.APP_STATE_SYNC_KEY_REQUEST ||
               message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.APP_STATE_FATAL_EXCEPTION_NOTIFICATION ||
