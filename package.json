@@ -1,6 +1,6 @@
 {
   "name": "rompot",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Chatbot API em TypeScript",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -25,7 +25,7 @@
   "dependencies": {
     "@adiwajshing/keyed-db": "0.2.4",
     "@hapi/boom": "9.1.3",
-    "@laxeder/baileys": "github:laxeder/baileys#4c7bb82ef6d4b32e30d2b72c83a0c592ab978837",
+    "@laxeder/baileys": "github:laxeder/baileys#47e5092fdb4e2284c74b39305b7fd920e31061cd",
     "axios": "1.6.5",
     "body-parser": "1.20.2",
     "cluster": "0.7.7",
