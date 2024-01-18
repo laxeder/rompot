@@ -91,14 +91,24 @@ export default class ConfigWAEvents {
         try {
           if (!message) return;
           if (message.key.remoteJid == "status@broadcast") return;
-          
+
           if (!message.message) {
             if (!(message.messageStubType == proto.WebMessageInfo.StubType.CIPHERTEXT)) {
               return;
             } else {
-              const msgRetryCount = this.wa.config.msgRetryCounterCache?.get<number | boolean | null>(message.key.id!);
+              const msgRetryCount = Number(`${this.wa.config.msgRetryCounterCache?.get<number>(message.key.id!) || 0}`) || 0;
 
-              if (!this.wa.config.readAllFailedMessages && msgRetryCount != false) return;
+              await new Promise((res) => setTimeout(res, (this.wa.config.retryRequestDelayMs || 1000) * 2));
+
+              const realCount = this.wa.config.msgRetryCounterCache?.get<number | boolean>(message.key.id!);
+
+              if (realCount == true || realCount == null) return;
+
+              const newMsgRetryCount = Number(`${realCount || 0}`) || 0;
+
+              if (!this.wa.config.readAllFailedMessages && newMsgRetryCount > msgRetryCount) {
+                return; // Not read duplicated failed message
+              }
             }
           } else {
             if (this.wa.messagesCached.includes(message.key.id!)) return;
