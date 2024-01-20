@@ -60,9 +60,10 @@ export default interface IClient<Bot extends IBot = IBot> extends ClientEvents {
   /**
    * * Aguarda um evento ser chamado.
    * @param eventName - Nome do evento que será aguardado.
+   * @param maxTimeout - Para automaticamente após 
    * @returns {Promise<ClientEventsMap[T]>} Argumento retornado do evento esperado.
    */
-  awaitEvent<T extends keyof ClientEventsMap>(eventName: T): Promise<ClientEventsMap[T]>;
+  awaitEvent<T extends keyof ClientEventsMap>(eventName: T, maxTimeout?: number): Promise<ClientEventsMap[T]>;
 
   /**
    * * Aguarda a conexão for aberta.

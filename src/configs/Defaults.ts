@@ -10,4 +10,5 @@ export const DEFAULT_CONNECTION_CONFIG: ConnectionConfig = {
   reconnectTimeout: 1000,
   maxRequests: 3,
   requestsDelay: 100,
+  maxTimeout: 10000, // 10 seconds
 };

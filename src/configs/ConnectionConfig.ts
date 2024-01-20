@@ -17,4 +17,6 @@ export default interface ConnectionConfig {
   maxRequests: number;
   /** Tempo necessário de aguardo para próxima tentativa de solicitação */
   requestsDelay: number;
+  /** Tempo máximo de espera */
+  maxTimeout: number;
 }

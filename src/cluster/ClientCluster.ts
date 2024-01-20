@@ -182,7 +182,9 @@ export default class ClientCluster extends ClientEvents implements IClient {
           message.inject({ clientId: this.id, botId: this.bot.id });
 
           if (!message.fromMe && !this.config.disableAutoRead) {
-            await message.read();
+            if (!message.isDeleted && !message.isUpdate) {
+              await message.read();
+            }
           }
 
           message.user = (await this.getUser(message.user)) || message.user;
@@ -431,9 +433,21 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param eventName - Nome do evento que será aguardado.
    * @returns {Promise<ClientEventsMap[T]>} Argumento retornado do evento esperado.
    */
-  public async awaitEvent<T extends keyof ClientEventsMap>(eventName: T): Promise<ClientEventsMap[T]> {
-    return new Promise<ClientEventsMap[T]>((res) => {
+  public async awaitEvent<T extends keyof ClientEventsMap>(eventName: T, maxTimeout?: number): Promise<ClientEventsMap[T]> {
+    return new Promise<ClientEventsMap[T]>((res, rej) => {
+      let timeout: NodeJS.Timeout;
+
+      if (maxTimeout) {
+        timeout = setTimeout(() => {
+          rej("Wait event time out");
+        }, maxTimeout);
+      }
+
       const listener = (arg: ClientEventsMap[T]) => {
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+
         this.ev.removeListener(eventName, listener);
 
         res(arg);

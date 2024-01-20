@@ -57,7 +57,9 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
         message.inject({ clientId: this.id, botId: this.bot.id });
 
         if (!message.fromMe && !this.config.disableAutoRead) {
-          await message.read();
+          if (!message.isDeleted && !message.isUpdate) {
+            await message.read();
+          }
         }
 
         message.user = (await this.getUser(message.user)) || message.user;
@@ -208,9 +210,21 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
     await this.bot.logout();
   }
 
-  public async awaitEvent<T extends keyof ClientEventsMap>(eventName: T): Promise<ClientEventsMap[T]> {
-    return new Promise<ClientEventsMap[T]>((res) => {
+  public async awaitEvent<T extends keyof ClientEventsMap>(eventName: T, maxTimeout?: number): Promise<ClientEventsMap[T]> {
+    return new Promise<ClientEventsMap[T]>((res, rej) => {
+      let timeout: NodeJS.Timeout;
+
+      if (maxTimeout) {
+        timeout = setTimeout(() => {
+          rej("Wait event time out");
+        }, maxTimeout);
+      }
+
       const listener = (arg: ClientEventsMap[T]) => {
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+
         this.ev.removeListener(eventName, listener);
 
         res(arg);
@@ -222,7 +236,7 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
 
   public async awaitConnectionOpen(): Promise<void> {
     if (this.bot.status != BotStatus.Online) {
-      await this.awaitEvent("open");
+      await this.awaitEvent("open", this.config.maxTimeout);
     }
   }
 
