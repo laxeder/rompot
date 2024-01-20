@@ -57,6 +57,7 @@ export type BotEventsMap = {
  */
 export default class BotEvents {
   public ev = new EventEmitter();
+  public eventsIsStoped: boolean = false;
 
   /**
    * Registra um ouvinte para um evento específico.
@@ -91,6 +92,8 @@ export default class BotEvents {
    * @returns Verdadeiro se algum ouvinte for chamado, caso contrário, falso.
    */
   public emit<T extends keyof BotEventsMap>(eventName: T, arg: BotEventsMap[T]): boolean {
+    if (this.eventsIsStoped) return false;
+
     return this.ev.emit(eventName, arg);
   }
 }

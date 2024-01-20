@@ -94,41 +94,41 @@ export default class ConfigWAEvents {
 
           if (!message.message) {
             if (!(message.messageStubType == proto.WebMessageInfo.StubType.CIPHERTEXT)) {
-              return;
-            } else {
-              const msgRetryCount = Number(`${this.wa.config.msgRetryCounterCache?.get<number>(message.key.id!) || 0}`) || 0;
+              return; // Not read other null messages
+            }
 
-              await new Promise((res) => setTimeout(res, (this.wa.config.retryRequestDelayMs || 1000) * 2));
+            const msgRetryCount = this.wa.config.msgRetryCounterCache?.get<number>(message.key.id!);
 
-              const realCount = this.wa.config.msgRetryCounterCache?.get<number | boolean>(message.key.id!);
+            if (msgRetryCount != this.wa.config.maxMsgRetryCount) {
+              const time = this.wa.config.retryRequestDelayMs || 1000;
 
-              if (realCount == true || realCount == null) return;
+              await new Promise((res) => setTimeout(res, time * 3));
 
-              const newMsgRetryCount = Number(`${realCount || 0}`) || 0;
+              const newMsgRetryCount = this.wa.config.msgRetryCounterCache?.get<number>(message.key.id!);
 
-              if (!this.wa.config.readAllFailedMessages && newMsgRetryCount > msgRetryCount) {
-                return; // Not read duplicated failed message
+              if (!this.wa.config.readAllFailedMessages) {
+                if (msgRetryCount && newMsgRetryCount && msgRetryCount != newMsgRetryCount) {
+                  return; // Not read duplicated failed message
+                }
               }
             }
-          } else {
-            if (this.wa.messagesCached.includes(message.key.id!)) return;
-
-            if (message.message) {
-              this.wa.addMessageCache(message.key.id!);
-            }
-
-            if (
-              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.EPHEMERAL_SYNC_RESPONSE ||
-              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.APP_STATE_SYNC_KEY_SHARE ||
-              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.APP_STATE_SYNC_KEY_REQUEST ||
-              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.APP_STATE_FATAL_EXCEPTION_NOTIFICATION ||
-              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.EPHEMERAL_SETTING ||
-              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.HISTORY_SYNC_NOTIFICATION ||
-              message.message.protocolMessage?.type == proto.Message.ProtocolMessage.Type.INITIAL_SECURITY_NOTIFICATION_SETTING_SYNC
-            ) {
-              return;
-            }
           }
+
+          if (
+            message.message?.protocolMessage?.type == proto.Message.ProtocolMessage.Type.EPHEMERAL_SYNC_RESPONSE ||
+            message.message?.protocolMessage?.type == proto.Message.ProtocolMessage.Type.APP_STATE_SYNC_KEY_SHARE ||
+            message.message?.protocolMessage?.type == proto.Message.ProtocolMessage.Type.APP_STATE_SYNC_KEY_REQUEST ||
+            message.message?.protocolMessage?.type == proto.Message.ProtocolMessage.Type.APP_STATE_FATAL_EXCEPTION_NOTIFICATION ||
+            message.message?.protocolMessage?.type == proto.Message.ProtocolMessage.Type.EPHEMERAL_SETTING ||
+            message.message?.protocolMessage?.type == proto.Message.ProtocolMessage.Type.HISTORY_SYNC_NOTIFICATION ||
+            message.message?.protocolMessage?.type == proto.Message.ProtocolMessage.Type.INITIAL_SECURITY_NOTIFICATION_SETTING_SYNC
+          ) {
+            return; // Not read empty messages
+          }
+
+          if (this.wa.messagesCached.includes(message.key.id!)) return;
+
+          this.wa.addMessageCache(message.key.id!);
 
           const chatId = fixID(message.key.remoteJid || this.wa.id);
 
@@ -213,6 +213,8 @@ export default class ConfigWAEvents {
         this.wa.connectionListeners = this.wa.connectionListeners.filter((listener) => !listener(update));
 
         if (update.connection == "connecting") {
+          this.wa.lastConnectionUpdateDate = Date.now();
+          this.wa.status = BotStatus.Offline;
           this.wa.emit("connecting", { action: "connecting" });
         }
 
@@ -221,6 +223,9 @@ export default class ConfigWAEvents {
         }
 
         if (update.connection == "open") {
+          const uptime = Date.now();
+
+          this.wa.lastConnectionUpdateDate = uptime;
           this.wa.status = BotStatus.Online;
 
           this.wa.id = fixID(this.wa.sock?.user?.id || "");
@@ -233,10 +238,23 @@ export default class ConfigWAEvents {
 
           this.wa.emit("open", { isNewLogin: update.isNewLogin || false });
 
+          setTimeout(async () => {
+            try {
+              if (this.wa.lastConnectionUpdateDate != uptime) return;
+
+              await this.wa.reconnect(true, false);
+            } catch (error) {
+              this.wa.emit("error", error);
+            }
+          }, this.wa.config.autoRestartInterval);
+
+          this.wa.eventsIsStoped = false;
+
           await this.wa.sock.groupFetchAllParticipating();
         }
 
         if (update.connection == "close") {
+          this.wa.lastConnectionUpdateDate = Date.now();
           this.wa.status = BotStatus.Offline;
 
           const status = (update.lastDisconnect?.error as Boom)?.output?.statusCode || update.lastDisconnect?.error || 500;
@@ -248,7 +266,7 @@ export default class ConfigWAEvents {
           } else if (status == DisconnectReason.restartRequired) {
             this.wa.saveCreds(this.wa.sock.authState.creds);
 
-            await this.wa.reconnect(false);
+            await this.wa.reconnect(true, true);
           } else {
             this.wa.emit("close", { reason: status });
           }

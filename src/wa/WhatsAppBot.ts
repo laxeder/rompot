@@ -19,6 +19,7 @@ import makeWASocket, {
   Chat as BaileysChat,
 } from "@laxeder/baileys";
 import NodeCache from "node-cache";
+import { Boom } from "@hapi/boom";
 import internal from "stream";
 import pino from "pino";
 import Long from "long";
@@ -44,12 +45,12 @@ import User from "../user/User";
 import Chat from "../chat/Chat";
 import IBot from "../bot/IBot";
 
-export type WhatsAppBotConfig = Partial<SocketConfig> & { autoSyncHistory?: boolean; readAllFailedMessages?: boolean };
+export type WhatsAppBotConfig = Partial<SocketConfig> & { autoSyncHistory: boolean; readAllFailedMessages: boolean; autoRestartInterval: number };
 
 export default class WhatsAppBot extends BotEvents implements IBot {
   //@ts-ignore
   public sock: ReturnType<typeof makeWASocket> = {};
-  public config: Partial<WhatsAppBotConfig>;
+  public config: WhatsAppBotConfig;
   public auth: IAuth = new MultiFileAuthState("./session", undefined, false);
 
   public messagesCached: string[] = [];
@@ -70,6 +71,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public phoneNumber: string = "";
   public name: string = "";
   public profileUrl: string = "";
+  public lastConnectionUpdateDate: number = Date.now();
 
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
 
@@ -88,10 +90,11 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       logger: this.logger,
       qrTimeout: 60000,
       defaultQueryTimeoutMs: 10000,
-      retryRequestDelayMs: 1000,
+      retryRequestDelayMs: 500,
       maxMsgRetryCount: 5,
       readAllFailedMessages: false,
       msgRetryCounterCache: this.msgRetryCountercache,
+      autoRestartInterval: 1000 * 60 * 30, // 30 minutes (recommended)
       shouldIgnoreJid: () => false,
       autoSyncHistory: false,
       async getMessage(key) {
@@ -137,7 +140,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
         this.sock = makeWASocket({
           auth: {
             creds: state.creds,
-            keys: state.keys
+            keys: makeCacheableSignalKeyStore(state.keys, this.config.logger || this.logger),
           },
           ...additionalOptions,
           ...this.config,
@@ -160,13 +163,60 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
   /**
    * * Reconecta ao servidor do WhatsApp
-   * @param alert Avisa que está econectando
    * @returns
    */
-  public async reconnect(alert: boolean = true): Promise<any> {
-    if (alert) this.ev.emit("reconnecting", {});
+  public async reconnect(stopEvents: boolean = false, showOpen?: boolean): Promise<void> {
+    if (stopEvents) {
+      this.eventsIsStoped = true;
+
+      let state: WAConnectionState = this.status == BotStatus.Online ? "close" : "connecting";
+      let status: number = DisconnectReason.connectionClosed;
+      let retryCount: number = 0;
+
+      this.connectionListeners.push((update: Partial<ConnectionState>) => {
+        if (!update.connection) return false;
+
+        if (retryCount >= 3) {
+          this.eventsIsStoped = false;
+          return true;
+        }
+
+        if (update.connection != state) {
+          if (update.connection == "close") {
+            state = "connecting";
+            status = (update.lastDisconnect?.error as Boom)?.output?.statusCode || (update.lastDisconnect?.error as any) || DisconnectReason.connectionClosed;
+            retryCount++;
+          } else {
+            this.eventsIsStoped = false;
+
+            if (state == "connecting") {
+              this.emit("close", { reason: status });
+            } else if (state == "open") {
+              this.emit("close", { reason: status });
+              this.emit("connecting", {});
+            }
+          }
+
+          return true;
+        }
+
+        if (state == "close") {
+          state = "connecting";
+          status = (update.lastDisconnect?.error as Boom)?.output?.statusCode || (update.lastDisconnect?.error as any) || DisconnectReason.connectionClosed;
+        } else if (state == "connecting") {
+          state = "open";
+        } else if (state == "open" && showOpen) {
+          this.eventsIsStoped = !showOpen;
+          return true;
+        }
+
+        return false;
+      });
+    }
 
     await this.stop();
+
+    this.emit("reconnecting", {});
 
     await this.internalConnect();
   }
@@ -786,7 +836,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     setTimeout(() => {
       this.messagesCached = this.messagesCached.filter((msgId) => msgId != id);
-    }, 60 * 60);
+    }, 1000 * 60);
   }
 
   public async downloadStreamMessage(media: Media): Promise<Buffer> {
