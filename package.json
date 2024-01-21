@@ -58,7 +58,7 @@
   },
   "peerDependencies": {
     "@laxeder/wa-sticker": "4.4.5",
-    "sharp": "0.30.5"
+    "sharp": "0.30.6"
   },
   "peerDependenciesMeta": {
     "@laxeder/wa-sticker": {
