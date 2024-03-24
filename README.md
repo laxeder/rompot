@@ -5,7 +5,7 @@ Uma biblioteca para desenvolvimento de ChatBot multi-plataforma em JavaScript/Ty
 ## 🛠 Recursos
 
 - Multi plataformas
-  - WhatsApp (baileys@6.5.0)
+  - WhatsApp (baileys@6.6.0)
   - Telegram (node-telegram-bot-api@0.64.0) - beta
 - Automatização de mensagem
 - Suporte a Cluster
@@ -82,18 +82,26 @@ client.on("open", () => {
 
 ```ts
 type ConnectionConfig = {
-  /** Desativar execução do comando automático */
+  /** Desativa execução do comando automático */
   disableAutoCommand: boolean;
+  /** Desativa os comandos para mensagem antiga */
+  disableAutoCommandForOldMessage: boolean;
   /** Desativa a execução do comando automático para mensagens não oficiais */
   disableAutoCommandForUnofficialMessage: boolean;
-  /** Desativar a digitação automatica */
+  /** Desativa a digitação automatica */
   disableAutoTyping: boolean;
-  /** Desativar a leitura automatica de uma mensagem */
+  /** Desativa a leitura automatica de uma mensagem */
   disableAutoRead: boolean;
   /** Máximo de reconexões possíveis */
   maxReconnectTimes: number;
   /** Tempo de aguarde para se reconectar */
   reconnectTimeout: number;
+  /** Máximo de tentativas de solitação acaso a primeira falhe */
+  maxRequests: number;
+  /** Tempo necessário de aguardo para próxima tentativa de solicitação */
+  requestsDelay: number;
+  /** Tempo máximo de espera */
+  maxTimeout: number;
 };
 
 client.config = config;
@@ -156,7 +164,7 @@ client.on("reconnecting", (conn) => {
 
 ```ts
 client.on("message", (message) => {
-  console.log(`Mensagem recebida de ${message.user.name}`);
+  console.log(`Mensagem recebida de "${message.user.name}"`);
 
   if (message.text == "Oi") {
     message.reply("Olá");
