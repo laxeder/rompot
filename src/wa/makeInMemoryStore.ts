@@ -1,3 +1,5 @@
+import type KeyedDB from "@adiwajshing/keyed-db";
+
 import NodeCache from "node-cache";
 import { Logger } from "pino";
 
@@ -16,14 +18,13 @@ import {
   WAMessageKey,
   proto,
   makeInMemoryStore,
-} from "@laxeder/baileys";
+} from "@whiskeysockets/baileys";
 
-import { waChatKey, waLabelAssociationKey, waMessageID } from "@laxeder/baileys/lib/Store/make-in-memory-store";
-import { ObjectRepository } from "@laxeder/baileys/lib/Store/object-repository";
-import { LabelAssociation } from "@laxeder/baileys/lib/Types/LabelAssociation";
+import { waChatKey, waLabelAssociationKey, waMessageID } from "@whiskeysockets/baileys/lib/Store/make-in-memory-store";
+import { ObjectRepository } from "@whiskeysockets/baileys/lib/Store/object-repository";
+import { LabelAssociation } from "@whiskeysockets/baileys/lib/Types/LabelAssociation";
 import { Comparable } from "@adiwajshing/keyed-db/lib/Types";
-import { Label } from "@laxeder/baileys/lib/Types/Label";
-import type KeyedDB from "@adiwajshing/keyed-db";
+import { Label } from "@whiskeysockets/baileys/lib/Types/Label";
 
 export type BaileysInMemoryStoreConfig = {
   chatKey?: Comparable<Chat, string>;

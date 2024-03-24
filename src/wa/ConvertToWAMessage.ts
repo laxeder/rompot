@@ -1,4 +1,4 @@
-import { generateWAMessage, isJidGroup, MiscMessageGenerationOptions, proto } from "@laxeder/baileys";
+import { generateWAMessage, isJidGroup, MiscMessageGenerationOptions, proto } from "@whiskeysockets/baileys";
 
 import Message, { MessageStatus, MessageType } from "../messages/Message";
 import ListMessage, { List, ListItem } from "../messages/ListMessage";

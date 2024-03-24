@@ -1,9 +1,9 @@
-import { decryptPollVote, getContentType, getDevice, isJidGroup, MessageUpsertType, normalizeMessageContent, proto, WAMessage, WAMessageContent, WAMessageUpdate } from "@laxeder/baileys";
+import { decryptPollVote, getContentType, getDevice, isJidGroup, MessageUpsertType, normalizeMessageContent, proto, WAMessage, WAMessageContent, WAMessageUpdate } from "@whiskeysockets/baileys";
 import digestSync from "crypto-digest-sync";
 import Long from "long";
 
-import PollMessage, { PollAction, PollOption } from "../messages/PollMessage";
 import Message, { MessagePlataform, MessageStatus, MessageType } from "../messages/Message";
+import PollMessage, { PollAction, PollOption } from "../messages/PollMessage";
 import ListMessage, { ListType } from "../messages/ListMessage";
 import MediaMessage, { Media } from "../messages/MediaMessage";
 import PollUpdateMessage from "../messages/PollUpdateMessage";

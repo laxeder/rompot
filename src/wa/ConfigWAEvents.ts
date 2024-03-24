@@ -1,4 +1,4 @@
-import { DisconnectReason, MessageUpsertType, isJidGroup, proto } from "@laxeder/baileys";
+import { DisconnectReason, MessageUpsertType, isJidGroup, proto } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 import Long from "long";
 
