@@ -9,6 +9,7 @@ export default class TelegramAuth implements IAuth {
 
   public sessionsDir: string;
   public botPhoneNumber?: string;
+  public autoCreateDir: boolean;
 
   public fixFileName = (file?: string) => file?.replace(/\//g, "__")?.replace(/:/g, "-");
 
@@ -27,15 +28,24 @@ export default class TelegramAuth implements IAuth {
   constructor(botToken: string, sessionsDir: string = "./telegram-session", autoCreateDir: boolean = true) {
     this.sessionsDir = sessionsDir;
     this.#botToken = `${botToken || ""}`;
+    this.autoCreateDir = autoCreateDir;
 
-    const folderInfo = this.getStat(this.sessionsDir);
+    this.prepare();
+  }
 
-    if (folderInfo) {
-      if (!folderInfo.isDirectory()) {
-        throw new Error(`found something that is not a directory at ${this.sessionsDir}, either delete it or specify a different location`);
+  public prepare() {
+    if (this.autoCreateDir) {
+      const folderInfo = this.getStat(this.sessionsDir);
+
+      if (folderInfo) {
+        if (!folderInfo.isDirectory()) {
+          throw new Error(`found something that is not a directory at "${this.sessionsDir}", either delete it or specify a different location`);
+        }
+      } else {
+        if (this.autoCreateDir) {
+          mkdirSync(this.sessionsDir, { recursive: true });
+        }
       }
-    } else {
-      if (autoCreateDir) mkdirSync(this.sessionsDir, { recursive: true });
     }
   }
 

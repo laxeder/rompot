@@ -264,8 +264,7 @@ export default class ConfigWAEvents {
           } else if (status === 402) {
             this.wa.emit("stop", { isLogout: false });
           } else if (status == DisconnectReason.restartRequired) {
-            this.wa.saveCreds(this.wa.sock.authState.creds);
-
+            await this.wa.saveCreds(this.wa.sock.authState.creds);
             await this.wa.reconnect(true, true);
           } else {
             this.wa.emit("close", { reason: status });

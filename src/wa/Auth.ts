@@ -8,6 +8,7 @@ import IAuth from "../client/IAuth";
 export class MultiFileAuthState implements IAuth {
   public folder: string;
   public botPhoneNumber?: string;
+  public autoCreateDir: boolean;
 
   public fixFileName = (file?: string) => file?.replace(/\//g, "__")?.replace(/:/g, "-");
 
@@ -22,15 +23,24 @@ export class MultiFileAuthState implements IAuth {
   constructor(folder: string, botPhoneNumber: string = "", autoCreateDir: boolean = true) {
     this.folder = folder;
     this.botPhoneNumber = botPhoneNumber;
+    this.autoCreateDir = autoCreateDir;
 
-    const folderInfo = this.getStat(folder);
+    this.prepare();
+  }
 
-    if (folderInfo) {
-      if (!folderInfo.isDirectory()) {
-        throw new Error(`found something that is not a directory at ${folder}, either delete it or specify a different location`);
+  public prepare() {
+    if (this.autoCreateDir) {
+      const folderInfo = this.getStat(this.folder);
+
+      if (folderInfo) {
+        if (!folderInfo.isDirectory()) {
+          throw new Error(`found something that is not a directory at "${this.folder}", either delete it or specify a different location`);
+        }
+      } else {
+        if (this.autoCreateDir) {
+          mkdirSync(this.folder, { recursive: true });
+        }
       }
-    } else {
-      if (autoCreateDir) mkdirSync(folder, { recursive: true });
     }
   }
 
@@ -70,6 +80,8 @@ export class MultiFileAuthState implements IAuth {
 }
 
 export const getBaileysAuth = async (auth: IAuth): Promise<{ state: AuthenticationState; saveCreds: () => Promise<void> }> => {
+  auth.prepare();
+
   const replacer = (data: any) => {
     try {
       const json = JSON.parse(JSON.stringify(data, BufferJSON.replacer), BufferJSON.reviver);
@@ -103,25 +115,25 @@ export const getBaileysAuth = async (auth: IAuth): Promise<{ state: Authenticati
           return data;
         },
         async set(data: any) {
-          const tasks: Promise<void>[] = [];
+          await Promise.all(
+            Object.keys(data).map((category) => {
+              return Promise.all(
+                Object.keys(data[category]).map(async (id) => {
+                  const value = data[category][id];
 
-          for (const category in data) {
-            for (const id in data[category]) {
-              const value = data[category][id];
-
-              if (!!!value) {
-                tasks.push(auth.remove(`${category}-${id}`));
-              } else {
-                tasks.push(auth.set(`${category}-${id}`, value));
-              }
-            }
-          }
-
-          await Promise.all(tasks);
+                  if (!!!value) {
+                    return auth.remove(`${category}-${id}`);
+                  } else {
+                    return auth.set(`${category}-${id}`, value);
+                  }
+                })
+              );
+            })
+          );
         },
       },
     },
-    saveCreds: async () => {
+    async saveCreds() {
       return await auth.set("creds", creds);
     },
   };
