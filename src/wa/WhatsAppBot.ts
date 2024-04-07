@@ -24,6 +24,8 @@ import internal from "stream";
 import pino from "pino";
 import Long from "long";
 
+import { WA_MEDIA_SERVERS } from "../configs/WAConfigs";
+
 import { PollMessage, PollUpdateMessage, ReactionMessage } from "../messages";
 import { getImageURL, verifyIsEquals } from "../utils/Generic";
 import { getBaileysAuth, MultiFileAuthState } from "./Auth";
@@ -45,7 +47,16 @@ import User from "../user/User";
 import Chat from "../chat/Chat";
 import IBot from "../bot/IBot";
 
-export type WhatsAppBotConfig = Partial<SocketConfig> & { autoSyncHistory: boolean; readAllFailedMessages: boolean; autoRestartInterval: number };
+export type WhatsAppBotConfig = Partial<SocketConfig> & {
+  /** Auto carrega o histórico de mensagens ao se conectar */
+  autoSyncHistory: boolean;
+  /** Lê todas as mensagens falhadas */
+  readAllFailedMessages: boolean;
+  /** Intervalo em milesgundos para reiniciar conexão */
+  autoRestartInterval: number;
+  /** Usar servidor experimental para download de mídias */
+  useExperimentalServers: boolean;
+};
 
 export default class WhatsAppBot extends BotEvents implements IBot {
   //@ts-ignore
@@ -75,7 +86,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
   public configEvents: ConfigWAEvents = new ConfigWAEvents(this);
 
-  constructor(config?: WhatsAppBotConfig) {
+  constructor(config?: Partial<WhatsAppBotConfig>) {
     super();
 
     const store = makeInMemoryStore({ logger: this.logger });
@@ -95,6 +106,7 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       readAllFailedMessages: false,
       msgRetryCounterCache: this.msgRetryCountercache,
       autoRestartInterval: 1000 * 60 * 30, // 30 minutes (recommended)
+      useExperimentalServers: false,
       shouldIgnoreJid: () => false,
       autoSyncHistory: false,
       async getMessage(key) {
@@ -840,6 +852,10 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async downloadStreamMessage(media: Media): Promise<Buffer> {
+    if (this.config.useExperimentalServers) {
+      return await this.experimentalDownloadMediaMessage(media);
+    }
+
     const stream: any = await downloadMediaMessage(
       media.stream,
       "buffer",
@@ -855,6 +871,43 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     }
 
     return stream;
+  }
+
+  public async experimentalDownloadMediaMessage(media: Media, maxRetryCount?: number): Promise<Buffer> {
+    let count = 0;
+
+    while (count < (maxRetryCount || this.config.maxMsgRetryCount || 5)) {
+      try {
+        const serverIndex = Math.floor(Math.random() * WA_MEDIA_SERVERS.length);
+
+        const stream: any = await downloadMediaMessage(
+          media.stream,
+          "buffer",
+          {
+            options: {
+              lookup(hostname, options, cb) {
+                cb(null, WA_MEDIA_SERVERS[serverIndex], 4);
+              },
+            },
+          },
+          {
+            logger: this.logger,
+            reuploadRequest: (m: proto.IWebMessageInfo) => new Promise((resolve) => resolve(m)),
+          }
+        );
+
+        if (stream instanceof internal.Transform) {
+          return stream.read();
+        }
+
+        return stream;
+      } catch {
+        this.logger?.warn?.(`Failed to download media message. Retry count: ${count}`);
+        count++;
+      }
+    }
+
+    throw new Error("Failed to download media message");
   }
 
   /**

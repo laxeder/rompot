@@ -1,6 +1,9 @@
-import Client, { WhatsAppBot, Message, Command, CMDRunType, CMDPerms, EmptyMessage, MultiFileAuthState, QuickResponse, ChatType, QuickResponseController } from "../src";
+import Client, { WhatsAppBot, Message, Command, CMDRunType, CMDPerms, EmptyMessage, MultiFileAuthState, QuickResponse, ChatType } from "../src";
 
-const wbot = new WhatsAppBot();
+const wbot = new WhatsAppBot({
+  autoSyncHistory: false,
+  useExperimentalServers: true,
+});
 
 const client = new Client(wbot, {
   disableAutoCommand: false,
