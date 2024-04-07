@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 import { DEFAULT_CONNECTION_CONFIG } from "../configs/Defaults";
 import ConnectionConfig from "../configs/ConnectionConfig";
 
+import QuickResponseController from "../quickResponse/QuickResponseController";
 import Message, { MessageStatus, MessageType } from "../messages/Message";
 import ReactionMessage from "../messages/ReactionMessage";
 import MediaMessage from "../messages/MediaMessage";
@@ -28,10 +29,13 @@ import IBot from "../bot/IBot";
 
 import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
 import { sleep, getError } from "../utils/Generic";
+import QuickResponse from "../quickResponse/QuickResponse";
+import { QuickResponseOptions, QuickResponsePattern, QuickResponseReply } from "../quickResponse";
 
 export default class Client<Bot extends IBot = IBot> extends ClientEvents implements IClient {
   public funcHandler = new ClientFunctionHandler(this, { bot: [], chat: [], user: [], message: [], sendMessage: [], sendMediaMessage: [], downloadMedia: [] });
   public commandController: CommandController = new CommandController();
+  public quickResponseController: QuickResponseController = new QuickResponseController();
   public messageHandler: MessageHandler = new MessageHandler();
   public reconnectTimes: number = 0;
 
@@ -90,6 +94,8 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
         if (this.config.disableAutoCommand) return;
         if (this.config.disableAutoCommandForOldMessage && message.isOld) return;
         if (this.config.disableAutoCommandForUnofficialMessage && message.isUnofficial) return;
+
+        await this.quickResponseController.searchAndExecute(message);
 
         const command = this.searchCommand(message.text);
 
@@ -288,6 +294,28 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
 
   public runCommand(command: Command, message: Message, type?: string) {
     return this.commandController.runCommand(command, message, type);
+  }
+
+  public addQuickResponse(pattern: QuickResponse): QuickResponse;
+  public addQuickResponse(pattern: QuickResponsePattern, reply: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
+  public addQuickResponse(pattern: QuickResponsePattern[], reply: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
+  public addQuickResponse(content: QuickResponse | QuickResponsePattern | QuickResponsePattern[], reply?: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse {
+    if (content instanceof QuickResponse) {
+      this.quickResponseController.add(content);
+
+      return content;
+    }
+
+    //@ts-ignore
+    const quickResponse = new QuickResponse(content, reply, options);
+
+    this.quickResponseController.add(quickResponse);
+
+    return quickResponse;
+  }
+
+  public removeQuickResponse(quickResponse: QuickResponse | string): void {
+    this.quickResponseController.remove(quickResponse);
   }
 
   public deleteMessage(message: Message): Promise<void> {

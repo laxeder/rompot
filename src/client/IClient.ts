@@ -10,6 +10,11 @@ import User from "../user/User";
 import CommandController from "../command/CommandController";
 import Command from "../command/Command";
 
+import { QuickResponsePattern } from "../quickResponse/QuickResponsePattern";
+import { QuickResponseReply } from "../quickResponse/QuickResponseReply";
+import QuickResponseOptions from "../quickResponse/QuickResponseOptions";
+import QuickResponse from "../quickResponse/QuickResponse";
+
 import ClientEvents, { ClientEventsMap } from "./ClientEvents";
 import ClientFunctionHandler from "./ClientFunctionHandler";
 import IAuth from "./IAuth";
@@ -60,7 +65,7 @@ export default interface IClient<Bot extends IBot = IBot> extends ClientEvents {
   /**
    * * Aguarda um evento ser chamado.
    * @param eventName - Nome do evento que será aguardado.
-   * @param maxTimeout - Para automaticamente após 
+   * @param maxTimeout - Para automaticamente após
    * @returns {Promise<ClientEventsMap[T]>} Argumento retornado do evento esperado.
    */
   awaitEvent<T extends keyof ClientEventsMap>(eventName: T, maxTimeout?: number): Promise<ClientEventsMap[T]>;
@@ -106,6 +111,15 @@ export default interface IClient<Bot extends IBot = IBot> extends ClientEvents {
    * @param message - Mensagem associada ao comando.
    */
   runCommand(command: Command, message: Message, type?: string);
+
+  /** Adiciona uma resposta rápida */
+  addQuickResponse(pattern: QuickResponse): QuickResponse;
+  addQuickResponse(pattern: QuickResponsePattern, reply: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
+  addQuickResponse(pattern: QuickResponsePattern[], reply: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
+  addQuickResponse(content: QuickResponse | QuickResponsePattern | QuickResponsePattern[], reply?: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
+
+  /** Remove uma resposta rápida */
+  removeQuickResponse(quickMessage: QuickResponse | string): void;
 
   /**
    * Deletar mensagem

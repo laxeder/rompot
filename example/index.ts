@@ -1,6 +1,8 @@
-import Client, { WhatsAppBot, Message, Command, CMDRunType, CMDPerms, EmptyMessage, MultiFileAuthState } from "../src";
+import Client, { WhatsAppBot, Message, Command, CMDRunType, CMDPerms, EmptyMessage, MultiFileAuthState, QuickResponse, ChatType, QuickResponseController } from "../src";
 
-const client = new Client(new WhatsAppBot(), {
+const wbot = new WhatsAppBot();
+
+const client = new Client(wbot, {
   disableAutoCommand: false,
   disableAutoTyping: false,
   disableAutoRead: false,
@@ -130,6 +132,23 @@ client.on("error", (err: any) => {
       await message.chat.send("Somente grupos podem usar esse comando!");
     }
   });
+
+  const quickResponse1 = new QuickResponse(["comprar", "pedido", "quero"], "Vamos fazer um pedido?");
+
+  const quickResponse2 = new QuickResponse(/vendem(.*?)\?/, "Vou estar conferindo...", { priority: 1 });
+
+  const quickResponse3 = new QuickResponse({ patterns: ["hello", "hi", /ola(.*?)\!/], reply: "Hello There!", priority: 2 });
+
+  const quickResponse4 = new QuickResponse(
+    (text, message) => message.chat.type !== ChatType.Group && text.includes("hi"),
+    (message) => `Hello ${message.chat.name}!`,
+    { priority: 1 }
+  );
+
+  client.addQuickResponse(quickResponse1);
+  client.addQuickResponse(quickResponse2);
+  client.addQuickResponse(quickResponse3);
+  client.addQuickResponse(quickResponse4);
 
   //? Ao inserir o número do bot é ativado o pareamento por código
   const botPhoneNumber = "";

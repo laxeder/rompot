@@ -17,6 +17,12 @@ import CommandController from "../command/CommandController";
 import { CMDRunType } from "../command/CommandEnums";
 import Command from "../command/Command";
 
+import QuickResponseController from "../quickResponse/QuickResponseController";
+import { QuickResponsePattern } from "../quickResponse/QuickResponsePattern";
+import { QuickResponseReply } from "../quickResponse/QuickResponseReply";
+import QuickResponseOptions from "../quickResponse/QuickResponseOptions";
+import QuickResponse from "../quickResponse/QuickResponse";
+
 import ClientEvents, { ClientEventsMap } from "../client/ClientEvents";
 import ClientFunctionHandler from "../client/ClientFunctionHandler";
 import WorkerMessage, { WorkerMessageTag } from "./WorkerMessage";
@@ -42,6 +48,7 @@ export default class ClientCluster extends ClientEvents implements IClient {
   public messageHandler: MessageHandler = new MessageHandler();
   /** Controlador de comandos  */
   public commandController: CommandController = new CommandController();
+  public quickResponseController: QuickResponseController = new QuickResponseController();
   /** Configuração */
   public config: ClientClusterConfig;
   /** Bot */
@@ -215,6 +222,8 @@ export default class ClientCluster extends ClientEvents implements IClient {
           if (this.config.disableAutoCommand) return;
           if (this.config.disableAutoCommandForOldMessage && message.isOld) return;
           if (this.config.disableAutoCommandForUnofficialMessage && message.isUnofficial) return;
+
+          await this.quickResponseController.searchAndExecute(message);
 
           const command = this.searchCommand(message.text);
 
@@ -535,6 +544,28 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public runCommand(command: Command, message: Message, type?: string) {
     return this.commandController.runCommand(command, message, type);
+  }
+
+  public addQuickResponse(pattern: QuickResponse): QuickResponse;
+  public addQuickResponse(pattern: QuickResponsePattern, reply: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
+  public addQuickResponse(pattern: QuickResponsePattern[], reply: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
+  public addQuickResponse(content: QuickResponse | QuickResponsePattern | QuickResponsePattern[], reply?: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse {
+    if (content instanceof QuickResponse) {
+      this.quickResponseController.add(content);
+
+      return content;
+    }
+
+    //@ts-ignore
+    const quickResponse = new QuickResponse(content, reply, options);
+
+    this.quickResponseController.add(quickResponse);
+
+    return quickResponse;
+  }
+
+  public removeQuickResponse(quickResponse: QuickResponse | string): void {
+    this.quickResponseController.remove(quickResponse);
   }
 
   /**
