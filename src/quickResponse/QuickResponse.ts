@@ -25,7 +25,6 @@ import Message from "../messages/Message";
  *  { priority: 1 }
  * );
  */
-
 export default class QuickResponse extends QuickResponseOptions {
   /**
    * @param pattern - O padrão da resposta rápida.
