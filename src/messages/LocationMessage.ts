@@ -1,3 +1,5 @@
+import AddressService from "../services/AddressService";
+
 import Message, { MessageType } from "./Message";
 import { injectJSON } from "../utils/Generic";
 import Chat from "../chat/Chat";
@@ -39,6 +41,13 @@ export default class LocationMessage extends Message {
   public setLocation(latitude: number, longitude: number) {
     this.latitude = latitude;
     this.longitude = longitude;
+  }
+
+  /**
+   * @returns O endereço da localização
+   */
+  public getAddress() {
+    return AddressService.getByLocation(this.latitude, this.longitude);
   }
 
   /**
