@@ -4,15 +4,24 @@ Uma biblioteca para desenvolvimento de ChatBot multi-plataforma em JavaScript/Ty
 
 ## 🛠 Recursos
 
-- Multi plataformas
-  - WhatsApp (baileys@6.6.0)
-  - Telegram (node-telegram-bot-api@0.64.0) - beta
-- Automatização de mensagem
-- Suporte a Cluster
-- Criação de comandos
-- Simples uso
-- Tratamento de solicitações
-- Envio de lista
+- [x] Simples uso
+- [x] Criação de comandos
+- [x] Resposta rápida
+- [x] Tratamento de solicitações
+- [x] Tratamento de conexão offline
+- [x] Suporte a Cluster (Beta)
+
+| Plataformas            | Whatsapp | Telegram (Beta) |
+| ----------------------- | -------- | --------------- |
+| Recebimento de mensagem | ✅       | ✅              |
+| Envio de texto          | ✅       | ✅              |
+| Envio de mídia          | ✅       | ✅              |
+| Envio de stickers       | ✅       | ✅              |
+| Envio de lista          | ❌       | ❌              |
+| Envio de botão          | ❌       | ❌              |
+| Envio de enquete        | ✅       | ✅              |
+| Criação de chats        | ✅       | 🔧              |
+| Histórico de mensagens  | ✅       | ❌              |
 
 ### 🔧 Instalação
 
@@ -249,7 +258,7 @@ msg.removeReaction();
 ## Mensagem de mídia
 
 ```ts
-import { ImageMessage, VideoMessage, AudioMessage, FileMessage, StickerMessage, LocationMessage, ContactMessage } from "rompot";
+import { ImageMessage, VideoMessage, AudioMessage, FileMessage, StickerMessage } from "rompot";
 
 // Criar mensagem de audio
 const audioMessage = new AudioMessage(chat, Buffer.from(""));
@@ -265,19 +274,22 @@ const fileMessage = new FileMessage(chat, "texto", Buffer.from(""));
 
 // Criar mensagem de sticker
 const stickerMessage = new StickerMessage(chat, Buffer.from(""));
-
-// Criar mensagem de localiação
-// Latitude, Longitude
-const locationMessage = new LocationMessage(chat, 24.121231, 55.1121221);
-
-// Criar mensagem com contatos
-const contactMessage = new ContactMessage(chat, "nome", "userId");
 ```
 
 ## Outros tipos de mensagem
 
 ```ts
-import { ButtonMessage, ListMessage, PollMessage } from "rompot";
+import { LocationMessage, ContactMessage, ButtonMessage, ListMessage, PollMessage } from "rompot";
+
+// Criar mensagem de localiação
+// Latitude, Longitude
+const locationMessage = new LocationMessage(chat, 24.121231, 55.1121221);
+
+// Obter dados do endereço da localização
+const address = await locationMessage.getAddress();
+
+// Criar mensagem com contatos
+const contactMessage = new ContactMessage(chat, "nome", "userId");
 
 // Criando botões
 const btnMessage = new ButtonMessage(chat, "texto", "rodapé");
