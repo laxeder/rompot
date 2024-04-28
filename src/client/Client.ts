@@ -1,40 +1,45 @@
+import type { AdvancedCommandStartOptions } from "../command/advanced/AdvancedCommandStart";
+
 import { readFileSync } from "fs";
 
 import { DEFAULT_CONNECTION_CONFIG } from "../configs/Defaults";
 import ConnectionConfig from "../configs/ConnectionConfig";
 
-import QuickResponseController from "../quickResponse/QuickResponseController";
 import Message, { MessageStatus, MessageType } from "../messages/Message";
-import ReactionMessage from "../messages/ReactionMessage";
-import MediaMessage from "../messages/MediaMessage";
 import ErrorMessage from "../messages/ErrorMessage";
+import MediaMessage from "../messages/MediaMessage";
+import ReactionMessage from "../messages/ReactionMessage";
+import QuickResponseController from "../quickResponse/QuickResponseController";
 
 import { ChatStatus } from "../chat/ChatStatus";
 import Chat from "../chat/Chat";
 import User from "../user/User";
 
-import CommandController from "../command/CommandController";
 import { CMDRunType } from "../command/CommandEnums";
 import Command from "../command/Command";
+import CommandController from "../command/CommandController";
 
 import ClientEvents, { ClientEventsMap } from "./ClientEvents";
-import ClientFunctionHandler from "./ClientFunctionHandler";
-import ClientCluster from "../cluster/ClientCluster";
-import IClient from "./IClient";
 import IAuth from "./IAuth";
+import IClient from "./IClient";
+import ClientCluster from "../cluster/ClientCluster";
+import ClientFunctionHandler from "./ClientFunctionHandler";
 
 import { BotStatus } from "../bot/BotStatus";
-import BotBase from "../bot/BotBase";
 import IBot from "../bot/IBot";
+import BotBase from "../bot/BotBase";
 
-import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
 import { sleep, getError } from "../utils/Generic";
-import QuickResponse from "../quickResponse/QuickResponse";
+import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
 import { QuickResponseOptions, QuickResponsePattern, QuickResponseReply } from "../quickResponse";
+import QuickResponse from "../quickResponse/QuickResponse";
+import AdvancedCommandController from "../command/advanced/AdvancedCommandController";
+import AdvancedCommand from "../command/advanced/AdvancedCommand";
 
 export default class Client<Bot extends IBot = IBot> extends ClientEvents implements IClient {
   public funcHandler = new ClientFunctionHandler(this, { bot: [], chat: [], user: [], message: [], sendMessage: [], sendMediaMessage: [], downloadMedia: [] });
   public commandController: CommandController = new CommandController();
+  public advancedCommandController: AdvancedCommandController;
   public quickResponseController: QuickResponseController = new QuickResponseController();
   public messageHandler: MessageHandler = new MessageHandler();
   public reconnectTimes: number = 0;
@@ -49,6 +54,7 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
     this.config = { ...DEFAULT_CONNECTION_CONFIG, ...config };
     this.id = Client.generateId();
     this.bot = bot;
+    this.advancedCommandController = new AdvancedCommandController(this.id);
 
     this.configEvents();
 
@@ -294,6 +300,59 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
 
   public runCommand(command: Command, message: Message, type?: string) {
     return this.commandController.runCommand(command, message, type);
+  }
+
+  public setAdvancedCommandController(advancedCommandController: AdvancedCommandController) {
+    advancedCommandController.clientId = this.id;
+
+    this.advancedCommandController = advancedCommandController;
+  }
+
+  public getAdvancedCommandController(): AdvancedCommandController {
+    return this.advancedCommandController;
+  }
+
+  public setAdvancedCommands(commands: AdvancedCommand[]) {
+    this.advancedCommandController.setCommands(...commands);
+  }
+
+  public getAdvancedCommands() {
+    return this.advancedCommandController.getCommands();
+  }
+
+  public createAdvancedCommand<T extends object>(id: string, context: T): AdvancedCommand<T> {
+    return this.advancedCommandController.createCommand({ id, context });
+  }
+
+  public addAdvancedCommand(command: AdvancedCommand): void {
+    this.advancedCommandController.addCommand(command);
+  }
+
+  public removeAdvancedCommand(command: AdvancedCommand): boolean {
+    return this.advancedCommandController.removeCommand(command);
+  }
+
+  public execAdvancedCommand(command: AdvancedCommand | string, message: Message) {
+    if (typeof command == "string") {
+      const cmd = this.advancedCommandController.getCommand(command);
+
+      if (!cmd) {
+        throw new Error("Command not found");
+      }
+
+      command = cmd;
+    }
+
+    const options: Partial<AdvancedCommandStartOptions<{}>> = {
+      chatId: message.chat.id,
+      context: {
+        ...command.initialContext,
+        chatId: message.chat.id,
+        clientId: this.id,
+      },
+    };
+
+    return this.advancedCommandController.execCommand(command.id, message, options);
   }
 
   public addQuickResponse(pattern: QuickResponse): QuickResponse;

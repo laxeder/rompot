@@ -1,3 +1,5 @@
+import type { AdvancedCommandStartOptions } from "../command/advanced/AdvancedCommandStart";
+
 import { Cluster, Worker } from "cluster";
 import { readFileSync } from "fs";
 
@@ -13,9 +15,12 @@ import { ChatStatus } from "../chat/ChatStatus";
 import Chat from "../chat/Chat";
 import User from "../user/User";
 
-import CommandController from "../command/CommandController";
 import { CMDRunType } from "../command/CommandEnums";
 import Command from "../command/Command";
+import CommandController from "../command/CommandController";
+
+import AdvancedCommand from "../command/advanced/AdvancedCommand";
+import AdvancedCommandController from "../command/advanced/AdvancedCommandController";
 
 import QuickResponseController from "../quickResponse/QuickResponseController";
 import { QuickResponsePattern } from "../quickResponse/QuickResponsePattern";
@@ -49,6 +54,7 @@ export default class ClientCluster extends ClientEvents implements IClient {
   /** Controlador de comandos  */
   public commandController: CommandController = new CommandController();
   public quickResponseController: QuickResponseController = new QuickResponseController();
+  public advancedCommandController: AdvancedCommandController;
   /** Configuração */
   public config: ClientClusterConfig;
   /** Bot */
@@ -78,6 +84,8 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.config = { ...DEFAULT_CONNECTION_CONFIG, maxTimeout: 60000, ...config };
 
     this.setWorker(worker);
+
+    this.advancedCommandController = new AdvancedCommandController(this.id);
 
     if (!isMain) {
       this.configEvents();
@@ -544,6 +552,59 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public runCommand(command: Command, message: Message, type?: string) {
     return this.commandController.runCommand(command, message, type);
+  }
+
+  public setAdvancedCommandController(advancedCommandController: AdvancedCommandController) {
+    advancedCommandController.clientId = this.id;
+
+    this.advancedCommandController = advancedCommandController;
+  }
+
+  public getAdvancedCommandController(): AdvancedCommandController {
+    return this.advancedCommandController;
+  }
+
+  public setAdvancedCommands(commands: AdvancedCommand[]) {
+    this.advancedCommandController.setCommands(...commands);
+  }
+
+  public createAdvancedCommand<T extends object>(id: string, context: T): AdvancedCommand<T> {
+    return this.advancedCommandController.createCommand({ id, context });
+  }
+
+  public getAdvancedCommands() {
+    return this.advancedCommandController.getCommands();
+  }
+
+  public addAdvancedCommand(command: AdvancedCommand): void {
+    this.advancedCommandController.addCommand(command);
+  }
+
+  public removeAdvancedCommand(command: AdvancedCommand): boolean {
+    return this.advancedCommandController.removeCommand(command);
+  }
+
+  public execAdvancedCommand(command: AdvancedCommand | string, message: Message) {
+    if (typeof command == "string") {
+      const cmd = this.advancedCommandController.getCommand(command);
+
+      if (!cmd) {
+        throw new Error("Command not found");
+      }
+
+      command = cmd;
+    }
+
+    const options: Partial<AdvancedCommandStartOptions<{}>> = {
+      chatId: message.chat.id,
+      context: {
+        ...command.initialContext,
+        chatId: message.chat.id,
+        clientId: this.id,
+      },
+    };
+
+    return this.advancedCommandController.execCommand(command.id, message, options);
   }
 
   public addQuickResponse(pattern: QuickResponse): QuickResponse;
