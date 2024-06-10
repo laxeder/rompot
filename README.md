@@ -459,6 +459,12 @@ client.promoteUserInChat(chat, user);
 client.demoteUserInChat(chat, user);
 ```
 
+- Rejeitar chamada
+  - Você pode receber a chamada pelo evento `new-call` ou `call`, porém o evento `call` também recebe atualização de chamadas invez de somente o pedido dela.
+```ts
+client.rejectCall(call);
+```
+
 ## 📄 Licença
 
 Este projeto está sob a licença MIT - veja o arquivo [LICENSE](https://github.com/Laxeder/rompot/blob/main/LICENSE) para mais detalhes.
