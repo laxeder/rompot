@@ -21,6 +21,7 @@ import TelegramEvents from "./TelegramEvents";
 import TelegramAuth from "./TelegramAuth";
 
 import { verifyIsEquals } from "../utils/Generic";
+import Call from "../models/Call";
 
 export default class TelegramBot extends BotEvents implements IBot {
   public auth: IAuth;
@@ -62,7 +63,10 @@ export default class TelegramBot extends BotEvents implements IBot {
         const botToken = await this.auth.get("BOT_TOKEN");
 
         (this.bot as any).token = botToken;
-        (this.bot as any).options = { ...(this.bot as any).options, ...this.options };
+        (this.bot as any).options = {
+          ...(this.bot as any).options,
+          ...this.options,
+        };
 
         this.bot.startPolling();
 
@@ -144,7 +148,11 @@ export default class TelegramBot extends BotEvents implements IBot {
   }
 
   public async downloadStreamMessage(media: Media): Promise<Buffer> {
-    if (!media?.stream || typeof media.stream != "object" || !media.stream.file_id) {
+    if (
+      !media?.stream ||
+      typeof media.stream != "object" ||
+      !media.stream.file_id
+    ) {
       return Buffer.from("");
     }
 
@@ -198,7 +206,9 @@ export default class TelegramBot extends BotEvents implements IBot {
   }
 
   public async getChats(): Promise<string[]> {
-    return (await this.auth.listAll("chats-")).map((id) => id.replace("chats-", ""));
+    return (await this.auth.listAll("chats-")).map((id) =>
+      id.replace("chats-", "")
+    );
   }
 
   public async setChats(chats: Chat[]): Promise<void> {
@@ -225,7 +235,8 @@ export default class TelegramBot extends BotEvents implements IBot {
     const newChat = Chat.fromJSON({ ...(chatData || {}), ...chat });
 
     newChat.type = chat.id.length > 10 ? ChatType.Group : ChatType.PV;
-    newChat.phoneNumber = newChat.phoneNumber || TelegramUtils.getPhoneNumber(chat.id);
+    newChat.phoneNumber =
+      newChat.phoneNumber || TelegramUtils.getPhoneNumber(chat.id);
 
     if (!newChat.profileUrl) {
       try {
@@ -304,11 +315,17 @@ export default class TelegramBot extends BotEvents implements IBot {
     return `${chatData.description || chatData.bio || ""}`;
   }
 
-  public async setChatDescription(chat: Chat, description: string): Promise<void> {
+  public async setChatDescription(
+    chat: Chat,
+    description: string
+  ): Promise<void> {
     await this.bot.setChatDescription(Number(chat.id), `${description || ""}`);
   }
 
-  public async getChatProfile(chat: Chat, lowQuality?: boolean): Promise<Buffer> {
+  public async getChatProfile(
+    chat: Chat,
+    lowQuality?: boolean
+  ): Promise<Buffer> {
     const fileUrl = await this.getChatProfileUrl(chat, lowQuality);
 
     if (!fileUrl) {
@@ -318,10 +335,15 @@ export default class TelegramBot extends BotEvents implements IBot {
     return await TelegramUtils.downloadFileFromURL(fileUrl);
   }
 
-  public async getChatProfileUrl(chat: Chat, lowQuality?: boolean): Promise<string> {
+  public async getChatProfileUrl(
+    chat: Chat,
+    lowQuality?: boolean
+  ): Promise<string> {
     const chatData = await this.bot.getChat(Number(chat.id));
 
-    const fileId = lowQuality ? chatData.photo?.small_file_id : chatData.photo?.big_file_id;
+    const fileId = lowQuality
+      ? chatData.photo?.small_file_id
+      : chatData.photo?.big_file_id;
 
     if (!fileId) return "";
 
@@ -341,9 +363,16 @@ export default class TelegramBot extends BotEvents implements IBot {
   }
 
   public async revokeChatInvite(chat: Chat): Promise<string> {
-    const result = await this.bot.revokeChatInviteLink(Number(chat.id), await this.getChatInvite(chat));
+    const result = await this.bot.revokeChatInviteLink(
+      Number(chat.id),
+      await this.getChatInvite(chat)
+    );
 
     return result.invite_link;
+  }
+
+  public async rejectCall(call: Call): Promise<void> {
+    //TODO: Reject call
   }
 
   public async getUser(user: User): Promise<User | null> {
@@ -355,7 +384,9 @@ export default class TelegramBot extends BotEvents implements IBot {
   }
 
   public async getUsers(): Promise<string[]> {
-    return (await this.auth.listAll("users-")).map((id) => id.replace("users-", ""));
+    return (await this.auth.listAll("users-")).map((id) =>
+      id.replace("users-", "")
+    );
   }
 
   public async setUsers(users: User[]): Promise<void> {
@@ -381,7 +412,8 @@ export default class TelegramBot extends BotEvents implements IBot {
 
     const newUser = User.fromJSON({ ...(userData || {}), ...user });
 
-    newUser.phoneNumber = newUser.phoneNumber || TelegramUtils.getPhoneNumber(user.id);
+    newUser.phoneNumber =
+      newUser.phoneNumber || TelegramUtils.getPhoneNumber(user.id);
 
     if (!newUser.profileUrl) {
       try {
@@ -420,11 +452,17 @@ export default class TelegramBot extends BotEvents implements IBot {
     return `${chatData.description || chatData.bio || ""}`;
   }
 
-  public async setUserDescription(user: User, description: string): Promise<void> {
+  public async setUserDescription(
+    user: User,
+    description: string
+  ): Promise<void> {
     await this.bot.setChatDescription(Number(user.id), `${description || ""}`);
   }
 
-  public async getUserProfile(user: User, lowQuality?: boolean): Promise<Buffer> {
+  public async getUserProfile(
+    user: User,
+    lowQuality?: boolean
+  ): Promise<Buffer> {
     const fileUrl = await this.getUserProfileUrl(user, lowQuality);
 
     if (!fileUrl) {
@@ -434,7 +472,10 @@ export default class TelegramBot extends BotEvents implements IBot {
     return await TelegramUtils.downloadFileFromURL(fileUrl);
   }
 
-  public async getUserProfileUrl(user: User, lowQuality?: boolean): Promise<string> {
+  public async getUserProfileUrl(
+    user: User,
+    lowQuality?: boolean
+  ): Promise<string> {
     const profile = await this.bot.getUserProfilePhotos(Number(user.id));
 
     const photo = profile.photos?.shift()?.shift();

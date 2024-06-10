@@ -31,16 +31,33 @@ import BotBase from "../bot/BotBase";
 
 import { sleep, getError } from "../utils/Generic";
 import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
-import { QuickResponseOptions, QuickResponsePattern, QuickResponseReply } from "../quickResponse";
+import {
+  QuickResponseOptions,
+  QuickResponsePattern,
+  QuickResponseReply,
+} from "../quickResponse";
 import QuickResponse from "../quickResponse/QuickResponse";
 import AdvancedCommandController from "../command/advanced/AdvancedCommandController";
 import AdvancedCommand from "../command/advanced/AdvancedCommand";
+import Call from "../models/Call";
 
-export default class Client<Bot extends IBot = IBot> extends ClientEvents implements IClient {
-  public funcHandler = new ClientFunctionHandler(this, { bot: [], chat: [], user: [], message: [], sendMessage: [], sendMediaMessage: [], downloadMedia: [] });
+export default class Client<Bot extends IBot = IBot>
+  extends ClientEvents
+  implements IClient
+{
+  public funcHandler = new ClientFunctionHandler(this, {
+    bot: [],
+    chat: [],
+    user: [],
+    message: [],
+    sendMessage: [],
+    sendMediaMessage: [],
+    downloadMedia: [],
+  });
   public commandController: CommandController = new CommandController();
   public advancedCommandController: AdvancedCommandController;
-  public quickResponseController: QuickResponseController = new QuickResponseController();
+  public quickResponseController: QuickResponseController =
+    new QuickResponseController();
   public messageHandler: MessageHandler = new MessageHandler();
   public reconnectTimes: number = 0;
 
@@ -81,13 +98,17 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
 
         if (message.mention) {
           if (message.mention.chat.id != message.chat.id) {
-            message.mention.chat = (await this.getChat(message.mention.chat)) || message.mention.chat;
+            message.mention.chat =
+              (await this.getChat(message.mention.chat)) ||
+              message.mention.chat;
           } else {
             message.mention.chat = message.chat;
           }
 
           if (message.mention.user.id != message.user.id) {
-            message.mention.user = (await this.getUser(message.mention.user)) || message.mention.user;
+            message.mention.user =
+              (await this.getUser(message.mention.user)) ||
+              message.mention.user;
           } else {
             message.mention.user = message.user;
           }
@@ -98,8 +119,13 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
         this.emit("message", message);
 
         if (this.config.disableAutoCommand) return;
-        if (this.config.disableAutoCommandForOldMessage && message.isOld) return;
-        if (this.config.disableAutoCommandForUnofficialMessage && message.isUnofficial) return;
+        if (this.config.disableAutoCommandForOldMessage && message.isOld)
+          return;
+        if (
+          this.config.disableAutoCommandForUnofficialMessage &&
+          message.isUnofficial
+        )
+          return;
 
         await this.quickResponseController.searchAndExecute(message);
 
@@ -180,7 +206,10 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
     });
 
     this.bot.on("chat", (update) => {
-      this.emit("chat", { ...update, chat: { ...update.chat, clientId: this.id, botId: this.bot.id } });
+      this.emit("chat", {
+        ...update,
+        chat: { ...update.chat, clientId: this.id, botId: this.bot.id },
+      });
     });
 
     this.bot.on("user", (update) => {
@@ -188,13 +217,29 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
         this.emit("user", {
           event: update.event,
           action: update.action,
-          chat: Chat.apply(update.chat, { clientId: this.id, botId: this.bot.id }),
-          user: User.apply(update.user, { clientId: this.id, botId: this.bot.id }),
-          fromUser: User.apply(update.fromUser, { clientId: this.id, botId: this.bot.id }),
+          chat: Chat.apply(update.chat, {
+            clientId: this.id,
+            botId: this.bot.id,
+          }),
+          user: User.apply(update.user, {
+            clientId: this.id,
+            botId: this.bot.id,
+          }),
+          fromUser: User.apply(update.fromUser, {
+            clientId: this.id,
+            botId: this.bot.id,
+          }),
         });
       } catch (err) {
         this.emit("error", getError(err));
       }
+    });
+
+    this.bot.on("call", (call) => {
+      this.emit(
+        "call",
+        Call.apply(call, { clientId: this.id, botId: this.bot.id })
+      );
     });
 
     this.bot.on("error", (err) => {
@@ -222,7 +267,10 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
     await this.bot.logout();
   }
 
-  public async awaitEvent<T extends keyof ClientEventsMap>(eventName: T, maxTimeout?: number): Promise<ClientEventsMap[T]> {
+  public async awaitEvent<T extends keyof ClientEventsMap>(
+    eventName: T,
+    maxTimeout?: number
+  ): Promise<ClientEventsMap[T]> {
     return new Promise<ClientEventsMap[T]>((res, rej) => {
       let timeout: NodeJS.Timeout;
 
@@ -302,7 +350,9 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
     return this.commandController.runCommand(command, message, type);
   }
 
-  public setAdvancedCommandController(advancedCommandController: AdvancedCommandController) {
+  public setAdvancedCommandController(
+    advancedCommandController: AdvancedCommandController
+  ) {
     advancedCommandController.clientId = this.id;
 
     this.advancedCommandController = advancedCommandController;
@@ -320,7 +370,10 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
     return this.advancedCommandController.getCommands();
   }
 
-  public createAdvancedCommand<T extends object>(id: string, context: T): AdvancedCommand<T> {
+  public createAdvancedCommand<T extends object>(
+    id: string,
+    context: T
+  ): AdvancedCommand<T> {
     return this.advancedCommandController.createCommand({ id, context });
   }
 
@@ -332,7 +385,10 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
     return this.advancedCommandController.removeCommand(command);
   }
 
-  public execAdvancedCommand(command: AdvancedCommand | string, message: Message) {
+  public execAdvancedCommand(
+    command: AdvancedCommand | string,
+    message: Message
+  ) {
     if (typeof command == "string") {
       const cmd = this.advancedCommandController.getCommand(command);
 
@@ -352,13 +408,29 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
       },
     };
 
-    return this.advancedCommandController.execCommand(command.id, message, options);
+    return this.advancedCommandController.execCommand(
+      command.id,
+      message,
+      options
+    );
   }
 
   public addQuickResponse(pattern: QuickResponse): QuickResponse;
-  public addQuickResponse(pattern: QuickResponsePattern, reply: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
-  public addQuickResponse(pattern: QuickResponsePattern[], reply: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
-  public addQuickResponse(content: QuickResponse | QuickResponsePattern | QuickResponsePattern[], reply?: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse {
+  public addQuickResponse(
+    pattern: QuickResponsePattern,
+    reply: QuickResponseReply,
+    options?: Partial<QuickResponseOptions>
+  ): QuickResponse;
+  public addQuickResponse(
+    pattern: QuickResponsePattern[],
+    reply: QuickResponseReply,
+    options?: Partial<QuickResponseOptions>
+  ): QuickResponse;
+  public addQuickResponse(
+    content: QuickResponse | QuickResponsePattern | QuickResponsePattern[],
+    reply?: QuickResponseReply,
+    options?: Partial<QuickResponseOptions>
+  ): QuickResponse {
     if (content instanceof QuickResponse) {
       this.quickResponseController.add(content);
 
@@ -388,7 +460,11 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   public async readMessage(message: Message): Promise<void> {
     await this.funcHandler.exec("message", this.bot.readMessage, message);
 
-    if (message.status == MessageStatus.Sending || message.status == MessageStatus.Sended || message.status == MessageStatus.Received) {
+    if (
+      message.status == MessageStatus.Sending ||
+      message.status == MessageStatus.Sended ||
+      message.status == MessageStatus.Received
+    ) {
       if (message.type == MessageType.Audio) {
         message.status = MessageStatus.Played;
       } else {
@@ -409,14 +485,29 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   }
 
   public addReaction(message: Message, reaction: string): Promise<void> {
-    return this.funcHandler.exec("message", this.bot.addReaction, new ReactionMessage(message.chat, reaction, message, { user: message.user }));
+    return this.funcHandler.exec(
+      "message",
+      this.bot.addReaction,
+      new ReactionMessage(message.chat, reaction, message, {
+        user: message.user,
+      })
+    );
   }
 
   public removeReaction(message: Message): Promise<void> {
-    return this.funcHandler.exec("message", this.bot.removeReaction, new ReactionMessage(message.chat, "", message, { user: message.user }));
+    return this.funcHandler.exec(
+      "message",
+      this.bot.removeReaction,
+      new ReactionMessage(message.chat, "", message, { user: message.user })
+    );
   }
 
-  public addAnimatedReaction(message: Message, reactions: string[], interval: number = 2000, maxTimeout: number = 60000): (reactionStop?: string) => Promise<void> {
+  public addAnimatedReaction(
+    message: Message,
+    reactions: string[],
+    interval: number = 2000,
+    maxTimeout: number = 60000
+  ): (reactionStop?: string) => Promise<void> {
     let isStoped: boolean = false;
     const now = Date.now();
 
@@ -455,20 +546,39 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
     message = Message.apply(message, { clientId: this.id, botId: this.bot.id });
 
     if (!this.config.disableAutoTyping) {
-      await this.changeChatStatus(message.chat, message.type == "audio" ? ChatStatus.Recording : ChatStatus.Typing);
+      await this.changeChatStatus(
+        message.chat,
+        message.type == "audio" ? ChatStatus.Recording : ChatStatus.Typing
+      );
     }
 
     if (message.hasOwnProperty("file")) {
-      return Message.apply(await this.funcHandler.exec("sendMediaMessage", this.bot.send, message), { clientId: this.id, botId: this.bot.id });
+      return Message.apply(
+        await this.funcHandler.exec("sendMediaMessage", this.bot.send, message),
+        { clientId: this.id, botId: this.bot.id }
+      );
     } else {
-      return Message.apply(await this.funcHandler.exec("sendMessage", this.bot.send, message), { clientId: this.id, botId: this.bot.id });
+      return Message.apply(
+        await this.funcHandler.exec("sendMessage", this.bot.send, message),
+        { clientId: this.id, botId: this.bot.id }
+      );
     }
   }
 
-  public async sendMessage(chat: Chat | string, message: string | Message, mention?: Message): Promise<Message> {
+  public async sendMessage(
+    chat: Chat | string,
+    message: string | Message,
+    mention?: Message
+  ): Promise<Message> {
     if (Message.isValid(message)) {
-      message = Message.apply(message, { clientId: this.id, botId: this.bot.id });
-      message.chat = Chat.apply(chat, { clientId: this.id, botId: this.bot.id });
+      message = Message.apply(message, {
+        clientId: this.id,
+        botId: this.bot.id,
+      });
+      message.chat = Chat.apply(chat, {
+        clientId: this.id,
+        botId: this.bot.id,
+      });
       message.mention = mention;
 
       return await this.send(message);
@@ -477,8 +587,14 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
     return await this.send(new Message(chat, message, { mention }));
   }
 
-  public async awaitMessage(chat: Chat | string, config: Partial<MessageHandlerConfig> = {}): Promise<Message> {
-    return Message.apply(await this.messageHandler.addMessage(Chat.getId(chat), config), { clientId: this.id, botId: this.bot.id });
+  public async awaitMessage(
+    chat: Chat | string,
+    config: Partial<MessageHandlerConfig> = {}
+  ): Promise<Message> {
+    return Message.apply(
+      await this.messageHandler.addMessage(Chat.getId(chat), config),
+      { clientId: this.id, botId: this.bot.id }
+    );
   }
 
   public async downloadStreamMessage(message: MediaMessage): Promise<Buffer> {
@@ -490,7 +606,11 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
       return readFileSync(message.file);
     }
 
-    return this.funcHandler.exec("downloadMedia", this.bot.downloadStreamMessage, message.file);
+    return this.funcHandler.exec(
+      "downloadMedia",
+      this.bot.downloadStreamMessage,
+      message.file
+    );
   }
 
   public getBotName(): Promise<string> {
@@ -506,7 +626,11 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   }
 
   public setBotDescription(description: string) {
-    return this.funcHandler.exec("bot", this.bot.setBotDescription, description);
+    return this.funcHandler.exec(
+      "bot",
+      this.bot.setBotDescription,
+      description
+    );
   }
 
   public getBotProfile(lowQuality?: boolean) {
@@ -518,7 +642,11 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   }
 
   public async getChat(chat: Chat | string): Promise<Chat | null> {
-    const chatData = await this.funcHandler.exec("chat", this.bot.getChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+    const chatData = await this.funcHandler.exec(
+      "chat",
+      this.bot.getChat,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+    );
 
     if (chatData == null) return null;
 
@@ -530,12 +658,19 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   }
 
   public async getChats(): Promise<Chat[]> {
-    const ids: string[] = await this.funcHandler.exec("chat", this.bot.getChats);
+    const ids: string[] = await this.funcHandler.exec(
+      "chat",
+      this.bot.getChats
+    );
     const chats: Chat[] = [];
 
     await Promise.all(
       ids.map(async (id) => {
-        const chat = await this.funcHandler.exec("chat", this.bot.getChat, new Chat(id));
+        const chat = await this.funcHandler.exec(
+          "chat",
+          this.bot.getChat,
+          new Chat(id)
+        );
 
         if (chat == null) return;
 
@@ -551,71 +686,154 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   }
 
   public removeChat(chat: string | Chat): Promise<void> {
-    return this.funcHandler.exec("chat", this.bot.removeChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.removeChat,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public createChat(chat: Chat) {
-    return this.funcHandler.exec("chat", this.bot.createChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.createChat,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public leaveChat(chat: Chat | string) {
-    return this.funcHandler.exec("chat", this.bot.leaveChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.leaveChat,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public getChatName(chat: Chat | string) {
-    return this.funcHandler.exec("chat", this.bot.getChatName, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.getChatName,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public setChatName(chat: Chat | string, name: string) {
-    return this.funcHandler.exec("chat", this.bot.setChatName, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), name);
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.setChatName,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+      name
+    );
   }
 
   public getChatDescription(chat: Chat | string) {
-    return this.funcHandler.exec("chat", this.bot.getChatDescription, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.getChatDescription,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public setChatDescription(chat: Chat | string, description: string) {
-    return this.funcHandler.exec("chat", this.bot.setChatDescription, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), description);
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.setChatDescription,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+      description
+    );
   }
 
   public getChatProfile(chat: Chat | string, lowQuality?: boolean) {
-    return this.funcHandler.exec("chat", this.bot.getChatProfile, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), lowQuality);
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.getChatProfile,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+      lowQuality
+    );
   }
 
   public setChatProfile(chat: Chat | string, profile: Buffer) {
-    return this.funcHandler.exec("chat", this.bot.setChatProfile, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), profile);
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.setChatProfile,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+      profile
+    );
   }
 
   public async getChatLeader(chat: Chat | string): Promise<User> {
-    return User.apply(await this.funcHandler.exec("chat", this.bot.getChatLeader, Chat.apply(chat, { clientId: this.id, botId: this.bot.id })), { clientId: this.id, botId: this.bot.id });
+    return User.apply(
+      await this.funcHandler.exec(
+        "chat",
+        this.bot.getChatLeader,
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+      ),
+      { clientId: this.id, botId: this.bot.id }
+    );
   }
 
   public async getChatUsers(chat: Chat | string): Promise<string[]> {
-    return await this.funcHandler.exec("chat", this.bot.getChatUsers, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+    return await this.funcHandler.exec(
+      "chat",
+      this.bot.getChatUsers,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public async getChatAdmins(chat: Chat | string): Promise<string[]> {
-    return await this.funcHandler.exec("chat", this.bot.getChatAdmins, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+    return await this.funcHandler.exec(
+      "chat",
+      this.bot.getChatAdmins,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public addUserInChat(chat: Chat | string, user: User | string) {
-    return this.funcHandler.exec("chat", this.bot.addUserInChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.addUserInChat,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+      User.apply(user, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public removeUserInChat(chat: Chat | string, user: User | string) {
-    return this.funcHandler.exec("chat", this.bot.removeUserInChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.removeUserInChat,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+      User.apply(user, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public promoteUserInChat(chat: Chat | string, user: User | string) {
-    return this.funcHandler.exec("chat", this.bot.promoteUserInChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.promoteUserInChat,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+      User.apply(user, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public demoteUserInChat(chat: Chat | string, user: User | string) {
-    return this.funcHandler.exec("chat", this.bot.demoteUserInChat, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.demoteUserInChat,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+      User.apply(user, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
-  public changeChatStatus(chat: Chat | string, status: ChatStatus): Promise<void> {
-    return this.funcHandler.exec("chat", this.bot.changeChatStatus, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), status);
+  public changeChatStatus(
+    chat: Chat | string,
+    status: ChatStatus
+  ): Promise<void> {
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.changeChatStatus,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+      status
+    );
   }
 
   public joinChat(code: string): Promise<void> {
@@ -623,20 +841,39 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   }
 
   public getChatInvite(chat: Chat | string): Promise<string> {
-    return this.funcHandler.exec("chat", this.bot.getChatInvite, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.getChatInvite,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public revokeChatInvite(chat: Chat | string): Promise<string> {
-    return this.funcHandler.exec("chat", this.bot.revokeChatInvite, Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "chat",
+      this.bot.revokeChatInvite,
+      Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+    );
+  }
+
+  public rejectCall(call: Call | string): Promise<void> {
+    return this.funcHandler.exec("chat", this.bot.rejectCall, Call.apply(call));
   }
 
   public async getUsers(): Promise<User[]> {
-    const ids: string[] = await this.funcHandler.exec("user", this.bot.getUsers);
+    const ids: string[] = await this.funcHandler.exec(
+      "user",
+      this.bot.getUsers
+    );
     const users: User[] = [];
 
     await Promise.all(
       ids.map(async (id) => {
-        const user = await this.funcHandler.exec("user", this.bot.getUser, new User(id));
+        const user = await this.funcHandler.exec(
+          "user",
+          this.bot.getUser,
+          new User(id)
+        );
 
         if (user == null) return;
 
@@ -648,12 +885,19 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   }
 
   public async getSavedUsers(): Promise<User[]> {
-    const ids: string[] = await this.funcHandler.exec("user", this.bot.getUsers);
+    const ids: string[] = await this.funcHandler.exec(
+      "user",
+      this.bot.getUsers
+    );
     const users: User[] = [];
 
     await Promise.all(
       ids.map(async (id) => {
-        const user = await this.funcHandler.exec("user", this.bot.getUser, new User(id));
+        const user = await this.funcHandler.exec(
+          "user",
+          this.bot.getUser,
+          new User(id)
+        );
 
         if (user == null || !user.savedName) return;
 
@@ -669,7 +913,11 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   }
 
   public async getUser(user: User | string): Promise<User | null> {
-    const userData = await this.funcHandler.exec("user", this.bot.getUser, User.apply(user, { clientId: this.id, botId: this.bot.id }));
+    const userData = await this.funcHandler.exec(
+      "user",
+      this.bot.getUser,
+      User.apply(user, { clientId: this.id, botId: this.bot.id })
+    );
 
     if (userData == null) return null;
 
@@ -681,55 +929,98 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   }
 
   public removeUser(user: User | string) {
-    return this.funcHandler.exec("user", this.bot.removeUser, User.apply(user, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "user",
+      this.bot.removeUser,
+      User.apply(user, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public getUserName(user: User | string) {
     if (User.getId(user) == this.id) return this.getBotName();
 
-    return this.funcHandler.exec("user", this.bot.getUserName, User.apply(user, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "user",
+      this.bot.getUserName,
+      User.apply(user, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public setUserName(user: User | string, name: string) {
     if (User.getId(user) == this.id) return this.setBotName(name);
 
-    return this.funcHandler.exec("user", this.bot.setUserName, User.apply(user, { clientId: this.id, botId: this.bot.id }), name);
+    return this.funcHandler.exec(
+      "user",
+      this.bot.setUserName,
+      User.apply(user, { clientId: this.id, botId: this.bot.id }),
+      name
+    );
   }
 
   public getUserDescription(user: User | string) {
     if (User.getId(user) == this.id) return this.getBotDescription();
 
-    return this.funcHandler.exec("user", this.bot.getUserDescription, User.apply(user, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "user",
+      this.bot.getUserDescription,
+      User.apply(user, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public setUserDescription(user: User | string, description: string) {
     if (User.getId(user) == this.id) return this.setBotDescription(description);
 
-    return this.funcHandler.exec("user", this.bot.setUserDescription, User.apply(user, { clientId: this.id, botId: this.bot.id }), description);
+    return this.funcHandler.exec(
+      "user",
+      this.bot.setUserDescription,
+      User.apply(user, { clientId: this.id, botId: this.bot.id }),
+      description
+    );
   }
 
   public getUserProfile(user: User | string, lowQuality?: boolean) {
     if (User.getId(user) == this.id) return this.getBotProfile(lowQuality);
 
-    return this.funcHandler.exec("user", this.bot.getUserProfile, User.apply(user, { clientId: this.id, botId: this.bot.id }), lowQuality);
+    return this.funcHandler.exec(
+      "user",
+      this.bot.getUserProfile,
+      User.apply(user, { clientId: this.id, botId: this.bot.id }),
+      lowQuality
+    );
   }
 
   public setUserProfile(user: User | string, profile: Buffer) {
     if (User.getId(user) == this.id) return this.setBotProfile(profile);
 
-    return this.funcHandler.exec("user", this.bot.setUserProfile, User.apply(user, { clientId: this.id, botId: this.bot.id }), profile);
+    return this.funcHandler.exec(
+      "user",
+      this.bot.setUserProfile,
+      User.apply(user, { clientId: this.id, botId: this.bot.id }),
+      profile
+    );
   }
 
   public unblockUser(user: User | string) {
-    return this.funcHandler.exec("user", this.bot.unblockUser, User.apply(user, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "user",
+      this.bot.unblockUser,
+      User.apply(user, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public blockUser(user: User | string) {
-    return this.funcHandler.exec("user", this.bot.blockUser, User.apply(user, { clientId: this.id, botId: this.bot.id }));
+    return this.funcHandler.exec(
+      "user",
+      this.bot.blockUser,
+      User.apply(user, { clientId: this.id, botId: this.bot.id })
+    );
   }
 
   public static getClients(): Record<string, Client<IBot>> {
-    if (!global.hasOwnProperty("rompot-clients") || typeof global["rompot-clients"] != "object") {
+    if (
+      !global.hasOwnProperty("rompot-clients") ||
+      typeof global["rompot-clients"] != "object"
+    ) {
       global["rompot-clients"] = {};
     }
 
@@ -747,7 +1038,10 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
       return clients[id];
     }
 
-    if (global["default-rompot-worker"] || global["rompot-cluster-save"]?.worker) {
+    if (
+      global["default-rompot-worker"] ||
+      global["rompot-cluster-save"]?.worker
+    ) {
       return ClientCluster.getClient(id);
     }
 
@@ -755,7 +1049,10 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   }
 
   public static saveClient(client: Client<IBot>): void {
-    if (!global.hasOwnProperty("rompot-clients") || typeof global["rompot-clients"] != "object") {
+    if (
+      !global.hasOwnProperty("rompot-clients") ||
+      typeof global["rompot-clients"] != "object"
+    ) {
       global["rompot-clients"] = {};
     }
 
@@ -763,6 +1060,8 @@ export default class Client<Bot extends IBot = IBot> extends ClientEvents implem
   }
 
   public static generateId(): string {
-    return `${process.pid}-${Date.now()}-${Object.keys(Client.getClients()).length}`;
+    return `${process.pid}-${Date.now()}-${
+      Object.keys(Client.getClients()).length
+    }`;
   }
 }

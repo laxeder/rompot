@@ -1,13 +1,14 @@
 import EventEmitter from "events";
 
-import { ConnectionType } from "./ConnectionType";
-import { ChatAction } from "../chat/ChatAction";
-import { UserAction } from "../user/UserAction";
 import { UserEvent } from "../user/UserEvent";
+import { UserAction } from "../user/UserAction";
+import { ChatAction } from "../chat/ChatAction";
+import { ConnectionType } from "./ConnectionType";
+import Call, { CallStatus } from "../models/Call";
 
-import Message from "../messages/Message";
-import Chat from "../chat/Chat";
 import User from "../user/User";
+import Chat from "../chat/Chat";
+import Message from "../messages/Message";
 
 /**
  * Mapeia os eventos que podem ser emitidos pelo cliente.
@@ -107,6 +108,21 @@ export type ClientEventsMap = {
   message: Message;
 
   /**
+   * Evento de atualização de chamada
+   */
+  call: Call;
+
+  "new-call": Call;
+
+  "ringing-call": Call;
+
+  "call-rejected": Call;
+
+  "call-accepted": Call;
+
+  "call-ended": Call;
+
+  /**
    * Evento de erro ocorrido.
    */
   error: Error;
@@ -123,7 +139,10 @@ export default class ClientEvents {
    * @param eventName - O nome do evento a ser ouvido.
    * @param listener - A função a ser executada quando o evento é emitido.
    */
-  public on<T extends keyof ClientEventsMap>(eventName: T, listener: (arg: ClientEventsMap[T]) => void) {
+  public on<T extends keyof ClientEventsMap>(
+    eventName: T,
+    listener: (arg: ClientEventsMap[T]) => void
+  ) {
     this.ev.on(eventName, listener);
   }
 
@@ -132,7 +151,10 @@ export default class ClientEvents {
    * @param eventName - O nome do evento do qual o ouvinte será removido.
    * @param listener - O ouvinte a ser removido.
    */
-  public off<T extends keyof ClientEventsMap>(eventName: T, listener: (arg: ClientEventsMap[T]) => void): void {
+  public off<T extends keyof ClientEventsMap>(
+    eventName: T,
+    listener: (arg: ClientEventsMap[T]) => void
+  ): void {
     this.ev.off(eventName, listener);
   }
 
@@ -150,7 +172,10 @@ export default class ClientEvents {
    * @param arg - Os dados do evento a serem transmitidos aos ouvintes.
    * @returns Verdadeiro se houver ouvintes para o evento, caso contrário, falso.
    */
-  public emit<T extends keyof ClientEventsMap>(eventName: T, arg: ClientEventsMap[T]): boolean {
+  public emit<T extends keyof ClientEventsMap>(
+    eventName: T,
+    arg: ClientEventsMap[T]
+  ): boolean {
     return this.ev.emit(eventName, arg);
   }
 
@@ -185,6 +210,26 @@ export default class ClientEvents {
 
     this.on("connecting", () => {
       this.emit("conn", { action: "connecting" });
+    });
+
+    this.on("call", (call) => {
+      switch (call.status) {
+        case CallStatus.Offer:
+          this.emit("new-call", call);
+          break;
+        case CallStatus.Ringing:
+          this.emit("ringing-call", call);
+          break;
+        case CallStatus.Reject:
+          this.emit("call-rejected", call);
+          break;
+        case CallStatus.Accept:
+          this.emit("call-accepted", call);
+          break;
+        case CallStatus.Timeout:
+          this.emit("call-ended", call);
+          break;
+      }
     });
   }
 }

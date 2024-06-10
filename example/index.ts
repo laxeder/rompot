@@ -1,4 +1,14 @@
-import Client, { WhatsAppBot, Message, Command, CMDRunType, CMDPerms, EmptyMessage, MultiFileAuthState, QuickResponse, ChatType } from "../src";
+import Client, {
+  WhatsAppBot,
+  Message,
+  Command,
+  CMDRunType,
+  CMDPerms,
+  EmptyMessage,
+  MultiFileAuthState,
+  QuickResponse,
+  ChatType,
+} from "../src";
 
 const wbot = new WhatsAppBot({
   autoSyncHistory: false,
@@ -110,6 +120,14 @@ client.on("user", async (update) => {
   }
 });
 
+client.on("new-call", async (call) => {
+  console.info("Nova chamada:", call);
+
+  await call.reject();
+
+  await call.chat.send("Não aceitamos chamadas!");
+});
+
 client.on("error", (err: any) => {
   console.info("Um erro ocorreu:", err);
 });
@@ -122,28 +140,45 @@ client.on("error", (err: any) => {
   client.commandController.config.prefix = "/";
   client.commandController.config.lowerCase = true;
 
-  client.commandController.on("no-allowed", async ({ message, command, permission }) => {
-    if (permission.id == CMDPerms.BotChatAdmin) {
-      await message.reply("Eu preciso de permissão de admin para executar esse comando!");
-    }
+  client.commandController.on(
+    "no-allowed",
+    async ({ message, command, permission }) => {
+      if (permission.id == CMDPerms.BotChatAdmin) {
+        await message.reply(
+          "Eu preciso de permissão de admin para executar esse comando!"
+        );
+      }
 
-    if (permission.id == CMDPerms.UserChatAdmin) {
-      await message.reply("Somente admins podem usar esse comando!");
-    }
+      if (permission.id == CMDPerms.UserChatAdmin) {
+        await message.reply("Somente admins podem usar esse comando!");
+      }
 
-    if (permission.id == CMDPerms.ChatGroup) {
-      await message.chat.send("Somente grupos podem usar esse comando!");
+      if (permission.id == CMDPerms.ChatGroup) {
+        await message.chat.send("Somente grupos podem usar esse comando!");
+      }
     }
+  );
+
+  const quickResponse1 = new QuickResponse(
+    ["comprar", "pedido", "quero"],
+    "Vamos fazer um pedido?"
+  );
+
+  const quickResponse2 = new QuickResponse(
+    /vendem(.*?)\?/,
+    "Vou estar conferindo...",
+    { priority: 1 }
+  );
+
+  const quickResponse3 = new QuickResponse({
+    patterns: ["hello", "hi", /ola(.*?)\!/],
+    reply: "Hello There!",
+    priority: 2,
   });
 
-  const quickResponse1 = new QuickResponse(["comprar", "pedido", "quero"], "Vamos fazer um pedido?");
-
-  const quickResponse2 = new QuickResponse(/vendem(.*?)\?/, "Vou estar conferindo...", { priority: 1 });
-
-  const quickResponse3 = new QuickResponse({ patterns: ["hello", "hi", /ola(.*?)\!/], reply: "Hello There!", priority: 2 });
-
   const quickResponse4 = new QuickResponse(
-    (text, message) => message.chat.type !== ChatType.Group && text.includes("hi"),
+    (text, message) =>
+      message.chat.type !== ChatType.Group && text.includes("hi"),
     (message) => `Hello ${message.chat.name}!`,
     { priority: 1 }
   );
@@ -156,5 +191,7 @@ client.on("error", (err: any) => {
   //? Ao inserir o número do bot é ativado o pareamento por código
   const botPhoneNumber = "";
 
-  await client.connect(new MultiFileAuthState("./example/sessions/whatsapp", botPhoneNumber));
+  await client.connect(
+    new MultiFileAuthState("./example/sessions/whatsapp", botPhoneNumber)
+  );
 })();

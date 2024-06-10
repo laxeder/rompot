@@ -22,6 +22,7 @@ import IAuth from "./IAuth";
 import IBot from "../bot/IBot";
 
 import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
+import Call from "../models/Call";
 
 export default interface IClient<Bot extends IBot = IBot> extends ClientEvents {
   /** Tratador de mensagens */
@@ -37,7 +38,16 @@ export default interface IClient<Bot extends IBot = IBot> extends ClientEvents {
   /** Id do cliente */
   id: string;
   /** Tratador de funções */
-  funcHandler: ClientFunctionHandler<Bot, "bot" | "chat" | "user" | "message" | "sendMessage" | "sendMediaMessage" | "downloadMedia">;
+  funcHandler: ClientFunctionHandler<
+    Bot,
+    | "bot"
+    | "chat"
+    | "user"
+    | "message"
+    | "sendMessage"
+    | "sendMediaMessage"
+    | "downloadMedia"
+  >;
 
   /** Configura os eventos do cliente */
   configEvents(): void;
@@ -68,7 +78,10 @@ export default interface IClient<Bot extends IBot = IBot> extends ClientEvents {
    * @param maxTimeout - Para automaticamente após
    * @returns {Promise<ClientEventsMap[T]>} Argumento retornado do evento esperado.
    */
-  awaitEvent<T extends keyof ClientEventsMap>(eventName: T, maxTimeout?: number): Promise<ClientEventsMap[T]>;
+  awaitEvent<T extends keyof ClientEventsMap>(
+    eventName: T,
+    maxTimeout?: number
+  ): Promise<ClientEventsMap[T]>;
 
   /**
    * * Aguarda a conexão for aberta.
@@ -114,9 +127,21 @@ export default interface IClient<Bot extends IBot = IBot> extends ClientEvents {
 
   /** Adiciona uma resposta rápida */
   addQuickResponse(pattern: QuickResponse): QuickResponse;
-  addQuickResponse(pattern: QuickResponsePattern, reply: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
-  addQuickResponse(pattern: QuickResponsePattern[], reply: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
-  addQuickResponse(content: QuickResponse | QuickResponsePattern | QuickResponsePattern[], reply?: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
+  addQuickResponse(
+    pattern: QuickResponsePattern,
+    reply: QuickResponseReply,
+    options?: Partial<QuickResponseOptions>
+  ): QuickResponse;
+  addQuickResponse(
+    pattern: QuickResponsePattern[],
+    reply: QuickResponseReply,
+    options?: Partial<QuickResponseOptions>
+  ): QuickResponse;
+  addQuickResponse(
+    content: QuickResponse | QuickResponsePattern | QuickResponsePattern[],
+    reply?: QuickResponseReply,
+    options?: Partial<QuickResponseOptions>
+  ): QuickResponse;
 
   /** Remove uma resposta rápida */
   removeQuickResponse(quickMessage: QuickResponse | string): void;
@@ -160,7 +185,12 @@ export default interface IClient<Bot extends IBot = IBot> extends ClientEvents {
    * @param interval Intervalo entre cada reação
    * @param maxTimeout Maximo de tempo reagindo
    */
-  addAnimatedReaction(message: Message, reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void>;
+  addAnimatedReaction(
+    message: Message,
+    reactions: string[],
+    interval?: number,
+    maxTimeout?: number
+  ): (reactionStop?: string) => Promise<void>;
 
   /** Envia uma mensagem
    * @param message Menssagem que será enviada
@@ -173,13 +203,20 @@ export default interface IClient<Bot extends IBot = IBot> extends ClientEvents {
    * @param message Mensagem que será enviada
    * @param mention Mensagem que será mencionada
    */
-  sendMessage(chat: Chat | string, message: string | Message, mention?: Message): Promise<Message>;
+  sendMessage(
+    chat: Chat | string,
+    message: string | Message,
+    mention?: Message
+  ): Promise<Message>;
 
   /** Aguarda uma mensagem ser recebida em uma sala de bate-papo
    * @param chat Sala de bate-papo que irá receber a mensagem
    * @param config Configuração do aguardo da mensagem
    */
-  awaitMessage(chat: Chat | string, config?: Partial<MessageHandlerConfig>): Promise<Message>;
+  awaitMessage(
+    chat: Chat | string,
+    config?: Partial<MessageHandlerConfig>
+  ): Promise<Message>;
 
   /**
    * Retorna a stream da mídia
@@ -351,6 +388,12 @@ export default interface IClient<Bot extends IBot = IBot> extends ClientEvents {
    * @returns O novo código de convite do chat.
    */
   revokeChatInvite(chat: Chat | string): Promise<string>;
+
+  /**
+   * Rejeita uma chamada.
+   * @param call - A chamada que será rejeitada.
+   */
+  rejectCall(call: Call | string): Promise<void>;
 
   /** @returns Retorna a lista de usuários do bot */
   getUsers(): Promise<User[]>;

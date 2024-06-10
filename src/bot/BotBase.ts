@@ -8,6 +8,7 @@ import BotEvents from "./BotEvents";
 import Chat from "../chat/Chat";
 import User from "../user/User";
 import IBot from "./IBot";
+import Call from "../models/Call";
 
 export default class BotBase extends BotEvents implements IBot {
   public id: string = "";
@@ -36,7 +37,11 @@ export default class BotBase extends BotEvents implements IBot {
     return message;
   }
 
-  public async sendMessage(chat: Chat | string, message: string | Message, mention?: Message): Promise<Message> {
+  public async sendMessage(
+    chat: Chat | string,
+    message: string | Message,
+    mention?: Message
+  ): Promise<Message> {
     return new Promise<Message>(() => {});
   }
 
@@ -96,7 +101,9 @@ export default class BotBase extends BotEvents implements IBot {
     return null;
   }
 
-  public async updateChat(chat: { id: string } & Partial<Chat>): Promise<void> {}
+  public async updateChat(
+    chat: { id: string } & Partial<Chat>
+  ): Promise<void> {}
 
   public async removeChat(chat: Chat): Promise<void> {}
 
@@ -112,7 +119,10 @@ export default class BotBase extends BotEvents implements IBot {
 
   public async demoteUserInChat(chat: Chat, user: User): Promise<void> {}
 
-  public async changeChatStatus(chat: Chat, status: ChatStatus): Promise<void> {}
+  public async changeChatStatus(
+    chat: Chat,
+    status: ChatStatus
+  ): Promise<void> {}
 
   public async getChatUsers(chat: Chat): Promise<string[]> {
     return [];
@@ -136,13 +146,22 @@ export default class BotBase extends BotEvents implements IBot {
     return "";
   }
 
-  public async setChatDescription(chat: Chat, description: string): Promise<void> {}
+  public async setChatDescription(
+    chat: Chat,
+    description: string
+  ): Promise<void> {}
 
-  public async getChatProfile(chat: Chat, lowQuality?: boolean): Promise<Buffer> {
+  public async getChatProfile(
+    chat: Chat,
+    lowQuality?: boolean
+  ): Promise<Buffer> {
     return Buffer.from("");
   }
 
-  public async getChatProfileUrl(chat: Chat, lowQuality?: boolean): Promise<string> {
+  public async getChatProfileUrl(
+    chat: Chat,
+    lowQuality?: boolean
+  ): Promise<string> {
     return "";
   }
 
@@ -156,6 +175,10 @@ export default class BotBase extends BotEvents implements IBot {
 
   public async revokeChatInvite(chat: Chat): Promise<string> {
     return "";
+  }
+
+  public async rejectCall(call: Call): Promise<void> {
+    return;
   }
 
   //! #################################################################
@@ -172,7 +195,9 @@ export default class BotBase extends BotEvents implements IBot {
     return null;
   }
 
-  public async updateUser(user: { id: string } & Partial<User>): Promise<void> {}
+  public async updateUser(
+    user: { id: string } & Partial<User>
+  ): Promise<void> {}
 
   public async removeUser(user: User): Promise<void> {}
 
@@ -190,13 +215,19 @@ export default class BotBase extends BotEvents implements IBot {
     return "";
   }
 
-  public async setUserDescription(user: User, description: string): Promise<void> {}
+  public async setUserDescription(
+    user: User,
+    description: string
+  ): Promise<void> {}
 
   public async getUserProfile(user: User): Promise<Buffer> {
     return Buffer.from("");
   }
 
-  public async getUserProfileUrl(user: User, lowQuality?: boolean): Promise<string> {
+  public async getUserProfileUrl(
+    user: User,
+    lowQuality?: boolean
+  ): Promise<string> {
     return "";
   }
 

@@ -7,6 +7,7 @@ import IAuth from "../client/IAuth";
 import BotEvents from "./BotEvents";
 import User from "../user/User";
 import Chat from "../chat/Chat";
+import Call from "../models/Call";
 
 /** Interface do bot */
 export default interface IBot extends BotEvents {
@@ -264,6 +265,12 @@ export default interface IBot extends BotEvents {
    * @returns O novo código de convite do chat.
    */
   revokeChatInvite(chat: Chat): Promise<string>;
+
+  /**
+   * Rejeita uma chamada.
+   * @param call - A chamada que será rejeitada.
+   */
+  rejectCall(call: Call): Promise<void>;
 
   /**
    * @param user Usuário

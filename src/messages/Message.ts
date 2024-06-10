@@ -51,7 +51,7 @@ export enum MessagePlataform {
 export default class Message {
   /** ID do bot associado a esta mensagem */
   public botId: string = "";
-  /** ID do cliente associado a este usuário */
+  /** ID do cliente associado a esta mensagem */
   public clientId: string = "";
   /** Tipo da mensagem */
   public type: MessageType = MessageType.Text;

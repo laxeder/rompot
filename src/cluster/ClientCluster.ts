@@ -41,6 +41,7 @@ import IBot from "../bot/IBot";
 import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
 import { sleep, getError, injectJSON } from "../utils/Generic";
 import { getMessageFromJSON } from "../utils/MessageUtils";
+import Call from "../models/Call";
 
 /** ID dos dados globais do cluster gerenciado pelo Rompot */
 export const GlobalRompotCluster = "rompot-client-cluster";
@@ -53,7 +54,8 @@ export default class ClientCluster extends ClientEvents implements IClient {
   public messageHandler: MessageHandler = new MessageHandler();
   /** Controlador de comandos  */
   public commandController: CommandController = new CommandController();
-  public quickResponseController: QuickResponseController = new QuickResponseController();
+  public quickResponseController: QuickResponseController =
+    new QuickResponseController();
   public advancedCommandController: AdvancedCommandController;
   /** Configuração */
   public config: ClientClusterConfig;
@@ -72,16 +74,33 @@ export default class ClientCluster extends ClientEvents implements IClient {
   /** Requisições */
   public requests: Record<string, (message: WorkerMessage) => any> = {};
   /** Tratador de funções */
-  public funcHandler = new ClientFunctionHandler(this, { bot: [], chat: [], user: [], message: [], sendMessage: [], sendMediaMessage: [], downloadMedia: [] });
+  public funcHandler = new ClientFunctionHandler(this, {
+    bot: [],
+    chat: [],
+    user: [],
+    message: [],
+    sendMessage: [],
+    sendMediaMessage: [],
+    downloadMedia: [],
+  });
 
-  constructor(id: string, worker: Worker, config: Partial<ClientClusterConfig> = {}, isMain: boolean = false) {
+  constructor(
+    id: string,
+    worker: Worker,
+    config: Partial<ClientClusterConfig> = {},
+    isMain: boolean = false
+  ) {
     super();
 
     this.id = id;
     this.worker = worker;
     this.isMain = isMain;
 
-    this.config = { ...DEFAULT_CONNECTION_CONFIG, maxTimeout: 60000, ...config };
+    this.config = {
+      ...DEFAULT_CONNECTION_CONFIG,
+      maxTimeout: 60000,
+      ...config,
+    };
 
     this.setWorker(worker);
 
@@ -117,14 +136,22 @@ export default class ClientCluster extends ClientEvents implements IClient {
         } else if (workerMessage.tag == WorkerMessageTag.Patch) {
           injectJSON(data, this, true);
         } else if (workerMessage.tag == WorkerMessageTag.Func) {
-          const clonedMessage = workerMessage.clone({ tag: WorkerMessageTag.Result, data: { result: await this[data.name](...(data.args || [])) } });
+          const clonedMessage = workerMessage.clone({
+            tag: WorkerMessageTag.Result,
+            data: { result: await this[data.name](...(data.args || [])) },
+          });
 
           await this.sendWorkerMessage(clonedMessage);
         } else if (this.requests.hasOwnProperty(workerMessage.id)) {
           this.requests[workerMessage.id](workerMessage);
         }
       } catch (error) {
-        await this.sendWorkerMessage(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: error?.message || "Internal error" } }));
+        await this.sendWorkerMessage(
+          workerMessage.clone({
+            tag: WorkerMessageTag.Error,
+            data: { reason: error?.message || "Internal error" },
+          })
+        );
       }
     });
   }
@@ -135,7 +162,9 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @returns ID gerado.
    */
   public generateIdByTag(tag: WorkerMessageTag): string {
-    return `${tag}-${Date.now()}-${this.worker.process.pid}-${this.worker.id}-${Object.keys(this.requests).length}`;
+    return `${tag}-${Date.now()}-${this.worker.process.pid}-${this.worker.id}-${
+      Object.keys(this.requests).length
+    }`;
   }
 
   /**
@@ -144,14 +173,21 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param data - Data da mensagem.
    * @returns Mensagem de resposta do worker.
    */
-  public async sendWorkerMessage(workerMessage: WorkerMessage): Promise<WorkerMessage> {
+  public async sendWorkerMessage(
+    workerMessage: WorkerMessage
+  ): Promise<WorkerMessage> {
     const id = workerMessage.id || this.generateIdByTag(workerMessage.tag);
 
     const message = await new Promise<WorkerMessage>((resolve) => {
       try {
         this.requests[id] = resolve;
 
-        workerMessage.apply({ uid: "rompot", clientId: this.id, isMain: this.isMain, id });
+        workerMessage.apply({
+          uid: "rompot",
+          clientId: this.id,
+          isMain: this.isMain,
+          id,
+        });
 
         process.send!(workerMessage.toJSON());
 
@@ -163,16 +199,31 @@ export default class ClientCluster extends ClientEvents implements IClient {
           workerMessage.tag == WorkerMessageTag.Void ||
           workerMessage.tag == WorkerMessageTag.Error
         ) {
-          resolve(workerMessage.clone({ tag: WorkerMessageTag.Result, data: { result: undefined } }));
+          resolve(
+            workerMessage.clone({
+              tag: WorkerMessageTag.Result,
+              data: { result: undefined },
+            })
+          );
         } else if (workerMessage.autoCancel) {
           setTimeout(() => {
             if (!this.requests.hasOwnProperty(id)) return;
 
-            resolve(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: "Timeout" } }));
+            resolve(
+              workerMessage.clone({
+                tag: WorkerMessageTag.Error,
+                data: { reason: "Timeout" },
+              })
+            );
           }, this.config.maxTimeout);
         }
       } catch (error) {
-        resolve(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: error?.message || "Internal error" } }));
+        resolve(
+          workerMessage.clone({
+            tag: WorkerMessageTag.Error,
+            data: { reason: error?.message || "Internal error" },
+          })
+        );
       }
     });
 
@@ -190,7 +241,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.bot.on("message", async (message: Message) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "message", arg: message }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "message",
+              arg: message,
+            })
+          );
         } else {
           message = getMessageFromJSON(message);
 
@@ -211,13 +267,17 @@ export default class ClientCluster extends ClientEvents implements IClient {
 
           if (message.mention) {
             if (message.mention.chat.id != message.chat.id) {
-              message.mention.chat = (await this.getChat(message.mention.chat)) || message.mention.chat;
+              message.mention.chat =
+                (await this.getChat(message.mention.chat)) ||
+                message.mention.chat;
             } else {
               message.mention.chat = message.chat;
             }
 
             if (message.mention.user.id != message.user.id) {
-              message.mention.user = (await this.getUser(message.mention.user)) || message.mention.user;
+              message.mention.user =
+                (await this.getUser(message.mention.user)) ||
+                message.mention.user;
             } else {
               message.mention.user = message.user;
             }
@@ -228,8 +288,13 @@ export default class ClientCluster extends ClientEvents implements IClient {
           this.emit("message", message);
 
           if (this.config.disableAutoCommand) return;
-          if (this.config.disableAutoCommandForOldMessage && message.isOld) return;
-          if (this.config.disableAutoCommandForUnofficialMessage && message.isUnofficial) return;
+          if (this.config.disableAutoCommandForOldMessage && message.isOld)
+            return;
+          if (
+            this.config.disableAutoCommandForUnofficialMessage &&
+            message.isUnofficial
+          )
+            return;
 
           await this.quickResponseController.searchAndExecute(message);
 
@@ -247,7 +312,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.on("conn", async (update) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "conn", arg: update }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "conn",
+              arg: update,
+            })
+          );
         }
       } catch (err) {
         this.emit("error", getError(err));
@@ -257,7 +327,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.on("error", async (update) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "error", arg: update }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "error",
+              arg: update,
+            })
+          );
         }
       } catch (err) {
         this.emit("error", getError(err));
@@ -267,7 +342,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.bot.on("open", async (update) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "open", arg: update }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "open",
+              arg: update,
+            })
+          );
         } else {
           this.reconnectTimes = 0;
 
@@ -281,7 +361,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.bot.on("reconnecting", async (update) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "reconnecting", arg: update }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "reconnecting",
+              arg: update,
+            })
+          );
         } else {
           this.emit("reconnecting", update);
         }
@@ -293,7 +378,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.bot.on("connecting", async (update) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "connecting", arg: update }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "connecting",
+              arg: update,
+            })
+          );
         } else {
           this.emit("connecting", update);
         }
@@ -305,7 +395,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.bot.on("close", async (update) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "close", arg: update }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "close",
+              arg: update,
+            })
+          );
         } else {
           this.emit("close", update);
 
@@ -325,7 +420,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.bot.on("stop", async (update) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "stop", arg: update }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "stop",
+              arg: update,
+            })
+          );
         } else {
           this.emit("stop", update);
         }
@@ -337,7 +437,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.bot.on("qr", async (update) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "qr", arg: update }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "qr",
+              arg: update,
+            })
+          );
         } else {
           this.emit("qr", update);
         }
@@ -349,7 +454,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.bot.on("code", async (update) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "code", arg: update }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "code",
+              arg: update,
+            })
+          );
         } else {
           this.emit("code", update);
         }
@@ -361,9 +471,17 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.bot.on("chat", async (update) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "chat", arg: update }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "chat",
+              arg: update,
+            })
+          );
         } else {
-          this.emit("chat", { ...update, chat: { ...update.chat, clientId: this.id, botId: this.bot.id } });
+          this.emit("chat", {
+            ...update,
+            chat: { ...update.chat, clientId: this.id, botId: this.bot.id },
+          });
         }
       } catch (err) {
         this.emit("error", getError(err));
@@ -373,15 +491,49 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.bot.on("user", async (update) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "user", arg: update }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "user",
+              arg: update,
+            })
+          );
         } else {
           this.emit("user", {
             event: update.event,
             action: update.action,
-            chat: Chat.apply(update.chat, { clientId: this.id, botId: this.bot.id }),
-            user: User.apply(update.user, { clientId: this.id, botId: this.bot.id }),
-            fromUser: User.apply(update.fromUser, { clientId: this.id, botId: this.bot.id }),
+            chat: Chat.apply(update.chat, {
+              clientId: this.id,
+              botId: this.bot.id,
+            }),
+            user: User.apply(update.user, {
+              clientId: this.id,
+              botId: this.bot.id,
+            }),
+            fromUser: User.apply(update.fromUser, {
+              clientId: this.id,
+              botId: this.bot.id,
+            }),
           });
+        }
+      } catch (err) {
+        this.emit("error", getError(err));
+      }
+    });
+
+    this.bot.on("call", async (call) => {
+      try {
+        if (this.isMain) {
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "call",
+              arg: call,
+            })
+          );
+        } else {
+          this.emit(
+            "call",
+            Call.apply(call, { clientId: this.id, botId: this.bot.id })
+          );
         }
       } catch (err) {
         this.emit("error", getError(err));
@@ -391,7 +543,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.bot.on("error", async (update) => {
       try {
         if (this.isMain) {
-          await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Event, { name: "error", arg: update }));
+          await this.sendWorkerMessage(
+            new WorkerMessage(WorkerMessageTag.Event, {
+              name: "error",
+              arg: update,
+            })
+          );
         } else {
           this.emit("error", getError(update));
         }
@@ -406,9 +563,17 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async connect(auth?: IAuth | string) {
     if (this.isMain) {
-      await this.bot.connect(typeof auth != "string" || !auth ? this.auth : auth);
+      await this.bot.connect(
+        typeof auth != "string" || !auth ? this.auth : auth
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "connect", args: [auth] }, false));
+      await this.sendWorkerMessage(
+        new WorkerMessage(
+          WorkerMessageTag.Func,
+          { name: "connect", args: [auth] },
+          false
+        )
+      );
     }
   }
 
@@ -419,7 +584,13 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.reconnect(alert);
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "reconnect", args: [alert] }, false));
+      await this.sendWorkerMessage(
+        new WorkerMessage(
+          WorkerMessageTag.Func,
+          { name: "reconnect", args: [alert] },
+          false
+        )
+      );
     }
   }
 
@@ -430,7 +601,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.stop(reason);
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "stop", args: [reason] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "stop",
+          args: [reason],
+        })
+      );
     }
   }
 
@@ -441,7 +617,9 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.logout();
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "logout", args: [] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, { name: "logout", args: [] })
+      );
     }
   }
 
@@ -450,7 +628,10 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param eventName - Nome do evento que será aguardado.
    * @returns {Promise<ClientEventsMap[T]>} Argumento retornado do evento esperado.
    */
-  public async awaitEvent<T extends keyof ClientEventsMap>(eventName: T, maxTimeout?: number): Promise<ClientEventsMap[T]> {
+  public async awaitEvent<T extends keyof ClientEventsMap>(
+    eventName: T,
+    maxTimeout?: number
+  ): Promise<ClientEventsMap[T]> {
     return new Promise<ClientEventsMap[T]>((res, rej) => {
       let timeout: NodeJS.Timeout;
 
@@ -554,7 +735,9 @@ export default class ClientCluster extends ClientEvents implements IClient {
     return this.commandController.runCommand(command, message, type);
   }
 
-  public setAdvancedCommandController(advancedCommandController: AdvancedCommandController) {
+  public setAdvancedCommandController(
+    advancedCommandController: AdvancedCommandController
+  ) {
     advancedCommandController.clientId = this.id;
 
     this.advancedCommandController = advancedCommandController;
@@ -568,7 +751,10 @@ export default class ClientCluster extends ClientEvents implements IClient {
     this.advancedCommandController.setCommands(...commands);
   }
 
-  public createAdvancedCommand<T extends object>(id: string, context: T): AdvancedCommand<T> {
+  public createAdvancedCommand<T extends object>(
+    id: string,
+    context: T
+  ): AdvancedCommand<T> {
     return this.advancedCommandController.createCommand({ id, context });
   }
 
@@ -584,7 +770,10 @@ export default class ClientCluster extends ClientEvents implements IClient {
     return this.advancedCommandController.removeCommand(command);
   }
 
-  public execAdvancedCommand(command: AdvancedCommand | string, message: Message) {
+  public execAdvancedCommand(
+    command: AdvancedCommand | string,
+    message: Message
+  ) {
     if (typeof command == "string") {
       const cmd = this.advancedCommandController.getCommand(command);
 
@@ -604,13 +793,29 @@ export default class ClientCluster extends ClientEvents implements IClient {
       },
     };
 
-    return this.advancedCommandController.execCommand(command.id, message, options);
+    return this.advancedCommandController.execCommand(
+      command.id,
+      message,
+      options
+    );
   }
 
   public addQuickResponse(pattern: QuickResponse): QuickResponse;
-  public addQuickResponse(pattern: QuickResponsePattern, reply: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
-  public addQuickResponse(pattern: QuickResponsePattern[], reply: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse;
-  public addQuickResponse(content: QuickResponse | QuickResponsePattern | QuickResponsePattern[], reply?: QuickResponseReply, options?: Partial<QuickResponseOptions>): QuickResponse {
+  public addQuickResponse(
+    pattern: QuickResponsePattern,
+    reply: QuickResponseReply,
+    options?: Partial<QuickResponseOptions>
+  ): QuickResponse;
+  public addQuickResponse(
+    pattern: QuickResponsePattern[],
+    reply: QuickResponseReply,
+    options?: Partial<QuickResponseOptions>
+  ): QuickResponse;
+  public addQuickResponse(
+    content: QuickResponse | QuickResponsePattern | QuickResponsePattern[],
+    reply?: QuickResponseReply,
+    options?: Partial<QuickResponseOptions>
+  ): QuickResponse {
     if (content instanceof QuickResponse) {
       this.quickResponseController.add(content);
 
@@ -637,7 +842,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.deleteMessage(getMessageFromJSON(message));
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "deleteMessage", args: [message] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "deleteMessage",
+          args: [message],
+        })
+      );
     }
   }
 
@@ -648,7 +858,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.readMessage(getMessageFromJSON(message));
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "removeMessage", args: [message] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "removeMessage",
+          args: [message],
+        })
+      );
     }
   }
 
@@ -659,9 +874,18 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.readMessage(getMessageFromJSON(message));
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "readMessage", args: [message] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "readMessage",
+          args: [message],
+        })
+      );
 
-      if (message.status == MessageStatus.Sending || message.status == MessageStatus.Sended || message.status == MessageStatus.Received) {
+      if (
+        message.status == MessageStatus.Sending ||
+        message.status == MessageStatus.Sended ||
+        message.status == MessageStatus.Received
+      ) {
         if (message.type == MessageType.Audio) {
           message.status = MessageStatus.Played;
         } else {
@@ -681,12 +905,19 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async editMessage(message: Message, text: string): Promise<void> {
     if (this.isMain) {
-      await this.bot.editMessage(getMessageFromJSON({ ...(message || {}), text, isEdited: true }));
+      await this.bot.editMessage(
+        getMessageFromJSON({ ...(message || {}), text, isEdited: true })
+      );
     } else {
       message.text = text;
       message.isEdited = true;
 
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "editMessage", args: [message, text] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "editMessage",
+          args: [message, text],
+        })
+      );
     }
   }
 
@@ -698,9 +929,18 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       message = getMessageFromJSON(message);
 
-      await this.bot.addReaction(new ReactionMessage(message.chat, reaction, message, { user: message.user }));
+      await this.bot.addReaction(
+        new ReactionMessage(message.chat, reaction, message, {
+          user: message.user,
+        })
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "addReaction", args: [message, reaction] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "addReaction",
+          args: [message, reaction],
+        })
+      );
     }
   }
 
@@ -711,9 +951,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       message = getMessageFromJSON(message);
 
-      await this.bot.removeReaction(new ReactionMessage(message.chat, "", message, { user: message.user }));
+      await this.bot.removeReaction(
+        new ReactionMessage(message.chat, "", message, { user: message.user })
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "removeReaction", args: [message] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "removeReaction",
+          args: [message],
+        })
+      );
     }
   }
 
@@ -723,7 +970,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param interval Intervalo entre cada reação
    * @param maxTimeout Maximo de tempo reagindo
    */
-  public addAnimatedReaction(message: Message, reactions: string[], interval: number = 2000, maxTimeout: number = 60000): (reactionStop?: string) => Promise<void> {
+  public addAnimatedReaction(
+    message: Message,
+    reactions: string[],
+    interval: number = 2000,
+    maxTimeout: number = 60000
+  ): (reactionStop?: string) => Promise<void> {
     var isStoped: boolean = false;
     const now = Date.now();
 
@@ -764,13 +1016,24 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async send(message: Message): Promise<Message> {
     if (this.isMain) {
-      return Message.apply(await this.bot.send(getMessageFromJSON(message)), { clientId: this.id, botId: this.bot.id });
+      return Message.apply(await this.bot.send(getMessageFromJSON(message)), {
+        clientId: this.id,
+        botId: this.bot.id,
+      });
     } else {
       if (!this.config.disableAutoTyping) {
-        await this.changeChatStatus(message.chat, message.type == "audio" ? ChatStatus.Recording : ChatStatus.Typing);
+        await this.changeChatStatus(
+          message.chat,
+          message.type == "audio" ? ChatStatus.Recording : ChatStatus.Typing
+        );
       }
 
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "send", args: [message] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "send",
+          args: [message],
+        })
+      );
 
       return getMessageFromJSON(workerMessage.getData().result || message);
     }
@@ -781,10 +1044,20 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param message Mensagem que será enviada
    * @param mention Mensagem que será mencionada
    */
-  public async sendMessage(chat: Chat | string, message: string | Message, mention?: Message): Promise<Message> {
+  public async sendMessage(
+    chat: Chat | string,
+    message: string | Message,
+    mention?: Message
+  ): Promise<Message> {
     if (Message.isValid(message)) {
-      message = Message.apply(message, { clientId: this.id, botId: this.bot.id });
-      message.chat = Chat.apply(chat, { clientId: this.id, botId: this.bot.id });
+      message = Message.apply(message, {
+        clientId: this.id,
+        botId: this.bot.id,
+      });
+      message.chat = Chat.apply(chat, {
+        clientId: this.id,
+        botId: this.bot.id,
+      });
       message.mention = mention;
 
       return await this.send(message);
@@ -797,8 +1070,14 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param chat Sala de bate-papo que irá receber a mensagem
    * @param config Configuração do aguardo da mensagem
    */
-  public async awaitMessage(chat: Chat | string, config: Partial<MessageHandlerConfig> = {}): Promise<Message> {
-    return Message.apply(await this.messageHandler.addMessage(Chat.getId(chat), config), { clientId: this.id, botId: this.bot.id });
+  public async awaitMessage(
+    chat: Chat | string,
+    config: Partial<MessageHandlerConfig> = {}
+  ): Promise<Message> {
+    return Message.apply(
+      await this.messageHandler.addMessage(Chat.getId(chat), config),
+      { clientId: this.id, botId: this.bot.id }
+    );
   }
 
   /**
@@ -818,7 +1097,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       return await this.bot.downloadStreamMessage(message.file);
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "downloadStreamMessage", args: [message] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "downloadStreamMessage",
+          args: [message],
+        })
+      );
 
       return workerMessage.getData().result || Buffer.from("");
     }
@@ -829,7 +1113,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       return await this.bot.getBotName();
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getBotName", args: [] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getBotName",
+          args: [],
+        })
+      );
 
       return workerMessage.getData().result || "";
     }
@@ -842,7 +1131,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.setBotName(name);
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setBotName", args: [name] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "setBotName",
+          args: [name],
+        })
+      );
     }
   }
 
@@ -851,7 +1145,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       return await this.bot.getBotDescription();
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getBotDescription", args: [] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getBotDescription",
+          args: [],
+        })
+      );
 
       return workerMessage.getData().result || "";
     }
@@ -864,7 +1163,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.setBotDescription(description);
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setBotDescription", args: [description] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "setBotDescription",
+          args: [description],
+        })
+      );
     }
   }
 
@@ -873,7 +1177,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       return await this.bot.getBotProfile(lowQuality);
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getBotProfile", args: [lowQuality] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getBotProfile",
+          args: [lowQuality],
+        })
+      );
 
       return workerMessage.getData().result || Buffer.from("");
     }
@@ -886,7 +1195,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.setBotProfile(profile);
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setBotProfile", args: [profile] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "setBotProfile",
+          args: [profile],
+        })
+      );
     }
   }
 
@@ -896,13 +1210,20 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async getChat(chat: Chat | string): Promise<Chat | null> {
     if (this.isMain) {
-      const chatData = await this.bot.getChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+      const chatData = await this.bot.getChat(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+      );
 
       if (chatData == null) return null;
 
       return Chat.apply(chatData, { clientId: this.id, botId: this.bot.id });
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChat", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getChat",
+          args: [chat],
+        })
+      );
 
       const chatData = workerMessage.getData().result || null;
 
@@ -921,7 +1242,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.updateChat({ ...chat, id });
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "updateChat", args: [id, chat] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "updateChat",
+          args: [id, chat],
+        })
+      );
     }
   }
 
@@ -937,15 +1263,21 @@ export default class ClientCluster extends ClientEvents implements IClient {
 
           if (chat == null) return;
 
-          chats.push(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+          chats.push(
+            Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+          );
         })
       );
 
       return chats;
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChats", args: [] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, { name: "getChats", args: [] })
+      );
 
-      return (workerMessage.getData().result || []).map((chat: Chat) => Chat.fromJSON(chat)) as Chat[];
+      return (workerMessage.getData().result || []).map((chat: Chat) =>
+        Chat.fromJSON(chat)
+      ) as Chat[];
     }
   }
 
@@ -956,7 +1288,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.setChats((chats || []).map((chat) => Chat.fromJSON(chat)));
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setChats", args: [chats] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "setChats",
+          args: [chats],
+        })
+      );
     }
   }
 
@@ -965,9 +1302,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async removeChat(chat: string | Chat): Promise<void> {
     if (this.isMain) {
-      await this.bot.removeChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+      await this.bot.removeChat(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "removeChat", args: [chat] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "removeChat",
+          args: [chat],
+        })
+      );
     }
   }
 
@@ -976,9 +1320,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async createChat(chat: Chat): Promise<void> {
     if (this.isMain) {
-      await this.bot.createChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+      await this.bot.createChat(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "createChat", args: [chat] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "createChat",
+          args: [chat],
+        })
+      );
     }
   }
 
@@ -987,9 +1338,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async leaveChat(chat: Chat | string): Promise<void> {
     if (this.isMain) {
-      await this.bot.leaveChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+      await this.bot.leaveChat(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "leaveChat", args: [chat] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "leaveChat",
+          args: [chat],
+        })
+      );
     }
   }
 
@@ -999,9 +1357,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async getChatName(chat: Chat | string): Promise<string> {
     if (this.isMain) {
-      return await this.bot.getChatName(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+      return await this.bot.getChatName(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatName", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getChatName",
+          args: [chat],
+        })
+      );
 
       return workerMessage.getData().result || "";
     }
@@ -1013,9 +1378,17 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async setChatName(chat: Chat | string, name: string): Promise<void> {
     if (this.isMain) {
-      await this.bot.setChatName(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), name);
+      await this.bot.setChatName(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+        name
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setChatName", args: [chat, name] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "setChatName",
+          args: [chat, name],
+        })
+      );
     }
   }
 
@@ -1025,9 +1398,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async getChatDescription(chat: Chat | string): Promise<string> {
     if (this.isMain) {
-      return await this.bot.getChatDescription(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+      return await this.bot.getChatDescription(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatDescription", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getChatDescription",
+          args: [chat],
+        })
+      );
 
       return workerMessage.getData().result || "";
     }
@@ -1037,11 +1417,22 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param chat Sala de bate-papo
    * @param description Descrição da sala de bate-papo
    */
-  public async setChatDescription(chat: Chat | string, description: string): Promise<void> {
+  public async setChatDescription(
+    chat: Chat | string,
+    description: string
+  ): Promise<void> {
     if (this.isMain) {
-      await this.bot.setChatDescription(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), description);
+      await this.bot.setChatDescription(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+        description
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setChatDescription", args: [chat, description] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "setChatDescription",
+          args: [chat, description],
+        })
+      );
     }
   }
 
@@ -1049,11 +1440,22 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param chat Sala de bate-papo
    * @returns Retorna a imagem de perfil da sala de bate-papo
    */
-  public async getChatProfile(chat: Chat | string, lowQuality?: boolean): Promise<Buffer> {
+  public async getChatProfile(
+    chat: Chat | string,
+    lowQuality?: boolean
+  ): Promise<Buffer> {
     if (this.isMain) {
-      return await this.bot.getChatProfile(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), lowQuality);
+      return await this.bot.getChatProfile(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+        lowQuality
+      );
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatProfile", args: [chat, lowQuality] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getChatProfile",
+          args: [chat, lowQuality],
+        })
+      );
 
       return workerMessage.getData().result || Buffer.from("");
     }
@@ -1063,11 +1465,22 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param chat Sala de bate-papo
    * @param profile Imagem de perfil da sala de bate-papo
    */
-  public async setChatProfile(chat: Chat | string, profile: Buffer): Promise<void> {
+  public async setChatProfile(
+    chat: Chat | string,
+    profile: Buffer
+  ): Promise<void> {
     if (this.isMain) {
-      await this.bot.setChatProfile(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), profile);
+      await this.bot.setChatProfile(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+        profile
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setChatProfile", args: [chat, profile] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "setChatProfile",
+          args: [chat, profile],
+        })
+      );
     }
   }
 
@@ -1077,9 +1490,19 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async getChatLeader(chat: Chat | string): Promise<User> {
     if (this.isMain) {
-      return User.apply(await this.bot.getChatLeader(Chat.apply(chat, { clientId: this.id, botId: this.bot.id })), { clientId: this.id, botId: this.bot.id });
+      return User.apply(
+        await this.bot.getChatLeader(
+          Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+        ),
+        { clientId: this.id, botId: this.bot.id }
+      );
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatLeader", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getChatLeader",
+          args: [chat],
+        })
+      );
 
       return User.fromJSON(workerMessage.getData().result || {});
     }
@@ -1091,9 +1514,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async getChatUsers(chat: Chat | string): Promise<string[]> {
     if (this.isMain) {
-      return await this.bot.getChatUsers(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+      return await this.bot.getChatUsers(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatUsers", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getChatUsers",
+          args: [chat],
+        })
+      );
 
       return workerMessage.getData().result || [];
     }
@@ -1105,9 +1535,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async getChatAdmins(chat: Chat | string): Promise<string[]> {
     if (this.isMain) {
-      return await this.bot.getChatAdmins(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+      return await this.bot.getChatAdmins(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatAdmins", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getChatAdmins",
+          args: [chat],
+        })
+      );
 
       return workerMessage.getData().result || [];
     }
@@ -1117,11 +1554,22 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  public async addUserInChat(chat: Chat | string, user: User | string): Promise<void> {
+  public async addUserInChat(
+    chat: Chat | string,
+    user: User | string
+  ): Promise<void> {
     if (this.isMain) {
-      await this.bot.addUserInChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
+      await this.bot.addUserInChat(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+        User.apply(user, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "addUserInChat", args: [chat, user] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "addUserInChat",
+          args: [chat, user],
+        })
+      );
     }
   }
 
@@ -1129,11 +1577,22 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  public async removeUserInChat(chat: Chat | string, user: User | string): Promise<void> {
+  public async removeUserInChat(
+    chat: Chat | string,
+    user: User | string
+  ): Promise<void> {
     if (this.isMain) {
-      await this.bot.removeUserInChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
+      await this.bot.removeUserInChat(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+        User.apply(user, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "removeUserInChat", args: [chat, user] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "removeUserInChat",
+          args: [chat, user],
+        })
+      );
     }
   }
 
@@ -1141,11 +1600,22 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  public async promoteUserInChat(chat: Chat | string, user: User | string): Promise<void> {
+  public async promoteUserInChat(
+    chat: Chat | string,
+    user: User | string
+  ): Promise<void> {
     if (this.isMain) {
-      await this.bot.promoteUserInChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
+      await this.bot.promoteUserInChat(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+        User.apply(user, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "promoteUserInChat", args: [chat, user] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "promoteUserInChat",
+          args: [chat, user],
+        })
+      );
     }
   }
 
@@ -1153,11 +1623,22 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param chat Sala de bate-papo
    * @param user Usuário
    */
-  public async demoteUserInChat(chat: Chat | string, user: User | string): Promise<void> {
+  public async demoteUserInChat(
+    chat: Chat | string,
+    user: User | string
+  ): Promise<void> {
     if (this.isMain) {
-      await this.bot.demoteUserInChat(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), User.apply(user, { clientId: this.id, botId: this.bot.id }));
+      await this.bot.demoteUserInChat(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+        User.apply(user, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "demoteUserInChat", args: [chat, user] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "demoteUserInChat",
+          args: [chat, user],
+        })
+      );
     }
   }
 
@@ -1165,11 +1646,22 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param chat Sala de bate-papo
    * @param status Status da sala de bate-papo
    */
-  public async changeChatStatus(chat: Chat | string, status: ChatStatus): Promise<void> {
+  public async changeChatStatus(
+    chat: Chat | string,
+    status: ChatStatus
+  ): Promise<void> {
     if (this.isMain) {
-      await this.bot.changeChatStatus(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }), status);
+      await this.bot.changeChatStatus(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id }),
+        status
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "changeChatStatus", args: [chat, status] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "changeChatStatus",
+          args: [chat, status],
+        })
+      );
     }
   }
 
@@ -1181,7 +1673,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.joinChat(code);
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "joinChat", args: [code] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "joinChat",
+          args: [code],
+        })
+      );
     }
   }
 
@@ -1192,9 +1689,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async getChatInvite(chat: Chat | string): Promise<string> {
     if (this.isMain) {
-      return await this.bot.getChatInvite(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+      return await this.bot.getChatInvite(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getChatInvite", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getChatInvite",
+          args: [chat],
+        })
+      );
 
       return workerMessage.getData().result || "";
     }
@@ -1207,11 +1711,33 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async revokeChatInvite(chat: Chat | string): Promise<string> {
     if (this.isMain) {
-      return await this.bot.revokeChatInvite(Chat.apply(chat, { clientId: this.id, botId: this.bot.id }));
+      return await this.bot.revokeChatInvite(
+        Chat.apply(chat, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "revokeChatInvite", args: [chat] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "revokeChatInvite",
+          args: [chat],
+        })
+      );
 
       return workerMessage.getData().result || "";
+    }
+  }
+
+  public async rejectCall(call: Call | string): Promise<void> {
+    if (this.isMain) {
+      await this.bot.rejectCall(
+        Call.apply(call, { clientId: this.id, botId: this.bot.id })
+      );
+    } else {
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "rejectCall",
+          args: [call],
+        })
+      );
     }
   }
 
@@ -1227,15 +1753,21 @@ export default class ClientCluster extends ClientEvents implements IClient {
 
           if (user == null) return;
 
-          users.push(User.apply(user, { clientId: this.id, botId: this.bot.id }));
+          users.push(
+            User.apply(user, { clientId: this.id, botId: this.bot.id })
+          );
         })
       );
 
       return users;
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getUsers", args: [] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, { name: "getUsers", args: [] })
+      );
 
-      return (workerMessage.getData().result || []).map((user: User) => User.fromJSON(user)) as User[];
+      return (workerMessage.getData().result || []).map((user: User) =>
+        User.fromJSON(user)
+      ) as User[];
     }
   }
 
@@ -1254,15 +1786,24 @@ export default class ClientCluster extends ClientEvents implements IClient {
 
           if (user == null || !user.savedName) return;
 
-          users.push(User.apply(user, { clientId: this.id, botId: this.bot.id }));
+          users.push(
+            User.apply(user, { clientId: this.id, botId: this.bot.id })
+          );
         })
       );
 
       return users;
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getSavedUsers", args: [] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getSavedUsers",
+          args: [],
+        })
+      );
 
-      return (workerMessage.getData().result || []).map((user: User) => User.fromJSON(user)) as User[];
+      return (workerMessage.getData().result || []).map((user: User) =>
+        User.fromJSON(user)
+      ) as User[];
     }
   }
 
@@ -1273,7 +1814,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.setUsers(users);
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setUsers", args: [users] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "setUsers",
+          args: [users],
+        })
+      );
     }
   }
 
@@ -1283,13 +1829,20 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async getUser(user: User | string): Promise<User | null> {
     if (this.isMain) {
-      const userData = await this.bot.getUser(User.apply(user, { clientId: this.id, botId: this.bot.id }));
+      const userData = await this.bot.getUser(
+        User.apply(user, { clientId: this.id, botId: this.bot.id })
+      );
 
       if (userData == null) return null;
 
       return User.apply(userData, { clientId: this.id, botId: this.bot.id });
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getUser", args: [user] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getUser",
+          args: [user],
+        })
+      );
 
       const userData = workerMessage.getData().result || null;
 
@@ -1308,7 +1861,12 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       await this.bot.updateUser({ ...user, id });
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "updateUser", args: [id, user] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "updateUser",
+          args: [id, user],
+        })
+      );
     }
   }
 
@@ -1317,9 +1875,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async removeUser(user: User | string): Promise<void> {
     if (this.isMain) {
-      await this.bot.removeUser(User.apply(user, { clientId: this.id, botId: this.bot.id }));
+      await this.bot.removeUser(
+        User.apply(user, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "removeUser", args: [user] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "removeUser",
+          args: [user],
+        })
+      );
     }
   }
 
@@ -1331,9 +1896,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
     if (this.isMain) {
       if (User.getId(user) == this.id) return this.getBotName();
 
-      return await this.bot.getUserName(User.apply(user, { clientId: this.id, botId: this.bot.id }));
+      return await this.bot.getUserName(
+        User.apply(user, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getUserName", args: [user] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getUserName",
+          args: [user],
+        })
+      );
 
       return workerMessage.getData().result || "";
     }
@@ -1349,9 +1921,17 @@ export default class ClientCluster extends ClientEvents implements IClient {
         await this.setBotName(name);
       }
 
-      await this.bot.setUserName(User.apply(user, { clientId: this.id, botId: this.bot.id }), name);
+      await this.bot.setUserName(
+        User.apply(user, { clientId: this.id, botId: this.bot.id }),
+        name
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setUserName", args: [user, name] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "setUserName",
+          args: [user, name],
+        })
+      );
     }
   }
 
@@ -1365,9 +1945,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
         return await this.getBotDescription();
       }
 
-      return await this.bot.getUserDescription(User.apply(user, { clientId: this.id, botId: this.bot.id }));
+      return await this.bot.getUserDescription(
+        User.apply(user, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getUserDescription", args: [user] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getUserDescription",
+          args: [user],
+        })
+      );
 
       return workerMessage.getData().result || "";
     }
@@ -1377,15 +1964,26 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param user Usuário
    * @param description Descrição do usuário
    */
-  public async setUserDescription(user: User | string, description: string): Promise<void> {
+  public async setUserDescription(
+    user: User | string,
+    description: string
+  ): Promise<void> {
     if (this.isMain) {
       if (User.getId(user) == this.id) {
         await this.setBotDescription(description);
       }
 
-      await this.bot.setUserDescription(User.apply(user, { clientId: this.id, botId: this.bot.id }), description);
+      await this.bot.setUserDescription(
+        User.apply(user, { clientId: this.id, botId: this.bot.id }),
+        description
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setUserDescription", args: [user, description] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "setUserDescription",
+          args: [user, description],
+        })
+      );
     }
   }
 
@@ -1393,15 +1991,26 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param user Usuário
    * @returns Retorna a foto de perfil do usuário
    */
-  public async getUserProfile(user: User | string, lowQuality?: boolean): Promise<Buffer> {
+  public async getUserProfile(
+    user: User | string,
+    lowQuality?: boolean
+  ): Promise<Buffer> {
     if (this.isMain) {
       if (User.getId(user) == this.id) {
         return await this.getBotProfile(lowQuality);
       }
 
-      return await this.bot.getUserProfile(User.apply(user, { clientId: this.id, botId: this.bot.id }), lowQuality);
+      return await this.bot.getUserProfile(
+        User.apply(user, { clientId: this.id, botId: this.bot.id }),
+        lowQuality
+      );
     } else {
-      const workerMessage = await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "getUserProfile", args: [user, lowQuality] }));
+      const workerMessage = await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "getUserProfile",
+          args: [user, lowQuality],
+        })
+      );
 
       return workerMessage.getData().result || Buffer.from("");
     }
@@ -1411,15 +2020,26 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param user Usuário
    * @param profile Imagem de perfil do usuário
    */
-  public async setUserProfile(user: User | string, profile: Buffer): Promise<void> {
+  public async setUserProfile(
+    user: User | string,
+    profile: Buffer
+  ): Promise<void> {
     if (this.isMain) {
       if (User.getId(user) == this.id) {
         await this.setBotProfile(profile);
       }
 
-      await this.bot.setUserProfile(User.apply(user, { clientId: this.id, botId: this.bot.id }), profile);
+      await this.bot.setUserProfile(
+        User.apply(user, { clientId: this.id, botId: this.bot.id }),
+        profile
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "setUserProfile", args: [user, profile] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "setUserProfile",
+          args: [user, profile],
+        })
+      );
     }
   }
 
@@ -1428,9 +2048,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async unblockUser(user: User | string): Promise<void> {
     if (this.isMain) {
-      await this.bot.unblockUser(User.apply(user, { clientId: this.id, botId: this.bot.id }));
+      await this.bot.unblockUser(
+        User.apply(user, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "unblockUser", args: [user] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "unblockUser",
+          args: [user],
+        })
+      );
     }
   }
 
@@ -1439,9 +2066,16 @@ export default class ClientCluster extends ClientEvents implements IClient {
    */
   public async blockUser(user: User | string): Promise<void> {
     if (this.isMain) {
-      await this.bot.blockUser(User.apply(user, { clientId: this.id, botId: this.bot.id }));
+      await this.bot.blockUser(
+        User.apply(user, { clientId: this.id, botId: this.bot.id })
+      );
     } else {
-      await this.sendWorkerMessage(new WorkerMessage(WorkerMessageTag.Func, { name: "blockUser", args: [user] }));
+      await this.sendWorkerMessage(
+        new WorkerMessage(WorkerMessageTag.Func, {
+          name: "blockUser",
+          args: [user],
+        })
+      );
     }
   }
 
@@ -1450,7 +2084,10 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @returns Clientes ordenados pelo ID.
    */
   public static getClients(): Record<string, ClientCluster> {
-    if (!global.hasOwnProperty("rompot-clients-cluster") || typeof global["rompot-clients-cluster"] != "object") {
+    if (
+      !global.hasOwnProperty("rompot-clients-cluster") ||
+      typeof global["rompot-clients-cluster"] != "object"
+    ) {
       global["rompot-clients-cluster"] = {};
     }
 
@@ -1477,7 +2114,10 @@ export default class ClientCluster extends ClientEvents implements IClient {
       return clients[id];
     }
 
-    return new ClientCluster(id, global["default-rompot-worker"] || global["rompot-cluster-save"]?.worker);
+    return new ClientCluster(
+      id,
+      global["default-rompot-worker"] || global["rompot-cluster-save"]?.worker
+    );
   }
 
   /**
@@ -1485,7 +2125,10 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param client - Cliente que será definido
    */
   public static saveClient(client: ClientCluster): void {
-    if (!global.hasOwnProperty("rompot-clients-cluster") || typeof global["rompot-clients-cluster"] != "object") {
+    if (
+      !global.hasOwnProperty("rompot-clients-cluster") ||
+      typeof global["rompot-clients-cluster"] != "object"
+    ) {
       global["rompot-clients-cluster"] = {};
     }
 
@@ -1501,7 +2144,9 @@ export default class ClientCluster extends ClientEvents implements IClient {
 
   /** Gera um id único */
   public static generateId(): string {
-    return `${process.pid}-${Date.now()}-${Object.keys(ClientCluster.getClients()).length}`;
+    return `${process.pid}-${Date.now()}-${
+      Object.keys(ClientCluster.getClients()).length
+    }`;
   }
 
   /**
@@ -1512,7 +2157,13 @@ export default class ClientCluster extends ClientEvents implements IClient {
    * @param auth - Autenticação do bot.
    * @returns Instância principal do cliente.
    */
-  public static createMain(id: string, worker: Worker, bot: IBot, auth: IAuth | string, config: Partial<ClientClusterConfig>): ClientCluster {
+  public static createMain(
+    id: string,
+    worker: Worker,
+    bot: IBot,
+    auth: IAuth | string,
+    config: Partial<ClientClusterConfig>
+  ): ClientCluster {
     const clientMain = new ClientCluster(id, worker, config, true);
 
     clientMain.bot = bot;
@@ -1542,29 +2193,52 @@ export default class ClientCluster extends ClientEvents implements IClient {
       try {
         if (workerMessage.uid != "rompot") return;
 
-        if (!global[GlobalRompotCluster].clients[worker.id]?.includes(workerMessage.clientId)) {
-          global[GlobalRompotCluster].clients[worker.id] = [...(global[GlobalRompotCluster].clients[worker.id] || []), workerMessage.clientId];
+        if (
+          !global[GlobalRompotCluster].clients[worker.id]?.includes(
+            workerMessage.clientId
+          )
+        ) {
+          global[GlobalRompotCluster].clients[worker.id] = [
+            ...(global[GlobalRompotCluster].clients[worker.id] || []),
+            workerMessage.clientId,
+          ];
         }
 
         if (workerMessage.isPrimary) return;
 
-        for (const workerId of Object.keys(global[GlobalRompotCluster]?.clients || {})) {
+        for (const workerId of Object.keys(
+          global[GlobalRompotCluster]?.clients || {}
+        )) {
           try {
-            for (const clientId of global[GlobalRompotCluster]?.clients[workerId] || []) {
+            for (const clientId of global[GlobalRompotCluster]?.clients[
+              workerId
+            ] || []) {
               if (clientId != workerMessage.clientId) continue;
 
-              const workerReceive = global[GlobalRompotCluster].workers[workerId] as Worker;
+              const workerReceive = global[GlobalRompotCluster].workers[
+                workerId
+              ] as Worker;
 
               if (!workerReceive) continue;
 
               workerReceive.send(workerMessage);
             }
           } catch (error) {
-            worker.send(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: "Error in send message from worker" } }));
+            worker.send(
+              workerMessage.clone({
+                tag: WorkerMessageTag.Error,
+                data: { reason: "Error in send message from worker" },
+              })
+            );
           }
         }
       } catch (error) {
-        worker.send(workerMessage.clone({ tag: WorkerMessageTag.Error, data: { reason: "Error in receive message from worker" } }));
+        worker.send(
+          workerMessage.clone({
+            tag: WorkerMessageTag.Error,
+            data: { reason: "Error in receive message from worker" },
+          })
+        );
       }
     });
   }

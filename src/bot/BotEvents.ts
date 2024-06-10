@@ -1,12 +1,13 @@
 import EventEmitter from "events";
 
-import { ChatAction } from "../chat/ChatAction";
-import { UserAction } from "../user/UserAction";
 import { UserEvent } from "../user/UserEvent";
+import { UserAction } from "../user/UserAction";
+import { ChatAction } from "../chat/ChatAction";
 
-import Message from "../messages/Message";
 import Chat from "../chat/Chat";
 import User from "../user/User";
+import Call from "../models/Call";
+import Message from "../messages/Message";
 /**
  * Mapeia os eventos disponíveis para um bot.
  */
@@ -48,6 +49,8 @@ export type BotEventsMap = {
   };
   /** Ocorre quando uma nova mensagem é recebida pelo bot. */
   message: Message;
+  /** Ocorre ao receber uma atualizaçãod e chamada */
+  call: Call;
   /** Ocorre quando um erro é detectado. */
   error: Error;
 };
@@ -64,7 +67,10 @@ export default class BotEvents {
    * @param eventName - O nome do evento ao qual o ouvinte será associado.
    * @param listener - A função que será chamada quando o evento ocorrer.
    */
-  public on<T extends keyof BotEventsMap>(eventName: T, listener: (arg: BotEventsMap[T]) => void) {
+  public on<T extends keyof BotEventsMap>(
+    eventName: T,
+    listener: (arg: BotEventsMap[T]) => void
+  ) {
     this.ev.on(eventName, listener);
   }
 
@@ -73,7 +79,10 @@ export default class BotEvents {
    * @param eventName - O nome do evento do qual o ouvinte será removido.
    * @param listener - A função de ouvinte a ser removida.
    */
-  public off<T extends keyof BotEventsMap>(eventName: T, listener: (arg: BotEventsMap[T]) => void): void {
+  public off<T extends keyof BotEventsMap>(
+    eventName: T,
+    listener: (arg: BotEventsMap[T]) => void
+  ): void {
     this.ev.off(eventName, listener);
   }
 
@@ -91,7 +100,10 @@ export default class BotEvents {
    * @param arg - Os argumentos a serem passados para os ouvintes.
    * @returns Verdadeiro se algum ouvinte for chamado, caso contrário, falso.
    */
-  public emit<T extends keyof BotEventsMap>(eventName: T, arg: BotEventsMap[T]): boolean {
+  public emit<T extends keyof BotEventsMap>(
+    eventName: T,
+    arg: BotEventsMap[T]
+  ): boolean {
     if (this.eventsIsStoped) return false;
 
     return this.ev.emit(eventName, arg);
