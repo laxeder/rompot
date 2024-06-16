@@ -6,12 +6,16 @@ import Chat from "../chat/Chat";
 export type List = {
   /** Titulo da lista */
   title: string;
+  /** Label da lista */
+  label?: string;
   /** Itens da lista */
   items: ListItem[];
 };
 
 /** Item da lista */
 export type ListItem = {
+  /** Cabeçalho do item */
+  header?: string;
   /** Titulo do item */
   title: string;
   /** Descrição do item */
@@ -41,8 +45,12 @@ export default class ListMessage extends Message {
   public footer: string;
   /** Título da lista. */
   public title: string;
-  /** Tipo da lista */
+  /** Subtítulo da lista. */
+  public subtitle: string;
+  /** Tipo da lista. Apenas disponível para o `WhatsAppBot`. */
   public listType: number = ListType.PRODUCT_LIST;
+  /** Usa o modo interactive message. Disponivel apenas para o `WhatsAppBot`. */
+  public interactiveMode: boolean = false;
 
   /**
    * Cria uma nova instância de ListMessage.

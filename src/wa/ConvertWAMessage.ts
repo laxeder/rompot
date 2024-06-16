@@ -177,6 +177,10 @@ export default class ConvertWAMessage {
       this.convertListMessage(messageContent!);
     }
 
+    if (contentType === "interactiveMessage") {
+      this.convertInteractiveMessage(messageContent!);
+    }
+
     if (contentType === "locationMessage") {
       this.convertLocationMessage(messageContent![contentType]);
     }
@@ -523,7 +527,7 @@ export default class ConvertWAMessage {
    * @returns
    */
   public convertListMessage(content: WAMessageContent) {
-    let listMessage = content.listMessage;
+    const listMessage = content.listMessage;
 
     if (!!!listMessage) return;
 
@@ -545,6 +549,18 @@ export default class ConvertWAMessage {
     });
 
     this.message = listMSG;
+  }
+
+  /**
+   * * Converte uma mensagem de interativa
+   * @param content
+   */
+  public convertInteractiveMessage(content: WAMessageContent) {
+    const interactiveMessage = content.interactiveMessage;
+
+    if (!interactiveMessage) return;
+
+    // TODO: Implementar a conversão de mensagem interativa
   }
 
   public static convertMessageStatus(status?: proto.WebMessageInfo.Status): MessageStatus {

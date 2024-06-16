@@ -1,4 +1,4 @@
-import { generateWAMessage, isJidGroup, MiscMessageGenerationOptions, proto } from "@whiskeysockets/baileys";
+import { generateWAMessage, generateWAMessageContent, generateWAMessageFromContent, isJidGroup, MiscMessageGenerationOptions, proto } from "@whiskeysockets/baileys";
 
 import Message, { MessageStatus, MessageType } from "../messages/Message";
 import ListMessage, { List, ListItem } from "../messages/ListMessage";
@@ -273,20 +273,98 @@ export default class ConvertToWAMessage {
    * @param message
    */
   public async refactoryListMessage(message: ListMessage) {
+    if (message.interactiveMode) {
+      this.isRelay = true;
+
+      const listMessage = {
+        name: "single_select",
+        buttonParamsJson: JSON.stringify({
+          title: message.button,
+          sections: message.list.map((list: List) => {
+            return {
+              title: list.title,
+              ...(list.label ? { label: list.label } : {}),
+              rows: list.items.map((item) => {
+                return {
+                  header: item.header ? item.header : item.title,
+                  title: item.header ? item.title : "",
+                  description: item.description,
+                  id: item.id,
+                };
+              }),
+            };
+          }),
+        }),
+      };
+
+      const waMessage = generateWAMessageFromContent(
+        this.chatId,
+        {
+          viewOnceMessage: {
+            message: {
+              messageContextInfo: {
+                deviceListMetadata: {},
+                deviceListMetadataVersion: 2,
+              },
+              interactiveMessage: {
+                body: {
+                  text: message.text,
+                },
+                footer: {
+                  text: message.footer,
+                },
+                header: {
+                  title: message.title,
+                  subtitle: message.subtitle,
+                  hasMediaAttachment: false,
+                },
+                nativeFlowMessage: {
+                  buttons: [listMessage],
+                },
+              },
+            },
+          },
+        },
+        { userJid: this.bot.id }
+      );
+
+      this.waMessage = waMessage.message;
+
+      return;
+    }
+
     this.waMessage.buttonText = message.button;
     this.waMessage.description = message.text;
     this.waMessage.footer = message.footer;
     this.waMessage.title = message.title;
     this.waMessage.listType = message.listType;
+    this.waMessage.viewOnce = true;
+    this.isRelay = true;
 
     this.waMessage.sections = message.list.map((list: List) => {
       return {
         title: list.title,
         rows: list.items.map((item: ListItem) => {
-          return { title: item.title, description: item.description, rowId: item.id };
+          return {
+            title: item.title,
+            description: item.description,
+            rowId: item.id,
+          };
         }),
       };
     });
+
+    if (this.isRelay) {
+      this.waMessage = await generateWAMessageContent(this.waMessage, { upload: () => ({} as any) });
+
+      if (this.waMessage?.viewOnceMessage?.message?.listMessage) {
+        this.waMessage.viewOnceMessage.message.listMessage.listType = message.listType;
+      }
+
+      if (this.waMessage?.listMessage) {
+        this.waMessage.listMessage.listType = message.listType;
+      }
+    }
   }
 
   public static convertToWaMessageStatus(status: MessageStatus): proto.WebMessageInfo.Status {
