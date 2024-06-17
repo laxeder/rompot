@@ -338,7 +338,7 @@ export default class ConvertToWAMessage {
     this.waMessage.footer = message.footer;
     this.waMessage.title = message.title;
     this.waMessage.listType = message.listType;
-    this.waMessage.viewOnce = true;
+    this.waMessage.viewOnce = false;
     this.isRelay = true;
 
     this.waMessage.sections = message.list.map((list: List) => {
