@@ -345,6 +345,33 @@ export default class ConfigWAEvents {
             }
           }, this.wa.config.autoRestartInterval);
 
+          if (this.wa.checkConnectionInterval !== null) {
+            clearInterval(this.wa.checkConnectionInterval);
+          }
+
+          this.wa.checkConnectionInterval = setInterval(() => {
+            if (!this.wa.sock) {
+              if (this.wa.checkConnectionInterval) {
+                clearInterval(this.wa.checkConnectionInterval);
+                this.wa.checkConnectionInterval = null;
+              }
+
+              return;
+            }
+            
+            if (this.wa.sock.ws.isOpen) return;
+
+            this.wa.sock.ws.ev.emit("connection.update", {
+              connection: "close",
+              lastDisconnect: {
+                date: new Date(),
+                error: new Boom("Socket closed", {
+                  statusCode: DisconnectReason.connectionClosed,
+                }),
+              },
+            });
+          }, 10000);
+
           this.wa.eventsIsStoped = false;
 
           await this.wa.sock.groupFetchAllParticipating();
@@ -358,6 +385,11 @@ export default class ConfigWAEvents {
             (update.lastDisconnect?.error as Boom)?.output?.statusCode ||
             update.lastDisconnect?.error ||
             500;
+
+          if (this.wa.checkConnectionInterval !== null) {
+            clearInterval(this.wa.checkConnectionInterval);
+            this.wa.checkConnectionInterval = null;
+          }
 
           if (status === DisconnectReason.loggedOut) {
             this.wa.emit("stop", { isLogout: true });
