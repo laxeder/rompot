@@ -12,6 +12,7 @@ import ImageMessage from "../messages/ImageMessage";
 import AudioMessage from "../messages/AudioMessage";
 import VideoMessage from "../messages/VideoMessage";
 import PollMessage from "../messages/PollMessage";
+import CustomMessage  from "../messages/CustomMessage";
 
 import { getWaSticker } from "../utils/Libs";
 
@@ -69,6 +70,7 @@ export default class ConvertToWAMessage {
     if (ButtonMessage.isValid(message)) this.refactoryButtonMessage(message);
     if (ListMessage.isValid(message)) await this.refactoryListMessage(message);
     if (PollMessage.isValid(message)) this.refactoryPollMessage(message);
+    if (CustomMessage.isValid(message)) this.refactoryCustomMessage(message);
 
     return this;
   }
@@ -110,6 +112,7 @@ export default class ConvertToWAMessage {
     if (message.fromMe) msg.fromMe = message.fromMe;
     if (message.id) msg.id = message.id;
 
+    
     if (message.isEdited) {
       msg.edit = {
         remoteJid: message.chat.id || "",
@@ -118,6 +121,10 @@ export default class ConvertToWAMessage {
         participant: isJidGroup(message.chat.id) ? message.user.id || this.bot.id : undefined,
         toJSON: () => this,
       };
+    }
+
+    if (message.extra?.isRelay) {
+      this.isRelay = true;
     }
 
     return msg;
@@ -365,6 +372,16 @@ export default class ConvertToWAMessage {
         this.waMessage.listMessage.listType = message.listType;
       }
     }
+  }
+
+  /**
+   * * Refatora uma mensagem de lista
+   * @param message
+   */
+  public async refactoryCustomMessage(message: CustomMessage) {
+    delete this.waMessage["text"];
+    
+    Object.assign(this.waMessage, message.content);
   }
 
   public static convertToWaMessageStatus(status: MessageStatus): proto.WebMessageInfo.Status {

@@ -25,6 +25,7 @@ export enum MessageType {
   List = "list",
   Button = "button",
   TemplateButton = "templateButton",
+  Custom = "customButton",
 }
 
 /**
@@ -89,8 +90,14 @@ export default class Message {
   public plataform: MessagePlataform = MessagePlataform.Unknown;
   /** A mensagem recebida é antiga */
   public isOld: boolean = false;
+  /** Dados adicionais */
+  public extra: Record<string, any> = {};
 
-  constructor(chat: Chat | string = "", text: string = "", others: Partial<Message> = {}) {
+  constructor(
+    chat: Chat | string = "",
+    text: string = "",
+    others: Partial<Message> = {}
+  ) {
     this.text = text || "";
     this.chat = Chat.apply(chat || "");
 
@@ -142,8 +149,17 @@ export default class Message {
    * @param interval Intervalo entre cada reação.
    * @param maxTimeout Maximo de tempo reagindo.
    */
-  public addAnimatedReaction(reactions: string[], interval?: number, maxTimeout?: number): (reactionStop?: string) => Promise<void> {
-    return ClientUtils.getClient(this.clientId).addAnimatedReaction(this, reactions, interval, maxTimeout);
+  public addAnimatedReaction(
+    reactions: string[],
+    interval?: number,
+    maxTimeout?: number
+  ): (reactionStop?: string) => Promise<void> {
+    return ClientUtils.getClient(this.clientId).addAnimatedReaction(
+      this,
+      reactions,
+      interval,
+      maxTimeout
+    );
   }
 
   /** Envia uma mensagem mencionando a mensagem atual.
@@ -151,7 +167,10 @@ export default class Message {
    * @param isMention Se verdadeiro a mensagem atual é mencionada na mensagem enviada.
    */
   public async reply(message: Message | string, isMention: boolean = true) {
-    const msg = Message.apply(message, { clientId: this.clientId, botId: this.botId });
+    const msg = Message.apply(message, {
+      clientId: this.clientId,
+      botId: this.botId,
+    });
 
     msg.chat.id = msg.chat.id || this.chat.id;
     msg.user.id = this.botId;
@@ -189,7 +208,11 @@ export default class Message {
    * @returns Uma instância de Message criada a partir dos dados JSON.
    */
   public static fromJSON(data: any): Message {
-    return Message.fix(!data || typeof data != "object" ? new Message() : injectJSON(data, new Message(), false, true));
+    return Message.fix(
+      !data || typeof data != "object"
+        ? new Message()
+        : injectJSON(data, new Message(), false, true)
+    );
   }
 
   public static fix<T extends Message>(message: T): T {
@@ -225,6 +248,9 @@ export default class Message {
    * @returns Verdadeiro se o objeto for uma instância válida de Message, caso contrário, falso.
    */
   public static isValid(message: any): message is Message {
-    return typeof message === "object" && Object.keys(new Message()).every((key) => message?.hasOwnProperty(key));
+    return (
+      typeof message === "object" &&
+      Object.keys(new Message()).every((key) => message?.hasOwnProperty(key))
+    );
   }
 }

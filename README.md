@@ -8,7 +8,8 @@ Uma biblioteca para desenvolvimento de ChatBot multi-plataforma em JavaScript/Ty
 - [x] Criação de comandos
 - [x] Resposta rápida
 - [x] Tratamento de solicitações
-- [x] Tratamento de conexão offline
+- [x] Tratamento de conexão
+- [x] Alta personalização
 - [x] Suporte a Cluster (Beta)
 
 | Plataformas            | Whatsapp | Telegram (Beta) |
@@ -314,6 +315,24 @@ const pollMessage = new PollMessage(chat, "Hello World!");
 pollMessage.addOption("Hello", "id-hello-123");
 pollMessage.addOption("Hey", "id-hey-123");
 pollMessage.addOption("Hi", "id-hi-123");
+```
+
+## Mensagem personalizada
+
+```ts
+import { CustomMessage } from "rompot";
+
+// Ex: conteúdo para baileys
+const content = { text: "texto" }; 
+
+// O conteúdo inserido será enviado diretamente para a plataforma
+const customMessage = new CustomMessage(chat, content);
+
+// Adicionando opções adicionais
+// Essas alterações serão tratadas pelo processamento da plataforma
+
+//? Na baileys utiliza o relayMessage invés de sendMessage
+customMessage.extra = { isRelay: true }; 
 ```
 
 ## Lendo resposas de ButtonMessage, ListMessage e PollMessage

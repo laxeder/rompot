@@ -1,4 +1,8 @@
-import Message, { MessageType, MessageStatus, MessagePlataform } from "./Message";
+import Message, {
+  MessageType,
+  MessageStatus,
+  MessagePlataform,
+} from "./Message";
 import PollMessage, { PollAction, PollOption } from "./PollMessage";
 import ButtonMessage, { Button, ButtonType } from "./ButtonMessage";
 import ListMessage, { List, ListItem } from "./ListMessage";
@@ -16,6 +20,7 @@ import EmptyMessage from "./EmptyMessage";
 import ErrorMessage from "./ErrorMessage";
 import FileMessage from "./FileMessage";
 import TextMessage from "./TextMessage";
+import CustomMessage from "./CustomMessage";
 
 export {
   MessageType,
@@ -44,4 +49,5 @@ export {
   StickerMessage,
   TextMessage,
   VideoMessage,
+  CustomMessage,
 };
