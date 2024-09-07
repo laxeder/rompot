@@ -1,12 +1,19 @@
 import Client, { Command, CMDKeyExact, Message, ListMessage } from "../../src";
 
-export class StickerCommand extends Command {
+export class ListMessageCommand extends Command {
   public onRead() {
     this.keys = [CMDKeyExact("sendList")];
   }
 
   public async onExec(message: Message) {
-    const listMsg = new ListMessage(message.chat, "Texto da lista", "Botão da lista", "Rodapé da lista", "Titulo da lista");
+    const listMsg = new ListMessage(
+      message.chat,
+      "Texto da lista",
+      "Botão da lista",
+      "Rodapé da lista",
+      "Titulo da lista",
+      { interactiveMode: true }
+    );
 
     for (let c = 0; c < 5; c++) {
       const catgeory = listMsg.addCategory(`Categoria ${c + 1}`);
