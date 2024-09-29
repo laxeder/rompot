@@ -57,6 +57,10 @@ export type WhatsAppBotConfig = Partial<SocketConfig> & {
   autoRestartInterval: number;
   /** Usar servidor experimental para download de mídias */
   useExperimentalServers: boolean;
+  /** Auto carrega informações de contatos */
+  autoLoadContactInfo: boolean;
+  /** Auto carrega informações de contatos */
+  autoLoadGroupInfo: boolean;
 };
 
 export default class WhatsAppBot extends BotEvents implements IBot {
@@ -110,6 +114,8 @@ export default class WhatsAppBot extends BotEvents implements IBot {
       autoRestartInterval: 1000 * 60 * 30, // 30 minutes (recommended)
       useExperimentalServers: false,
       autoSyncHistory: false,
+      autoLoadContactInfo: false,
+      autoLoadGroupInfo: false,
       shouldIgnoreJid: () => false,
       async patchMessageBeforeSending(msg) {
         if (msg.deviceSentMessage?.message?.listMessage?.listType == proto.Message.ListMessage.ListType.PRODUCT_LIST) {
@@ -444,13 +450,18 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
     const event: UserEvent = action == "join" ? "add" : action == "leave" ? "remove" : action;
 
-    const chat =
-      (await this.getChat(new Chat(chatId))) ||
-      Chat.fromJSON({
+    let chat = await this.getChat(new Chat(chatId));
+
+    if (!chat) {
+      if (!this.config.autoLoadGroupInfo) return;
+
+      chat = Chat.fromJSON({
         id: chatId,
         phoneNumber: getPhoneNumber(chatId),
         type: ChatType.Group,
       });
+    }
+      
     const fromUser = (await this.getUser(new User(fromId))) || User.fromJSON({ id: fromId, phoneNumber: getPhoneNumber(fromId) });
     const user = (await this.getUser(new User(userId))) || User.fromJSON({ id: userId, phoneNumber: getPhoneNumber(userId) });
 

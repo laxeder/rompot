@@ -452,7 +452,13 @@ export default class ConfigWAEvents {
             }
           }
 
-          await this.wa.readChat({ id: chat.id }, chat);
+          const autoLoad = isGroup
+            ? this.wa.config.autoLoadGroupInfo
+            : this.wa.config.autoLoadContactInfo;
+
+          if (autoLoad) {
+            await this.wa.readChat({ id: chat.id }, chat);
+          }
         } catch (err) {
           this.wa.emit("error", err);
         }
@@ -486,6 +492,8 @@ export default class ConfigWAEvents {
 
   public configContactsUpdate() {
     this.wa.sock.ev.on("contacts.update", async (updates) => {
+      if (!this.wa.config.autoLoadContactInfo) return;
+      
       for (const update of updates) {
         try {
           if (isJidGroup(update.id)) {
@@ -502,6 +510,8 @@ export default class ConfigWAEvents {
 
   public configContactsUpsert() {
     this.wa.sock.ev.on("contacts.upsert", async (updates) => {
+      if (!this.wa.config.autoLoadContactInfo) return;
+
       for (const update of updates) {
         try {
           if (isJidGroup(update.id)) {
@@ -518,6 +528,8 @@ export default class ConfigWAEvents {
 
   public configGroupsUpdate() {
     this.wa.sock.ev.on("groups.update", async (updates) => {
+      if (!this.wa.config.autoLoadGroupInfo) return;
+
       for (const update of updates) {
         try {
           if (!update?.id) continue;
