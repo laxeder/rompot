@@ -14,7 +14,7 @@ import TextMessage from "../messages/TextMessage";
 import FileMessage from "../messages/FileMessage";
 import PollMessage from "../messages/PollMessage";
 
-import User from "../user/User";
+import User from "../modules/user/User";
 
 import { TelegramUtils } from "./TelegramUtils";
 

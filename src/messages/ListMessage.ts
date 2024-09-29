@@ -1,6 +1,6 @@
 import Message, { MessageType } from "./Message";
 import { injectJSON } from "../utils/Generic";
-import Chat from "../chat/Chat";
+import Chat from "../modules/chat/Chat";
 
 /** Lista */
 export type List = {

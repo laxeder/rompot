@@ -10,8 +10,8 @@ import type { AdvancedCommandContext } from "./AdvancedCommandContext";
 
 import type AdvancedCommandController from "./AdvancedCommandController";
 
-import { getMessageFromJSON } from "../../utils/MessageUtils";
-import nonce from "../../utils/nonce";
+import { getMessageFromJSON } from "../../../utils/MessageUtils";
+import nonce from "../../../utils/nonce";
 
 export default class AdvancedCommand<T extends object = {}> {
   public id: string;

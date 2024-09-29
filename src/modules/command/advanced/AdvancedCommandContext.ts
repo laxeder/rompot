@@ -1,4 +1,4 @@
-import type { Message } from "../../messages";
+import type { Message } from "../../../messages";
 
 export type AdvancedCommandContext<D extends object> = {
   clientId: string;

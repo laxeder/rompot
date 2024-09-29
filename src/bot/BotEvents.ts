@@ -1,11 +1,11 @@
-import type UserEvent from "../user/UserEvent";
-import type UserAction from "../user/UserAction";
-import type ChatAction from "../chat/ChatAction";
+import type UserEvent from "../modules/user/UserEvent";
+import type UserAction from "../modules/user/UserAction";
+import type ChatAction from "../modules/chat/ChatAction";
 
 import EventEmitter from "events";
 
-import Chat from "../chat/Chat";
-import User from "../user/User";
+import Chat from "../modules/chat/Chat";
+import User from "../modules/user/User";
 import Call from "../models/Call";
 import Message from "../messages/Message";
 /**

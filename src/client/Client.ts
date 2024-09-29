@@ -1,4 +1,4 @@
-import type { AdvancedCommandStartOptions } from "../command/advanced/AdvancedCommandStart";
+import type { AdvancedCommandStartOptions } from "../modules/command/advanced/AdvancedCommandStart";
 
 import { readFileSync } from "fs";
 
@@ -11,15 +11,15 @@ import Message, { MessageStatus, MessageType } from "../messages/Message";
 import ErrorMessage from "../messages/ErrorMessage";
 import MediaMessage from "../messages/MediaMessage";
 import ReactionMessage from "../messages/ReactionMessage";
-import QuickResponseController from "../quickResponse/QuickResponseController";
+import QuickResponseController from "../modules/quickResponse/QuickResponseController";
 
-import ChatStatus from "../chat/ChatStatus";
-import Chat from "../chat/Chat";
-import User from "../user/User";
+import ChatStatus from "../modules/chat/ChatStatus";
+import Chat from "../modules/chat/Chat";
+import User from "../modules/user/User";
 
-import { CMDRunType } from "../command/CommandEnums";
-import Command from "../command/Command";
-import CommandController from "../command/CommandController";
+import { CMDRunType } from "../modules/command/CommandEnums";
+import Command from "../modules/command/Command";
+import CommandController from "../modules/command/CommandController";
 
 import ClientEvents, { ClientEventsMap } from "./ClientEvents";
 import IAuth from "./IAuth";
@@ -37,10 +37,10 @@ import {
   QuickResponseOptions,
   QuickResponsePattern,
   QuickResponseReply,
-} from "../quickResponse";
-import QuickResponse from "../quickResponse/QuickResponse";
-import AdvancedCommandController from "../command/advanced/AdvancedCommandController";
-import AdvancedCommand from "../command/advanced/AdvancedCommand";
+} from "../modules/quickResponse";
+import QuickResponse from "../modules/quickResponse/QuickResponse";
+import AdvancedCommandController from "../modules/command/advanced/AdvancedCommandController";
+import AdvancedCommand from "../modules/command/advanced/AdvancedCommand";
 import Call from "../models/Call";
 
 export default class Client<Bot extends IBot = IBot>

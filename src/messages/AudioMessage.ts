@@ -1,7 +1,7 @@
 import MediaMessage, { Media } from "./MediaMessage";
 import { injectJSON } from "../utils/Generic";
 import { MessageType } from "./Message";
-import Chat from "../chat/Chat";
+import Chat from "../modules/chat/Chat";
 
 export default class AudioMessage extends MediaMessage {
   /** O tipo da mensagem é sempre MessageType.Audio. */

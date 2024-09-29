@@ -1,7 +1,7 @@
 import Message, { MessageType } from "./Message";
 import { injectJSON } from "../utils/Generic";
-import User from "../user/User";
-import Chat from "../chat/Chat";
+import User from "../modules/user/User";
+import Chat from "../modules/chat/Chat";
 
 /**
  * Representa uma mensagem de contato.

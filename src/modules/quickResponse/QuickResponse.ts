@@ -2,7 +2,7 @@ import type { QuickResponsePattern } from "./QuickResponsePattern";
 import type { QuickResponseReply } from "./QuickResponseReply";
 
 import QuickResponseOptions from "./QuickResponseOptions";
-import Message from "../messages/Message";
+import Message from "../../messages/Message";
 
 /**
  * Mensagem rápida.

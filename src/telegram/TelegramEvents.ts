@@ -1,7 +1,7 @@
 import TelegramBotAPI from "node-telegram-bot-api";
 
-import Chat from "../chat/Chat";
-import User from "../user/User";
+import Chat from "../modules/chat/Chat";
+import User from "../modules/user/User";
 
 import TelegramToRompotConverter from "./TelegramToRompotConverter";
 import { TelegramUtils } from "./TelegramUtils";

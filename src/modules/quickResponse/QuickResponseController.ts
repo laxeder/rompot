@@ -1,6 +1,6 @@
 import type { QuickResponsePattern } from "./QuickResponsePattern";
 import type QuickResponse from "./QuickResponse";
-import type Message from "../messages/Message";
+import type Message from "../../messages/Message";
 
 import { isRegExp } from "util/types";
 

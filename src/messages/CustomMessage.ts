@@ -1,4 +1,4 @@
-import Chat from "../chat/Chat";
+import Chat from "../modules/chat/Chat";
 import Message, { MessageType } from "./Message";
 import { injectJSON } from "../utils/Generic";
 

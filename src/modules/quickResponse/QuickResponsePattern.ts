@@ -1,5 +1,5 @@
 import type QuickResponseController from "./QuickResponseController";
-import type Message from "../messages/Message";
+import type Message from "../../messages/Message";
 
 /**
  * Padrões da resposta rápida.

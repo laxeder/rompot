@@ -2,7 +2,7 @@ import type { AdvancedCommandData } from "./AdvancedCommandData";
 import type { AdvancedCommandContext } from "./AdvancedCommandContext";
 import type { AdvancedCommandStartOptions } from "./AdvancedCommandStart";
 
-import type { Message } from "../../messages";
+import type { Message } from "../../../messages";
 
 import NodeCache from "node-cache";
 

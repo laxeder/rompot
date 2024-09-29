@@ -1,4 +1,4 @@
-import type { AdvancedCommandStartOptions } from "../command/advanced/AdvancedCommandStart";
+import type { AdvancedCommandStartOptions } from "../modules/command/advanced/AdvancedCommandStart";
 
 import { Cluster, Worker } from "cluster";
 import { readFileSync } from "fs";
@@ -11,22 +11,22 @@ import ReactionMessage from "../messages/ReactionMessage";
 import MediaMessage from "../messages/MediaMessage";
 import ErrorMessage from "../messages/ErrorMessage";
 
-import ChatStatus from "../chat/ChatStatus";
-import Chat from "../chat/Chat";
-import User from "../user/User";
+import ChatStatus from "../modules/chat/ChatStatus";
+import Chat from "../modules/chat/Chat";
+import User from "../modules/user/User";
 
-import { CMDRunType } from "../command/CommandEnums";
-import Command from "../command/Command";
-import CommandController from "../command/CommandController";
+import { CMDRunType } from "../modules/command/CommandEnums";
+import Command from "../modules/command/Command";
+import CommandController from "../modules/command/CommandController";
 
-import AdvancedCommand from "../command/advanced/AdvancedCommand";
-import AdvancedCommandController from "../command/advanced/AdvancedCommandController";
+import AdvancedCommand from "../modules/command/advanced/AdvancedCommand";
+import AdvancedCommandController from "../modules/command/advanced/AdvancedCommandController";
 
-import QuickResponseController from "../quickResponse/QuickResponseController";
-import { QuickResponsePattern } from "../quickResponse/QuickResponsePattern";
-import { QuickResponseReply } from "../quickResponse/QuickResponseReply";
-import QuickResponseOptions from "../quickResponse/QuickResponseOptions";
-import QuickResponse from "../quickResponse/QuickResponse";
+import QuickResponseController from "../modules/quickResponse/QuickResponseController";
+import { QuickResponsePattern } from "../modules/quickResponse/QuickResponsePattern";
+import { QuickResponseReply } from "../modules/quickResponse/QuickResponseReply";
+import QuickResponseOptions from "../modules/quickResponse/QuickResponseOptions";
+import QuickResponse from "../modules/quickResponse/QuickResponse";
 
 import ClientEvents, { ClientEventsMap } from "../client/ClientEvents";
 import ClientFunctionHandler from "../client/ClientFunctionHandler";

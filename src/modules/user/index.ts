@@ -1,4 +1,4 @@
-import type UserAction from "../user/UserAction";
+import type UserAction from "./UserAction";
 import type UserEvent from "./UserEvent";
 import User from "./User";
 

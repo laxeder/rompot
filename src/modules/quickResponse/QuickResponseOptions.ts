@@ -3,7 +3,7 @@ import type { QuickResponseReply } from "./QuickResponseReply";
 
 import { isRegExp } from "util/types";
 
-import nonce from "../utils/nonce";
+import nonce from "../../utils/nonce";
 
 /** Opções da resposta rápida */
 export default class QuickResponseOptions {

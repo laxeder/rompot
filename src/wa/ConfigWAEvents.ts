@@ -12,7 +12,7 @@ import { BotStatus } from "../bot/BotStatus";
 import { fixID, getPhoneNumber } from "./ID";
 import Call, { CallStatus } from "../models/Call";
 
-import Chat from "../chat/Chat";
+import Chat from "../modules/chat/Chat";
 import WhatsAppBot from "./WhatsAppBot";
 import ConvertWAMessage from "./ConvertWAMessage";
 import ErrorMessage from "../messages/ErrorMessage";

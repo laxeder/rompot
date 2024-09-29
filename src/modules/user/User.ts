@@ -1,10 +1,10 @@
 import type Chat from "../chat/Chat";
-import type { IClient } from "../client";
+import type { IClient } from "../../client";
 
-import ClientNotDefinedError from "../errors/ClientNotDefinedError";
+import ClientNotDefinedError from "../../errors/ClientNotDefinedError";
 
 
-import { ClientUtils } from "../utils/ClientUtils";
+import { ClientUtils } from "../../utils/ClientUtils";
 
 export default class User {
   /** ID do bot associado a este usuário */

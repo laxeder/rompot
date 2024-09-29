@@ -3,17 +3,17 @@ import ConnectionConfig from "../configs/ConnectionConfig";
 import Message from "../messages/Message";
 import MediaMessage from "../messages/MediaMessage";
 
-import ChatStatus from "../chat/ChatStatus";
-import Chat from "../chat/Chat";
-import User from "../user/User";
+import ChatStatus from "../modules/chat/ChatStatus";
+import Chat from "../modules/chat/Chat";
+import User from "../modules/user/User";
 
-import CommandController from "../command/CommandController";
-import Command from "../command/Command";
+import CommandController from "../modules/command/CommandController";
+import Command from "../modules/command/Command";
 
-import { QuickResponsePattern } from "../quickResponse/QuickResponsePattern";
-import { QuickResponseReply } from "../quickResponse/QuickResponseReply";
-import QuickResponseOptions from "../quickResponse/QuickResponseOptions";
-import QuickResponse from "../quickResponse/QuickResponse";
+import { QuickResponsePattern } from "../modules/quickResponse/QuickResponsePattern";
+import { QuickResponseReply } from "../modules/quickResponse/QuickResponseReply";
+import QuickResponseOptions from "../modules/quickResponse/QuickResponseOptions";
+import QuickResponse from "../modules/quickResponse/QuickResponse";
 
 import ClientEvents, { ClientEventsMap } from "./ClientEvents";
 import ClientFunctionHandler from "./ClientFunctionHandler";

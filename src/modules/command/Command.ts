@@ -1,7 +1,7 @@
 import ICommandControllerConfig from "./ICommandControllerConfig";
-import { readRecursiveDir } from "../utils/Generic";
+import { readRecursiveDir } from "../../utils/Generic";
 import CommandPermission from "./CommandPermission";
-import Message from "../messages/Message";
+import Message from "../../messages/Message";
 import CommandKey from "./CommandKey";
 import { CMDPerm } from "./perms";
 

@@ -1,5 +1,5 @@
-import Chat from "../chat/Chat";
-import User from "../user/User";
+import Chat from "../modules/chat/Chat";
+import User from "../modules/user/User";
 
 import { ClientUtils } from "../utils/ClientUtils";
 import { injectJSON } from "../utils/Generic";
