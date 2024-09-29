@@ -1,10 +1,9 @@
+import type Chat from "../chat/Chat";
 import type { IClient } from "../client";
 
 import ClientNotDefinedError from "../errors/ClientNotDefinedError";
 
-import Chat from "../chat/Chat";
 
-import { injectJSON } from "../utils/Generic";
 import { ClientUtils } from "../utils/ClientUtils";
 
 export default class User {
@@ -16,19 +15,19 @@ export default class User {
   /** ID do usuário */
   public id: string = "";
   /** Nome do usuário */
-  public name?: string = "";
+  public name?: string;
 
-  /** Descrição do usuário */
-  public description: string = "";
-  /** Número de telefone */
-  public phoneNumber: string = "";
   /** Nome salvado do usuário */
-  public savedName: string = "";
+  public savedName?: string;
+  /** Número de telefone */
+  public phoneNumber?: string;
+  /** Descrição do usuário */
+  public description?: string;
   /** URL da imagem de perfil do usuário */
-  public profileUrl: string = "";
+  public profileUrl?: string;
 
   /** [Telegram] Apelido do usuário */
-  public nickname: string = "";
+  public nickname?: string;
 
   /** Obter o cliente do chat */
   private get client(): IClient {
@@ -128,10 +127,10 @@ export default class User {
   public toJSON(): any {
     const data: Record<string, any> = {};
 
-    for (const key of Object.keys(this)) {
+    for (const [key, value] of Object.entries(this)) {
       if (key == "toJSON") continue;
 
-      data[key] = this[key];
+      data[key] = value;
     }
 
     return JSON.parse(JSON.stringify(data));
@@ -146,7 +145,22 @@ export default class User {
       return new User("");
     }
 
-    return injectJSON(data, new User(""));
+    const user = new User("");
+
+    if (data.botId) user.botId = data.botId;
+    if (data.clientId) user.clientId = data.clientId;
+
+    if (data.id) user.id = data.id;
+
+    if (data.name) user.name = data.name;
+    if (data.savedName) user.phoneNumber = data.phoneNumber;
+    if (data.phoneNumber) user.phoneNumber = data.phoneNumber;
+    if (data.description) user.description = data.description;
+    if (data.profileUrl) user.profileUrl = data.profileUrl;
+
+    if (data.nickname) user.nickname = data.nickname;
+
+    return user;
   }
 
   /**

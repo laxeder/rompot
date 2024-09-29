@@ -243,19 +243,23 @@ export default class Chat {
 
     if (data.botId) chat.botId = data.botId;
     if (data.clientId) chat.clientId = data.clientId;
+
     if (data.id) chat.id = data.id;
     if (data.type) chat.type = data.type;
+
     if (data.name) chat.name = data.name;
-    if (data.nickname) chat.nickname = data.nickname;
     if (data.phoneNumber) chat.phoneNumber = data.phoneNumber;
     if (data.description) chat.description = data.description;
     if (data.profileUrl) chat.profileUrl = data.profileUrl;
     if (data.timestamp) chat.timestamp = data.timestamp;
+
     if (data.admins) chat.admins = data.admins;
     if (data.leader) chat.leader = data.leader;
     if (data.users) chat.users = data.users;
 
-    return data;
+    if (data.nickname) chat.nickname = data.nickname;
+
+    return chat;
   }
 
   /**
