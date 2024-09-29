@@ -1,6 +1,6 @@
-import { UserEvent } from "./UserEvent";
+import type UserEvent from "./UserEvent";
 
-/**
- * Ação relacionada aos usuários.
- */
-export type UserAction = "join" | "leave" | UserEvent;
+/** Ação relacionada aos usuários. */
+type UserAction = "join" | "leave" | UserEvent;
+
+export default UserAction;

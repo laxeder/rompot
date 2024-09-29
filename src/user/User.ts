@@ -1,19 +1,23 @@
+import type { IClient } from "../client";
+
+import ClientNotDefinedError from "../errors/ClientNotDefinedError";
+
 import Chat from "../chat/Chat";
 
-import { ClientUtils } from "../utils/ClientUtils";
 import { injectJSON } from "../utils/Generic";
+import { ClientUtils } from "../utils/ClientUtils";
 
 export default class User {
   /** ID do bot associado a este usuário */
-  public botId: string = "";
+  public botId?: string = "";
   /** ID do cliente associado a este usuário */
-  public clientId: string = "";
+  public clientId?: string = "";
+
   /** ID do usuário */
   public id: string = "";
   /** Nome do usuário */
-  public name: string = "";
-  /** Apelido do usuário */
-  public nickname: string = "";
+  public name?: string = "";
+
   /** Descrição do usuário */
   public description: string = "";
   /** Número de telefone */
@@ -23,99 +27,98 @@ export default class User {
   /** URL da imagem de perfil do usuário */
   public profileUrl: string = "";
 
+  /** [Telegram] Apelido do usuário */
+  public nickname: string = "";
+
+  /** Obter o cliente do chat */
+  private get client(): IClient {
+    if (!this.clientId) {
+      throw new ClientNotDefinedError();
+    }
+
+    return ClientUtils.getClient(this.clientId);
+  }
+
   /**
    * Cria uma instância de User.
    * @param id - O ID do usuário.
    * @param name - O nome do usuário (opcional, padrão é uma string vazia).
    */
-  constructor(id: string, name: string = "") {
+  constructor(id: string, name?: string) {
     this.id = id;
-    this.name = name;
+
+    if (name) {
+      this.name = name;
+    }
   }
 
-  /**
-   * Bloqueia o usuário.
-   * @returns Uma Promise que resolve quando o usuário é bloqueado com sucesso.
-   */
+  /** Bloqueia o usuário. */
   public async blockUser(): Promise<void> {
-    return ClientUtils.getClient(this.clientId).blockUser(this);
+    await this.client.blockUser(this);
   }
 
-  /**
-   * Desbloqueia o usuário.
-   * @returns Uma Promise que resolve quando o usuário é desbloqueado com sucesso.
-   */
+  /** Desbloqueia o usuário. */
   public async unblockUser(): Promise<void> {
-    return ClientUtils.getClient(this.clientId).unblockUser(this);
+    await this.client.unblockUser(this);
   }
 
-  /**
-   * Obtém o nome do usuário.
-   * @returns Uma string representando o nome do usuário.
-   */
-  public async getName(): Promise<string> {
-    return ClientUtils.getClient(this.clientId).getUserName(this);
+  /** Retorna o nome do usuário. */
+  public async getName(): Promise<string | undefined> {
+    return this.client.getUserName(this);
   }
 
   /**
    * Define o nome do usuário.
    * @param name - O novo nome para definir.
-   * @returns Uma Promise que resolve quando o nome do usuário é definido com sucesso.
    */
   public async setName(name: string): Promise<void> {
-    return ClientUtils.getClient(this.clientId).setUserName(this, name);
+    await this.client.setUserName(this, name);
   }
 
-  /**
-   * Obtém a descrição do usuário.
-   * @returns Uma string representando a descrição do usuário.
-   */
-  public async getDescription(): Promise<string> {
-    return ClientUtils.getClient(this.clientId).getUserDescription(this);
+  /** Retorna a descrição do usuário. */
+  public async getDescription(): Promise<string | undefined> {
+    return this.client.getUserDescription(this);
   }
 
   /**
    * Define a descrição do usuário.
    * @param description - A nova descrição para definir.
-   * @returns Uma Promise que resolve quando a descrição do usuário é definida com sucesso.
    */
   public async setDescription(description: string): Promise<void> {
-    return ClientUtils.getClient(this.clientId).setUserDescription(this, description);
+    await this.client.setUserDescription(this, description);
   }
 
-  /**
-   * Obtém o perfil do usuário.
-   * @returns Um Buffer representando o perfil do usuário.
-   */
-  public async getProfile(): Promise<Buffer> {
-    return ClientUtils.getClient(this.clientId).getUserProfile(this);
+  /** Retorna o perfil do usuário. */
+  public async getProfile(): Promise<Buffer | undefined> {
+    return this.client.getUserProfile(this);
   }
 
   /**
    * Define o perfil do usuário.
    * @param image - O novo perfil para definir como um Buffer.
-   * @returns Uma Promise que resolve quando o perfil do usuário é definido com sucesso.
    */
   public async setProfile(image: Buffer): Promise<void> {
-    return ClientUtils.getClient(this.clientId).setUserProfile(this, image);
+    await this.client.setUserProfile(this, image);
   }
 
   /**
    * Verifica se o usuário é um administrador de um chat.
    * @param chat - O chat ou ID do chat a ser verificado.
-   * @returns Verdadeiro se o usuário é um administrador do chat, caso contrário, falso.
    */
   public async isAdmin(chat: Chat | string): Promise<boolean> {
-    return (await ClientUtils.getClient(this.clientId).getChatAdmins(chat)).includes(this.id);
+    const admins = await this.client.getChatAdmins(chat);
+
+    return admins.includes(this.id);
   }
 
   /**
    * Verifica se o usuário é o líder de um chat.
    * @param chat - O chat ou ID do chat a ser verificado.
-   * @returns Verdadeiro se o usuário é o líder do chat, caso contrário, falso.
    */
   public async isLeader(chat: Chat | string): Promise<boolean> {
-    return (await ClientUtils.getClient(this.clientId).getChatLeader(chat))?.id == this.id;
+    const leader = await this.client.getChatLeader(chat);
+
+    return leader?.id == this.id;
   }
 
   /**
@@ -137,7 +140,6 @@ export default class User {
   /**
    * Cria uma instância de User a partir de uma representação em formato JSON.
    * @param data - Os dados JSON a serem usados para criar a instância.
-   * @returns Uma instância de User criada a partir dos dados JSON.
    */
   public static fromJSON(data: any): User {
     if (!data || typeof data != "object") {
@@ -148,10 +150,9 @@ export default class User {
   }
 
   /**
-   * Obtém uma instância de User com base em um ID e/ou dados passados.
+   * Retorna uma instância de User com base em um ID e/ou dados passados.
    * @param user - O ID do usuário ou uma instância existente de User.
    * @param data - Dados que serão aplicados no usuário.
-   * @returns Uma instância de User com os dados passados.
    */
   public static apply(user: User | string, data?: Partial<User>) {
     if (!user || typeof user != "object") {
@@ -168,20 +169,30 @@ export default class User {
   }
 
   /**
-   * Obtém o ID de um usuário.
+   * Retorna o ID de um usuário.
    * @param user - O usuário ou ID do usuário de onde obter o ID.
    * @returns O ID do usuário como uma string, ou uma string vazia se o usuário for inválido.
    */
-  public static getId(user: User | string): string {
-    return typeof user == "object" ? user?.id || "" : typeof user == "string" ? user : "";
+  public static getId(user: User | string): string | undefined {
+    if (typeof user === "object") {
+      return user?.id;
+    }
+
+    if (typeof user === "string") {
+      return user;
+    }
+
+    return undefined;
   }
 
   /**
    * Verifica se um objeto é uma instância válida de User.
    * @param user - O objeto a ser verificado.
-   * @returns Verdadeiro se o objeto for uma instância válida de User, caso contrário, falso.
    */
   public static isValid(user: any): user is User {
-    return typeof user === "object" && Object.keys(new User("")).every((key) => user?.hasOwnProperty(key));
+    return (
+      typeof user === "object" &&
+      Object.keys(new User("")).every((key) => user?.hasOwnProperty(key))
+    );
   }
 }
