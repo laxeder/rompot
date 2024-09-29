@@ -2,6 +2,8 @@ import type { AdvancedCommandStartOptions } from "../command/advanced/AdvancedCo
 
 import { readFileSync } from "fs";
 
+import ChatNotDefinedError from "../errors/ChatNotDefinedError";
+
 import { DEFAULT_CONNECTION_CONFIG } from "../configs/Defaults";
 import ConnectionConfig from "../configs/ConnectionConfig";
 
@@ -11,7 +13,7 @@ import MediaMessage from "../messages/MediaMessage";
 import ReactionMessage from "../messages/ReactionMessage";
 import QuickResponseController from "../quickResponse/QuickResponseController";
 
-import { ChatStatus } from "../chat/ChatStatus";
+import ChatStatus from "../chat/ChatStatus";
 import Chat from "../chat/Chat";
 import User from "../user/User";
 
@@ -92,7 +94,10 @@ export default class Client<Bot extends IBot = IBot>
         message.user = (await this.getUser(message.user)) || message.user;
         message.chat = (await this.getChat(message.chat)) || message.chat;
 
-        if (message.timestamp > message.chat.timestamp) {
+        if (
+          !message.chat.timestamp ||
+          message.timestamp > message.chat.timestamp
+        ) {
           message.chat.timestamp = message.timestamp;
         }
 
@@ -473,7 +478,7 @@ export default class Client<Bot extends IBot = IBot>
     }
 
     if (message.timestamp == message.chat.timestamp) {
-      message.chat.unreadCount = message.chat.unreadCount - 1 || 0;
+      message.chat.unreadCount = (message.chat.unreadCount || 0) - 1 || 0;
     }
   }
 
@@ -591,10 +596,18 @@ export default class Client<Bot extends IBot = IBot>
     chat: Chat | string,
     config: Partial<MessageHandlerConfig> = {}
   ): Promise<Message> {
-    return Message.apply(
-      await this.messageHandler.addMessage(Chat.getId(chat), config),
-      { clientId: this.id, botId: this.bot.id }
-    );
+    const chatId = Chat.getId(chat);
+
+    if (!chatId) {
+      throw new ChatNotDefinedError();
+    }
+
+    const message = await this.messageHandler.addMessage(chatId, config);
+
+    return Message.apply(message, {
+      clientId: this.id,
+      botId: this.bot.id,
+    });
   }
 
   public async downloadStreamMessage(message: MediaMessage): Promise<Buffer> {

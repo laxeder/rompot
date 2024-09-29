@@ -2,8 +2,8 @@ import TelegramBotAPI from "node-telegram-bot-api";
 
 import IAuth from "../client/IAuth";
 
-import { ChatStatus } from "../chat/ChatStatus";
-import { ChatType } from "../chat/ChatType";
+import ChatStatus from "../chat/ChatStatus";
+import ChatType from "../chat/ChatType";
 import Chat from "../chat/Chat";
 import User from "../user/User";
 

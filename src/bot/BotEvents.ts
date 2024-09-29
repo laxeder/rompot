@@ -1,8 +1,8 @@
-import EventEmitter from "events";
+import type UserEvent from "../user/UserEvent";
+import type UserAction from "../user/UserAction";
+import type ChatAction from "../chat/ChatAction";
 
-import { UserEvent } from "../user/UserEvent";
-import { UserAction } from "../user/UserAction";
-import { ChatAction } from "../chat/ChatAction";
+import EventEmitter from "events";
 
 import Chat from "../chat/Chat";
 import User from "../user/User";

@@ -1,6 +1,6 @@
 import { WAPresence } from "@whiskeysockets/baileys";
 
-import { ChatStatus } from "../chat/ChatStatus";
+import ChatStatus from "../chat/ChatStatus";
 
 export const WAStatus: Record<ChatStatus, WAPresence> = {
   [ChatStatus.Typing]: "composing",

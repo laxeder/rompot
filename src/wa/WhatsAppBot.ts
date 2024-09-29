@@ -38,10 +38,10 @@ import { UserAction, UserEvent } from "../user";
 import ConfigWAEvents from "./ConfigWAEvents";
 import { fixID, getPhoneNumber } from "./ID";
 import { BotStatus } from "../bot/BotStatus";
-import { ChatType } from "../chat/ChatType";
+import ChatType from "../chat/ChatType";
 import BotEvents from "../bot/BotEvents";
 import { WAStatus } from "./WAStatus";
-import { ChatStatus } from "../chat";
+import ChatStatus from "../chat/ChatStatus";
 import IAuth from "../client/IAuth";
 import User from "../user/User";
 import Chat from "../chat/Chat";
@@ -465,10 +465,16 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     const fromUser = (await this.getUser(new User(fromId))) || User.fromJSON({ id: fromId, phoneNumber: getPhoneNumber(fromId) });
     const user = (await this.getUser(new User(userId))) || User.fromJSON({ id: userId, phoneNumber: getPhoneNumber(userId) });
 
-    if (event == "add") chat.users.push(user.id);
-    if (event == "remove") chat.users = chat.users.filter((u) => u != user.id);
-    if (event == "demote") chat.admins = chat.admins.filter((admin) => admin != user.id);
-    if (event == "promote") chat.admins.push(user.id);
+    let users = chat.users || [];
+    let admins = chat.admins || [];
+    
+    if (event == "add") users.push(user.id);
+    if (event == "remove") users = users.filter((u) => u != user.id);
+    if (event == "demote") chat.admins = admins.filter((admin) => admin != user.id);
+    if (event == "promote") admins.push(user.id);
+
+    chat.users = users;
+    chat.admins = admins;
 
     if (user.id == this.id) {
       if (event == "remove") await this.removeChat(chat);

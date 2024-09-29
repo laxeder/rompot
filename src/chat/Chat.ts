@@ -1,41 +1,58 @@
+import type { IClient } from "../client";
+
+import UserNotDefinedError from "../errors/UserNotDefinedError";
+import ClientNotDefinedError from "../errors/ClientNotDefinedError";
+
+import User from "../user/User";
 import Message from "../messages/Message";
 
-import { ChatStatus } from "../chat/ChatStatus";
-import { ChatType } from "../chat/ChatType";
-import User from "../user/User";
+import ChatType from "../chat/ChatType";
+import ChatStatus from "../chat/ChatStatus";
 
 import { ClientUtils } from "../utils/ClientUtils";
-import { injectJSON } from "../utils/Generic";
 
 export default class Chat {
   /** ID do bot associado a este chat */
-  public botId: string = "";
+  public botId?: string;
   /** ID do cliente associado a este chat */
-  public clientId: string = "";
+  public clientId?: string;
+
   /** ID do chat */
-  public id: string = "";
+  public id: string;
   /** Tipo do chat */
-  public type: ChatType = ChatType.PV;
+  public type: ChatType;
+
   /** Nome do chat */
-  public name: string = "";
-  /** Apelido do chat */
-  public nickname: string = "";
+  public name?: string;
   /** Número de telefone */
-  public phoneNumber: string = "";
+  public phoneNumber?: string;
   /** Descrição do chat */
-  public description: string = "";
+  public description?: string;
   /** URL da imagem de perfil do chat */
-  public profileUrl: string = "";
+  public profileUrl?: string;
   /** Quantidade de mensagens não lidas */
-  public unreadCount: number = 0;
+  public unreadCount?: number;
   /** Tempo da última interação com o chat */
-  public timestamp: number = 0;
-  /** Admins do chat */
-  public admins: string[] = [];
-  /** Líder do chat */
-  public leader: string = "";
-  /** Usuários do chat */
-  public users: string[] = [];
+  public timestamp?: number;
+
+  /** [Group] Admins do chat */
+  public admins?: string[];
+  /** [Group] Líder do chat */
+  public leader?: string;
+  /** [Group] Usuários do chat */
+  public users?: string[];
+
+  /** [Telegram] Apelido do chat */
+  public nickname?: string;
+
+  /** Obter o cliente do chat */
+  private get client(): IClient {
+    if (!this.clientId) {
+      throw new ClientNotDefinedError();
+    }
+
+    return ClientUtils.getClient(this.clientId);
+  }
 
   /**
    * Cria uma instância de Chat.
@@ -43,139 +60,127 @@ export default class Chat {
    * @param type - O tipo do chat (opcional, padrão é ChatType.PV).
    * @param name - O nome do chat (opcional, padrão é uma string vazia).
    */
-  constructor(id: string, type: ChatType = ChatType.PV, name: string = "") {
+  constructor(id: string = "", type: ChatType = ChatType.PV, name?: string) {
     this.id = id;
     this.type = type;
-    this.name = name;
+
+    if (name) {
+      this.name = name;
+    }
   }
 
-  /**
-   * Obtém o nome do chat.
-   * @returns Uma string representando o nome do chat.
-   */
-  public async getName(): Promise<string> {
-    return ClientUtils.getClient(this.clientId).getChatName(this);
+  /** Retorna o nome do chat. */
+  public async getName(): Promise<string | undefined> {
+    return this.client.getChatName(this);
   }
 
   /**
    * Define o nome do chat.
    * @param name - O novo nome para definir.
-   * @returns Uma Promise que resolve quando o nome do chat é definido com sucesso.
    */
   public async setName(name: string): Promise<void> {
-    await ClientUtils.getClient(this.clientId).setChatName(this, name);
+    await this.client.setChatName(this, name);
   }
 
-  /**
-   * Obtém a descrição do chat.
-   * @returns Uma string representando a descrição do chat.
-   */
-  public async getDescription(): Promise<string> {
-    return ClientUtils.getClient(this.clientId).getChatDescription(this);
+  /** Retorna a descrição do chat. */
+  public getDescription(): Promise<string> | undefined {
+    return this.client.getChatDescription(this);
   }
 
   /**
    * Define a descrição do chat.
    * @param description - A nova descrição para definir.
-   * @returns Uma Promise que resolve quando a descrição do chat é definida com sucesso.
    */
   public async setDescription(description: string): Promise<void> {
-    return ClientUtils.getClient(this.clientId).setChatDescription(this, description);
+    await this.client.setChatDescription(this, description);
   }
 
-  /**
-   * Obtém o perfil do chat.
-   * @returns Um Buffer representando o perfil do chat.
-   */
-  public async getProfile(): Promise<Buffer> {
-    return ClientUtils.getClient(this.clientId).getChatProfile(this);
+  /** Retorna o perfil do chat. */
+  public getProfile(): Promise<Buffer | undefined> {
+    return this.client.getChatProfile(this);
   }
 
   /**
    * Define o perfil do chat.
    * @param image - O novo perfil para definir como um Buffer.
-   * @returns Uma Promise que resolve quando o perfil do chat é definido com sucesso.
    */
   public async setProfile(image: Buffer): Promise<void> {
-    return ClientUtils.getClient(this.clientId).setChatProfile(this, image);
+    await this.client.setChatProfile(this, image);
   }
 
   /**
-   * Verifica se um usuário é um administrador deste chat.
+   * Verifica se um usuário é um administrador do chat.
    * @param user - O usuário ou ID do usuário a ser verificado.
    * @returns Verdadeiro se o usuário é um administrador, caso contrário, falso.
    */
   public async isAdmin(user: User | string): Promise<boolean> {
-    return (await ClientUtils.getClient(this.clientId).getChatAdmins(this)).includes(User.getId(user));
+    const admins = await this.client.getChatAdmins(this);
+
+    const userId = User.getId(user);
+
+    if (!userId) {
+      throw new UserNotDefinedError();
+    }
+
+    return admins.includes(userId);
   }
 
   /**
-   * Verifica se um usuário é o líder deste chat.
+   * Verifica se um usuário é o líder do chat.
    * @param user - O usuário ou ID do usuário a ser verificado.
    * @returns verdadeiro se o usuário é o líder, caso contrário, falso.
    */
   public async isLeader(user: User | string): Promise<boolean> {
-    return (await ClientUtils.getClient(this.clientId).getChatLeader(this))?.id == User.getId(user);
+    const leader = await this.client.getChatLeader(this);
+
+    return leader?.id == User.getId(user);
   }
 
-  /**
-   * Obtém os administradores deste chat.
-   * @returns Um objeto contendo os administradores por ID.
-   */
-  public async getAdmins(): Promise<string[]> {
-    return ClientUtils.getClient(this.clientId).getChatAdmins(this);
+  /** Retorna o ID dos administradores do chat. */
+  public getAdmins(): Promise<string[]> {
+    return this.client.getChatAdmins(this);
   }
 
-  /**
-   * Obtém os usuários deste chat.
-   * @returns Um objeto contendo os usuários por ID.
-   */
-  public async getUsers(): Promise<string[]> {
-    return await ClientUtils.getClient(this.clientId).getChatUsers(this);
+  /** Retorna o ID dos usuários do chat. */
+  public getUsers(): Promise<string[]> {
+    return this.client.getChatUsers(this);
   }
 
   /**
    * Adiciona um usuário a este chat.
    * @param user - O usuário ou ID do usuário a ser adicionado.
-   * @returns Uma Promise que resolve quando o usuário é adicionado com sucesso.
    */
   public async addUser(user: User | string): Promise<void> {
-    return ClientUtils.getClient(this.clientId).addUserInChat(this, user);
+    await this.client.addUserInChat(this, user);
   }
 
   /**
-   * Remove um usuário deste chat.
+   * Remove um usuário do chat.
    * @param user - O usuário ou ID do usuário a ser removido.
-   * @returns Uma Promise que resolve quando o usuário é removido com sucesso.
    */
   public async removeUser(user: User | string): Promise<void> {
-    return ClientUtils.getClient(this.clientId).removeUserInChat(this, user);
+    await this.client.removeUserInChat(this, user);
   }
 
   /**
-   * Promove um usuário a administrador deste chat.
+   * Promove um usuário a administrador do chat.
    * @param user - O usuário ou ID do usuário a ser promovido.
-   * @returns Uma Promise que resolve quando o usuário é promovido com sucesso.
    */
   public async promote(user: User | string): Promise<void> {
-    return ClientUtils.getClient(this.clientId).promoteUserInChat(this, user);
+    await this.client.promoteUserInChat(this, user);
   }
 
   /**
-   * Rebaixa um administrador a membro deste chat.
+   * Rebaixa um administrador a membro do chat.
    * @param user - O usuário ou ID do usuário a ser rebaixado.
-   * @returns Uma Promise que resolve quando o usuário é rebaixado com sucesso.
    */
   public async demote(user: User | string): Promise<void> {
-    return ClientUtils.getClient(this.clientId).demoteUserInChat(this, user);
+    await this.client.demoteUserInChat(this, user);
   }
 
-  /**
-   * Sai deste chat.
-   * @returns Uma Promise que resolve quando o usuário sai do chat com sucesso.
-   */
+  /** Sai do chat. */
   public async leave(): Promise<void> {
-    return ClientUtils.getClient(this.clientId).leaveChat(this);
+    await this.client.leaveChat(this);
   }
 
   /**
@@ -186,19 +191,26 @@ export default class Chat {
   public async send(message: Message | string): Promise<Message> {
     const msg = Message.apply(message);
 
-    if (!msg.chat.id) msg.chat.id = msg.chat.id || this.id;
-    if (!msg.user.id) msg.user.id = msg.user.id || this.clientId;
+    if (!msg.chat.id) {
+      msg.chat.id = this.id;
+    }
 
-    return ClientUtils.getClient(this.clientId).send(msg);
+    if (!msg.user.id && this.clientId) {
+      msg.user.id = this.clientId;
+    }
+
+    const newMessage = await this.client.send(msg);
+
+    return newMessage;
   }
 
   /**
-   * Altera o status deste chat.
+   * Altera o status do chat.
    * @param status - O novo status a ser definido.
    * @returns Uma Promise que resolve quando o status do chat é alterado com sucesso.
    */
   public async changeStatus(status: ChatStatus): Promise<void> {
-    return ClientUtils.getClient(this.clientId).changeChatStatus(this, status);
+    await this.client.changeChatStatus(this, status);
   }
 
   /**
@@ -208,10 +220,10 @@ export default class Chat {
   public toJSON(): any {
     const data: Record<string, any> = {};
 
-    for (const key of Object.keys(this)) {
+    for (const [key, value] of Object.entries(this)) {
       if (key == "toJSON") continue;
 
-      data[key] = this[key];
+      data[key] = value;
     }
 
     return JSON.parse(JSON.stringify(data));
@@ -227,23 +239,45 @@ export default class Chat {
       return new Chat("");
     }
 
-    return injectJSON(data, new Chat(""));
+    const chat = new Chat("");
+
+    if (data.botId) chat.botId = data.botId;
+    if (data.clientId) chat.clientId = data.clientId;
+    if (data.id) chat.id = data.id;
+    if (data.type) chat.type = data.type;
+    if (data.name) chat.name = data.name;
+    if (data.nickname) chat.nickname = data.nickname;
+    if (data.phoneNumber) chat.phoneNumber = data.phoneNumber;
+    if (data.description) chat.description = data.description;
+    if (data.profileUrl) chat.profileUrl = data.profileUrl;
+    if (data.timestamp) chat.timestamp = data.timestamp;
+    if (data.admins) chat.admins = data.admins;
+    if (data.leader) chat.leader = data.leader;
+    if (data.users) chat.users = data.users;
+
+    return data;
   }
 
   /**
-   * Obtém o ID de um chat.
+   * Retorna o ID de um chat.
    * @param chat - O chat ou ID do chat de onde obter o ID.
-   * @returns O ID do chat como uma string, ou uma string vazia se o chat for inválido.
    */
-  public static getId(chat: Chat | string): string {
-    return typeof chat == "object" ? chat?.id || "" : typeof chat == "string" ? chat : "";
+  public static getId(chat: Chat | string): string | undefined {
+    if (typeof chat == "object") {
+      return chat?.id;
+    }
+
+    if (typeof chat == "string") {
+      return chat;
+    }
+
+    return undefined;
   }
 
   /**
-   * Obtém uma instância de Chat com base em um ID e/ou dados passados.
+   * Retorna uma instância de Chat com base em um ID e/ou dados passados.
    * @param chat - O ID do chat ou uma instância existente de Chat.
    * @param data - Dados que serão aplicados no chat.
-   * @returns Uma instância de Chat com os dados passados.
    */
   public static apply(chat: Chat | string, data?: Partial<Chat>) {
     if (!chat || typeof chat != "object") {
@@ -252,8 +286,8 @@ export default class Chat {
       chat = Chat.fromJSON(chat);
     }
 
-    for (const key of Object.keys(data || {})) {
-      chat[key] = data?.[key];
+    for (const [key, value] of Object.entries(data || {})) {
+      chat[key] = value;
     }
 
     return chat;
@@ -265,6 +299,10 @@ export default class Chat {
    * @returns Verdadeiro se o objeto for uma instância válida de Chat, caso contrário, falso.
    */
   public static isValid(chat: any): chat is Chat {
-    return typeof chat != "object" ? false : Object.keys(new Chat("")).every((key) => chat?.hasOwnProperty(key));
+    if (typeof chat != "object") return false;
+
+    const keys = Object.keys(new Chat(""));
+
+    return keys.every((key) => chat?.hasOwnProperty(key));
   }
 }

@@ -21,7 +21,7 @@ import TextMessage from "../messages/TextMessage";
 import FileMessage from "../messages/FileMessage";
 import { WAMessageError } from "./WAMessage";
 import { getWaSticker } from "../utils/Libs";
-import { ChatType } from "../chat/ChatType";
+import ChatType from "../chat/ChatType";
 import WhatsAppBot from "./WhatsAppBot";
 import User from "../user/User";
 import Chat from "../chat/Chat";

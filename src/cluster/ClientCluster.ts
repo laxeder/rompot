@@ -11,7 +11,7 @@ import ReactionMessage from "../messages/ReactionMessage";
 import MediaMessage from "../messages/MediaMessage";
 import ErrorMessage from "../messages/ErrorMessage";
 
-import { ChatStatus } from "../chat/ChatStatus";
+import ChatStatus from "../chat/ChatStatus";
 import Chat from "../chat/Chat";
 import User from "../user/User";
 
@@ -42,6 +42,7 @@ import MessageHandler, { MessageHandlerConfig } from "../utils/MessageHandler";
 import { sleep, getError, injectJSON } from "../utils/Generic";
 import { getMessageFromJSON } from "../utils/MessageUtils";
 import Call from "../models/Call";
+import ChatNotDefinedError from "../errors/ChatNotDefinedError";
 
 /** ID dos dados globais do cluster gerenciado pelo Rompot */
 export const GlobalRompotCluster = "rompot-client-cluster";
@@ -261,7 +262,10 @@ export default class ClientCluster extends ClientEvents implements IClient {
           message.user = (await this.getUser(message.user)) || message.user;
           message.chat = (await this.getChat(message.chat)) || message.chat;
 
-          if (message.timestamp > message.chat.timestamp) {
+          if (
+            !message.chat.timestamp ||
+            message.timestamp > message.chat.timestamp
+          ) {
             message.chat.timestamp = message.timestamp;
           }
 
@@ -894,7 +898,7 @@ export default class ClientCluster extends ClientEvents implements IClient {
       }
 
       if (message.timestamp == message.chat.timestamp) {
-        message.chat.unreadCount = message.chat.unreadCount - 1 || 0;
+        message.chat.unreadCount = (message.chat.unreadCount || 0) - 1 || 0;
       }
     }
   }
@@ -1074,10 +1078,15 @@ export default class ClientCluster extends ClientEvents implements IClient {
     chat: Chat | string,
     config: Partial<MessageHandlerConfig> = {}
   ): Promise<Message> {
-    return Message.apply(
-      await this.messageHandler.addMessage(Chat.getId(chat), config),
-      { clientId: this.id, botId: this.bot.id }
-    );
+    const chatId = Chat.getId(chat);
+
+    if (!chatId) {
+      throw new ChatNotDefinedError();
+    }
+
+    const message = await this.messageHandler.addMessage(chatId, config);
+
+    return Message.apply(message, { clientId: this.id, botId: this.bot.id });
   }
 
   /**

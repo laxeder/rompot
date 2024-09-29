@@ -3,7 +3,7 @@ import ConnectionConfig from "../configs/ConnectionConfig";
 import Message from "../messages/Message";
 import MediaMessage from "../messages/MediaMessage";
 
-import { ChatStatus } from "../chat/ChatStatus";
+import ChatStatus from "../chat/ChatStatus";
 import Chat from "../chat/Chat";
 import User from "../user/User";
 

@@ -1,8 +1,10 @@
 /** Status do chat */
-export enum ChatStatus {
+enum ChatStatus {
   Online = "online",
   Offline = "offline",
   Recording = "recording",
   Typing = "typing",
-  Paused = "paused"
+  Paused = "paused",
 }
+
+export default ChatStatus;

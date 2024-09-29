@@ -1,6 +1,6 @@
 import TelegramBotAPI from "node-telegram-bot-api";
 
-import { ChatType } from "../chat/ChatType";
+import ChatType from "../chat/ChatType";
 
 export namespace TelegramUtils {
   export function getId(data: Partial<TelegramBotAPI.Chat & TelegramBotAPI.User & TelegramBotAPI.Contact>): string {

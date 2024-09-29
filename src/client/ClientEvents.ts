@@ -1,8 +1,9 @@
+import type UserEvent from "../user/UserEvent";
+import type UserAction from "../user/UserAction";
+import type ChatAction from "../chat/ChatAction";
+
 import EventEmitter from "events";
 
-import { UserEvent } from "../user/UserEvent";
-import { UserAction } from "../user/UserAction";
-import { ChatAction } from "../chat/ChatAction";
 import { ConnectionType } from "./ConnectionType";
 import Call, { CallStatus } from "../models/Call";
 
