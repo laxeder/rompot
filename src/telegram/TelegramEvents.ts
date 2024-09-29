@@ -124,12 +124,15 @@ export default class TelegramEvents {
         ...chat,
       });
 
+      
       if (action == "add") {
-        users = users.filter((user) => !chat.users.includes(user.id));
+        let users = chat.users || [];
+        
+        users = users.filter((user) => !users.includes(user));
 
         if (users.length == 0) return;
 
-        chat.users.push(...users.map((user) => user.id));
+        chat.users = users;
 
         await this.update(chat);
       } else if (action == "remove") {
@@ -138,7 +141,9 @@ export default class TelegramEvents {
         if (userIds.includes(this.telegram.id)) {
           await this.telegram.removeChat(chat);
         } else {
-          chat.users = chat.users.filter((userId) => !userIds.includes(userId));
+          const users = chat.users || [];
+
+          chat.users = users.filter((userId) => !userIds.includes(userId));
 
           await this.update(chat);
         }
