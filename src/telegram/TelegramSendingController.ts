@@ -241,6 +241,10 @@ export default class TelegramSendingController {
       options.emoji = `${message.text || ""}`;
     }
 
+    if (message.extra) {
+      Object.assign(options, message.extra);
+    }
+
     return options;
   }
 
