@@ -6,6 +6,8 @@ export class HelloCommand extends Command {
   }
 
   public async onExec(message: Message) {
+    if (message.fromMe) return;
+
     const client = Client.getClient(this.clientId);
 
     const msg = await client.sendMessage(message.chat, `Hello...`, message);
