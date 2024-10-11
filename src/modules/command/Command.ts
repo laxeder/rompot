@@ -96,7 +96,7 @@ export default class Command {
       try {
         if (ext != ".ts" && ext != ".js") return;
 
-        const content = require(filepath);
+        const content = await import(filepath);
 
         if (!!!content) return;
         if (typeof content != "object") return;
