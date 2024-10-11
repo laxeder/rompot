@@ -16,7 +16,9 @@ const wbot = new WhatsAppBot({
 });
 
 const client = new Client(wbot, {
-  disableAutoCommand: false,
+  disableAutoCommand: true,
+  disableAutoCommandForOldMessage: true,
+  disableAutoCommandForUnofficialMessage: true,
   disableAutoTyping: false,
   disableAutoRead: false,
 });
