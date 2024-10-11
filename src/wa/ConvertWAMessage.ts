@@ -106,6 +106,7 @@ export default class ConvertWAMessage {
         this.message.plataform = MessagePlataform.Desktop;
         break;
 
+      // TODO: Add baileys plataform
       default:
         this.message.plataform = MessagePlataform.Unknown;
         break;
