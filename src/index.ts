@@ -1,4 +1,4 @@
-import baileys from "@whiskeysockets/baileys";
+import * as baileys from "@whiskeysockets/baileys";
 
 import Client from "./client/Client";
 
