@@ -135,7 +135,14 @@ export default class ConvertToWAMessage {
    * @param message
    */
   public async refactoryMediaMessage(message: MediaMessage) {
-    const stream = await message.getStream();
+    let stream: Buffer;
+    
+    if (!this.isMention) {
+      stream = await message.getStream();
+    } else {
+      // Create fake stream
+      stream = Buffer.from('');
+    }
 
     // Convert audio message
     if (AudioMessage.isValid(message)) {
