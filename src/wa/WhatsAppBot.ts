@@ -933,7 +933,8 @@ export default class WhatsAppBot extends BotEvents implements IBot {
     );
 
     if (stream instanceof internal.Transform) {
-      return stream.read();
+      const buffer = await stream.read();
+      return buffer || Buffer.from("");
     }
 
     return stream;
@@ -963,13 +964,18 @@ export default class WhatsAppBot extends BotEvents implements IBot {
         );
 
         if (stream instanceof internal.Transform) {
-          return stream.read();
+          const buffer = await stream.read();
+          return buffer || Buffer.from("");
         }
 
         return stream;
-      } catch {
+      } catch (error) {
         this.logger?.warn?.(`Failed to download media message. Retry count: ${count}`);
         count++;
+
+        if (count >= (maxRetryCount || this.config.maxMsgRetryCount || 5)) {
+          this.emit("error", error);
+        }
       }
     }
 
