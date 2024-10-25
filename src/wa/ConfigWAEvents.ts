@@ -358,10 +358,10 @@ export default class ConfigWAEvents {
 
               return;
             }
-            
+
             if (this.wa.sock.ws.isOpen) return;
 
-            this.wa.sock.ws.ev.emit("connection.update", {
+            this.wa.sock.ev.emit("connection.update", {
               connection: "close",
               lastDisconnect: {
                 date: new Date(),
@@ -493,7 +493,7 @@ export default class ConfigWAEvents {
   public configContactsUpdate() {
     this.wa.sock.ev.on("contacts.update", async (updates) => {
       if (!this.wa.config.autoLoadContactInfo) return;
-      
+
       for (const update of updates) {
         try {
           if (isJidGroup(update.id)) {
