@@ -825,16 +825,19 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async removeMessage(message: Message) {
+    const key: proto.IMessageKey = {
+      remoteJid: message.chat.id,
+      id: message.id,
+      fromMe: message.fromMe || message.user.id == this.id,
+      participant: isJidGroup(message.chat.id) ? message.user.id || this.id : undefined,
+    };
+
     await this.sock.chatModify(
       {
-        clear: {
-          messages: [
-            {
-              id: message.id || "",
-              fromMe: message.user.id == this.id,
-              timestamp: Number(message.timestamp || Date.now()),
-            },
-          ],
+        deleteForMe: {
+          deleteMedia: false,
+          key,
+          timestamp: Number(message.timestamp || Date.now()),
         },
       },
       message.chat.id
