@@ -1,14 +1,14 @@
-import { Chat } from "../modules/chat";
-import { User } from "../modules/user";
-import { ClientUtils } from "../utils";
-import { injectJSON } from "../utils/Generic";
+import { Chat } from '../modules/chat';
+import { User } from '../modules/user';
+import { ClientUtils } from '../utils';
+import { injectJSON } from '../utils/Generic';
 
 export enum CallStatus {
-  Offer = "offer",
-  Ringing = "ringing",
-  Reject = "reject",
-  Accept = "accept",
-  Timeout = "timeout",
+  Offer = 'offer',
+  Ringing = 'ringing',
+  Reject = 'reject',
+  Accept = 'accept',
+  Timeout = 'timeout',
 }
 
 export default class Call {
@@ -34,17 +34,17 @@ export default class Call {
   public latencyMs: number = 0;
 
   public constructor(
-    id: string = "",
-    chat: Chat | string = "",
-    user: User | string = "",
+    id: string = '',
+    chat: Chat | string = '',
+    user: User | string = '',
     status: CallStatus = CallStatus.Ringing,
-    options?: Partial<Call>
+    options?: Partial<Call>,
   ) {
     this.id = id;
     this.status = status;
 
-    this.chat = Chat.apply(chat || "");
-    this.user = User.apply(user || "");
+    this.chat = Chat.apply(chat || '');
+    this.user = User.apply(user || '');
 
     if (options) {
       this.inject(options);
@@ -93,7 +93,7 @@ export default class Call {
     const data: Record<string, any> = {};
 
     for (const key of Object.keys(this)) {
-      if (key == "toJSON") continue;
+      if (key == 'toJSON') continue;
 
       data[key] = this[key];
     }
@@ -108,9 +108,9 @@ export default class Call {
    */
   public static fromJSON(data: any): Call {
     return Call.fix(
-      !data || typeof data != "object"
+      !data || typeof data != 'object'
         ? new Call()
-        : injectJSON(data, new Call(), false, true)
+        : injectJSON(data, new Call(), false, true),
     );
   }
 
@@ -133,8 +133,8 @@ export default class Call {
    * @returns Uma instância de Call com os dados passados.
    */
   public static apply(call: Call | string, data?: Partial<Call>) {
-    if (!call || typeof call != "object") {
-      call = new Call("", `${call}`);
+    if (!call || typeof call != 'object') {
+      call = new Call('', `${call}`);
     }
 
     call.inject(data || {});
@@ -149,8 +149,8 @@ export default class Call {
    */
   public static isValid(call: any): call is Call {
     return (
-      typeof call === "object" &&
-      !Object.keys(new Call()).some((key) => !call?.hasOwnProperty(key))
+      typeof call === 'object' &&
+      !Object.keys(new Call()).some((key) => !(key in call))
     );
   }
 }

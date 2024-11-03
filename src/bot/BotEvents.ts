@@ -1,13 +1,13 @@
-import type UserEvent from "../modules/user/UserEvent";
-import type UserAction from "../modules/user/UserAction";
-import type ChatAction from "../modules/chat/ChatAction";
+import type UserEvent from '../modules/user/UserEvent';
+import type UserAction from '../modules/user/UserAction';
+import type ChatAction from '../modules/chat/ChatAction';
 
-import EventEmitter from "events";
+import EventEmitter from 'events';
 
-import Chat from "../modules/chat/Chat";
-import User from "../modules/user/User";
-import Call from "../models/Call";
-import Message from "../messages/Message";
+import Chat from '../modules/chat/Chat';
+import User from '../modules/user/User';
+import Call from '../models/Call';
+import Message from '../messages/Message';
 /**
  * Mapeia os eventos disponíveis para um bot.
  */
@@ -17,9 +17,9 @@ export type BotEventsMap = {
     isNewLogin: boolean;
   };
   /** Ocorre quando o bot está reconectando. */
-  reconnecting: {};
+  reconnecting: object;
   /** Ocorre quando o bot está se conectando. */
-  connecting: {};
+  connecting: object;
   /** Ocorre quando a conexão com o bot é interrompida. */
   stop: {
     /** O bot se desconectou */
@@ -69,7 +69,7 @@ export default class BotEvents {
    */
   public on<T extends keyof BotEventsMap>(
     eventName: T,
-    listener: (arg: BotEventsMap[T]) => void
+    listener: (arg: BotEventsMap[T]) => void,
   ) {
     this.ev.on(eventName, listener);
   }
@@ -81,7 +81,7 @@ export default class BotEvents {
    */
   public off<T extends keyof BotEventsMap>(
     eventName: T,
-    listener: (arg: BotEventsMap[T]) => void
+    listener: (arg: BotEventsMap[T]) => void,
   ): void {
     this.ev.off(eventName, listener);
   }
@@ -102,7 +102,7 @@ export default class BotEvents {
    */
   public emit<T extends keyof BotEventsMap>(
     eventName: T,
-    arg: BotEventsMap[T]
+    arg: BotEventsMap[T],
   ): boolean {
     if (this.eventsIsStoped) return false;
 

@@ -1,19 +1,18 @@
-import type Chat from "../chat/Chat";
-import type { IClient } from "../../client";
+import type Chat from '../chat/Chat';
+import type { IClient } from '../../client';
 
-import ClientNotDefinedError from "../../errors/ClientNotDefinedError";
+import ClientNotDefinedError from '../../errors/ClientNotDefinedError';
 
-
-import { ClientUtils } from "../../utils/ClientUtils";
+import { ClientUtils } from '../../utils/ClientUtils';
 
 export default class User {
   /** ID do bot associado a este usuário */
-  public botId?: string = "";
+  public botId?: string = '';
   /** ID do cliente associado a este usuário */
-  public clientId?: string = "";
+  public clientId?: string = '';
 
   /** ID do usuário */
-  public id: string = "";
+  public id: string = '';
   /** Nome do usuário */
   public name?: string;
 
@@ -128,7 +127,7 @@ export default class User {
     const data: Record<string, any> = {};
 
     for (const [key, value] of Object.entries(this)) {
-      if (key == "toJSON") continue;
+      if (key == 'toJSON') continue;
 
       data[key] = value;
     }
@@ -141,11 +140,11 @@ export default class User {
    * @param data - Os dados JSON a serem usados para criar a instância.
    */
   public static fromJSON(data: any): User {
-    if (!data || typeof data != "object") {
-      return new User("");
+    if (!data || typeof data != 'object') {
+      return new User('');
     }
 
-    const user = new User("");
+    const user = new User('');
 
     if (data.botId) user.botId = data.botId;
     if (data.clientId) user.clientId = data.clientId;
@@ -169,7 +168,7 @@ export default class User {
    * @param data - Dados que serão aplicados no usuário.
    */
   public static apply(user: User | string, data?: Partial<User>) {
-    if (!user || typeof user != "object") {
+    if (!user || typeof user != 'object') {
       user = new User(`${user}`);
     } else {
       user = User.fromJSON(user);
@@ -188,11 +187,11 @@ export default class User {
    * @returns O ID do usuário como uma string, ou uma string vazia se o usuário for inválido.
    */
   public static getId(user: User | string): string | undefined {
-    if (typeof user === "object") {
+    if (typeof user === 'object') {
       return user?.id;
     }
 
-    if (typeof user === "string") {
+    if (typeof user === 'string') {
       return user;
     }
 
@@ -205,8 +204,8 @@ export default class User {
    */
   public static isValid(user: any): user is User {
     return (
-      typeof user === "object" &&
-      Object.keys(new User("")).every((key) => user?.hasOwnProperty(key))
+      typeof user === 'object' &&
+      Object.keys(new User('')).every((key) => key in user)
     );
   }
 }

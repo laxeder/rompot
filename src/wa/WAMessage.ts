@@ -1,3 +1,3 @@
 export enum WAMessageError {
-  FAILED_TO_DECRYPT = "Failed to decrypt message",
+  FAILED_TO_DECRYPT = 'Failed to decrypt message',
 }

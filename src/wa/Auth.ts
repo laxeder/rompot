@@ -1,26 +1,38 @@
-import { SignalDataTypeMap, initAuthCreds, BufferJSON, proto, AuthenticationState, AuthenticationCreds } from "@whiskeysockets/baileys";
-import { readFile, writeFile, unlink } from "fs/promises";
-import { mkdirSync, readdirSync, statSync } from "fs";
-import { join } from "path";
+import {
+  SignalDataTypeMap,
+  initAuthCreds,
+  BufferJSON,
+  proto,
+  AuthenticationState,
+  AuthenticationCreds,
+} from '@whiskeysockets/baileys';
+import { readFile, writeFile, unlink } from 'fs/promises';
+import { mkdirSync, readdirSync, statSync } from 'fs';
+import { join } from 'path';
 
-import IAuth from "../client/IAuth";
+import IAuth from '../client/IAuth';
 
 export class MultiFileAuthState implements IAuth {
   public folder: string;
   public botPhoneNumber?: string;
   public autoCreateDir: boolean;
 
-  public fixFileName = (file?: string) => file?.replace(/\//g, "__")?.replace(/:/g, "-");
+  public fixFileName = (file?: string) =>
+    file?.replace(/\//g, '__')?.replace(/:/g, '-');
 
   public getStat(folder: string) {
     try {
       return statSync(folder);
-    } catch (err) {
+    } catch {
       return null;
     }
   }
 
-  constructor(folder: string, botPhoneNumber: string = "", autoCreateDir: boolean = true) {
+  constructor(
+    folder: string,
+    botPhoneNumber: string = '',
+    autoCreateDir: boolean = true,
+  ) {
     this.folder = folder;
     this.botPhoneNumber = botPhoneNumber;
     this.autoCreateDir = autoCreateDir;
@@ -34,7 +46,9 @@ export class MultiFileAuthState implements IAuth {
 
       if (folderInfo) {
         if (!folderInfo.isDirectory()) {
-          throw new Error(`found something that is not a directory at "${this.folder}", either delete it or specify a different location`);
+          throw new Error(
+            `found something that is not a directory at "${this.folder}", either delete it or specify a different location`,
+          );
         }
       } else {
         if (this.autoCreateDir) {
@@ -46,20 +60,26 @@ export class MultiFileAuthState implements IAuth {
 
   public async get(file: string) {
     try {
-      const data = await readFile(join(this.folder, this.fixFileName(`${file}.json`)!), { encoding: "utf-8" });
+      const data = await readFile(
+        join(this.folder, this.fixFileName(`${file}.json`)!),
+        { encoding: 'utf-8' },
+      );
 
       return JSON.parse(data, BufferJSON.reviver);
-    } catch (error) {
+    } catch {
       return null;
     }
   }
 
   public async set(file: string, data: any) {
     try {
-      if (!!!data) {
+      if (!data) {
         await unlink(join(this.folder, this.fixFileName(`${file}.json`)!));
       } else {
-        await writeFile(join(this.folder, this.fixFileName(`${file}.json`)!), JSON.stringify(data, BufferJSON.replacer));
+        await writeFile(
+          join(this.folder, this.fixFileName(`${file}.json`)!),
+          JSON.stringify(data, BufferJSON.replacer),
+        );
       }
     } catch {}
   }
@@ -70,46 +90,58 @@ export class MultiFileAuthState implements IAuth {
     } catch {}
   }
 
-  public async listAll(pattern: string = ""): Promise<string[]> {
+  public async listAll(pattern: string = ''): Promise<string[]> {
     try {
-      return readdirSync(join(this.folder)).reduce((p, c) => (c.startsWith(pattern) ? [...p, c.replace(".json", "")] : p), []);
-    } catch (error) {
+      return readdirSync(join(this.folder)).reduce(
+        (p, c) => (c.startsWith(pattern) ? [...p, c.replace('.json', '')] : p),
+        [],
+      );
+    } catch {
       return [];
     }
   }
 }
 
-export const getBaileysAuth = async (auth: IAuth): Promise<{ state: AuthenticationState; saveCreds: () => Promise<void> }> => {
+export const getBaileysAuth = async (
+  auth: IAuth,
+): Promise<{ state: AuthenticationState; saveCreds: () => Promise<void> }> => {
   auth.prepare();
 
   const replacer = (data: any) => {
     try {
-      const json = JSON.parse(JSON.stringify(data, BufferJSON.replacer), BufferJSON.reviver);
+      const json = JSON.parse(
+        JSON.stringify(data, BufferJSON.replacer),
+        BufferJSON.reviver,
+      );
       return json;
-    } catch (err) {
+    } catch {
       return data;
     }
   };
 
-  const creds: AuthenticationCreds = replacer(await auth.get("creds")) || initAuthCreds();
+  const creds: AuthenticationCreds =
+    replacer(await auth.get('creds')) || initAuthCreds();
 
   return {
     state: {
       creds,
       keys: {
-        async get<T extends keyof SignalDataTypeMap>(type: T, ids: string[]): Promise<{ [id: string]: SignalDataTypeMap[T] }> {
+        async get<T extends keyof SignalDataTypeMap>(
+          type: T,
+          ids: string[],
+        ): Promise<{ [id: string]: SignalDataTypeMap[T] }> {
           const data: { [_: string]: SignalDataTypeMap[typeof type] } = {};
 
           await Promise.all(
             ids.map(async (id) => {
               let value = await replacer(await auth.get(`${type}-${id}`));
 
-              if (type === "app-state-sync-key" && value) {
+              if (type === 'app-state-sync-key' && value) {
                 value = proto.Message.AppStateSyncKeyData.fromObject(value);
               }
 
               data[id] = value;
-            })
+            }),
           );
 
           return data;
@@ -121,20 +153,20 @@ export const getBaileysAuth = async (auth: IAuth): Promise<{ state: Authenticati
                 Object.keys(data[category]).map(async (id) => {
                   const value = data[category][id];
 
-                  if (!!!value) {
+                  if (!value) {
                     return auth.remove(`${category}-${id}`);
                   } else {
                     return auth.set(`${category}-${id}`, value);
                   }
-                })
+                }),
               );
-            })
+            }),
           );
         },
       },
     },
     async saveCreds() {
-      return await auth.set("creds", creds);
+      return await auth.set('creds', creds);
     },
   };
 };

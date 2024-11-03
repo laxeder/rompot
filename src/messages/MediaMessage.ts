@@ -1,9 +1,9 @@
-import Message, { MessageType } from "./Message";
+import Message, { MessageType } from './Message';
 
-import Chat from "../modules/chat/Chat";
+import Chat from '../modules/chat/Chat';
 
-import { ClientUtils } from "../utils/ClientUtils";
-import { injectJSON } from "../utils/Generic";
+import { ClientUtils } from '../utils/ClientUtils';
+import { injectJSON } from '../utils/Generic';
 
 /** Mídia de uma mensagem */
 export type Media = {
@@ -14,13 +14,13 @@ export default class MediaMessage extends Message {
   /** O tipo de mensagem é Media. */
   public readonly type: MessageType = MessageType.Media;
   /** O tipo MIME da mídia (por padrão, application/octet-stream). */
-  public mimetype: string = "application/octet-stream";
+  public mimetype: string = 'application/octet-stream';
   /** O arquivo de mídia, que pode ser um objeto Media, Buffer ou uma string. */
   public file: Media | Buffer | string;
   /** Indica se a mídia é um GIF. */
   public isGIF: boolean = false;
   /** O nome da mídia. */
-  public name: string = "";
+  public name: string = '';
 
   /**
    * Cria uma instância de MediaMessage.
@@ -29,7 +29,12 @@ export default class MediaMessage extends Message {
    * @param text - O texto da mensagem (opcional).
    * @param others - Outros dados a serem injetados na instância (opcional).
    */
-  constructor(chat?: Chat | string, text?: string, file: Media | Buffer | string = Buffer.from(""), others: Partial<MediaMessage> = {}) {
+  constructor(
+    chat?: Chat | string,
+    text?: string,
+    file: Media | Buffer | string = Buffer.from(''),
+    others: Partial<MediaMessage> = {},
+  ) {
     super(chat, text);
 
     this.file = file;
@@ -42,7 +47,9 @@ export default class MediaMessage extends Message {
    * @returns Um Buffer contendo os dados da mídia.
    */
   public async getStream(): Promise<Buffer> {
-    return await ClientUtils.getClient(this.clientId).downloadStreamMessage(this);
+    return await ClientUtils.getClient(this.clientId).downloadStreamMessage(
+      this,
+    );
   }
 
   /**
@@ -53,7 +60,7 @@ export default class MediaMessage extends Message {
     const data: Record<string, any> = {};
 
     for (const key of Object.keys(this)) {
-      if (key == "toJSON") continue;
+      if (key == 'toJSON') continue;
 
       data[key] = this[key];
     }
@@ -75,10 +82,17 @@ export default class MediaMessage extends Message {
    * @param data - O objeto JSON de mídia a ser desserializado.
    * @returns Uma instância da mensagem de mídia passada.
    */
-  public static fromMediaJSON<T extends MediaMessage>(data: any, mediaMessage: T): T {
-    mediaMessage = MediaMessage.fix(!data || typeof data != "object" ? mediaMessage : injectJSON(data, mediaMessage));
+  public static fromMediaJSON<T extends MediaMessage>(
+    data: any,
+    mediaMessage: T,
+  ): T {
+    mediaMessage = MediaMessage.fix(
+      !data || typeof data != 'object'
+        ? mediaMessage
+        : injectJSON(data, mediaMessage),
+    );
 
-    if (data && typeof data == "object" && data?.file) {
+    if (data && typeof data == 'object' && data?.file) {
       mediaMessage.file = data.file;
     }
 
@@ -91,6 +105,9 @@ export default class MediaMessage extends Message {
    * @returns Verdadeiro se o objeto for uma instância válida de MediaMessage, caso contrário, falso.
    */
   public static isValid(message: any): message is MediaMessage {
-    return typeof message === "object" && Object.keys(new MediaMessage()).every((key) => message?.hasOwnProperty(key));
+    return (
+      typeof message === 'object' &&
+      Object.keys(new MediaMessage()).every((key) => key in message)
+    );
   }
 }

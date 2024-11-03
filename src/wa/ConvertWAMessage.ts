@@ -129,7 +129,7 @@ export default class ConvertWAMessage {
    * @returns
    */
   public async convertContentMessage(messageContent: proto.IMessage | undefined | null) {
-    if (!!!messageContent) {
+    if (!messageContent) {
       this.message = EmptyMessage.fromJSON({ ...this.message, type: MessageType.Empty });
       return;
     }
@@ -530,7 +530,7 @@ export default class ConvertWAMessage {
   public convertListMessage(content: WAMessageContent) {
     const listMessage = content.listMessage;
 
-    if (!!!listMessage) return;
+    if (!listMessage) return;
 
     const listMSG = ListMessage.fromJSON({ ...this.message, type: MessageType.List });
 

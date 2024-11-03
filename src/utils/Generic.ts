@@ -1,7 +1,7 @@
-import { readdirSync, statSync } from "fs";
-import { parse, resolve } from "path";
-import { Transform } from "stream";
-import https from "https";
+import { readdirSync, statSync } from 'fs';
+import { parse, resolve } from 'path';
+import { Transform } from 'stream';
+import https from 'https';
 
 /**
  * * Aguarda um determinado tempo
@@ -26,20 +26,20 @@ export async function sleep(timeout: number = 1000): Promise<void> {
  * @returns
  */
 export async function getImageURL(uri: string): Promise<Buffer> {
-  if (!!!uri) return Buffer.from("");
+  if (!uri) return Buffer.from('');
 
   return new Promise((res, rej) => {
     try {
       https
         .request(uri, (response) => {
-          var data = new Transform();
+          const data = new Transform();
 
-          response.on("data", (chunk) => data.push(chunk));
-          response.on("end", () => res(data.read()));
+          response.on('data', (chunk) => data.push(chunk));
+          response.on('end', () => res(data.read()));
         })
         .end();
-    } catch (e) {
-      res(Buffer.from(""));
+    } catch {
+      res(Buffer.from(''));
     }
   });
 }
@@ -82,30 +82,40 @@ export declare type ObjectJSON = { [key: string]: any | ObjectJSON };
  * @param force Força injetar dados
  * @returns Retorna o objeto com os novos valores
  */
-export function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut: T, recursive: boolean = false, force: boolean = false): T {
-  if (typeof objectIn != "object" || objectIn == null) return objectOut;
+export function injectJSON<T extends ObjectJSON>(
+  objectIn: ObjectJSON,
+  objectOut: T,
+  recursive: boolean = false,
+  force: boolean = false,
+): T {
+  if (typeof objectIn != 'object' || objectIn == null) return objectOut;
 
   Object.keys(objectIn).forEach((keyIn) => {
     const keyOut: keyof T = keyIn;
 
-    if (!objectOut.hasOwnProperty(keyOut) && !force) return;
+    if (!(keyOut in objectOut) && !force) return;
 
     const typeOut = typeof objectOut[keyOut];
     const typeIn = typeof objectIn[keyIn];
 
     if (typeOut == typeIn) {
-      if (typeOut == "object" && recursive && !Array.isArray(objectOut[keyOut]) && !Array.isArray(objectIn[keyIn])) {
+      if (
+        typeOut == 'object' &&
+        recursive &&
+        !Array.isArray(objectOut[keyOut]) &&
+        !Array.isArray(objectIn[keyIn])
+      ) {
         injectJSON(objectIn[keyIn], objectOut[keyOut]);
       } else {
         objectOut[keyOut] = objectIn[keyIn];
       }
-    } else if (typeOut == "string" && typeIn == "number") {
+    } else if (typeOut == 'string' && typeIn == 'number') {
       objectIn[keyIn] = String(objectIn[keyIn]);
-    } else if (typeOut == "number" && typeIn == "string") {
+    } else if (typeOut == 'number' && typeIn == 'string') {
       objectIn[keyIn] = Number(objectIn[keyIn]);
     } else if (force) {
       objectOut[keyOut] = objectIn[keyIn];
-    } else if (typeOut == "undefined") {
+    } else if (typeOut == 'undefined') {
       objectOut[keyOut] = objectIn[keyIn];
     }
   });
@@ -116,14 +126,16 @@ export function injectJSON<T extends ObjectJSON>(objectIn: ObjectJSON, objectOut
 /** Retorna a versão do Rompot */
 export function getRompotVersion(): string {
   try {
-    return require("../../package.json")?.version || "2.0.0";
-  } catch (err) {
-    return "2.0.0";
+    return require('../../package.json')?.version || '2.3.0';
+  } catch {
+    return '2.3.0';
   }
 }
 
 /** Lê um diretório recursivamente */
-export async function readRecursiveDir<Callback extends (fileptah: string, filename: string, ext: string) => any>(dir: string, callback: Callback): Promise<ReturnType<Awaited<Callback>>[]> {
+export async function readRecursiveDir<
+  Callback extends (fileptah: string, filename: string, ext: string) => any,
+>(dir: string, callback: Callback): Promise<ReturnType<Awaited<Callback>>[]> {
   const files: any[] = [];
   const rtn: ReturnType<Awaited<Callback>>[] = [];
 
@@ -141,9 +153,9 @@ export async function readRecursiveDir<Callback extends (fileptah: string, filen
         }
 
         rtn.push(await callback(filepath, filename, parse(filename).ext));
-      })
+      }),
     );
-  } catch (err) {}
+  } catch {}
 
   return rtn;
 }
@@ -155,7 +167,7 @@ export async function readRecursiveDir<Callback extends (fileptah: string, filen
  * @returns `true` se A for igual a B.
  */
 export function verifyIsEquals(a: any, b: any): boolean {
-  if (typeof a == "object" && typeof b == "object") {
+  if (typeof a == 'object' && typeof b == 'object') {
     if (Array.isArray(a)) {
       if (!Array.isArray(b)) return false;
 

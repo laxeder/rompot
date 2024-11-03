@@ -1,29 +1,29 @@
-import ICommandControllerConfig from "./ICommandControllerConfig";
-import { readRecursiveDir } from "../../utils/Generic";
-import CommandPermission from "./CommandPermission";
-import Message from "../../messages/Message";
-import CommandKey from "./CommandKey";
-import { CMDPerm } from "./perms";
+import ICommandControllerConfig from './ICommandControllerConfig';
+import { readRecursiveDir } from '../../utils/Generic';
+import CommandPermission from './CommandPermission';
+import Message from '../../messages/Message';
+import CommandKey from './CommandKey';
+import { CMDPerm } from './perms';
 
 /** Permissões do comando */
 export declare enum CMDPerms {
   /** Permitido apenas ser executado no pv */
-  ChatPv = "chat-pv",
+  ChatPv = 'chat-pv',
   /** Permitido apenas ser executado em grupos */
-  ChatGroup = "chat-group",
+  ChatGroup = 'chat-group',
   /** Permitido apenas se o usuário for admin do chat */
-  UserChatAdmin = "chat-admin",
+  UserChatAdmin = 'chat-admin',
   /** Permitido apenas se o usuário for líder do chat */
-  UserChatLeader = "chat-leader",
+  UserChatLeader = 'chat-leader',
   /** Permitido apenas se o bot for admin do chat */
-  BotChatAdmin = "bot-chat-admin",
+  BotChatAdmin = 'bot-chat-admin',
   /** Permitido apenas se o  bot for líder do chat */
-  BotChatLeader = "bot-chat-leader",
+  BotChatLeader = 'bot-chat-leader',
 }
 
 export type CommandControllerEventsMap = {
   /** Permissão negada */
-  ["no-allowed"]: {
+  ['no-allowed']: {
     message: Message;
     command: Command;
     permission: CommandPermission;
@@ -36,9 +36,9 @@ export default class Command {
   /** Permissões necessárias do comando */
   public permissions: string[] = [];
   /** ID do bot associado ao comando */
-  public botId: string = "";
+  public botId: string = '';
   /** ID do client associado ao comando */
-  public clientId: string = "";
+  public clientId: string = '';
 
   /** Verifica se o comando pode ser executado
    * @param message Mensagem que está executando o comando
@@ -55,7 +55,7 @@ export default class Command {
 
           permissions.push(perm);
         }
-      })
+      }),
     );
 
     if (permissions.length > 0) return permissions[0];
@@ -67,7 +67,10 @@ export default class Command {
    * @param text Texto que será verificado se incluí o comando
    * @param config Configuração do controlador de comando
    */
-  public onSearch(text: string, config: ICommandControllerConfig): CommandKey | null {
+  public onSearch(
+    text: string,
+    config: ICommandControllerConfig,
+  ): CommandKey | null {
     return CommandKey.search(text, config, ...this.keys);
   }
 
@@ -94,12 +97,12 @@ export default class Command {
 
     await readRecursiveDir(dir, async (filepath, filename, ext) => {
       try {
-        if (ext != ".ts" && ext != ".js") return;
+        if (ext != '.ts' && ext != '.js') return;
 
         const content = await import(filepath);
 
-        if (!!!content) return;
-        if (typeof content != "object") return;
+        if (!content) return;
+        if (typeof content != 'object') return;
 
         const keys = Object.keys(content);
 
@@ -108,7 +111,7 @@ export default class Command {
             try {
               const data = content[key];
 
-              if (!!!data) return;
+              if (!data) return;
 
               if (Command.isValid(data)) {
                 await data.onRead();
@@ -124,10 +127,10 @@ export default class Command {
                   commands.push(cmd);
                 }
               }
-            } catch (err) {}
-          })
+            } catch {}
+          }),
         );
-      } catch (err) {}
+      } catch {}
     });
 
     return commands;
@@ -139,6 +142,9 @@ export default class Command {
    * @returns Verdadeiro se o objeto for uma instância válida de Command, caso contrário, falso.
    */
   public static isValid(command: any): command is Command {
-    return typeof command === "object" && Object.keys(new Command()).every((key) => command?.hasOwnProperty(key));
+    return (
+      typeof command === 'object' &&
+      Object.keys(new Command()).every((key) => key in command)
+    );
   }
 }

@@ -1,22 +1,22 @@
-import TelegramBotAPI from "node-telegram-bot-api";
+import TelegramBotAPI from 'node-telegram-bot-api';
 
-import Message, { MessageStatus, MessageType } from "../messages/Message";
-import LocationMessage from "../messages/LocationMessage";
-import ReactionMessage from "../messages/ReactionMessage";
-import ContactMessage from "../messages/ContactMessage";
-import StickerMessage from "../messages/StickerMessage";
-import MediaMessage from "../messages/MediaMessage";
-import ImageMessage from "../messages/ImageMessage";
-import AudioMessage from "../messages/AudioMessage";
-import VideoMessage from "../messages/VideoMessage";
-import EmptyMessage from "../messages/EmptyMessage";
-import TextMessage from "../messages/TextMessage";
-import FileMessage from "../messages/FileMessage";
-import PollMessage from "../messages/PollMessage";
+import Message, { MessageStatus, MessageType } from '../messages/Message';
+import LocationMessage from '../messages/LocationMessage';
+import ReactionMessage from '../messages/ReactionMessage';
+import ContactMessage from '../messages/ContactMessage';
+import StickerMessage from '../messages/StickerMessage';
+import MediaMessage from '../messages/MediaMessage';
+import ImageMessage from '../messages/ImageMessage';
+import AudioMessage from '../messages/AudioMessage';
+import VideoMessage from '../messages/VideoMessage';
+import EmptyMessage from '../messages/EmptyMessage';
+import TextMessage from '../messages/TextMessage';
+import FileMessage from '../messages/FileMessage';
+import PollMessage from '../messages/PollMessage';
 
-import User from "../modules/user/User";
+import User from '../modules/user/User';
 
-import { TelegramUtils } from "./TelegramUtils";
+import { TelegramUtils } from './TelegramUtils';
 
 export default class TelegramToRompotConverter {
   public telegramMessage: TelegramBotAPI.Message;
@@ -28,35 +28,56 @@ export default class TelegramToRompotConverter {
   }
 
   public async convert(received?: boolean): Promise<Message> {
-    if (!this.telegramMessage || typeof this.telegramMessage != "object") {
+    if (!this.telegramMessage || typeof this.telegramMessage != 'object') {
       return this.rompotMessage;
     }
 
     this.rompotMessage.chat.id = TelegramUtils.getId(this.telegramMessage.chat);
-    this.rompotMessage.chat.name = TelegramUtils.getName(this.telegramMessage.chat);
-    this.rompotMessage.chat.type = TelegramUtils.getChatType(this.telegramMessage.chat);
-    this.rompotMessage.chat.nickname = TelegramUtils.getNickname(this.telegramMessage.chat);
-    this.rompotMessage.chat.phoneNumber = TelegramUtils.getPhoneNumber(this.telegramMessage.chat.id);
+    this.rompotMessage.chat.name = TelegramUtils.getName(
+      this.telegramMessage.chat,
+    );
+    this.rompotMessage.chat.type = TelegramUtils.getChatType(
+      this.telegramMessage.chat,
+    );
+    this.rompotMessage.chat.nickname = TelegramUtils.getNickname(
+      this.telegramMessage.chat,
+    );
+    this.rompotMessage.chat.phoneNumber = TelegramUtils.getPhoneNumber(
+      this.telegramMessage.chat.id,
+    );
 
-    this.rompotMessage.user.id = TelegramUtils.getId(this.telegramMessage.from!);
-    this.rompotMessage.user.name = TelegramUtils.getName(this.telegramMessage.from!);
-    this.rompotMessage.user.nickname = TelegramUtils.getNickname(this.telegramMessage.from!);
-    this.rompotMessage.user.phoneNumber = TelegramUtils.getPhoneNumber(this.telegramMessage.from!.id);
+    this.rompotMessage.user.id = TelegramUtils.getId(
+      this.telegramMessage.from!,
+    );
+    this.rompotMessage.user.name = TelegramUtils.getName(
+      this.telegramMessage.from!,
+    );
+    this.rompotMessage.user.nickname = TelegramUtils.getNickname(
+      this.telegramMessage.from!,
+    );
+    this.rompotMessage.user.phoneNumber = TelegramUtils.getPhoneNumber(
+      this.telegramMessage.from!.id,
+    );
 
     this.rompotMessage.id = `${this.telegramMessage.message_id}`;
-    this.rompotMessage.text = `${this.telegramMessage.text || this.telegramMessage.caption || ""}`;
-    this.rompotMessage.mentions = TelegramUtils.getMessageMentions(this.telegramMessage);
+    this.rompotMessage.text = `${this.telegramMessage.text || this.telegramMessage.caption || ''}`;
+    this.rompotMessage.mentions = TelegramUtils.getMessageMentions(
+      this.telegramMessage,
+    );
 
     this.rompotMessage.isEdited = !!this.telegramMessage.edit_date;
 
     if (received) {
       this.rompotMessage.status = MessageStatus.Sended;
-      this.rompotMessage.timestamp = Number(this.telegramMessage.date || 0) * 1000;
+      this.rompotMessage.timestamp =
+        Number(this.telegramMessage.date || 0) * 1000;
       this.rompotMessage.chat.timestamp = this.rompotMessage.timestamp;
     }
 
     if (this.telegramMessage.reply_to_message) {
-      const convertor = new TelegramToRompotConverter(this.telegramMessage.reply_to_message);
+      const convertor = new TelegramToRompotConverter(
+        this.telegramMessage.reply_to_message,
+      );
 
       this.rompotMessage.mention = await convertor.convert(received);
     }
@@ -80,7 +101,7 @@ export default class TelegramToRompotConverter {
   }
 
   public convertText() {
-    if (!this.telegramMessage.hasOwnProperty("text")) return;
+    if (!('text' in this.telegramMessage)) return;
 
     this.rompotMessage = TextMessage.fromJSON({
       ...this.rompotMessage,
@@ -90,7 +111,7 @@ export default class TelegramToRompotConverter {
   }
 
   public convertMedia() {
-    if (!this.telegramMessage.hasOwnProperty("caption")) return;
+    if (!('caption' in this.telegramMessage)) return;
 
     this.rompotMessage = MediaMessage.fromJSON({
       ...this.rompotMessage,
@@ -118,7 +139,12 @@ export default class TelegramToRompotConverter {
     this.rompotMessage = ImageMessage.fromJSON({
       ...this.rompotMessage,
       type: MessageType.Image,
-      file: { stream: this.telegramMessage.photo[this.telegramMessage.photo.length - 1 || 0] || {} },
+      file: {
+        stream:
+          this.telegramMessage.photo[
+            this.telegramMessage.photo.length - 1 || 0
+          ] || {},
+      },
     });
   }
 
@@ -178,10 +204,15 @@ export default class TelegramToRompotConverter {
     this.rompotMessage = StickerMessage.fromJSON({
       ...this.rompotMessage,
       type: MessageType.Sticker,
-      isGIF: !!(this.telegramMessage.sticker.is_animated || this.telegramMessage.sticker.is_video),
-      categories: this.telegramMessage.sticker.emoji ? [this.telegramMessage.sticker.emoji] : [],
-      author: `${this.telegramMessage.sticker.set_name || ""}`,
-      stickerId: `${this.telegramMessage.sticker.custom_emoji_id || ""}`,
+      isGIF: !!(
+        this.telegramMessage.sticker.is_animated ||
+        this.telegramMessage.sticker.is_video
+      ),
+      categories: this.telegramMessage.sticker.emoji
+        ? [this.telegramMessage.sticker.emoji]
+        : [],
+      author: `${this.telegramMessage.sticker.set_name || ''}`,
+      stickerId: `${this.telegramMessage.sticker.custom_emoji_id || ''}`,
       file: { stream: this.telegramMessage.sticker },
     });
   }
@@ -192,7 +223,12 @@ export default class TelegramToRompotConverter {
     this.rompotMessage = ContactMessage.fromJSON({
       ...this.rompotMessage,
       type: MessageType.Contact,
-      users: [new User(TelegramUtils.getId(this.telegramMessage.contact), TelegramUtils.getName(this.telegramMessage.contact))],
+      users: [
+        new User(
+          TelegramUtils.getId(this.telegramMessage.contact),
+          TelegramUtils.getName(this.telegramMessage.contact),
+        ),
+      ],
     });
   }
 

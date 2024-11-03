@@ -1,15 +1,15 @@
-import type UserEvent from "../modules/user/UserEvent";
-import type UserAction from "../modules/user/UserAction";
-import type ChatAction from "../modules/chat/ChatAction";
+import type UserEvent from '../modules/user/UserEvent';
+import type UserAction from '../modules/user/UserAction';
+import type ChatAction from '../modules/chat/ChatAction';
 
-import EventEmitter from "events";
+import EventEmitter from 'events';
 
-import { ConnectionType } from "./ConnectionType";
-import Call, { CallStatus } from "../models/Call";
+import { ConnectionType } from './ConnectionType';
+import Call, { CallStatus } from '../models/Call';
 
-import User from "../modules/user/User";
-import Chat from "../modules/chat/Chat";
-import Message from "../messages/Message";
+import User from '../modules/user/User';
+import Chat from '../modules/chat/Chat';
+import Message from '../messages/Message';
 
 /**
  * Mapeia os eventos que podem ser emitidos pelo cliente.
@@ -44,12 +44,12 @@ export type ClientEventsMap = {
   /**
    * Evento de cliente reconectando.
    */
-  reconnecting: {};
+  reconnecting: object;
 
   /**
    * Evento de cliente conectando.
    */
-  connecting: {};
+  connecting: object;
 
   /**
    * Evento de conexão parada.
@@ -113,15 +113,15 @@ export type ClientEventsMap = {
    */
   call: Call;
 
-  "new-call": Call;
+  'new-call': Call;
 
-  "ringing-call": Call;
+  'ringing-call': Call;
 
-  "call-rejected": Call;
+  'call-rejected': Call;
 
-  "call-accepted": Call;
+  'call-accepted': Call;
 
-  "call-ended": Call;
+  'call-ended': Call;
 
   /**
    * Evento de erro ocorrido.
@@ -142,7 +142,7 @@ export default class ClientEvents {
    */
   public on<T extends keyof ClientEventsMap>(
     eventName: T,
-    listener: (arg: ClientEventsMap[T]) => void
+    listener: (arg: ClientEventsMap[T]) => void,
   ) {
     this.ev.on(eventName, listener);
   }
@@ -154,7 +154,7 @@ export default class ClientEvents {
    */
   public off<T extends keyof ClientEventsMap>(
     eventName: T,
-    listener: (arg: ClientEventsMap[T]) => void
+    listener: (arg: ClientEventsMap[T]) => void,
   ): void {
     this.ev.off(eventName, listener);
   }
@@ -175,7 +175,7 @@ export default class ClientEvents {
    */
   public emit<T extends keyof ClientEventsMap>(
     eventName: T,
-    arg: ClientEventsMap[T]
+    arg: ClientEventsMap[T],
   ): boolean {
     return this.ev.emit(eventName, arg);
   }
@@ -185,50 +185,50 @@ export default class ClientEvents {
    * Registra ouvintes internos para eventos padrão de conexão.
    */
   constructor() {
-    this.on("close", (update) => {
-      this.emit("conn", { action: "close", reason: update.reason });
+    this.on('close', (update) => {
+      this.emit('conn', { action: 'close', reason: update.reason });
     });
 
-    this.on("open", (update: { isNewLogin: boolean }) => {
-      this.emit("conn", { action: "open", isNewLogin: update.isNewLogin });
+    this.on('open', (update: { isNewLogin: boolean }) => {
+      this.emit('conn', { action: 'open', isNewLogin: update.isNewLogin });
     });
 
-    this.on("qr", (qr: string) => {
-      this.emit("conn", { action: "qr", qr });
+    this.on('qr', (qr: string) => {
+      this.emit('conn', { action: 'qr', qr });
     });
 
-    this.on("code", (code: string) => {
-      this.emit("conn", { action: "code", code });
+    this.on('code', (code: string) => {
+      this.emit('conn', { action: 'code', code });
     });
 
-    this.on("stop", (update) => {
-      this.emit("conn", { action: "stop", isLogout: !!update?.isLogout });
+    this.on('stop', (update) => {
+      this.emit('conn', { action: 'stop', isLogout: !!update?.isLogout });
     });
 
-    this.on("reconnecting", () => {
-      this.emit("conn", { action: "reconnecting" });
+    this.on('reconnecting', () => {
+      this.emit('conn', { action: 'reconnecting' });
     });
 
-    this.on("connecting", () => {
-      this.emit("conn", { action: "connecting" });
+    this.on('connecting', () => {
+      this.emit('conn', { action: 'connecting' });
     });
 
-    this.on("call", (call) => {
+    this.on('call', (call) => {
       switch (call.status) {
         case CallStatus.Offer:
-          this.emit("new-call", call);
+          this.emit('new-call', call);
           break;
         case CallStatus.Ringing:
-          this.emit("ringing-call", call);
+          this.emit('ringing-call', call);
           break;
         case CallStatus.Reject:
-          this.emit("call-rejected", call);
+          this.emit('call-rejected', call);
           break;
         case CallStatus.Accept:
-          this.emit("call-accepted", call);
+          this.emit('call-accepted', call);
           break;
         case CallStatus.Timeout:
-          this.emit("call-ended", call);
+          this.emit('call-ended', call);
           break;
       }
     });

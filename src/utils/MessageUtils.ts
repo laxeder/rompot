@@ -1,23 +1,23 @@
-import PollUpdateMessage from "../messages/PollUpdateMessage";
-import Message, { MessageType } from "../messages/Message";
-import LocationMessage from "../messages/LocationMessage";
-import ReactionMessage from "../messages/ReactionMessage";
-import ContactMessage from "../messages/ContactMessage";
-import StickerMessage from "../messages/StickerMessage";
-import ButtonMessage from "../messages/ButtonMessage";
-import VideoMessage from "../messages/VideoMessage";
-import MediaMessage from "../messages/MediaMessage";
-import ImageMessage from "../messages/ImageMessage";
-import AudioMessage from "../messages/AudioMessage";
-import EmptyMessage from "../messages/EmptyMessage";
-import ErrorMessage from "../messages/ErrorMessage";
-import FileMessage from "../messages/FileMessage";
-import ListMessage from "../messages/ListMessage";
-import PollMessage from "../messages/PollMessage";
-import TextMessage from "../messages/TextMessage";
+import PollUpdateMessage from '../messages/PollUpdateMessage';
+import Message, { MessageType } from '../messages/Message';
+import LocationMessage from '../messages/LocationMessage';
+import ReactionMessage from '../messages/ReactionMessage';
+import ContactMessage from '../messages/ContactMessage';
+import StickerMessage from '../messages/StickerMessage';
+import ButtonMessage from '../messages/ButtonMessage';
+import VideoMessage from '../messages/VideoMessage';
+import MediaMessage from '../messages/MediaMessage';
+import ImageMessage from '../messages/ImageMessage';
+import AudioMessage from '../messages/AudioMessage';
+import EmptyMessage from '../messages/EmptyMessage';
+import ErrorMessage from '../messages/ErrorMessage';
+import FileMessage from '../messages/FileMessage';
+import ListMessage from '../messages/ListMessage';
+import PollMessage from '../messages/PollMessage';
+import TextMessage from '../messages/TextMessage';
 
 export function getMessageFromJSON(data: any) {
-  if (!data || typeof data != "object" || data?.type == MessageType.Empty) {
+  if (!data || typeof data != 'object' || data?.type == MessageType.Empty) {
     return EmptyMessage.fromJSON(data);
   }
 

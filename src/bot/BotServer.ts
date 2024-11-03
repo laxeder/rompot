@@ -1,15 +1,15 @@
-import { Server, createServer } from "http";
-import express, { Express } from "express";
-import bodyParser from "body-parser";
-import pino, { Logger } from "pino";
+import { Server, createServer } from 'http';
+import express, { Express } from 'express';
+import bodyParser from 'body-parser';
+import pino, { Logger } from 'pino';
 
-import { BotEventsMap } from "./BotEvents";
-import IBot from "./IBot";
+import { BotEventsMap } from './BotEvents';
+import IBot from './IBot';
 
-import { apiV1 } from "../routes/botServer/routes";
+import { apiV1 } from '../routes/botServer/routes';
 
-import { ServerRequest, ServerResponse } from "../utils/server";
-import nonce from "../utils/nonce";
+import { ServerRequest, ServerResponse } from '../utils/server';
+import nonce from '../utils/nonce';
 
 export type BotServerOptions = {
   serverId: string;
@@ -19,7 +19,7 @@ export type BotServerOptions = {
   pingInterval: number;
   maxPing: number;
   logger: Logger;
-  version: "apiV1";
+  version: 'apiV1';
 };
 
 export type BotWebhook = {
@@ -43,9 +43,12 @@ export type BotServer<Bot extends IBot = IBot> = Bot &
     configRoutes(): Server;
   };
 
-export default function BotServer<Bot extends IBot = IBot>(bot: Bot, options: Partial<BotServerOptions> = {}): BotServer<Bot> {
-  if (!bot || typeof bot !== "object") {
-    throw new Error("Invalid bot");
+export default function BotServer<Bot extends IBot = IBot>(
+  bot: Bot,
+  options: Partial<BotServerOptions> = {},
+): BotServer<Bot> {
+  if (!bot || typeof bot !== 'object') {
+    throw new Error('Invalid bot');
   }
 
   const botServer: BotServer<Bot> = {
@@ -57,20 +60,29 @@ export default function BotServer<Bot extends IBot = IBot>(bot: Bot, options: Pa
       app.use(bodyParser.json({ limit: Infinity }));
       app.use(bodyParser.urlencoded({ extended: true }));
 
-      if (botServer.options.version == "apiV1") {
+      if (botServer.options.version == 'apiV1') {
         app.use(`/${botServer.options.serverId}`, apiV1(botServer));
       } else {
         app.use(`/${botServer.options.serverId}`, apiV1(botServer));
       }
 
-      botServer.options.server.on("request", app);
+      botServer.options.server.on('request', app);
 
       return botServer.options.server;
     },
 
     configEvents() {
-      const emit = <T extends keyof BotEventsMap>(eventName: T, arg: BotEventsMap[T]): boolean => {
-        botServer.sendAll(ServerRequest.generate(ServerRequest.RequestMethod.EMIT, eventName, arg));
+      const emit = <T extends keyof BotEventsMap>(
+        eventName: T,
+        arg: BotEventsMap[T],
+      ): boolean => {
+        botServer.sendAll(
+          ServerRequest.generate(
+            ServerRequest.RequestMethod.EMIT,
+            eventName,
+            arg,
+          ),
+        );
 
         return bot.ev.emit(eventName, arg);
       };
@@ -84,14 +96,18 @@ export default function BotServer<Bot extends IBot = IBot>(bot: Bot, options: Pa
 
   if (!options.disableAutoStart) {
     botServer.options.server.listen(options.port, () => {
-      botServer.options.logger.info(`Bot Server "${botServer.options.serverId}" is running on port ${botServer.options.port}`);
+      botServer.options.logger.info(
+        `Bot Server "${botServer.options.serverId}" is running on port ${botServer.options.port}`,
+      );
     });
   }
 
   return botServer;
 }
 
-export function generateBotServerBase(partialOptions: Partial<BotServerOptions> = {}): BotServerBase {
+export function generateBotServerBase(
+  partialOptions: Partial<BotServerOptions> = {},
+): BotServerBase {
   const options: BotServerOptions = generateBotServerOptions(partialOptions);
   const webhooks: Record<string, BotWebhook> = {};
 
@@ -109,9 +125,11 @@ export function generateBotServerBase(partialOptions: Partial<BotServerOptions> 
 
             await ServerRequest.send(webhook.url, body);
           } catch (error) {
-            this.options.logger.error(JSON.stringify(ServerResponse.generateError(error), undefined, 2));
+            this.options.logger.error(
+              JSON.stringify(ServerResponse.generateError(error), undefined, 2),
+            );
           }
-        })
+        }),
       );
     },
 
@@ -159,7 +177,9 @@ export function generateBotServerBase(partialOptions: Partial<BotServerOptions> 
   };
 }
 
-export function generateBotServerOptions(options: Partial<BotServerOptions>): BotServerOptions {
+export function generateBotServerOptions(
+  options: Partial<BotServerOptions>,
+): BotServerOptions {
   const botServerOptions: BotServerOptions = {
     serverId: options.serverId || nonce(),
     server: options.server || createServer(),
@@ -168,7 +188,7 @@ export function generateBotServerOptions(options: Partial<BotServerOptions>): Bo
     pingInterval: options.pingInterval || 10000,
     maxPing: options.maxPing || 6,
     logger: options.logger || pino(),
-    version: "apiV1",
+    version: 'apiV1',
   };
 
   return botServerOptions;

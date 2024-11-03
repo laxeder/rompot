@@ -1,21 +1,21 @@
-import TelegramBotAPI from "node-telegram-bot-api";
+import TelegramBotAPI from 'node-telegram-bot-api';
 
-import LocationMessage from "../messages/LocationMessage";
-import ReactionMessage from "../messages/ReactionMessage";
-import ContactMessage from "../messages/ContactMessage";
-import StickerMessage from "../messages/StickerMessage";
-import MediaMessage from "../messages/MediaMessage";
-import ImageMessage from "../messages/ImageMessage";
-import AudioMessage from "../messages/AudioMessage";
-import VideoMessage from "../messages/VideoMessage";
-import TextMessage from "../messages/TextMessage";
-import FileMessage from "../messages/FileMessage";
-import PollMessage from "../messages/PollMessage";
-import Message from "../messages/Message";
+import LocationMessage from '../messages/LocationMessage';
+import ReactionMessage from '../messages/ReactionMessage';
+import ContactMessage from '../messages/ContactMessage';
+import StickerMessage from '../messages/StickerMessage';
+import MediaMessage from '../messages/MediaMessage';
+import ImageMessage from '../messages/ImageMessage';
+import AudioMessage from '../messages/AudioMessage';
+import VideoMessage from '../messages/VideoMessage';
+import TextMessage from '../messages/TextMessage';
+import FileMessage from '../messages/FileMessage';
+import PollMessage from '../messages/PollMessage';
+import Message from '../messages/Message';
 
-import TelegramToRompotConverter from "./TelegramToRompotConverter";
-import { TelegramUtils } from "./TelegramUtils";
-import TelegramBot from "./TelegramBot";
+import TelegramToRompotConverter from './TelegramToRompotConverter';
+import { TelegramUtils } from './TelegramUtils';
+import TelegramBot from './TelegramBot';
 
 export default class TelegramSendingController {
   public telegram: TelegramBot;
@@ -75,7 +75,11 @@ export default class TelegramSendingController {
   public async sendMessage(message: Message): Promise<Message> {
     const options = TelegramSendingController.getOptions(message);
 
-    const telegramMessage = await this.telegram.bot.sendMessage(Number(message.chat.id), `${message.text}`, options);
+    const telegramMessage = await this.telegram.bot.sendMessage(
+      Number(message.chat.id),
+      `${message.text}`,
+      options,
+    );
 
     return await new TelegramToRompotConverter(telegramMessage).convert();
   }
@@ -83,7 +87,11 @@ export default class TelegramSendingController {
   public async sendText(message: TextMessage): Promise<Message> {
     const options = TelegramSendingController.getOptions(message);
 
-    const telegramMessage = await this.telegram.bot.sendMessage(Number(message.chat.id), `${message.text}`, options);
+    const telegramMessage = await this.telegram.bot.sendMessage(
+      Number(message.chat.id),
+      `${message.text}`,
+      options,
+    );
 
     return await new TelegramToRompotConverter(telegramMessage).convert();
   }
@@ -91,7 +99,10 @@ export default class TelegramSendingController {
   public async sendReaction(message: ReactionMessage): Promise<Message> {
     const options = TelegramSendingController.getOptions(message);
 
-    const telegramMessage = await this.telegram.bot.sendDice(Number(message.chat.id), options);
+    const telegramMessage = await this.telegram.bot.sendDice(
+      Number(message.chat.id),
+      options,
+    );
 
     return await new TelegramToRompotConverter(telegramMessage).convert();
   }
@@ -99,7 +110,12 @@ export default class TelegramSendingController {
   public async sendContact(message: ContactMessage): Promise<Message> {
     const options = TelegramSendingController.getOptions(message);
 
-    const telegramMessage = await this.telegram.bot.sendContact(Number(message.chat.id), TelegramUtils.getPhoneNumber(message.contacts.shift()?.id || ""), `${message.text}`, options);
+    const telegramMessage = await this.telegram.bot.sendContact(
+      Number(message.chat.id),
+      TelegramUtils.getPhoneNumber(message.contacts.shift()?.id || ''),
+      `${message.text}`,
+      options,
+    );
 
     return await new TelegramToRompotConverter(telegramMessage).convert();
   }
@@ -107,7 +123,12 @@ export default class TelegramSendingController {
   public async sendLocation(message: LocationMessage): Promise<Message> {
     const options = TelegramSendingController.getOptions(message);
 
-    const telegramMessage = await this.telegram.bot.sendLocation(Number(message.chat.id), Number(message.latitude || 0), Number(message.longitude || 0), options);
+    const telegramMessage = await this.telegram.bot.sendLocation(
+      Number(message.chat.id),
+      Number(message.latitude || 0),
+      Number(message.longitude || 0),
+      options,
+    );
 
     return await new TelegramToRompotConverter(telegramMessage).convert();
   }
@@ -118,8 +139,8 @@ export default class TelegramSendingController {
     const telegramMessage = await this.telegram.bot.sendPoll(
       Number(message.chat.id),
       `${message.text}`,
-      message.options.map((option) => `${option.name || ""}`),
-      options
+      message.options.map((option) => `${option.name || ''}`),
+      options,
     );
 
     return await new TelegramToRompotConverter(telegramMessage).convert();
@@ -130,9 +151,19 @@ export default class TelegramSendingController {
     const fileOptions = TelegramSendingController.getFileOptions(message);
 
     if (message.isPTT) {
-      var telegramMessage = await this.telegram.bot.sendVoice(Number(message.chat.id), await message.getStream(), options, fileOptions);
+      var telegramMessage = await this.telegram.bot.sendVoice(
+        Number(message.chat.id),
+        await message.getStream(),
+        options,
+        fileOptions,
+      );
     } else {
-      var telegramMessage = await this.telegram.bot.sendAudio(Number(message.chat.id), await message.getStream(), options, fileOptions);
+      var telegramMessage = await this.telegram.bot.sendAudio(
+        Number(message.chat.id),
+        await message.getStream(),
+        options,
+        fileOptions,
+      );
     }
 
     return await new TelegramToRompotConverter(telegramMessage).convert();
@@ -143,9 +174,18 @@ export default class TelegramSendingController {
     const fileOptions = TelegramSendingController.getFileOptions(message);
 
     if (message.isGIF) {
-      var telegramMessage = await this.telegram.bot.sendAnimation(Number(message.chat.id), await message.getStream(), options);
+      var telegramMessage = await this.telegram.bot.sendAnimation(
+        Number(message.chat.id),
+        await message.getStream(),
+        options,
+      );
     } else {
-      var telegramMessage = await this.telegram.bot.sendPhoto(Number(message.chat.id), await message.getStream(), options, fileOptions);
+      var telegramMessage = await this.telegram.bot.sendPhoto(
+        Number(message.chat.id),
+        await message.getStream(),
+        options,
+        fileOptions,
+      );
     }
 
     return await new TelegramToRompotConverter(telegramMessage).convert();
@@ -155,7 +195,12 @@ export default class TelegramSendingController {
     const options = TelegramSendingController.getOptions(message);
     const fileOptions = TelegramSendingController.getFileOptions(message);
 
-    const telegramMessage = await this.telegram.bot.sendVideo(Number(message.chat.id), await message.getStream(), options, fileOptions);
+    const telegramMessage = await this.telegram.bot.sendVideo(
+      Number(message.chat.id),
+      await message.getStream(),
+      options,
+      fileOptions,
+    );
 
     return await new TelegramToRompotConverter(telegramMessage).convert();
   }
@@ -164,7 +209,12 @@ export default class TelegramSendingController {
     const options = TelegramSendingController.getOptions(message);
     const fileOptions = TelegramSendingController.getFileOptions(message);
 
-    const telegramMessage = await this.telegram.bot.sendSticker(Number(message.chat.id), await message.getStream(), options, fileOptions);
+    const telegramMessage = await this.telegram.bot.sendSticker(
+      Number(message.chat.id),
+      await message.getStream(),
+      options,
+      fileOptions,
+    );
 
     return await new TelegramToRompotConverter(telegramMessage).convert();
   }
@@ -173,7 +223,12 @@ export default class TelegramSendingController {
     const options = TelegramSendingController.getOptions(message);
     const fileOptions = TelegramSendingController.getFileOptions(message);
 
-    const telegramMessage = await this.telegram.bot.sendDocument(Number(message.chat.id), await message.getStream(), options, fileOptions);
+    const telegramMessage = await this.telegram.bot.sendDocument(
+      Number(message.chat.id),
+      await message.getStream(),
+      options,
+      fileOptions,
+    );
 
     return await new TelegramToRompotConverter(telegramMessage).convert();
   }
@@ -182,7 +237,12 @@ export default class TelegramSendingController {
     const options = TelegramSendingController.getOptions(message);
     const fileOptions = TelegramSendingController.getFileOptions(message);
 
-    const telegramMessage = await this.telegram.bot.sendDocument(Number(message.chat.id), await message.getStream(), options, fileOptions);
+    const telegramMessage = await this.telegram.bot.sendDocument(
+      Number(message.chat.id),
+      await message.getStream(),
+      options,
+      fileOptions,
+    );
 
     return await new TelegramToRompotConverter(telegramMessage).convert();
   }
@@ -209,18 +269,24 @@ export default class TelegramSendingController {
       TelegramBotAPI.SendLocationOptions &
       TelegramBotAPI.SendPollOptions &
       TelegramBotAPI.SendDiceOptions &
-      TelegramBotAPI.EditMessageTextOptions = {}
+      TelegramBotAPI.EditMessageTextOptions = {},
   ) {
     options.chat_id = Number(message.chat.id || 0);
     options.message_id = Number(message.id || 0);
 
     options.caption_entities = message.mentions.reduce((entities, mention) => {
-      const result = new RegExp(`@(${mention || ""})`).exec(`${message.text || ""}`);
+      const result = new RegExp(`@(${mention || ''})`).exec(
+        `${message.text || ''}`,
+      );
 
       const searchedMention = result?.shift();
 
       if (searchedMention) {
-        entities.push({ type: "mention", offset: result?.index || 0, length: searchedMention.length });
+        entities.push({
+          type: 'mention',
+          offset: result?.index || 0,
+          length: searchedMention.length,
+        });
       }
 
       return entities;
@@ -231,14 +297,14 @@ export default class TelegramSendingController {
     }
 
     if (MediaMessage.isValid(message)) {
-      options.caption = `${message.text || ""}`;
-      options.title = `${message.name || ""}`;
+      options.caption = `${message.text || ''}`;
+      options.title = `${message.name || ''}`;
 
       if (AudioMessage.isValid(message)) {
         options.duration = Number(message.duration || 0);
       }
     } else if (ReactionMessage.isValid(message)) {
-      options.emoji = `${message.text || ""}`;
+      options.emoji = `${message.text || ''}`;
     }
 
     if (message.extra) {
@@ -248,9 +314,12 @@ export default class TelegramSendingController {
     return options;
   }
 
-  public static getFileOptions(message: MediaMessage, options: TelegramBotAPI.FileOptions = {}) {
-    options.filename = `${message.name || ""}`;
-    options.contentType = `${message.mimetype || ""}`;
+  public static getFileOptions(
+    message: MediaMessage,
+    options: TelegramBotAPI.FileOptions = {},
+  ) {
+    options.filename = `${message.name || ''}`;
+    options.contentType = `${message.mimetype || ''}`;
 
     return options;
   }

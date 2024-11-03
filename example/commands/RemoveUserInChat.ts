@@ -9,7 +9,7 @@ export class RemoveUserInChatCommand extends Command {
   public async onExec(message: Message) {
     const userId = message.mentions[0] || !!message.mention ? message.mention?.user.id : message.text.replace(/\D+/g, "");
 
-    if (!!!userId) {
+    if (!userId) {
       await message.reply("Vocẽ precisa mencionar alguem para que ela possa ser banida");
       return;
     }

@@ -1,15 +1,15 @@
-import type { IClient } from "../../client";
+import type { IClient } from '../../client';
 
-import UserNotDefinedError from "../../errors/UserNotDefinedError";
-import ClientNotDefinedError from "../../errors/ClientNotDefinedError";
+import UserNotDefinedError from '../../errors/UserNotDefinedError';
+import ClientNotDefinedError from '../../errors/ClientNotDefinedError';
 
-import User from "../../modules/user/User";
-import Message from "../../messages/Message";
+import User from '../../modules/user/User';
+import Message from '../../messages/Message';
 
-import ChatType from "./ChatType";
-import ChatStatus from "./ChatStatus";
+import ChatType from './ChatType';
+import ChatStatus from './ChatStatus';
 
-import { ClientUtils } from "../../utils/ClientUtils";
+import { ClientUtils } from '../../utils/ClientUtils';
 
 export default class Chat {
   /** ID do bot associado a este chat */
@@ -60,7 +60,7 @@ export default class Chat {
    * @param type - O tipo do chat (opcional, padrão é ChatType.PV).
    * @param name - O nome do chat (opcional, padrão é uma string vazia).
    */
-  constructor(id: string = "", type: ChatType = ChatType.PV, name?: string) {
+  constructor(id: string = '', type: ChatType = ChatType.PV, name?: string) {
     this.id = id;
     this.type = type;
 
@@ -221,7 +221,7 @@ export default class Chat {
     const data: Record<string, any> = {};
 
     for (const [key, value] of Object.entries(this)) {
-      if (key == "toJSON") continue;
+      if (key == 'toJSON') continue;
 
       data[key] = value;
     }
@@ -235,11 +235,11 @@ export default class Chat {
    * @returns Uma instância de Chat criada a partir dos dados JSON.
    */
   public static fromJSON(data: any): Chat {
-    if (!data || typeof data != "object") {
-      return new Chat("");
+    if (!data || typeof data != 'object') {
+      return new Chat('');
     }
 
-    const chat = new Chat("");
+    const chat = new Chat('');
 
     if (data.botId) chat.botId = data.botId;
     if (data.clientId) chat.clientId = data.clientId;
@@ -267,11 +267,11 @@ export default class Chat {
    * @param chat - O chat ou ID do chat de onde obter o ID.
    */
   public static getId(chat: Chat | string): string | undefined {
-    if (typeof chat == "object") {
+    if (typeof chat == 'object') {
       return chat?.id;
     }
 
-    if (typeof chat == "string") {
+    if (typeof chat == 'string') {
       return chat;
     }
 
@@ -284,7 +284,7 @@ export default class Chat {
    * @param data - Dados que serão aplicados no chat.
    */
   public static apply(chat: Chat | string, data?: Partial<Chat>) {
-    if (!chat || typeof chat != "object") {
+    if (!chat || typeof chat != 'object') {
       chat = new Chat(`${chat}`);
     } else {
       chat = Chat.fromJSON(chat);
@@ -303,10 +303,10 @@ export default class Chat {
    * @returns Verdadeiro se o objeto for uma instância válida de Chat, caso contrário, falso.
    */
   public static isValid(chat: any): chat is Chat {
-    if (typeof chat != "object") return false;
+    if (typeof chat != 'object') return false;
 
-    const keys = Object.keys(new Chat(""));
+    const keys = Object.keys(new Chat(''));
 
-    return keys.every((key) => chat?.hasOwnProperty(key));
+    return keys.every((key) => key in chat);
   }
 }

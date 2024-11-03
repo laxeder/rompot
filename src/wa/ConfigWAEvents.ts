@@ -4,18 +4,18 @@ import {
   WACallEvent,
   isJidGroup,
   proto,
-} from "@whiskeysockets/baileys";
-import { Boom } from "@hapi/boom";
-import Long from "long";
+} from '@whiskeysockets/baileys';
+import { Boom } from '@hapi/boom';
+import Long from 'long';
 
-import { BotStatus } from "../bot/BotStatus";
-import { fixID, getPhoneNumber } from "./ID";
-import Call, { CallStatus } from "../models/Call";
+import { BotStatus } from '../bot/BotStatus';
+import { fixID, getPhoneNumber } from './ID';
+import Call, { CallStatus } from '../models/Call';
 
-import Chat from "../modules/chat/Chat";
-import WhatsAppBot from "./WhatsAppBot";
-import ConvertWAMessage from "./ConvertWAMessage";
-import ErrorMessage from "../messages/ErrorMessage";
+import Chat from '../modules/chat/Chat';
+import WhatsAppBot from './WhatsAppBot';
+import ConvertWAMessage from './ConvertWAMessage';
+import ErrorMessage from '../messages/ErrorMessage';
 
 export default class ConfigWAEvents {
   public wa: WhatsAppBot;
@@ -45,71 +45,71 @@ export default class ConfigWAEvents {
   }
 
   public configCBNotificationRemove() {
-    this.wa.sock.ws.on("CB:notification,,remove", async (data) => {
+    this.wa.sock.ws.on('CB:notification,,remove', async (data) => {
       for (const content of data.content[0]?.content || []) {
         try {
           await this.wa.groupParticipantsUpdate(
-            content.attrs.jid == data.attrs.participant ? "leave" : "remove",
+            content.attrs.jid == data.attrs.participant ? 'leave' : 'remove',
             data.attrs.from,
             content.attrs.jid,
-            data.attrs.participant
+            data.attrs.participant,
           );
         } catch (err) {
-          this.wa.emit("error", err);
+          this.wa.emit('error', err);
         }
       }
     });
   }
 
   public configCBNotificationAdd() {
-    this.wa.sock.ws.on("CB:notification,,add", async (data) => {
+    this.wa.sock.ws.on('CB:notification,,add', async (data) => {
       for (const content of data.content[0]?.content || []) {
         try {
           if (!data.attrs.participant)
             data.attrs.participant = content.attrs.jid;
 
           await this.wa.groupParticipantsUpdate(
-            content.attrs.jid == data.attrs.participant ? "join" : "add",
+            content.attrs.jid == data.attrs.participant ? 'join' : 'add',
             data.attrs.from,
             content.attrs.jid,
-            data.attrs.participant
+            data.attrs.participant,
           );
         } catch (err) {
-          this.wa.emit("error", err);
+          this.wa.emit('error', err);
         }
       }
     });
   }
 
   public configCBNotificationPromote() {
-    this.wa.sock.ws.on("CB:notification,,promote", async (data) => {
+    this.wa.sock.ws.on('CB:notification,,promote', async (data) => {
       for (const content of data.content[0]?.content || []) {
         try {
           await this.wa.groupParticipantsUpdate(
-            "promote",
+            'promote',
             data.attrs.from,
             content.attrs.jid,
-            data.attrs.participant
+            data.attrs.participant,
           );
         } catch (err) {
-          this.wa.emit("error", err);
+          this.wa.emit('error', err);
         }
       }
     });
   }
 
   public configCBNotificationDemote() {
-    this.wa.sock.ws.on("CB:notification,,demote", async (data) => {
+    this.wa.sock.ws.on('CB:notification,,demote', async (data) => {
       for (const content of data.content[0]?.content || []) {
         try {
           await this.wa.groupParticipantsUpdate(
-            "demote",
+            'demote',
             data.attrs.from,
             content.attrs.jid,
-            data.attrs.participant
+            data.attrs.participant,
           );
         } catch (err) {
-          this.wa.emit("error", err);
+          this.wa.emit('error', err);
         }
       }
     });
@@ -117,13 +117,13 @@ export default class ConfigWAEvents {
 
   public async readMessages(
     messages: proto.IWebMessageInfo[],
-    type: MessageUpsertType = "notify"
+    type: MessageUpsertType = 'notify',
   ) {
     try {
       for (const message of messages || []) {
         try {
           if (!message) return;
-          if (message.key.remoteJid == "status@broadcast") return;
+          if (message.key.remoteJid == 'status@broadcast') return;
 
           if (!message.message) {
             if (
@@ -145,7 +145,7 @@ export default class ConfigWAEvents {
 
               const newMsgRetryCount =
                 this.wa.config.msgRetryCounterCache?.get<number>(
-                  message.key.id!
+                  message.key.id!,
                 );
 
               if (!this.wa.config.readAllFailedMessages) {
@@ -204,7 +204,7 @@ export default class ConfigWAEvents {
             unreadCount: (chat?.unreadCount || 0) + 1,
             timestamp,
             name:
-              message.key.id?.includes("@s") && !message.key.fromMe
+              message.key.id?.includes('@s') && !message.key.fromMe
                 ? message.pushName || message.verifiedBizName || undefined
                 : undefined,
           });
@@ -215,7 +215,7 @@ export default class ConfigWAEvents {
               : message.key.participant ||
                   message.participant ||
                   message.key.remoteJid ||
-                  ""
+                  '',
           );
 
           await this.wa.updateUser({
@@ -229,38 +229,40 @@ export default class ConfigWAEvents {
             await this.wa.updateChat({ id: msg.chat.id, unreadCount: 0 });
           }
 
-          this.wa.emit("message", msg);
+          this.wa.emit('message', msg);
         } catch (err) {
           this.wa.emit(
-            "message",
+            'message',
             new ErrorMessage(
-              fixID(message?.key?.remoteJid || ""),
-              err && err instanceof Error ? err : new Error(JSON.stringify(err))
-            )
+              fixID(message?.key?.remoteJid || ''),
+              err && err instanceof Error
+                ? err
+                : new Error(JSON.stringify(err)),
+            ),
           );
         }
       }
     } catch (err) {
-      this.wa.emit("error", err);
+      this.wa.emit('error', err);
     }
   }
 
   public configMessagesUpsert() {
-    this.wa.sock.ev.on("messages.upsert", async (m) => {
+    this.wa.sock.ev.on('messages.upsert', async (m) => {
       try {
         await this.readMessages(m?.messages || [], m.type);
       } catch (err) {
-        this.wa.emit("error", err);
+        this.wa.emit('error', err);
       }
     });
   }
 
   public configMessagesUpdate() {
-    this.wa.sock.ev.on("messages.update", async (messages) => {
+    this.wa.sock.ev.on('messages.update', async (messages) => {
       try {
         for (const message of messages || []) {
           try {
-            if (message.key.remoteJid == "status@broadcast") return;
+            if (message.key.remoteJid == 'status@broadcast') return;
 
             await this.readMessages([{ key: message.key, ...message.update }]);
 
@@ -270,70 +272,70 @@ export default class ConfigWAEvents {
 
             msg.isUpdate = true;
 
-            this.wa.emit("message", msg);
+            this.wa.emit('message', msg);
           } catch (err) {
             this.wa.emit(
-              "message",
+              'message',
               new ErrorMessage(
-                fixID(message?.key?.remoteJid || ""),
+                fixID(message?.key?.remoteJid || ''),
                 err && err instanceof Error
                   ? err
-                  : new Error(JSON.stringify(err))
-              )
+                  : new Error(JSON.stringify(err)),
+              ),
             );
           }
         }
       } catch (err) {
-        this.wa.emit("error", err);
+        this.wa.emit('error', err);
       }
     });
   }
 
   public configConnectionUpdate() {
-    this.wa.sock.ev.on("connection.update", async (update) => {
+    this.wa.sock.ev.on('connection.update', async (update) => {
       try {
         this.wa.connectionListeners = this.wa.connectionListeners.filter(
-          (listener) => !listener(update)
+          (listener) => !listener(update),
         );
 
-        if (update.connection == "connecting") {
+        if (update.connection == 'connecting') {
           this.wa.lastConnectionUpdateDate = Date.now();
           this.wa.status = BotStatus.Offline;
-          this.wa.emit("connecting", { action: "connecting" });
+          this.wa.emit('connecting', { action: 'connecting' });
         }
 
         if (update.qr) {
-          this.wa.emit("qr", update.qr);
+          this.wa.emit('qr', update.qr);
         }
 
-        if (update.connection == "open") {
+        if (update.connection == 'open') {
           const uptime = Date.now();
 
           this.wa.lastConnectionUpdateDate = uptime;
           this.wa.status = BotStatus.Online;
 
-          this.wa.id = fixID(this.wa.sock?.user?.id || "");
+          this.wa.id = fixID(this.wa.sock?.user?.id || '');
           this.wa.phoneNumber = getPhoneNumber(this.wa.id);
           this.wa.name =
             this.wa.sock?.user?.name ||
             this.wa.sock?.user?.notify ||
             this.wa.sock?.user?.verifiedName ||
-            "";
-          this.wa.profileUrl = this.wa.sock?.user?.imgUrl || "";
+            '';
+          this.wa.profileUrl = this.wa.sock?.user?.imgUrl || '';
 
           this.wa.readUser(
             { id: this.wa.id },
             {
               notify: this.wa.name || undefined,
               imgUrl: this.wa.profileUrl || undefined,
-            }
+            },
           );
           this.wa.readChat(
             { id: this.wa.id },
-            { subject: this.wa.name || undefined }
+            { subject: this.wa.name || undefined },
           );
 
-          this.wa.emit("open", { isNewLogin: update.isNewLogin || false });
+          this.wa.emit('open', { isNewLogin: update.isNewLogin || false });
 
           setTimeout(async () => {
             try {
@@ -341,7 +343,7 @@ export default class ConfigWAEvents {
 
               await this.wa.reconnect(true, false);
             } catch (error) {
-              this.wa.emit("error", error);
+              this.wa.emit('error', error);
             }
           }, this.wa.config.autoRestartInterval);
 
@@ -361,11 +363,11 @@ export default class ConfigWAEvents {
 
             if (this.wa.sock.ws.isOpen) return;
 
-            this.wa.sock.ev.emit("connection.update", {
-              connection: "close",
+            this.wa.sock.ev.emit('connection.update', {
+              connection: 'close',
               lastDisconnect: {
                 date: new Date(),
-                error: new Boom("Socket closed", {
+                error: new Boom('Socket closed', {
                   statusCode: DisconnectReason.connectionClosed,
                 }),
               },
@@ -377,7 +379,7 @@ export default class ConfigWAEvents {
           await this.wa.sock.groupFetchAllParticipating();
         }
 
-        if (update.connection == "close") {
+        if (update.connection == 'close') {
           this.wa.lastConnectionUpdateDate = Date.now();
           this.wa.status = BotStatus.Offline;
 
@@ -392,18 +394,18 @@ export default class ConfigWAEvents {
           }
 
           if (status === DisconnectReason.loggedOut) {
-            this.wa.emit("stop", { isLogout: true });
+            this.wa.emit('stop', { isLogout: true });
           } else if (status === 402) {
-            this.wa.emit("stop", { isLogout: false });
+            this.wa.emit('stop', { isLogout: false });
           } else if (status == DisconnectReason.restartRequired) {
             await this.wa.saveCreds(this.wa.sock.authState.creds);
             await this.wa.reconnect(true, true);
           } else {
-            this.wa.emit("close", { reason: status });
+            this.wa.emit('close', { reason: status });
           }
         }
       } catch (err) {
-        this.wa.emit("error", err);
+        this.wa.emit('error', err);
       }
     });
   }
@@ -411,15 +413,12 @@ export default class ConfigWAEvents {
   public configHistorySet() {
     const ignoreChats: string[] = [];
 
-    this.wa.sock.ev.on("messaging-history.set", async (update) => {
+    this.wa.sock.ev.on('messaging-history.set', async (update) => {
       if (!this.wa.config.autoSyncHistory) return;
 
       for (const chat of update.chats || []) {
         try {
-          if (
-            !chat?.hasOwnProperty("unreadCount") ||
-            chat.isDefaultSubgroup === true
-          ) {
+          if (!('unreadCount' in chat) || chat.isDefaultSubgroup === true) {
             ignoreChats.push(chat.id);
 
             continue;
@@ -427,7 +426,7 @@ export default class ConfigWAEvents {
 
           const isGroup = isJidGroup(chat.id);
 
-          if (!chat?.hasOwnProperty("pinned") || isGroup) {
+          if (!('pinned' in chat) || isGroup) {
             if (!isGroup) {
               ignoreChats.push(chat.id);
 
@@ -435,8 +434,8 @@ export default class ConfigWAEvents {
             }
 
             if (
-              chat?.hasOwnProperty("endOfHistoryTransferType") &&
-              !chat.hasOwnProperty("isDefaultSubgroup")
+              !('endOfHistoryTransferType' in chat) &&
+              !('isDefaultSubgroup' in chat)
             ) {
               ignoreChats.push(chat.id);
 
@@ -460,38 +459,38 @@ export default class ConfigWAEvents {
             await this.wa.readChat({ id: chat.id }, chat);
           }
         } catch (err) {
-          this.wa.emit("error", err);
+          this.wa.emit('error', err);
         }
       }
 
       for (const message of update?.messages || []) {
         try {
-          if (!message?.message || message.key.remoteJid == "status@broadcast")
+          if (!message?.message || message.key.remoteJid == 'status@broadcast')
             continue;
-          if (ignoreChats.includes(fixID(message.key.remoteJid || "")))
+          if (ignoreChats.includes(fixID(message.key.remoteJid || '')))
             continue;
 
           const msg = await new ConvertWAMessage(this.wa, message).get();
 
           msg.isOld = true;
 
-          this.wa.emit("message", msg);
+          this.wa.emit('message', msg);
         } catch (err) {
           const msg = new ErrorMessage(
-            fixID(message?.key?.remoteJid || ""),
-            err && err instanceof Error ? err : new Error(JSON.stringify(err))
+            fixID(message?.key?.remoteJid || ''),
+            err && err instanceof Error ? err : new Error(JSON.stringify(err)),
           );
 
           msg.isOld = true;
 
-          this.wa.emit("message", msg);
+          this.wa.emit('message', msg);
         }
       }
     });
   }
 
   public configContactsUpdate() {
-    this.wa.sock.ev.on("contacts.update", async (updates) => {
+    this.wa.sock.ev.on('contacts.update', async (updates) => {
       if (!this.wa.config.autoLoadContactInfo) return;
 
       for (const update of updates) {
@@ -502,14 +501,14 @@ export default class ConfigWAEvents {
             await this.wa.readUser({ id: update.id }, update);
           }
         } catch (err) {
-          this.wa.emit("error", err);
+          this.wa.emit('error', err);
         }
       }
     });
   }
 
   public configContactsUpsert() {
-    this.wa.sock.ev.on("contacts.upsert", async (updates) => {
+    this.wa.sock.ev.on('contacts.upsert', async (updates) => {
       if (!this.wa.config.autoLoadContactInfo) return;
 
       for (const update of updates) {
@@ -520,14 +519,14 @@ export default class ConfigWAEvents {
             await this.wa.readUser({ id: update.id }, update);
           }
         } catch (err) {
-          this.wa.emit("error", err);
+          this.wa.emit('error', err);
         }
       }
     });
   }
 
   public configGroupsUpdate() {
-    this.wa.sock.ev.on("groups.update", async (updates) => {
+    this.wa.sock.ev.on('groups.update', async (updates) => {
       if (!this.wa.config.autoLoadGroupInfo) return;
 
       for (const update of updates) {
@@ -542,46 +541,46 @@ export default class ConfigWAEvents {
             await this.wa.readChat({ id: update.id }, update, false);
           }
         } catch (err) {
-          this.wa.emit("error", err);
+          this.wa.emit('error', err);
         }
       }
     });
   }
 
   public configChatsDelete() {
-    this.wa.sock.ev.on("chats.delete", async (deletions) => {
+    this.wa.sock.ev.on('chats.delete', async (deletions) => {
       for (const id of deletions) {
         try {
           await this.wa.removeChat(new Chat(id));
         } catch (err) {
-          this.wa.emit("error", err);
+          this.wa.emit('error', err);
         }
       }
     });
   }
 
   public configCall() {
-    this.wa.sock.ev.on("call", async (events: WACallEvent[]) => {
+    this.wa.sock.ev.on('call', async (events: WACallEvent[]) => {
       for (const event of events || []) {
         try {
-          const chat = event.chatId || event.groupJid || event.from || "";
+          const chat = event.chatId || event.groupJid || event.from || '';
 
           let status: CallStatus;
 
           switch (event.status) {
-            case "offer":
+            case 'offer':
               status = CallStatus.Offer;
               break;
-            case "ringing":
+            case 'ringing':
               status = CallStatus.Ringing;
               break;
-            case "reject":
+            case 'reject':
               status = CallStatus.Reject;
               break;
-            case "accept":
+            case 'accept':
               status = CallStatus.Accept;
               break;
-            case "timeout":
+            case 'timeout':
               status = CallStatus.Timeout;
               break;
             default:
@@ -596,9 +595,9 @@ export default class ConfigWAEvents {
             latencyMs: event.latencyMs || 1,
           });
 
-          this.wa.emit("call", call);
+          this.wa.emit('call', call);
         } catch (err) {
-          this.wa.emit("error", err);
+          this.wa.emit('error', err);
         }
       }
     });

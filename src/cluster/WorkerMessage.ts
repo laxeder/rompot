@@ -1,32 +1,38 @@
-import { injectJSON } from "../utils/Generic";
-import IClient from "../client/IClient";
-import IBot from "../bot/IBot";
+import { injectJSON } from '../utils/Generic';
+import IClient from '../client/IClient';
+import IBot from '../bot/IBot';
 
 /** Tag da mensagem do worker */
 export enum WorkerMessageTag {
-  Void = "",
-  Error = "error",
-  Func = "func",
-  Result = "result",
-  Event = "event",
-  Patch = "patch",
+  Void = '',
+  Error = 'error',
+  Func = 'func',
+  Result = 'result',
+  Event = 'event',
+  Patch = 'patch',
 }
 
 /** Data da mensagem do worker */
-export type WorkerMessageData = { reason: string } | { name: string; arg: any } | { name: keyof IClient<IBot>; args: any[] } | { result: any } | { key: keyof IClient<IBot>; value: any } | {};
+export type WorkerMessageData =
+  | { reason: string }
+  | { name: string; arg: any }
+  | { name: keyof IClient<IBot>; args: any[] }
+  | { result: any }
+  | { key: keyof IClient<IBot>; value: any }
+  | any;
 
 /** Mensagem do worker */
 export default class WorkerMessage {
   /** Identificador único da mensagem */
-  public uid: string = "";
+  public uid: string = '';
   /** ID do cliente da mensagem */
-  public clientId: string = "";
+  public clientId: string = '';
   /** É de um cliente principal */
   public isMain: boolean = false;
   /** É uma mensagem para o processo principal */
   public isPrimary: boolean = false;
   /** ID da mensagem */
-  public id: string = "";
+  public id: string = '';
   /** Tag da mensagem */
   public tag: WorkerMessageTag;
   /** Data da mensagem */
@@ -34,7 +40,11 @@ export default class WorkerMessage {
   /** Auto cancela a mensagem acaso demore */
   public autoCancel: boolean;
 
-  constructor(tag: WorkerMessageTag = WorkerMessageTag.Void, data: WorkerMessageData = {}, autoCancel: boolean = true) {
+  constructor(
+    tag: WorkerMessageTag = WorkerMessageTag.Void,
+    data: WorkerMessageData = {},
+    autoCancel: boolean = true,
+  ) {
     this.tag = tag;
     this.data = data;
     this.autoCancel = autoCancel;
@@ -44,7 +54,7 @@ export default class WorkerMessage {
     const data: any = this.data || {};
 
     if (this.tag == WorkerMessageTag.Error) {
-      return { reason: data.reason || "" };
+      return { reason: data.reason || '' };
     }
 
     if (this.tag == WorkerMessageTag.Result) {
@@ -52,15 +62,15 @@ export default class WorkerMessage {
     }
 
     if (this.tag == WorkerMessageTag.Event) {
-      return { name: data.name || "", arg: data.arg };
+      return { name: data.name || '', arg: data.arg };
     }
 
     if (this.tag == WorkerMessageTag.Func) {
-      return { name: data.name || "", args: data.args || [] };
+      return { name: data.name || '', args: data.args || [] };
     }
 
     if (this.tag == WorkerMessageTag.Patch) {
-      return { key: data.key || "", value: data.value };
+      return { key: data.key || '', value: data.value };
     }
 
     return {};
@@ -71,7 +81,7 @@ export default class WorkerMessage {
   }
 
   public apply(data: Partial<WorkerMessage>): this {
-    if (typeof data != "object") {
+    if (typeof data != 'object') {
       return this;
     }
 
@@ -86,7 +96,7 @@ export default class WorkerMessage {
     const data: Record<string, any> = {};
 
     for (const key of Object.keys(this)) {
-      if (key == "toJSON") continue;
+      if (key == 'toJSON') continue;
 
       data[key] = this[key];
     }
@@ -97,13 +107,17 @@ export default class WorkerMessage {
   public static fromJSON(data: any): WorkerMessage {
     return injectJSON(
       JSON.parse(JSON.stringify(data), (_, value) => {
-        if (typeof value === "object" && !!value && (value.buffer === true || value.type === "Buffer")) {
+        if (
+          typeof value === 'object' &&
+          !!value &&
+          (value.buffer === true || value.type === 'Buffer')
+        ) {
           return Buffer.from(value.data || value.value || []);
         }
 
         return value;
       }),
-      new WorkerMessage()
+      new WorkerMessage(),
     );
   }
 }

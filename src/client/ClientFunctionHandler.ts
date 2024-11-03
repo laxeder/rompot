@@ -1,16 +1,26 @@
-import IClient from "./IClient";
-import IBot from "../bot/IBot";
+import IClient from './IClient';
+import IBot from '../bot/IBot';
 
 export default class ClientFunctionHandler<B extends IBot, T extends string> {
   /** Todas funções */
   public awaiting: Function[] = [];
 
-  constructor(public client: IClient<B>, public functions: Record<T, Function[]>) {}
+  constructor(
+    public client: IClient<B>,
+    public functions: Record<T, Function[]>,
+  ) {}
 
-  public async exec<F extends (...args: any[]) => any>(row: T, func: F, ...args: Parameters<F>): Promise<Awaited<ReturnType<F>>> {
+  public async exec<F extends (...args: any[]) => any>(
+    row: T,
+    func: F,
+    ...args: Parameters<F>
+  ): Promise<Awaited<ReturnType<F>>> {
     await this.await(row);
 
-    const getResult = async (count: number = 0, error: unknown = undefined): Promise<[Awaited<ReturnType<F>> | undefined, unknown]> => {
+    const getResult = async (
+      count: number = 0,
+      error: unknown = undefined,
+    ): Promise<[Awaited<ReturnType<F>> | undefined, unknown]> => {
       try {
         if (count >= this.client.config.maxRequests) return [undefined, error];
 
@@ -18,7 +28,9 @@ export default class ClientFunctionHandler<B extends IBot, T extends string> {
 
         return [await func.bind(this.client.bot)(...args), undefined];
       } catch (error) {
-        await new Promise((res) => setTimeout(res, this.client.config.requestsDelay));
+        await new Promise((res) =>
+          setTimeout(res, this.client.config.requestsDelay),
+        );
 
         return await getResult(count + 1, error);
       }

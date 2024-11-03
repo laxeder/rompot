@@ -1,6 +1,6 @@
-import Chat from "../modules/chat/Chat";
-import Message, { MessageType } from "./Message";
-import { injectJSON } from "../utils/Generic";
+import Chat from '../modules/chat/Chat';
+import Message, { MessageType } from './Message';
+import { injectJSON } from '../utils/Generic';
 
 /**
  * Mensagem customizada.
@@ -20,9 +20,9 @@ export default class CustomMessage<T extends any = unknown> extends Message {
   constructor(
     chat?: Chat | string,
     content?: T,
-    others: Partial<CustomMessage<T>> = {}
+    others: Partial<CustomMessage<T>> = {},
   ) {
-    super(chat, "");
+    super(chat, '');
 
     this.content = content || ({} as T);
 
@@ -37,7 +37,7 @@ export default class CustomMessage<T extends any = unknown> extends Message {
     const data: Record<string, any> = {};
 
     for (const key of Object.keys(this)) {
-      if (key == "toJSON") continue;
+      if (key == 'toJSON') continue;
 
       data[key] = this[key];
     }
@@ -52,9 +52,9 @@ export default class CustomMessage<T extends any = unknown> extends Message {
    */
   public static fromJSON<T extends any>(data: any): CustomMessage<T> {
     return Message.fix(
-      !data || typeof data != "object"
+      !data || typeof data != 'object'
         ? new CustomMessage()
-        : injectJSON(data, new CustomMessage())
+        : injectJSON(data, new CustomMessage()),
     );
   }
 
@@ -64,7 +64,7 @@ export default class CustomMessage<T extends any = unknown> extends Message {
    * @returns Verdadeiro se o objeto for uma instância válida de CustomMessage, caso contrário, falso.
    */
   public static isValid<T extends any>(
-    message: any
+    message: any,
   ): message is CustomMessage<T> {
     return Message.isValid(message) && message?.type == MessageType.Custom;
   }

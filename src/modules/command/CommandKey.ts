@@ -1,5 +1,5 @@
-import ICommandControllerConfig from "./ICommandControllerConfig";
-import { CMDKeyType } from "./CommandEnums";
+import ICommandControllerConfig from './ICommandControllerConfig';
+import { CMDKeyType } from './CommandEnums';
 
 export default class CommandKey {
   /** Tipo da chave */
@@ -15,14 +15,18 @@ export default class CommandKey {
    * Procura pela chave em um texto
    * @return retorna se a chave foi encontrada
    */
-  public static search(text: string, config: ICommandControllerConfig, ...keys: CommandKey[]): CommandKey | null {
-    if (!!config.prefix) {
+  public static search(
+    text: string,
+    config: ICommandControllerConfig,
+    ...keys: CommandKey[]
+  ): CommandKey | null {
+    if (config.prefix) {
       if (!text.startsWith(config.prefix)) return null;
 
-      text = text.replace(config.prefix, "").trim();
+      text = text.replace(config.prefix, '').trim();
     }
 
-    if (!!config.lowerCase) {
+    if (config.lowerCase) {
       text = text.toLowerCase();
       keys = keys.map((key) => {
         key.values = key.values.map((value) => value.toLowerCase());
@@ -42,7 +46,7 @@ export default class CommandKey {
       let key = result[0];
 
       for (const res of result) {
-        if (res.values.join("").length < key.values.join("").length) continue;
+        if (res.values.join('').length < key.values.join('').length) continue;
 
         key = res;
       }
@@ -71,7 +75,7 @@ export default class CommandKey {
     for (const key of keys) {
       if (!result.startsWith(key)) return false;
 
-      result = result.replace(key, "").trim();
+      result = result.replace(key, '').trim();
     }
 
     return true;

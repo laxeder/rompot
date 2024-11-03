@@ -1,75 +1,75 @@
-import Chat from "../modules/chat/Chat";
-import User from "../modules/user/User";
+import Chat from '../modules/chat/Chat';
+import User from '../modules/user/User';
 
-import { ClientUtils } from "../utils/ClientUtils";
-import { injectJSON } from "../utils/Generic";
+import { ClientUtils } from '../utils/ClientUtils';
+import { injectJSON } from '../utils/Generic';
 
 /**
  * Tipo da mensagem
  */
 export enum MessageType {
-  Empty = "empty",
-  Error = "error",
-  Text = "text",
-  Media = "media",
-  File = "file",
-  Video = "video",
-  Image = "image",
-  Audio = "audio",
-  Sticker = "sticker",
-  Reaction = "reaction",
-  Contact = "contact",
-  Location = "location",
-  Poll = "poll",
-  PollUpdate = "pollUpdate",
-  List = "list",
-  Button = "button",
-  TemplateButton = "templateButton",
-  Custom = "customButton",
+  Empty = 'empty',
+  Error = 'error',
+  Text = 'text',
+  Media = 'media',
+  File = 'file',
+  Video = 'video',
+  Image = 'image',
+  Audio = 'audio',
+  Sticker = 'sticker',
+  Reaction = 'reaction',
+  Contact = 'contact',
+  Location = 'location',
+  Poll = 'poll',
+  PollUpdate = 'pollUpdate',
+  List = 'list',
+  Button = 'button',
+  TemplateButton = 'templateButton',
+  Custom = 'customButton',
 }
 
 /**
  * Status da mensagem
  */
 export enum MessageStatus {
-  Error = "ERROR",
-  Sending = "SENDING",
-  Sended = "SENDED",
-  Received = "RECEIVED",
-  Readed = "READED",
-  Played = "PLAYED",
+  Error = 'ERROR',
+  Sending = 'SENDING',
+  Sended = 'SENDED',
+  Received = 'RECEIVED',
+  Readed = 'READED',
+  Played = 'PLAYED',
 }
 
 /** Plataforma de onde foi enviado uma mensagem */
 export enum MessagePlataform {
-  Android = "android",
-  Ios = "ios",
-  Web = "web",
-  Desktop = "desktop",
-  Unknown = "unknown",
+  Android = 'android',
+  Ios = 'ios',
+  Web = 'web',
+  Desktop = 'desktop',
+  Unknown = 'unknown',
 }
 
 export default class Message {
   /** ID do bot associado a esta mensagem */
-  public botId: string = "";
+  public botId: string = '';
   /** ID do cliente associado a esta mensagem */
-  public clientId: string = "";
+  public clientId: string = '';
   /** Tipo da mensagem */
   public type: MessageType = MessageType.Text;
   /** Sala de bate-papo que foi enviada a mensagem */
-  public chat: Chat = new Chat("");
+  public chat: Chat = new Chat('');
   /** Usuário que mandou a mensagem */
-  public user: User = new User("");
+  public user: User = new User('');
   /** Texto da mensagem */
-  public text: string = "";
+  public text: string = '';
   /** Mensagem mencionada na mensagem */
   public mention?: Message | undefined = undefined;
   /** ID da mensagem */
-  public id: string = "";
+  public id: string = '';
   /** Mensagem enviada pelo bot */
   public fromMe: boolean = false;
   /** Opção selecionada */
-  public selected: string = "";
+  public selected: string = '';
   /** Usuários mencionados na mensagem */
   public mentions: string[] = [];
   /** Tempo em que a mensagem foi enviada */
@@ -94,12 +94,12 @@ export default class Message {
   public extra: Record<string, any> = {};
 
   constructor(
-    chat: Chat | string = "",
-    text: string = "",
-    others: Partial<Message> = {}
+    chat: Chat | string = '',
+    text: string = '',
+    others: Partial<Message> = {},
   ) {
-    this.text = text || "";
-    this.chat = Chat.apply(chat || "");
+    this.text = text || '';
+    this.chat = Chat.apply(chat || '');
 
     this.inject(others);
   }
@@ -152,13 +152,13 @@ export default class Message {
   public addAnimatedReaction(
     reactions: string[],
     interval?: number,
-    maxTimeout?: number
+    maxTimeout?: number,
   ): (reactionStop?: string) => Promise<void> {
     return ClientUtils.getClient(this.clientId).addAnimatedReaction(
       this,
       reactions,
       interval,
-      maxTimeout
+      maxTimeout,
     );
   }
 
@@ -194,7 +194,7 @@ export default class Message {
     const data: Record<string, any> = {};
 
     for (const key of Object.keys(this)) {
-      if (key == "toJSON") continue;
+      if (key == 'toJSON') continue;
 
       data[key] = this[key];
     }
@@ -209,9 +209,9 @@ export default class Message {
    */
   public static fromJSON(data: any): Message {
     return Message.fix(
-      !data || typeof data != "object"
+      !data || typeof data != 'object'
         ? new Message()
-        : injectJSON(data, new Message(), false, true)
+        : injectJSON(data, new Message(), false, true),
     );
   }
 
@@ -233,8 +233,8 @@ export default class Message {
    * @returns Uma instância de Message com os dados passados.
    */
   public static apply(message: Message | string, data?: Partial<Message>) {
-    if (!message || typeof message != "object") {
-      message = new Message("", `${message}`);
+    if (!message || typeof message != 'object') {
+      message = new Message('', `${message}`);
     }
 
     message.inject(data || {});
@@ -249,8 +249,8 @@ export default class Message {
    */
   public static isValid(message: any): message is Message {
     return (
-      typeof message === "object" &&
-      Object.keys(new Message()).every((key) => message?.hasOwnProperty(key))
+      typeof message === 'object' &&
+      Object.keys(new Message()).every((key) => key in message)
     );
   }
 }

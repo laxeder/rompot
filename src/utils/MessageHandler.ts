@@ -1,4 +1,4 @@
-import Message from "../messages/Message";
+import Message from '../messages/Message';
 
 /**
  * Mensagem a ser tratada
@@ -32,8 +32,11 @@ export default class MessageHandler {
    * @param config - As configurações do tratamento personalizado.
    * @returns Uma promessa que resolve com a mensagem.
    */
-  public async addMessage(chatId: string, config: Partial<MessageHandlerConfig>): Promise<Message> {
-    if (!this.messages.hasOwnProperty(chatId)) {
+  public async addMessage(
+    chatId: string,
+    config: Partial<MessageHandlerConfig>,
+  ): Promise<Message> {
+    if (!(chatId in this.messages)) {
       this.messages[chatId] = [];
     }
 
@@ -54,7 +57,7 @@ export default class MessageHandler {
   public resolveMessage(message: Message): boolean {
     const chatId: string = message.chat.id!;
 
-    if (!chatId || !this.messages.hasOwnProperty(chatId)) return false;
+    if (!chatId || !(chatId in this.messages)) return false;
 
     let stopRead: boolean = false;
 
@@ -94,7 +97,9 @@ export default class MessageHandler {
    * @param messages - Um conjunto de mensagens a serem ignoradas.
    * @returns Uma função que verifica se uma mensagem deve ser ignorada.
    */
-  public static ignoreMessages(...messages: Message[]): (message: Message) => boolean {
+  public static ignoreMessages(
+    ...messages: Message[]
+  ): (message: Message) => boolean {
     return (message) => messages.some((msg) => msg.id == message.id);
   }
 }
