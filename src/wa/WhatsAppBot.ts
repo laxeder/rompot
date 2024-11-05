@@ -551,7 +551,9 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async setChatName(chat: Chat, name: string) {
     if (!isJidGroup(chat.id)) return;
 
-    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
+    const admins = await this.getChatAdmins(chat);
+
+    if (admins.length && !admins.includes(this.id)) return;
 
     await this.sock.groupUpdateSubject(chat.id, name);
   }
@@ -566,7 +568,9 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   ): Promise<any> {
     if (!isJidGroup(chat.id)) return;
 
-    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
+    const admins = await this.getChatAdmins(chat);
+
+    if (admins.length && !admins.includes(this.id)) return;
 
     await this.sock.groupUpdateDescription(chat.id, description);
   }
@@ -593,7 +597,9 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async setChatProfile(chat: Chat, image: Buffer) {
     if (!isJidGroup(chat.id)) return;
 
-    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
+    const admins = await this.getChatAdmins(chat);
+
+    if (admins.length && !admins.includes(this.id)) return;
 
     await this.sock.updateProfilePicture(chat.id, image);
   }
@@ -662,6 +668,18 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   }
 
   public async getChatAdmins(chat: Chat): Promise<string[]> {
+    const chatReaded = await this.getChat(chat);
+
+    if (!chatReaded) return [];
+
+    if (chatReaded.admins?.length) {
+      return chatReaded.admins || [];
+    }
+
+    if (chatReaded.type !== ChatType.Group) return [];
+
+    await this.readChat(chat);
+
     return (await this.getChat(chat))?.admins || [];
   }
 
@@ -672,7 +690,9 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async addUserInChat(chat: Chat, user: User) {
     if (!isJidGroup(chat.id)) return;
 
-    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
+    const admins = await this.getChatAdmins(chat);
+
+    if (admins.length && !admins.includes(this.id)) return;
 
     await this.sock.groupParticipantsUpdate(chat.id, [user.id], 'add');
   }
@@ -680,7 +700,9 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async removeUserInChat(chat: Chat, user: User) {
     if (!isJidGroup(chat.id)) return;
 
-    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
+    const admins = await this.getChatAdmins(chat);
+
+    if (admins.length && !admins.includes(this.id)) return;
 
     await this.sock.groupParticipantsUpdate(chat.id, [user.id], 'remove');
   }
@@ -688,7 +710,9 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async promoteUserInChat(chat: Chat, user: User): Promise<void> {
     if (!isJidGroup(chat.id)) return;
 
-    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
+    const admins = await this.getChatAdmins(chat);
+
+    if (admins.length && !admins.includes(this.id)) return;
 
     await this.sock.groupParticipantsUpdate(chat.id, [user.id], 'promote');
   }
@@ -696,7 +720,9 @@ export default class WhatsAppBot extends BotEvents implements IBot {
   public async demoteUserInChat(chat: Chat, user: User): Promise<void> {
     if (!isJidGroup(chat.id)) return;
 
-    if (!(await this.getChatAdmins(chat)).includes(this.id)) return;
+    const admins = await this.getChatAdmins(chat);
+
+    if (admins.length && !admins.includes(this.id)) return;
 
     await this.sock.groupParticipantsUpdate(chat.id, [user.id], 'demote');
   }
@@ -730,14 +756,22 @@ export default class WhatsAppBot extends BotEvents implements IBot {
 
   public async getChatInvite(chat: Chat): Promise<string> {
     if (!isJidGroup(chat.id)) return '';
-    if (!(await this.getChatAdmins(chat)).includes(this.id)) return '';
+
+    // TODO: Return undefined if user is not admin
+
+    const admins = await this.getChatAdmins(chat);
+
+    if (admins.length && !admins.includes(this.id)) return '';
 
     return (await this.sock.groupInviteCode(chat.id)) || '';
   }
 
   public async revokeChatInvite(chat: Chat): Promise<string> {
     if (!isJidGroup(chat.id)) return '';
-    if (!(await this.getChatAdmins(chat)).includes(this.id)) return '';
+
+    const admins = await this.getChatAdmins(chat);
+
+    if (admins.length && !admins.includes(this.id)) return '';
 
     return (await this.sock.groupRevokeInvite(chat.id)) || '';
   }
@@ -939,12 +973,11 @@ export default class WhatsAppBot extends BotEvents implements IBot {
         : undefined,
     };
 
-    if (
-      key.participant &&
-      key.participant != this.id &&
-      !(await this.getChatAdmins(message.chat)).includes(this.id)
-    )
-      return;
+    if (key.participant && key.participant != this.id) {
+      const admins = await this.getChatAdmins(message.chat);
+
+      if (admins.length && !admins.includes(this.id)) return;
+    }
 
     await this.sock.sendMessage(message.chat.id, { delete: key });
   }
